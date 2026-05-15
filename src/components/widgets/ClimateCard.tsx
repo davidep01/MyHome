@@ -73,18 +73,18 @@ export function ClimateCard({ entityId, label, className }: ClimateCardProps) {
           <div className="flex items-center gap-1">
             <button
               onClick={() => adjust(-0.5)}
-              className="flex h-7 w-7 items-center justify-center rounded-full bg-white/8 hover:bg-white/14 transition-colors"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-white/8 hover:bg-white/14 transition-colors active:scale-90"
             >
-              <ChevronDown size={14} className="text-white/70" />
+              <ChevronDown size={16} className="text-white/70" />
             </button>
             <span className="text-lg font-semibold text-white w-12 text-center">
               {targetTemp}°
             </span>
             <button
               onClick={() => adjust(0.5)}
-              className="flex h-7 w-7 items-center justify-center rounded-full bg-white/8 hover:bg-white/14 transition-colors"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-white/8 hover:bg-white/14 transition-colors active:scale-90"
             >
-              <ChevronUp size={14} className="text-white/70" />
+              <ChevronUp size={16} className="text-white/70" />
             </button>
           </div>
         )}

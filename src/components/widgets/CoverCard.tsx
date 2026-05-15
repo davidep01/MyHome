@@ -1,9 +1,10 @@
 import { ChevronUp, ChevronDown, Minus } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { GlassCard } from '../glass/GlassCard'
 import { useHAEntity } from '../../hooks/useHAEntity'
 import { useHAService } from '../../hooks/useHAService'
 import { useHaptic } from '../../hooks/useHaptic'
-import { tokens } from '../../design/tokens'
+import { framerSpringBounce, tokens } from '../../design/tokens'
 import { cn } from '../../lib/utils'
 
 interface CoverCardProps {
@@ -26,10 +27,9 @@ export function CoverCard({ entityId, label, className }: CoverCardProps) {
   const stop = () => { light(); call('cover', 'stop_cover', { entity_id: entityId }) }
 
   return (
-    <GlassCard className={cn('flex flex-col gap-3 min-h-[120px]', className)}>
+    <GlassCard className={cn('flex flex-col gap-3 min-h-[140px]', className)}>
       <div className="flex items-start justify-between">
         <div className="flex h-10 w-10 items-center justify-center rounded-[14px] bg-white/8">
-          {/* Shutter icon */}
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
             stroke={isOpen ? tokens.accent.blue : 'rgba(255,255,255,0.3)'}
             strokeWidth="2" strokeLinecap="round">
@@ -45,27 +45,30 @@ export function CoverCard({ entityId, label, className }: CoverCardProps) {
       </div>
 
       <div className="mt-auto">
-        <p className="text-sm font-medium text-white/90 mb-2">{label}</p>
+        <p className="text-sm font-medium text-white/90 mb-3">{label}</p>
         <div className="flex gap-2">
           {[
             { icon: ChevronUp, action: open, label: 'Su', disabled: position === 100 },
             { icon: Minus, action: stop, label: 'Stop', disabled: false },
             { icon: ChevronDown, action: close, label: 'Giù', disabled: position === 0 },
           ].map(({ icon: Icon, action, label: btnLabel, disabled }) => (
-            <button
+            <motion.button
               key={btnLabel}
               onClick={action}
               disabled={disabled || unavailable}
+              whileTap={!disabled && !unavailable ? { scale: 0.91 } : undefined}
+              transition={framerSpringBounce}
+              // min 44px touch target height
               className={cn(
-                'flex flex-1 items-center justify-center gap-1 rounded-[10px] py-1.5 text-xs font-medium transition-all',
+                'flex flex-1 flex-col items-center justify-center gap-1 rounded-[12px] min-h-[44px] py-2 text-xs font-medium transition-all',
                 disabled || unavailable
                   ? 'bg-white/5 text-white/20 cursor-not-allowed'
-                  : 'bg-white/10 text-white/70 hover:bg-white/16 hover:text-white active:scale-95',
+                  : 'bg-white/10 text-white/70 hover:bg-white/16 hover:text-white',
               )}
             >
-              <Icon size={12} />
-              {btnLabel}
-            </button>
+              <Icon size={14} />
+              <span>{btnLabel}</span>
+            </motion.button>
           ))}
         </div>
       </div>

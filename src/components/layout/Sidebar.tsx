@@ -1,10 +1,11 @@
 import { motion } from 'framer-motion'
-import { Home, Wifi, WifiOff, Lightbulb } from 'lucide-react'
-import { rooms } from '../../config/rooms'
+import { Home, Wifi, WifiOff, Lightbulb, Settings } from 'lucide-react'
 import { useUIStore } from '../../store/ui'
 import { useEntityStore } from '../../store/entities'
 import { useHAConnected } from '../../hooks/useHAEntity'
+import { useRooms } from '../../hooks/useRooms'
 import { cn } from '../../lib/utils'
+import { withAllRoom } from '../../lib/rooms'
 
 const roomIcons: Record<string, React.ElementType> = {
   home: Home,
@@ -43,8 +44,12 @@ const roomIcons: Record<string, React.ElementType> = {
 export function Sidebar() {
   const activeRoom = useUIStore((s) => s.activeRoom)
   const setActiveRoom = useUIStore((s) => s.setActiveRoom)
+  const activeView = useUIStore((s) => s.activeView)
+  const setActiveView = useUIStore((s) => s.setActiveView)
   const connected = useHAConnected()
   const entities = useEntityStore((s) => s.entities)
+  const { data } = useRooms()
+  const rooms = withAllRoom(data)
 
   const lightsOn = Object.values(entities).filter(
     (e) => e.entity_id.startsWith('light.') && e.state === 'on',
@@ -84,13 +89,16 @@ export function Sidebar() {
       <div className="space-y-1 flex-1">
         {rooms.map((room) => {
           const Icon = roomIcons[room.icon] ?? Home
-          const isActive = activeRoom === room.id
+          const isActive = activeView === 'dashboard' && activeRoom === room.id
           return (
             <motion.button
               key={room.id}
-              onClick={() => setActiveRoom(room.id)}
+              onClick={() => {
+                setActiveView('dashboard')
+                setActiveRoom(room.id)
+              }}
               className={cn(
-                'flex w-full items-center gap-2.5 rounded-[14px] px-3 py-2.5 text-sm font-medium transition-all',
+                'flex w-full items-center gap-2.5 rounded-[14px] px-3 min-h-[44px] text-sm font-medium transition-all',
                 isActive
                   ? 'bg-white/12 text-white'
                   : 'text-white/50 hover:bg-white/6 hover:text-white/80',
@@ -103,6 +111,20 @@ export function Sidebar() {
           )
         })}
       </div>
+
+      <motion.button
+        onClick={() => setActiveView('settings')}
+        className={cn(
+          'flex w-full items-center gap-2.5 rounded-[14px] px-3 min-h-[44px] text-sm font-medium transition-all',
+          activeView === 'settings'
+            ? 'bg-white/12 text-white'
+            : 'text-white/50 hover:bg-white/6 hover:text-white/80',
+        )}
+        whileTap={{ scale: 0.97 }}
+      >
+        <Settings size={18} />
+        <span>Impostazioni</span>
+      </motion.button>
     </nav>
   )
 }

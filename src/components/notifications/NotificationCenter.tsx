@@ -91,7 +91,7 @@ export function NotificationBell() {
   return (
     <>
       <motion.button
-        className="relative flex h-9 w-9 items-center justify-center rounded-[12px] bg-white/8 hover:bg-white/12 transition-colors"
+        className="relative flex h-11 w-11 items-center justify-center rounded-[14px] bg-white/8 hover:bg-white/12 transition-colors"
         onClick={() => setOpen(true)}
         whileTap={{ scale: 0.92 }}
         transition={framerSpring}

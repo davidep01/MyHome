@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Lightbulb } from 'lucide-react'
 import { GlassCard } from '../glass/GlassCard'
 import { GlassSheet } from '../glass/GlassSheet'
+import { DragSlider } from '../glass/DragSlider'
 import { useHAEntity } from '../../hooks/useHAEntity'
 import { useHAService } from '../../hooks/useHAService'
 import { useHaptic } from '../../hooks/useHaptic'
@@ -106,20 +107,13 @@ export function LightCard({ entityId, label, className }: LightCardProps) {
             </div>
           </div>
 
-          <div className="space-y-3">
-            <div className="flex justify-between text-sm">
-              <span className="text-white/60">Intensità</span>
-              <span className="text-white font-medium">{brightness}%</span>
-            </div>
-            <input
-              type="range"
-              min={0}
-              max={100}
-              value={brightness}
-              onChange={(e) => setBrightness(Number(e.target.value))}
-              className="w-full h-2 rounded-full accent-blue-500 bg-white/10"
-            />
-          </div>
+          <DragSlider
+            value={brightness}
+            onChange={setBrightness}
+            onChangeEnd={setBrightness}
+            color="#3b82f6"
+            label="Intensità"
+          />
 
           <div className="grid grid-cols-3 gap-2">
             {[25, 50, 75, 100].map((pct) => (

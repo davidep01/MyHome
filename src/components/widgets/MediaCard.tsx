@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Music2, SkipBack, Play, Pause, SkipForward, Volume2, Radio } from 'lucide-react'
+import { DragSlider } from '../glass/DragSlider'
 import { motion } from 'framer-motion'
 import { GlassCard } from '../glass/GlassCard'
 import { GlassSheet } from '../glass/GlassSheet'
@@ -159,19 +160,25 @@ export function MediaCard({ entityId, label, className }: MediaCardProps) {
           {/* Progress */}
           {duration > 0 && <ProgressBar position={livePosition} duration={duration} />}
 
-          {/* Controls */}
-          <div className="flex items-center justify-center gap-6">
-            <button onClick={prev} className="text-white/50 hover:text-white transition-colors">
-              <SkipBack size={18} />
+          {/* Controls — min 44×44px per touch target HIG */}
+          <div className="flex items-center justify-center gap-2">
+            <button
+              onClick={prev}
+              className="flex h-11 w-11 items-center justify-center rounded-full text-white/50 hover:text-white hover:bg-white/8 transition-all active:scale-90"
+            >
+              <SkipBack size={20} />
             </button>
             <button
               onClick={playPause}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/15 hover:bg-white/20 transition-all active:scale-95"
+              className="flex h-12 w-12 items-center justify-center rounded-full bg-white/15 hover:bg-white/22 transition-all active:scale-90"
             >
-              {isPlaying ? <Pause size={18} className="text-white" /> : <Play size={18} className="text-white" />}
+              {isPlaying ? <Pause size={20} className="text-white" /> : <Play size={20} className="text-white" />}
             </button>
-            <button onClick={next} className="text-white/50 hover:text-white transition-colors">
-              <SkipForward size={18} />
+            <button
+              onClick={next}
+              className="flex h-11 w-11 items-center justify-center rounded-full text-white/50 hover:text-white hover:bg-white/8 transition-all active:scale-90"
+            >
+              <SkipForward size={20} />
             </button>
           </div>
         </div>
@@ -184,14 +191,11 @@ export function MediaCard({ entityId, label, className }: MediaCardProps) {
             <Volume2 size={18} className="text-white/50" />
             <span className="text-lg font-semibold text-white">{Math.round(volume * 100)}%</span>
           </div>
-          <input
-            type="range"
-            min={0}
-            max={1}
-            step={0.01}
-            value={volume}
-            onChange={(e) => setVolume(Number(e.target.value))}
-            className="w-full h-2 rounded-full accent-white bg-white/10"
+          <DragSlider
+            value={Math.round(volume * 100)}
+            onChange={(v) => setVolume(v / 100)}
+            onChangeEnd={(v) => setVolume(v / 100)}
+            color="rgba(255,255,255,0.8)"
           />
           <div className="grid grid-cols-4 gap-2">
             {[25, 50, 75, 100].map((pct) => (
