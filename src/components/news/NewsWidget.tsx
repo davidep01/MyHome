@@ -12,7 +12,7 @@ function timeAgo(dateStr: string): string {
 }
 
 export function NewsWidget() {
-  const { data: articles, isLoading } = useNews()
+  const { data: articles, isLoading, error } = useNews()
 
   if (isLoading) {
     return (
@@ -24,7 +24,9 @@ export function NewsWidget() {
 
   if (!articles?.length) {
     return (
-      <p className="text-xs text-white/30 text-center py-6">Nessuna notizia</p>
+      <p className="text-xs text-white/30 text-center py-6">
+        {error instanceof Error ? error.message : 'Nessuna notizia'}
+      </p>
     )
   }
 

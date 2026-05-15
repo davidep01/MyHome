@@ -5,7 +5,7 @@ import { tokens } from '../../design/tokens'
 const DAYS = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab']
 
 export function WeatherWidget() {
-  const { data: current, isLoading: loadingCurrent } = useCurrentWeather()
+  const { data: current, isLoading: loadingCurrent, error } = useCurrentWeather()
   const { data: forecast } = useWeatherForecast()
 
   if (loadingCurrent) {
@@ -20,7 +20,9 @@ export function WeatherWidget() {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-2">
         <Thermometer size={24} className="text-white/20" />
-        <p className="text-xs text-white/30">Meteo non disponibile</p>
+        <p className="text-xs text-white/30 text-center">
+          {error instanceof Error ? error.message : 'Meteo non disponibile'}
+        </p>
       </div>
     )
   }
