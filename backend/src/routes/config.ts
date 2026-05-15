@@ -4,19 +4,33 @@ import type { AppConfig } from '../db/types.js'
 
 export const configRouter = new Hono()
 
+function envValue(key: string): string {
+  const value = process.env[key] ?? ''
+  return value.startsWith('your_') ? '' : value
+}
+
+function haConfig() {
+  const { config } = db.read()
+  return {
+    haUrl: config.haUrl || envValue('VITE_HA_URL') || 'http://homeassistant.local:8123',
+    haToken: config.haToken || envValue('HA_TOKEN') || envValue('VITE_HA_TOKEN'),
+  }
+}
+
 configRouter.get('/', (c) => {
   const { config } = db.read()
+  const ha = haConfig()
   // Never return the HA token in plaintext — mask it
   return c.json({
     ...config,
-    haToken: config.haToken ? '***' : '',
+    haUrl: ha.haUrl,
+    haToken: ha.haToken ? '***' : '',
   })
 })
 
 // Separate endpoint to read full token (for internal use / WS connection)
 configRouter.get('/ha-credentials', (c) => {
-  const { config } = db.read()
-  return c.json({ haUrl: config.haUrl, haToken: config.haToken })
+  return c.json(haConfig())
 })
 
 configRouter.put('/', async (c) => {

@@ -12,6 +12,7 @@ import { roomsRouter } from './routes/rooms.js'
 import { entitiesRouter } from './routes/entities.js'
 import { weatherRouter } from './routes/weather.js'
 import { newsRouter } from './routes/news.js'
+import { haRouter } from './routes/ha.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const PORT = Number(process.env.PORT ?? 3001)
@@ -28,6 +29,7 @@ app.route('/api/rooms', roomsRouter)
 app.route('/api/rooms/:roomId/entities', entitiesRouter)
 app.route('/api/weather', weatherRouter)
 app.route('/api/news', newsRouter)
+app.route('/api/ha', haRouter)
 
 // Health check
 app.get('/api/health', (c) => c.json({ status: 'ok', ts: Date.now() }))
