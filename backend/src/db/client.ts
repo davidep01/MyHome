@@ -13,6 +13,7 @@ const DEFAULT_DB: DbStore = {
     haToken: '',
     weatherCity: 'Milan,IT',
     newsCategory: 'technology',
+    newsFeedUrl: 'https://www.ansa.it/sito/ansait_rss.xml',
     userName: 'Davide',
     dashboardName: 'MyHome',
   },
@@ -65,6 +66,7 @@ class JsonStore {
       this.persist()
       console.log(`✅ DB created with default data at ${DB_PATH}`)
     }
+    this.migrate()
   }
 
   read(): DbStore {
@@ -78,6 +80,17 @@ class JsonStore {
 
   private persist(): void {
     writeFileSync(DB_PATH, JSON.stringify(this.data, null, 2), 'utf-8')
+  }
+
+  private migrate(): void {
+    let changed = false
+
+    if (!this.data.config.newsFeedUrl) {
+      this.data.config.newsFeedUrl = DEFAULT_DB.config.newsFeedUrl
+      changed = true
+    }
+
+    if (changed) this.persist()
   }
 }
 

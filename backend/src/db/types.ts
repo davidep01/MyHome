@@ -20,6 +20,7 @@ export interface AppConfig {
   haToken: string
   weatherCity: string
   newsCategory: string
+  newsFeedUrl: string
   userName: string
   dashboardName: string
 }

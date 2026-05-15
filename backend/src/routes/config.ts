@@ -26,6 +26,7 @@ configRouter.put('/', async (c) => {
     if (body.haToken !== undefined && body.haToken !== '***') store.config.haToken = body.haToken
     if (body.weatherCity !== undefined) store.config.weatherCity = body.weatherCity
     if (body.newsCategory !== undefined) store.config.newsCategory = body.newsCategory
+    if (body.newsFeedUrl !== undefined) store.config.newsFeedUrl = body.newsFeedUrl
     if (body.userName !== undefined) store.config.userName = body.userName
     if (body.dashboardName !== undefined) store.config.dashboardName = body.dashboardName
   })

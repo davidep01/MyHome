@@ -5,7 +5,8 @@
     "weatherCity": "Milan,IT",
     "newsCategory": "technology",
     "userName": "Davide",
-    "dashboardName": "MyHome"
+    "dashboardName": "MyHome",
+    "newsFeedUrl": "https://www.ansa.it/sito/ansait_rss.xml"
   },
   "rooms": [
     {

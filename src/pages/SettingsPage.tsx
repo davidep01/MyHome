@@ -49,7 +49,7 @@ function PreferencesSection() {
     userName: config?.userName ?? '',
     dashboardName: config?.dashboardName ?? '',
     weatherCity: config?.weatherCity ?? '',
-    newsCategory: config?.newsCategory ?? 'technology',
+    newsFeedUrl: config?.newsFeedUrl ?? '',
   })
 
   useEffect(() => {
@@ -58,7 +58,7 @@ function PreferencesSection() {
       userName: config.userName,
       dashboardName: config.dashboardName,
       weatherCity: config.weatherCity,
-      newsCategory: config.newsCategory,
+      newsFeedUrl: config.newsFeedUrl,
     })
   }, [config])
 
@@ -81,18 +81,7 @@ function PreferencesSection() {
       {field('userName', 'Il tuo nome', 'es. Davide')}
       {field('dashboardName', 'Nome dashboard', 'MyHome')}
       {field('weatherCity', 'Città meteo', 'es. Milan,IT')}
-      <div className="space-y-1.5">
-        <label className="text-xs font-medium text-white/50">Categoria news</label>
-        <select
-          value={form.newsCategory}
-          onChange={(e) => setForm((f) => ({ ...f, newsCategory: e.target.value }))}
-          className="w-full rounded-[12px] bg-white/8 px-3 py-3 text-sm text-white outline-none focus:bg-white/12 transition-colors min-h-[44px]"
-        >
-          {['technology', 'general', 'business', 'science', 'health', 'sports', 'entertainment'].map((c) => (
-            <option key={c} value={c} className="bg-gray-900">{c}</option>
-          ))}
-        </select>
-      </div>
+      {field('newsFeedUrl', 'Feed RSS news', 'https://www.ansa.it/sito/ansait_rss.xml')}
       <button
         onClick={() => update(form)}
         className="flex w-full items-center justify-center gap-2 rounded-[14px] bg-blue-500 min-h-[44px] px-4 text-sm font-semibold text-white hover:bg-blue-400 transition-colors"
