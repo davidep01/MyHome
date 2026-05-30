@@ -4,15 +4,30 @@ import { RightPanel } from './RightPanel'
 import { BottomTabBar } from './BottomTabBar'
 import { TabletDashboard } from '../../pages/TabletDashboard'
 import { SettingsPage } from '../../pages/SettingsPage'
-import { connectHA } from '../../api/ha-websocket'
+import { ClimatePage } from '../../pages/ClimatePage'
+import { SecurityPage } from '../../pages/SecurityPage'
+import { EnergyPage } from '../../pages/EnergyPage'
+import { connectHA, disconnectHA } from '../../api/ha-websocket'
 import { useUIStore } from '../../store/ui'
+import { GlassSheet } from '../glass/GlassSheet'
+import { ContextualPanel } from '../contextual/ContextualPanel'
 
 export function AppShell() {
   const activeView = useUIStore((s) => s.activeView)
+  const selectedEntityId = useUIStore((s) => s.selectedEntityId)
+  const setSelectedEntity = useUIStore((s) => s.setSelectedEntity)
 
   useEffect(() => {
     connectHA().catch(console.error)
+    return () => disconnectHA()
   }, [])
+
+  const page =
+    activeView === 'settings' ? <SettingsPage /> :
+    activeView === 'climate' ? <ClimatePage /> :
+    activeView === 'security' ? <SecurityPage /> :
+    activeView === 'energy' ? <EnergyPage /> :
+    <TabletDashboard />
 
   return (
     <div className="relative flex h-full w-full overflow-hidden">
@@ -38,26 +53,36 @@ export function AppShell() {
           paddingBottom: 'max(16px, env(safe-area-inset-bottom))',
         }}
       >
-        {/* Sidebar — tablet+ only */}
-        <div className="hidden md:block shrink-0 w-52">
+        {/* Sidebar rail — tablet+ only */}
+        <div className="hidden shrink-0 md:block">
           <Sidebar />
         </div>
 
         {/* Main canvas — extra bottom padding on mobile for the tab bar */}
         <div className="flex-1 min-w-0 overflow-hidden pb-[80px] md:pb-0">
-          {activeView === 'settings' ? <SettingsPage /> : <TabletDashboard />}
+          {page}
         </div>
 
-        {/* Right panel — desktop only */}
-        {activeView === 'dashboard' && (
-          <div className="hidden lg:block shrink-0 w-72">
-            <RightPanel />
-          </div>
-        )}
+        {/* Right panel — desktop only (contextual device controls or weather/news) */}
+        <div className="hidden shrink-0 lg:block lg:w-80">
+          <RightPanel />
+        </div>
       </div>
 
       {/* Bottom tab bar — mobile only */}
       <BottomTabBar />
+
+      {/* Contextual device controls — mobile/tablet sheet (desktop uses the right panel) */}
+      <div className="lg:hidden">
+        <GlassSheet
+          open={Boolean(selectedEntityId)}
+          onClose={() => setSelectedEntity(null)}
+          side="bottom"
+          className="max-h-[88vh] overflow-y-auto"
+        >
+          {selectedEntityId && <ContextualPanel entityId={selectedEntityId} />}
+        </GlassSheet>
+      </div>
     </div>
   )
 }

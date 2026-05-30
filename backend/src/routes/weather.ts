@@ -33,8 +33,8 @@ function weatherKey(): string {
   return process.env.OPENWEATHER_API_KEY ?? process.env.VITE_OPENWEATHER_KEY ?? ''
 }
 
-function weatherCity(urlCity: string | undefined): string {
-  return urlCity || db.read().config.weatherCity || process.env.VITE_WEATHER_CITY || 'Milan,IT'
+async function weatherCity(urlCity: string | undefined): Promise<string> {
+  return urlCity || (await db.read()).config.weatherCity || process.env.VITE_WEATHER_CITY || 'Milan,IT'
 }
 
 function assertConfigured() {
@@ -62,7 +62,7 @@ async function fetchWeather<T>(path: string, city: string): Promise<T> {
 
 weatherRouter.get('/current', async (c) => {
   try {
-    const city = weatherCity(c.req.query('city'))
+    const city = await weatherCity(c.req.query('city'))
     const d = await fetchWeather<OpenWeatherCurrent>('/weather', city)
 
     return c.json({
@@ -81,7 +81,7 @@ weatherRouter.get('/current', async (c) => {
 
 weatherRouter.get('/forecast', async (c) => {
   try {
-    const city = weatherCity(c.req.query('city'))
+    const city = await weatherCity(c.req.query('city'))
     const d = await fetchWeather<OpenWeatherForecast>('/forecast', city)
     const days = new Map<string, {
       dt: number

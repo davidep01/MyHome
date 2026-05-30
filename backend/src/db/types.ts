@@ -3,8 +3,11 @@ export interface RoomEntity {
   roomId: string
   entityId: string
   label: string
-  type: 'light' | 'climate' | 'cover' | 'scene' | 'security' | 'media' | 'sensor' | 'switch' | 'camera'
+  type:
+    | 'light' | 'climate' | 'cover' | 'scene' | 'security' | 'media'
+    | 'sensor' | 'switch' | 'camera' | 'vacuum' | 'lock' | 'alarm'
   sortOrder: number
+  favorite?: boolean
 }
 
 export interface Room {

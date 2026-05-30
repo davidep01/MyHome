@@ -49,4 +49,17 @@ export default defineConfig({
       },
     },
   },
+  preview: {
+    proxy: {
+      '/ha': {
+        target: process.env.VITE_HA_URL ?? 'http://homeassistant.local:8123',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/ha/, ''),
+      },
+      '/api': {
+        target: process.env.VITE_BACKEND_URL ?? 'http://localhost:3001',
+        changeOrigin: true,
+      },
+    },
+  },
 })

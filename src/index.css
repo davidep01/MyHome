@@ -42,6 +42,8 @@ html, body, #root {
   background: #08080f;
   color: #f0f0f5;
   overflow: hidden;
+  user-select: none;
+  touch-action: manipulation;
 }
 
 /* Glass utility classes */
@@ -88,3 +90,12 @@ html, body, #root {
 /* Touch callout disable */
 * { -webkit-touch-callout: none; }
 a, button, [role="button"] { -webkit-touch-callout: default; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

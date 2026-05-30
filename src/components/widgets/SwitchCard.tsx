@@ -4,7 +4,8 @@ import { GlassCard } from '../glass/GlassCard'
 import { useHAEntity } from '../../hooks/useHAEntity'
 import { useHAService } from '../../hooks/useHAService'
 import { useHaptic } from '../../hooks/useHaptic'
-import { tokens } from '../../design/tokens'
+import { domainAccent, tokens } from '../../design/tokens'
+import { useEntityStore } from '../../store/entities'
 import { cn } from '../../lib/utils'
 
 interface SwitchCardProps {
@@ -17,6 +18,8 @@ export function SwitchCard({ entityId, label, className }: SwitchCardProps) {
   const entity = useHAEntity(entityId)
   const { call } = useHAService()
   const { light } = useHaptic()
+  const setOptimisticState = useEntityStore((s) => s.setOptimisticState)
+  const accent = domainAccent('switch')
 
   const isOn = entity?.state === 'on'
   const unavailable = !entity || entity.state === 'unavailable'
@@ -27,7 +30,11 @@ export function SwitchCard({ entityId, label, className }: SwitchCardProps) {
   const toggle = () => {
     if (unavailable) return
     light()
-    call(domain, isOn ? 'turn_off' : 'turn_on', { entity_id: entityId })
+    const previousState = entity.state
+    setOptimisticState(entityId, isOn ? 'off' : 'on')
+    call(domain, isOn ? 'turn_off' : 'turn_on', { entity_id: entityId }).catch(() => {
+      setOptimisticState(entityId, previousState)
+    })
   }
 
   // Some smart plugs expose current_power_w or wattage attributes
@@ -39,7 +46,7 @@ export function SwitchCard({ entityId, label, className }: SwitchCardProps) {
   return (
     <GlassCard
       interactive
-      glow={isOn ? tokens.accent.greenGlow : undefined}
+      glow={isOn ? accent.glow : undefined}
       className={cn('flex flex-col gap-3 min-h-[110px]', className)}
       onClick={toggle}
     >

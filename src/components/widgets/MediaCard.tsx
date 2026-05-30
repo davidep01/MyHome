@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { Music2, SkipBack, Play, Pause, SkipForward, Volume2, Radio } from 'lucide-react'
 import { DragSlider } from '../glass/DragSlider'
 import { motion } from 'framer-motion'
@@ -8,10 +8,9 @@ import { useHAEntity } from '../../hooks/useHAEntity'
 import { useHAService } from '../../hooks/useHAService'
 import { useHaptic } from '../../hooks/useHaptic'
 import { useLongPress } from '../../hooks/useLongPress'
+import { haApi } from '../../api/backend'
 import { tokens } from '../../design/tokens'
 import { cn } from '../../lib/utils'
-
-const HA_URL = import.meta.env.VITE_HA_URL ?? 'http://homeassistant.local:8123'
 
 interface MediaCardProps {
   entityId: string
@@ -37,8 +36,7 @@ export function MediaCard({ entityId, label, className }: MediaCardProps) {
   const { call } = useHAService()
   const { light, medium } = useHaptic()
   const [volumeSheet, setVolumeSheet] = useState(false)
-  const [livePosition, setLivePosition] = useState(0)
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const [now, setNow] = useState(0)
 
   const state = entity?.state
   const attrs = entity?.attributes ?? {}
@@ -50,28 +48,26 @@ export function MediaCard({ entityId, label, className }: MediaCardProps) {
   const title = attrs.media_title as string | undefined
   const artist = (attrs.media_artist ?? attrs.app_name) as string | undefined
   const pictureRelative = attrs.entity_picture as string | undefined
-  const pictureUrl = pictureRelative ? `${HA_URL}${pictureRelative}` : undefined
+  const pictureUrl = pictureRelative ? haApi.mediaUrl(pictureRelative) : undefined
   const volume = (attrs.volume_level as number | undefined) ?? 0.5
   const duration = (attrs.media_duration as number | undefined) ?? 0
   const positionUpdatedAt = attrs.media_position_updated_at as string | undefined
+  const basePosition = (attrs.media_position as number | undefined) ?? 0
+  const baseTime = positionUpdatedAt ? new Date(positionUpdatedAt).getTime() : 0
+  const livePosition = isPlaying && baseTime && now
+    ? basePosition + ((now - baseTime) / 1000)
+    : basePosition
 
   // Sync live playback position
   useEffect(() => {
-    if (intervalRef.current) clearInterval(intervalRef.current)
-    if (!isPlaying) {
-      setLivePosition((attrs.media_position as number | undefined) ?? 0)
-      return
+    if (!isPlaying) return
+    const first = setTimeout(() => setNow(Date.now()), 0)
+    const id = setInterval(() => setNow(Date.now()), 1000)
+    return () => {
+      clearTimeout(first)
+      clearInterval(id)
     }
-    const basePosition = (attrs.media_position as number | undefined) ?? 0
-    const baseTime = positionUpdatedAt ? new Date(positionUpdatedAt).getTime() : Date.now()
-    const update = () => {
-      const elapsed = (Date.now() - baseTime) / 1000
-      setLivePosition(basePosition + elapsed)
-    }
-    update()
-    intervalRef.current = setInterval(update, 1000)
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
-  }, [isPlaying, attrs.media_position, positionUpdatedAt])
+  }, [isPlaying, positionUpdatedAt])
 
   const openVolumeSheet = () => { medium(); setVolumeSheet(true) }
   const longPress = useLongPress(openVolumeSheet)

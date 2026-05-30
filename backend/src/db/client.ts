@@ -1,11 +1,17 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs'
 import { join, dirname, basename } from 'node:path'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import type { DbStore } from './types.js'
 
 const cwd = process.cwd()
 const backendRoot = basename(cwd) === 'backend' ? cwd : join(cwd, 'backend')
 const DB_PATH = process.env.MYHOME_DB_PATH ?? join(backendRoot, 'data/db.json')
 const DATA_DIR = dirname(DB_PATH)
+const SUPABASE_URL = process.env.SUPABASE_URL
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
+const SUPABASE_TABLE = process.env.MYHOME_SUPABASE_TABLE ?? 'myhome_config'
+const SUPABASE_ROW_ID = process.env.MYHOME_SUPABASE_ROW_ID ?? 'default'
+const FILE_WRITES_ALLOWED = process.env.MYHOME_ALLOW_FILE_WRITES === 'true' || !process.env.VERCEL
 
 const DEFAULT_DB: DbStore = {
   config: {
@@ -50,39 +56,86 @@ const DEFAULT_DB: DbStore = {
 
 class JsonStore {
   private data: DbStore
+  private supabase: SupabaseClient | null
+  readonly mode: 'file' | 'supabase' | 'read-only'
+  readonly writable: boolean
 
   constructor() {
-    if (!existsSync(DATA_DIR)) mkdirSync(DATA_DIR, { recursive: true })
+    this.supabase = SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY
+      ? createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+          auth: { persistSession: false, autoRefreshToken: false },
+        })
+      : null
+    this.mode = this.supabase ? 'supabase' : FILE_WRITES_ALLOWED ? 'file' : 'read-only'
+    this.writable = this.mode !== 'read-only'
 
-    if (existsSync(DB_PATH)) {
+    if (this.mode === 'file' && !existsSync(DATA_DIR)) mkdirSync(DATA_DIR, { recursive: true })
+
+    if (!this.supabase && existsSync(DB_PATH)) {
       try {
         this.data = JSON.parse(readFileSync(DB_PATH, 'utf-8')) as DbStore
       } catch {
         this.data = structuredClone(DEFAULT_DB)
-        this.persist()
+        this.persistFile()
       }
     } else {
       this.data = structuredClone(DEFAULT_DB)
-      this.persist()
-      console.log(`✅ DB created with default data at ${DB_PATH}`)
+      if (this.mode === 'file') {
+        this.persistFile()
+        console.log(`✅ DB created with default data at ${DB_PATH}`)
+      }
     }
-    this.migrate()
   }
 
-  read(): DbStore {
+  async read(): Promise<DbStore> {
+    if (this.supabase) {
+      const { data, error } = await this.supabase
+        .from(SUPABASE_TABLE)
+        .select('data')
+        .eq('id', SUPABASE_ROW_ID)
+        .maybeSingle<{ data: DbStore }>()
+
+      if (error) throw new Error(`Supabase read failed: ${error.message}`)
+      if (data?.data) {
+        this.data = data.data
+      } else {
+        await this.persistSupabase()
+      }
+    }
+    await this.migrate()
     return this.data
   }
 
-  write(updater: (store: DbStore) => void): void {
+  async write(updater: (store: DbStore) => void): Promise<boolean> {
+    if (!this.writable) return false
+    await this.read()
     updater(this.data)
-    this.persist()
+    if (this.supabase) {
+      await this.persistSupabase()
+    } else {
+      this.persistFile()
+    }
+    return true
   }
 
-  private persist(): void {
+  private persistFile(): void {
     writeFileSync(DB_PATH, JSON.stringify(this.data, null, 2), 'utf-8')
   }
 
-  private migrate(): void {
+  private async persistSupabase(): Promise<void> {
+    if (!this.supabase) return
+    const { error } = await this.supabase
+      .from(SUPABASE_TABLE)
+      .upsert({
+        id: SUPABASE_ROW_ID,
+        data: this.data,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'id' })
+
+    if (error) throw new Error(`Supabase write failed: ${error.message}`)
+  }
+
+  private async migrate(): Promise<void> {
     let changed = false
 
     if (!this.data.config.newsFeedUrl) {
@@ -90,7 +143,12 @@ class JsonStore {
       changed = true
     }
 
-    if (changed) this.persist()
+    if (!changed) return
+    if (this.supabase) {
+      await this.persistSupabase()
+    } else {
+      this.persistFile()
+    }
   }
 }
 

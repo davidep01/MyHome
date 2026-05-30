@@ -4,6 +4,7 @@ import { useHAEntity } from '../../hooks/useHAEntity'
 import { useHAService } from '../../hooks/useHAService'
 import { useHaptic } from '../../hooks/useHaptic'
 import { tokens } from '../../design/tokens'
+import { useUIStore } from '../../store/ui'
 import { cn } from '../../lib/utils'
 
 interface ClimateCardProps {
@@ -16,6 +17,7 @@ export function ClimateCard({ entityId, label, className }: ClimateCardProps) {
   const entity = useHAEntity(entityId)
   const { call } = useHAService()
   const { light } = useHaptic()
+  const setSelectedEntity = useUIStore((s) => s.setSelectedEntity)
 
   const isOn = entity?.state !== 'off' && entity?.state !== 'unavailable'
   const currentTemp = entity?.attributes?.current_temperature as number | undefined
@@ -39,8 +41,10 @@ export function ClimateCard({ entityId, label, className }: ClimateCardProps) {
 
   return (
     <GlassCard
+      interactive
+      onClick={() => setSelectedEntity(entityId)}
       glow={isOn ? (hvacAction === 'heating' ? tokens.accent.orangeGlow : tokens.accent.blueGlow) : undefined}
-      className={cn('flex flex-col gap-3 min-h-[140px]', className)}
+      className={cn('flex flex-col gap-3 min-h-[140px]', isOn && hvacAction === 'heating' && 'bg-[rgba(249,115,22,0.16)]', className)}
     >
       <div className="flex items-start justify-between">
         <div className={cn(
@@ -72,7 +76,7 @@ export function ClimateCard({ entityId, label, className }: ClimateCardProps) {
         {targetTemp !== undefined && !unavailable && (
           <div className="flex items-center gap-1">
             <button
-              onClick={() => adjust(-0.5)}
+              onClick={(e) => { e.stopPropagation(); adjust(-0.5) }}
               className="flex h-11 w-11 items-center justify-center rounded-full bg-white/8 hover:bg-white/14 transition-colors active:scale-90"
             >
               <ChevronDown size={16} className="text-white/70" />
@@ -81,7 +85,7 @@ export function ClimateCard({ entityId, label, className }: ClimateCardProps) {
               {targetTemp}°
             </span>
             <button
-              onClick={() => adjust(0.5)}
+              onClick={(e) => { e.stopPropagation(); adjust(0.5) }}
               className="flex h-11 w-11 items-center justify-center rounded-full bg-white/8 hover:bg-white/14 transition-colors active:scale-90"
             >
               <ChevronUp size={16} className="text-white/70" />

@@ -22,6 +22,10 @@ function timeAgoSecs(secs: number): string {
   return `${Math.floor(secs / 60)}m fa`
 }
 
+function cacheBust(url: string) {
+  return `${url}${url.includes('?') ? '&' : '?'}_t=${Date.now()}`
+}
+
 export function CameraCard({ entityId, label, className }: CameraCardProps) {
   const entity = useHAEntity(entityId)
   const { call } = useHAService()
@@ -29,17 +33,16 @@ export function CameraCard({ entityId, label, className }: CameraCardProps) {
 
   const [snapshotUrl, setSnapshotUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
-  const [lastRefresh, setLastRefresh] = useState<number>(Date.now())
+  const [lastRefresh, setLastRefresh] = useState<number>(0)
   const [elapsed, setElapsed] = useState(0)
   const [sheetOpen, setSheetOpen] = useState(false)
 
-  const streamSource = entity?.attributes?.stream_source as string | undefined
   const isUnavailable = !entity || entity.state === 'unavailable'
 
   const refresh = useCallback(() => {
     setLoading(true)
     // Cache-bust the snapshot URL so the browser fetches a fresh frame
-    setSnapshotUrl(`${getCameraProxyUrl(entityId)}&_t=${Date.now()}`)
+    setSnapshotUrl(cacheBust(getCameraProxyUrl(entityId)))
     setLastRefresh(Date.now())
     setElapsed(0)
   }, [entityId])
@@ -47,13 +50,17 @@ export function CameraCard({ entityId, label, className }: CameraCardProps) {
   // Initial load + interval
   useEffect(() => {
     if (isUnavailable) return
-    refresh()
+    const first = setTimeout(refresh, 0)
     const id = setInterval(refresh, REFRESH_INTERVAL)
-    return () => clearInterval(id)
+    return () => {
+      clearTimeout(first)
+      clearInterval(id)
+    }
   }, [isUnavailable, refresh])
 
   // Elapsed counter
   useEffect(() => {
+    if (!lastRefresh) return
     const id = setInterval(() => {
       setElapsed(Math.floor((Date.now() - lastRefresh) / 1000))
     }, 1000)
@@ -104,9 +111,13 @@ export function CameraCard({ entityId, label, className }: CameraCardProps) {
 
         {/* Unavailable overlay */}
         {isUnavailable && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/40">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-[rgba(20,24,40,0.7)]">
             <Camera size={24} className="text-white/25" />
-            <p className="text-xs text-white/30">Non disponibile</p>
+            <p className="text-xs text-white/35">Immagine non disponibile</p>
+            <span className="absolute bottom-2.5 right-2.5 flex items-center gap-1 rounded-full bg-black/40 px-2 py-1 text-[10px] font-medium text-yellow-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-yellow-400" />
+              Offline
+            </span>
           </div>
         )}
 
@@ -142,17 +153,9 @@ export function CameraCard({ entityId, label, className }: CameraCardProps) {
         className="h-[80vh]"
       >
         <div className="flex flex-col gap-4 h-full">
-          {/* Live stream or snapshot */}
+          {/* Snapshot routed through the backend HA proxy. */}
           <div className="flex-1 rounded-[16px] overflow-hidden bg-black/40">
-            {streamSource ? (
-              <video
-                src={streamSource}
-                autoPlay
-                muted
-                playsInline
-                className="h-full w-full object-contain"
-              />
-            ) : snapshotUrl ? (
+            {snapshotUrl ? (
               <img src={snapshotUrl} alt={label} className="h-full w-full object-contain" />
             ) : null}
           </div>

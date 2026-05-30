@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Settings, User, Wifi, Plus, Trash2,
@@ -44,25 +44,19 @@ function SectionTab({
 
 function PreferencesSection() {
   const { data: config } = useDashboardConfig()
+  if (!config) return <p className="text-sm text-white/40">Caricamento...</p>
+
+  return <PreferencesForm key={`${config.userName}:${config.dashboardName}:${config.weatherCity}:${config.newsFeedUrl}`} config={config} />
+}
+
+function PreferencesForm({ config }: { config: NonNullable<ReturnType<typeof useDashboardConfig>['data']> }) {
   const { mutate: update } = useUpdateConfig()
   const [form, setForm] = useState({
-    userName: config?.userName ?? '',
-    dashboardName: config?.dashboardName ?? '',
-    weatherCity: config?.weatherCity ?? '',
-    newsFeedUrl: config?.newsFeedUrl ?? '',
+    userName: config.userName,
+    dashboardName: config.dashboardName,
+    weatherCity: config.weatherCity,
+    newsFeedUrl: config.newsFeedUrl,
   })
-
-  useEffect(() => {
-    if (!config) return
-    setForm({
-      userName: config.userName,
-      dashboardName: config.dashboardName,
-      weatherCity: config.weatherCity,
-      newsFeedUrl: config.newsFeedUrl,
-    })
-  }, [config])
-
-  if (!config) return <p className="text-sm text-white/40">Caricamento...</p>
 
   const field = (key: keyof typeof form, label: string, placeholder?: string) => (
     <div className="space-y-1.5">
@@ -97,28 +91,50 @@ function PreferencesSection() {
 
 function ConnectionSection() {
   const { data: config } = useDashboardConfig()
-  const { mutate: update, isPending } = useUpdateConfig()
-  const [haUrl, setHaUrl] = useState(config?.haUrl ?? '')
-  const [haToken, setHaToken] = useState('')
+  if (!config) return <p className="text-sm text-white/40">Caricamento...</p>
 
-  useEffect(() => {
-    if (config) setHaUrl(config.haUrl)
-  }, [config])
+  return <ConnectionForm key={config.haUrl} config={config} />
+}
+
+function ConnectionForm({ config }: { config: NonNullable<ReturnType<typeof useDashboardConfig>['data']> }) {
+  const { mutate: update, isPending } = useUpdateConfig()
+  const [haUrl, setHaUrl] = useState(config.haUrl)
+  const [haToken, setHaToken] = useState('')
+  const urlLocked = Boolean(config.haConfigLocked?.haUrl)
+  const tokenLocked = Boolean(config.haConfigLocked?.haToken)
 
   return (
     <div className="space-y-4">
       <div className="rounded-[14px] bg-orange-500/10 border border-orange-500/20 p-3">
         <p className="text-xs text-orange-300 leading-relaxed">
-          Il token HA è salvato nel file <code className="font-mono text-orange-200">backend/data/db.json</code> sul server. Non viene mai inviato al browser.
+          In produzione usa <code className="font-mono text-orange-200">HA_URL</code> e <code className="font-mono text-orange-200">HA_TOKEN</code> su Vercel. I valori da env non sono modificabili dalla dashboard.
         </p>
+      </div>
+      {config.storage && !config.storage.writable && (
+        <div className="rounded-[14px] border border-white/10 bg-white/6 p-3">
+          <p className="text-xs leading-relaxed text-white/45">
+            Questo deploy è in sola lettura: le modifiche a stanze, entità e preferenze non vengono salvate qui.
+          </p>
+        </div>
+      )}
+      <div className="grid grid-cols-2 gap-2">
+        <div className="rounded-[12px] bg-white/6 p-3">
+          <p className="text-[10px] uppercase tracking-[0.12em] text-white/25">URL</p>
+          <p className="mt-1 text-xs font-semibold text-white/65">{config.haConfigSource?.url ?? 'db'}</p>
+        </div>
+        <div className="rounded-[12px] bg-white/6 p-3">
+          <p className="text-[10px] uppercase tracking-[0.12em] text-white/25">Token</p>
+          <p className="mt-1 text-xs font-semibold text-white/65">{config.haConfigSource?.token ?? 'missing'}</p>
+        </div>
       </div>
       <div className="space-y-1.5">
         <label className="text-xs font-medium text-white/50">Home Assistant URL</label>
         <input
           value={haUrl}
           onChange={(e) => setHaUrl(e.target.value)}
+          disabled={urlLocked}
           placeholder="http://homeassistant.local:8123"
-          className="w-full rounded-[12px] bg-white/8 px-3 py-3 text-sm text-white placeholder-white/25 outline-none focus:bg-white/12 transition-colors min-h-[44px] font-mono"
+          className="w-full rounded-[12px] bg-white/8 px-3 py-3 text-sm text-white placeholder-white/25 outline-none focus:bg-white/12 disabled:opacity-45 transition-colors min-h-[44px] font-mono"
         />
       </div>
       <div className="space-y-1.5">
@@ -127,13 +143,14 @@ function ConnectionSection() {
           type="password"
           value={haToken}
           onChange={(e) => setHaToken(e.target.value)}
+          disabled={tokenLocked}
           placeholder="••••••••••••"
-          className="w-full rounded-[12px] bg-white/8 px-3 py-3 text-sm text-white placeholder-white/25 outline-none focus:bg-white/12 transition-colors min-h-[44px] font-mono"
+          className="w-full rounded-[12px] bg-white/8 px-3 py-3 text-sm text-white placeholder-white/25 outline-none focus:bg-white/12 disabled:opacity-45 transition-colors min-h-[44px] font-mono"
         />
       </div>
       <button
         onClick={() => update({ haUrl, ...(haToken ? { haToken } : {}) })}
-        disabled={isPending}
+        disabled={isPending || (urlLocked && tokenLocked)}
         className="flex w-full items-center justify-center gap-2 rounded-[14px] bg-blue-500 min-h-[44px] px-4 text-sm font-semibold text-white hover:bg-blue-400 disabled:opacity-50 transition-colors"
       >
         <Save size={14} />

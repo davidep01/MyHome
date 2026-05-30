@@ -18,13 +18,13 @@ interface RssItemWithImage {
 
 export const newsRouter = new Hono()
 
-function feedUrl(queryUrl: string | undefined): string {
-  return queryUrl || db.read().config.newsFeedUrl || process.env.NEWS_RSS_URL || DEFAULT_FEED
+async function feedUrl(queryUrl: string | undefined): Promise<string> {
+  return queryUrl || (await db.read()).config.newsFeedUrl || process.env.NEWS_RSS_URL || DEFAULT_FEED
 }
 
 newsRouter.get('/', async (c) => {
   try {
-    const feed = await parser.parseURL(feedUrl(c.req.query('feedUrl')))
+    const feed = await parser.parseURL(await feedUrl(c.req.query('feedUrl')))
     return c.json(feed.items.slice(0, 20).map((item: RssItemWithImage, index) => {
       const publishedAt = item.isoDate ?? item.pubDate ?? new Date().toISOString()
       return {

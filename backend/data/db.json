@@ -2,204 +2,48 @@
   "config": {
     "haUrl": "http://homeassistant.local:8123",
     "haToken": "",
-    "weatherCity": "Milan,IT",
+    "weatherCity": "Ancona,IT",
     "newsCategory": "technology",
     "userName": "Davide",
     "dashboardName": "MyHome",
     "newsFeedUrl": "https://www.ansa.it/sito/ansait_rss.xml"
   },
   "rooms": [
-    {
-      "id": "soggiorno",
-      "label": "Soggiorno",
-      "icon": "sofa",
-      "sortOrder": 0
-    },
-    {
-      "id": "cucina",
-      "label": "Cucina",
-      "icon": "utensils",
-      "sortOrder": 1
-    },
-    {
-      "id": "camera",
-      "label": "Camera",
-      "icon": "bed",
-      "sortOrder": 2
-    },
-    {
-      "id": "bagno",
-      "label": "Bagno",
-      "icon": "bath",
-      "sortOrder": 3
-    },
-    {
-      "id": "esterno",
-      "label": "Esterno",
-      "icon": "tree-pine",
-      "sortOrder": 4
-    }
+    { "id": "cucina", "label": "Cucina", "icon": "utensils", "sortOrder": 0 },
+    { "id": "soggiorno", "label": "Soggiorno", "icon": "sofa", "sortOrder": 1 },
+    { "id": "camera", "label": "Camera", "icon": "bed", "sortOrder": 2 },
+    { "id": "bagno", "label": "Bagno", "icon": "bath", "sortOrder": 3 },
+    { "id": "esterno", "label": "Esterno", "icon": "tree-pine", "sortOrder": 4 }
   ],
   "entities": [
-    {
-      "id": "e1",
-      "roomId": "soggiorno",
-      "entityId": "light.soggiorno",
-      "label": "Luci",
-      "type": "light",
-      "sortOrder": 0
-    },
-    {
-      "id": "e2",
-      "roomId": "soggiorno",
-      "entityId": "light.soggiorno_lampada",
-      "label": "Lampada",
-      "type": "light",
-      "sortOrder": 1
-    },
-    {
-      "id": "e3",
-      "roomId": "soggiorno",
-      "entityId": "cover.soggiorno_tende",
-      "label": "Tende",
-      "type": "cover",
-      "sortOrder": 2
-    },
-    {
-      "id": "e4",
-      "roomId": "soggiorno",
-      "entityId": "climate.soggiorno",
-      "label": "Clima",
-      "type": "climate",
-      "sortOrder": 3
-    },
-    {
-      "id": "e5",
-      "roomId": "soggiorno",
-      "entityId": "scene.soggiorno_relax",
-      "label": "Relax",
-      "type": "scene",
-      "sortOrder": 4
-    },
-    {
-      "id": "e6",
-      "roomId": "soggiorno",
-      "entityId": "scene.soggiorno_film",
-      "label": "Film",
-      "type": "scene",
-      "sortOrder": 5
-    },
-    {
-      "id": "e7",
-      "roomId": "soggiorno",
-      "entityId": "media_player.soggiorno",
-      "label": "Musica",
-      "type": "media",
-      "sortOrder": 6
-    },
-    {
-      "id": "e8",
-      "roomId": "cucina",
-      "entityId": "light.cucina",
-      "label": "Luci",
-      "type": "light",
-      "sortOrder": 0
-    },
-    {
-      "id": "e9",
-      "roomId": "cucina",
-      "entityId": "light.cucina_piano",
-      "label": "Piano cottura",
-      "type": "light",
-      "sortOrder": 1
-    },
-    {
-      "id": "e10",
-      "roomId": "cucina",
-      "entityId": "cover.cucina_tenda",
-      "label": "Tenda",
-      "type": "cover",
-      "sortOrder": 2
-    },
-    {
-      "id": "e11",
-      "roomId": "camera",
-      "entityId": "light.camera",
-      "label": "Luci",
-      "type": "light",
-      "sortOrder": 0
-    },
-    {
-      "id": "e12",
-      "roomId": "camera",
-      "entityId": "light.camera_comodino",
-      "label": "Comodino",
-      "type": "light",
-      "sortOrder": 1
-    },
-    {
-      "id": "e13",
-      "roomId": "camera",
-      "entityId": "cover.camera_tapparelle",
-      "label": "Tapparelle",
-      "type": "cover",
-      "sortOrder": 2
-    },
-    {
-      "id": "e14",
-      "roomId": "camera",
-      "entityId": "climate.camera",
-      "label": "Clima",
-      "type": "climate",
-      "sortOrder": 3
-    },
-    {
-      "id": "e15",
-      "roomId": "camera",
-      "entityId": "scene.camera_notte",
-      "label": "Notte",
-      "type": "scene",
-      "sortOrder": 4
-    },
-    {
-      "id": "e16",
-      "roomId": "bagno",
-      "entityId": "light.bagno",
-      "label": "Luci",
-      "type": "light",
-      "sortOrder": 0
-    },
-    {
-      "id": "e17",
-      "roomId": "bagno",
-      "entityId": "light.bagno_specchio",
-      "label": "Specchio",
-      "type": "light",
-      "sortOrder": 1
-    },
-    {
-      "id": "e18",
-      "roomId": "esterno",
-      "entityId": "light.esterno",
-      "label": "Giardino",
-      "type": "light",
-      "sortOrder": 0
-    },
-    {
-      "id": "e19",
-      "roomId": "esterno",
-      "entityId": "cover.cancello",
-      "label": "Cancello",
-      "type": "cover",
-      "sortOrder": 1
-    },
-    {
-      "id": "e20",
-      "roomId": "esterno",
-      "entityId": "switch.irrigazione",
-      "label": "Irrigazione",
-      "type": "switch",
-      "sortOrder": 2
-    }
+    { "id": "e1", "roomId": "cucina", "entityId": "light.cucina", "label": "Cucina", "type": "light", "sortOrder": 0 },
+    { "id": "e2", "roomId": "cucina", "entityId": "vacuum.robot", "label": "Robot", "type": "vacuum", "sortOrder": 1 },
+    { "id": "e3", "roomId": "cucina", "entityId": "cover.cucina_finestra", "label": "Finestra", "type": "cover", "sortOrder": 2 },
+    { "id": "e4", "roomId": "cucina", "entityId": "light.cucina_piano", "label": "Piano cottura", "type": "light", "sortOrder": 3 },
+
+    { "id": "e5", "roomId": "soggiorno", "entityId": "light.soggiorno", "label": "Luci", "type": "light", "sortOrder": 0 },
+    { "id": "e6", "roomId": "soggiorno", "entityId": "cover.soggiorno_tende", "label": "Tende", "type": "cover", "sortOrder": 1 },
+    { "id": "e7", "roomId": "soggiorno", "entityId": "climate.soggiorno", "label": "Clima", "type": "climate", "sortOrder": 2 },
+    { "id": "e8", "roomId": "soggiorno", "entityId": "media_player.soggiorno", "label": "Musica", "type": "media", "sortOrder": 3 },
+
+    { "id": "e9", "roomId": "camera", "entityId": "climate.termostufa", "label": "Termostufa Integrata", "type": "climate", "sortOrder": 0, "favorite": true },
+    { "id": "e10", "roomId": "camera", "entityId": "light.camera_mattia", "label": "Luce Camera", "type": "light", "sortOrder": 1, "favorite": true },
+    { "id": "e11", "roomId": "camera", "entityId": "light.comodino", "label": "Comodino", "type": "light", "sortOrder": 2, "favorite": true },
+    { "id": "e12", "roomId": "camera", "entityId": "cover.camera_tapparelle", "label": "Tapparelle", "type": "cover", "sortOrder": 3 },
+
+    { "id": "e13", "roomId": "bagno", "entityId": "light.bagno", "label": "Luci", "type": "light", "sortOrder": 0 },
+    { "id": "e14", "roomId": "bagno", "entityId": "light.bagno_specchio", "label": "Specchio", "type": "light", "sortOrder": 1 },
+
+    { "id": "e15", "roomId": "esterno", "entityId": "camera.angolo_giardino", "label": "Angolo Giardino", "type": "camera", "sortOrder": 0 },
+    { "id": "e16", "roomId": "esterno", "entityId": "camera.new_camera", "label": "New camera", "type": "camera", "sortOrder": 1 },
+    { "id": "e17", "roomId": "esterno", "entityId": "camera.giardino_anteriore", "label": "Giardino Anteriore", "type": "camera", "sortOrder": 2 },
+    { "id": "e18", "roomId": "esterno", "entityId": "camera.terrazzo", "label": "Terrazzo", "type": "camera", "sortOrder": 3 },
+    { "id": "e19", "roomId": "esterno", "entityId": "lock.cancello", "label": "Cancello", "type": "lock", "sortOrder": 4 },
+    { "id": "e20", "roomId": "esterno", "entityId": "lock.cancelletto", "label": "Cancelletto", "type": "lock", "sortOrder": 5 },
+    { "id": "e21", "roomId": "esterno", "entityId": "lock.porta_ingresso", "label": "Porta ingresso", "type": "lock", "sortOrder": 6, "favorite": true },
+    { "id": "e22", "roomId": "esterno", "entityId": "light.esterno", "label": "Giardino", "type": "light", "sortOrder": 7 },
+
+    { "id": "e23", "roomId": "soggiorno", "entityId": "sensor.ups_battery", "label": "Batteria UPS", "type": "sensor", "sortOrder": 4, "favorite": true },
+    { "id": "e24", "roomId": "soggiorno", "entityId": "alarm_control_panel.casa", "label": "EZ Allarme", "type": "alarm", "sortOrder": 5, "favorite": true }
   ]
 }

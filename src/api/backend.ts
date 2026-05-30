@@ -17,6 +17,18 @@ async function request<T>(
 export interface AppConfig {
   haUrl: string
   haToken: string
+  haConfigSource?: {
+    url: 'env' | 'db' | 'default'
+    token: 'env' | 'db' | 'missing'
+  }
+  haConfigLocked?: {
+    haUrl: boolean
+    haToken: boolean
+  }
+  storage?: {
+    writable: boolean
+    mode: 'file' | 'supabase' | 'read-only'
+  }
   weatherCity: string
   newsCategory: string
   newsFeedUrl: string
@@ -33,13 +45,19 @@ export const configApi = {
 
 // ── Rooms ───────────────────────────────────────────────────────────────────
 
+export type EntityType =
+  | 'light' | 'climate' | 'cover' | 'scene' | 'security' | 'media'
+  | 'sensor' | 'switch' | 'camera' | 'vacuum' | 'lock' | 'alarm'
+
 export interface RoomEntity {
   id: string
   roomId: string
   entityId: string
   label: string
-  type: 'light' | 'climate' | 'cover' | 'scene' | 'security' | 'media' | 'sensor' | 'switch' | 'camera'
+  type: EntityType
   sortOrder: number
+  /** Surfaced in the home "Preferiti" section when true. */
+  favorite?: boolean
 }
 
 export interface Room {
@@ -73,4 +91,27 @@ export const entitiesApi = {
     }),
   remove: (roomId: string, entityId: string) =>
     request<{ ok: boolean }>(`/rooms/${roomId}/entities/${entityId}`, { method: 'DELETE' }),
+}
+
+// ── Home Assistant proxy ───────────────────────────────────────────────────
+
+export interface HAHistoryPoint {
+  state: string
+  last_changed: string
+  last_updated: string
+  attributes?: Record<string, unknown>
+}
+
+export const haApi = {
+  history: (entityId: string, hours = 1) =>
+    request<HAHistoryPoint[]>(`/ha/history/${encodeURIComponent(entityId)}?hours=${hours}`),
+  states: () => request<unknown[]>('/ha/states'),
+  state: (entityId: string) => request<unknown>(`/ha/states/${encodeURIComponent(entityId)}`),
+  service: (domain: string, service: string, data?: Record<string, unknown>) =>
+    request<unknown[]>(`/ha/services/${encodeURIComponent(domain)}/${encodeURIComponent(service)}`, {
+      method: 'POST',
+      body: JSON.stringify(data ?? {}),
+    }),
+  cameraProxyUrl: (entityId: string) => `/api/ha/camera-proxy/${encodeURIComponent(entityId)}`,
+  mediaUrl: (path: string) => `/api/ha/media?path=${encodeURIComponent(path)}`,
 }

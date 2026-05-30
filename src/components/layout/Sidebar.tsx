@@ -1,130 +1,97 @@
 import { motion } from 'framer-motion'
-import { Home, Wifi, WifiOff, Lightbulb, Settings } from 'lucide-react'
-import { useUIStore } from '../../store/ui'
+import { Home, LayoutGrid, ThermometerSun, ShieldCheck, BarChart3, Pencil } from 'lucide-react'
+import { useUIStore, type AppView } from '../../store/ui'
 import { useEntityStore } from '../../store/entities'
-import { useHAConnected } from '../../hooks/useHAEntity'
-import { useRooms } from '../../hooks/useRooms'
+import { NotificationBell } from '../notifications/NotificationCenter'
 import { cn } from '../../lib/utils'
-import { withAllRoom } from '../../lib/rooms'
 
-const roomIcons: Record<string, React.ElementType> = {
-  home: Home,
-  sofa: () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-      <path d="M20 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v3" />
-      <path d="M2 11v5a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a2 2 0 0 0-4 0v2H6v-2a2 2 0 0 0-4 0Z" />
-    </svg>
-  ),
-  utensils: () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-      <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" />
-      <path d="M7 2v20" /><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" />
-    </svg>
-  ),
-  bed: () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-      <path d="M2 4v16" /><path d="M2 8h18a2 2 0 0 1 2 2v10" />
-      <path d="M2 17h20" /><path d="M6 8v9" />
-    </svg>
-  ),
-  bath: () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-      <path d="M9 6 6.5 3.5a1.5 1.5 0 0 0-1-.5C4.683 3 4 3.683 4 4.5V17a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5" />
-      <line x1="3" x2="21" y1="11" y2="11" />
-    </svg>
-  ),
-  'tree-pine': () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-      <path d="m17 14 3 3.3a1 1 0 0 1-.7 1.7H4.7a1 1 0 0 1-.7-1.7L7 14l-.7-1.4A2 2 0 0 1 7.22 10h.01l-1-2.9A1 1 0 0 1 7.2 6h.02L12 3l4.78 3a1 1 0 0 1 .01 1.1l-1 2.9h.01a2 2 0 0 1 .97 2.6Z" />
-      <path d="M12 22v-3" />
-    </svg>
-  ),
+const nav: { id: AppView; label: string; Icon: React.ElementType }[] = [
+  { id: 'home', label: 'Home', Icon: LayoutGrid },
+  { id: 'climate', label: 'Clima', Icon: ThermometerSun },
+  { id: 'security', label: 'Sicurezza', Icon: ShieldCheck },
+  { id: 'energy', label: 'Energia', Icon: BarChart3 },
+]
+
+function RailButton({
+  active,
+  label,
+  onClick,
+  children,
+  badge,
+}: {
+  active?: boolean
+  label: string
+  onClick: () => void
+  children: React.ReactNode
+  badge?: number
+}) {
+  return (
+    <motion.button
+      type="button"
+      onClick={onClick}
+      whileTap={{ scale: 0.9 }}
+      aria-label={label}
+      className={cn(
+        'group relative flex h-11 w-11 items-center justify-center rounded-[16px] transition-colors',
+        active ? 'bg-white/14 text-white' : 'text-white/40 hover:bg-white/8 hover:text-white/80',
+      )}
+    >
+      {active && (
+        <motion.span
+          layoutId="rail-active"
+          className="absolute inset-0 rounded-[16px] bg-white/14"
+          transition={{ type: 'spring', stiffness: 500, damping: 32 }}
+        />
+      )}
+      <span className="relative">{children}</span>
+      {badge ? (
+        <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-orange-500 px-1 text-[9px] font-bold text-white">
+          {badge}
+        </span>
+      ) : null}
+      {/* Tooltip */}
+      <span className="pointer-events-none absolute left-full ml-3 whitespace-nowrap rounded-lg bg-black/70 px-2 py-1 text-xs text-white opacity-0 backdrop-blur transition-opacity group-hover:opacity-100 z-50">
+        {label}
+      </span>
+    </motion.button>
+  )
 }
 
 export function Sidebar() {
-  const activeRoom = useUIStore((s) => s.activeRoom)
-  const setActiveRoom = useUIStore((s) => s.setActiveRoom)
   const activeView = useUIStore((s) => s.activeView)
   const setActiveView = useUIStore((s) => s.setActiveView)
-  const connected = useHAConnected()
-  const entities = useEntityStore((s) => s.entities)
-  const { data } = useRooms()
-  const rooms = withAllRoom(data)
-
-  const lightsOn = Object.values(entities).filter(
-    (e) => e.entity_id.startsWith('light.') && e.state === 'on',
-  ).length
+  const connectionStatus = useEntityStore((s) => s.connectionStatus)
+  const connected = connectionStatus === 'connected'
 
   return (
-    <nav
-      className="glass glass-border flex flex-col rounded-[24px] p-4 gap-2 h-full overflow-y-auto"
-      style={{ minWidth: 200 }}
-    >
-      {/* Header */}
-      <div className="flex items-center gap-2 mb-4 px-1">
-        <div className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-blue-500/20">
-          <Home size={16} className="text-blue-400" />
+    <nav className="glass glass-border flex h-full w-[68px] flex-col items-center gap-2 rounded-[24px] py-4">
+      {/* Avatar + connection dot */}
+      <div className="relative mb-2">
+        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-blue-500/40 to-purple-500/40 text-sm font-semibold text-white ring-1 ring-white/15">
+          <Home size={18} className="text-white/90" />
         </div>
-        <span className="text-sm font-semibold text-white/90">MyHome</span>
-        <div className="ml-auto">
-          {connected
-            ? <Wifi size={14} className="text-green-400" />
-            : <WifiOff size={14} className="text-red-400" />
-          }
-        </div>
+        <span
+          className={cn(
+            'absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full ring-2 ring-[#0b0b14]',
+            connected ? 'bg-green-400' : connectionStatus === 'connecting' ? 'bg-orange-400' : 'bg-red-400',
+          )}
+        />
       </div>
 
-      {/* Quick status */}
-      <div className="rounded-[14px] bg-white/5 p-3 mb-2 space-y-2">
-        <div className="flex items-center justify-between text-xs">
-          <div className="flex items-center gap-1.5 text-white/60">
-            <Lightbulb size={12} />
-            <span>Luci accese</span>
-          </div>
-          <span className="font-semibold text-white/80">{lightsOn}</span>
-        </div>
-      </div>
+      <div className="my-1 h-px w-7 bg-white/10" />
 
-      {/* Rooms */}
-      <div className="space-y-1 flex-1">
-        {rooms.map((room) => {
-          const Icon = roomIcons[room.icon] ?? Home
-          const isActive = activeView === 'dashboard' && activeRoom === room.id
-          return (
-            <motion.button
-              key={room.id}
-              onClick={() => {
-                setActiveView('dashboard')
-                setActiveRoom(room.id)
-              }}
-              className={cn(
-                'flex w-full items-center gap-2.5 rounded-[14px] px-3 min-h-[44px] text-sm font-medium transition-all',
-                isActive
-                  ? 'bg-white/12 text-white'
-                  : 'text-white/50 hover:bg-white/6 hover:text-white/80',
-              )}
-              whileTap={{ scale: 0.97 }}
-            >
-              <Icon />
-              <span>{room.label}</span>
-            </motion.button>
-          )
-        })}
-      </div>
+      {nav.map(({ id, label, Icon }) => (
+        <RailButton key={id} active={activeView === id} label={label} onClick={() => setActiveView(id)}>
+          <Icon size={20} />
+        </RailButton>
+      ))}
 
-      <motion.button
-        onClick={() => setActiveView('settings')}
-        className={cn(
-          'flex w-full items-center gap-2.5 rounded-[14px] px-3 min-h-[44px] text-sm font-medium transition-all',
-          activeView === 'settings'
-            ? 'bg-white/12 text-white'
-            : 'text-white/50 hover:bg-white/6 hover:text-white/80',
-        )}
-        whileTap={{ scale: 0.97 }}
-      >
-        <Settings size={18} />
-        <span>Impostazioni</span>
-      </motion.button>
+      <div className="mt-auto flex flex-col items-center gap-2">
+        <RailButton label="Modifica" onClick={() => setActiveView('settings')} active={activeView === 'settings'}>
+          <Pencil size={18} />
+        </RailButton>
+        <NotificationBell />
+      </div>
     </nav>
   )
 }

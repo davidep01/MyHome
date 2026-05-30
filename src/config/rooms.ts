@@ -1,7 +1,7 @@
 export interface RoomEntity {
   entityId: string
   label: string
-  type: 'light' | 'climate' | 'cover' | 'scene' | 'security' | 'media' | 'sensor' | 'switch' | 'camera'
+  type: 'light' | 'climate' | 'cover' | 'scene' | 'security' | 'media' | 'sensor' | 'switch' | 'camera' | 'vacuum' | 'lock' | 'alarm'
 }
 
 export interface Room {
@@ -82,9 +82,25 @@ export const rooms: Room[] = [
   },
 ]
 
+/** Circular quick-scenes shown in the home header (label, icon, accent color). */
 export const quickScenes = [
-  { entityId: 'scene.buongiorno', label: 'Buongiorno', icon: 'sunrise' },
-  { entityId: 'scene.buonanotte', label: 'Buonanotte', icon: 'moon' },
-  { entityId: 'scene.in_casa', label: 'In casa', icon: 'house' },
-  { entityId: 'scene.fuori_casa', label: 'Fuori casa', icon: 'door-open' },
+  { entityId: 'scene.musica', label: 'Musica', icon: 'music', color: '#ec4899' },
+  { entityId: 'scene.fuori_casa', label: 'Fuori', icon: 'door-open', color: '#3b82f6' },
+  { entityId: 'scene.buonanotte', label: 'Notte', icon: 'moon', color: '#6366f1' },
+  { entityId: 'scene.film', label: 'Film', icon: 'film', color: '#ef4444' },
+  { entityId: 'scene.buongiorno', label: 'Mattino', icon: 'sunrise', color: '#f59e0b' },
+  { entityId: 'scene.in_casa', label: 'Arrivo', icon: 'house', color: '#22c55e' },
+]
+
+/**
+ * Entity IDs surfaced in the "Preferiti" section of the home view.
+ * Matched against the configured room entities (see TabletDashboard).
+ */
+export const favoriteEntityIds: string[] = [
+  'climate.termostufa',
+  'light.camera_mattia',
+  'light.comodino',
+  'sensor.ups_battery',
+  'lock.porta_ingresso',
+  'alarm_control_panel.casa',
 ]
