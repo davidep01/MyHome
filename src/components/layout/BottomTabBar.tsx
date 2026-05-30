@@ -41,7 +41,7 @@ export function BottomTabBar() {
               {isActive && (
                 <motion.span
                   layoutId="tab-bg"
-                  className="absolute inset-0 rounded-[14px] bg-white/12"
+                  className="absolute inset-0 rounded-[14px] bg-black/12"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
@@ -50,13 +50,13 @@ export function BottomTabBar() {
               )}
             </AnimatePresence>
 
-            <span className={cn('relative transition-colors duration-200', isActive ? 'text-white' : 'text-white/35')}>
+            <span className={cn('relative transition-colors duration-200', isActive ? 'text-[#1d1d1f]' : 'text-black/35')}>
               <Icon size={22} />
             </span>
             <span
               className={cn(
                 'relative text-[10px] font-medium leading-none transition-colors duration-200',
-                isActive ? 'text-white' : 'text-white/35',
+                isActive ? 'text-[#1d1d1f]' : 'text-black/35',
               )}
             >
               {label}

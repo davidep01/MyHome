@@ -52,7 +52,7 @@ export function SecurityCard({ entityId, label = 'Sicurezza', className }: Secur
         <Icon size={24} style={{ color }} />
       </div>
       <div>
-        <p className="text-sm font-medium text-white/90">{label}</p>
+        <p className="text-sm font-medium text-black/90">{label}</p>
         <p className="text-sm font-semibold mt-0.5" style={{ color }}>{stateLabel}</p>
       </div>
     </GlassCard>

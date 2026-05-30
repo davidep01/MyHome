@@ -5,7 +5,7 @@ import { GlassSheet } from '../glass/GlassSheet'
 import { useHAEntity } from '../../hooks/useHAEntity'
 import { useHAService } from '../../hooks/useHAService'
 import { useHaptic } from '../../hooks/useHaptic'
-import { getCameraProxyUrl } from '../../api/ha-rest'
+import { getCameraProxyUrl, getCameraStreamUrl } from '../../api/ha-rest'
 import { tokens } from '../../design/tokens'
 import { cn } from '../../lib/utils'
 
@@ -36,6 +36,7 @@ export function CameraCard({ entityId, label, className }: CameraCardProps) {
   const [lastRefresh, setLastRefresh] = useState<number>(0)
   const [elapsed, setElapsed] = useState(0)
   const [sheetOpen, setSheetOpen] = useState(false)
+  const [liveFailed, setLiveFailed] = useState(false)
 
   const isUnavailable = !entity || entity.state === 'unavailable'
 
@@ -88,7 +89,7 @@ export function CameraCard({ entityId, label, className }: CameraCardProps) {
       <GlassCard
         noPadding
         interactive={!isUnavailable}
-        onClick={() => !isUnavailable && setSheetOpen(true)}
+        onClick={() => !isUnavailable && (setLiveFailed(false), setSheetOpen(true))}
         className={cn('overflow-hidden min-h-[140px] relative', className)}
       >
         {/* Snapshot image */}
@@ -153,9 +154,16 @@ export function CameraCard({ entityId, label, className }: CameraCardProps) {
         className="h-[80vh]"
       >
         <div className="flex flex-col gap-4 h-full">
-          {/* Snapshot routed through the backend HA proxy. */}
+          {/* Live MJPEG stream via the backend HA proxy, falling back to snapshots. */}
           <div className="flex-1 rounded-[16px] overflow-hidden bg-black/40">
-            {snapshotUrl ? (
+            {!isUnavailable && !liveFailed ? (
+              <img
+                src={getCameraStreamUrl(entityId)}
+                alt={label}
+                className="h-full w-full object-contain"
+                onError={() => setLiveFailed(true)}
+              />
+            ) : snapshotUrl ? (
               <img src={snapshotUrl} alt={label} className="h-full w-full object-contain" />
             ) : null}
           </div>

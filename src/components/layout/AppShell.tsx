@@ -11,11 +11,15 @@ import { connectHA, disconnectHA } from '../../api/ha-websocket'
 import { useUIStore } from '../../store/ui'
 import { GlassSheet } from '../glass/GlassSheet'
 import { ContextualPanel } from '../contextual/ContextualPanel'
+import { ConnectionOverlay } from '../system/ConnectionOverlay'
+import { DoorbellAlert } from '../system/DoorbellAlert'
+import { useAmbientNightMode } from '../../hooks/useAmbientNightMode'
 
 export function AppShell() {
   const activeView = useUIStore((s) => s.activeView)
   const selectedEntityId = useUIStore((s) => s.selectedEntityId)
   const setSelectedEntity = useUIStore((s) => s.setSelectedEntity)
+  const night = useAmbientNightMode()
 
   useEffect(() => {
     connectHA().catch(console.error)
@@ -31,16 +35,6 @@ export function AppShell() {
 
   return (
     <div className="relative flex h-full w-full overflow-hidden">
-      {/* Ambient background blobs */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -left-40 h-96 w-96 rounded-full opacity-20"
-          style={{ background: 'radial-gradient(circle, #3b82f6 0%, transparent 70%)', filter: 'blur(60px)' }} />
-        <div className="absolute -bottom-40 -right-20 h-80 w-80 rounded-full opacity-15"
-          style={{ background: 'radial-gradient(circle, #a855f7 0%, transparent 70%)', filter: 'blur(60px)' }} />
-        <div className="absolute top-1/2 left-1/3 h-64 w-64 rounded-full opacity-10"
-          style={{ background: 'radial-gradient(circle, #f97316 0%, transparent 70%)', filter: 'blur(80px)' }} />
-      </div>
-
       {/* Layout: sidebar | main | right panel */}
       <div
         className="relative flex w-full gap-3 h-full"
@@ -83,6 +77,21 @@ export function AppShell() {
           {selectedEntityId && <ContextualPanel entityId={selectedEntityId} />}
         </GlassSheet>
       </div>
+
+      {/* Night mode dimming scrim (driven by ambient light / clock) */}
+      {night && (
+        <div
+          className="pointer-events-none fixed inset-0 z-[80] transition-opacity duration-700"
+          style={{ background: 'rgba(8,6,20,0.34)', mixBlendMode: 'multiply' }}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* HA-down fullscreen overlay (auto-dismisses on reconnect) */}
+      <ConnectionOverlay />
+
+      {/* Doorbell → fullscreen video alert */}
+      <DoorbellAlert />
     </div>
   )
 }

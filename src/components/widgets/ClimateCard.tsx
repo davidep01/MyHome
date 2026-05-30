@@ -49,15 +49,15 @@ export function ClimateCard({ entityId, label, className }: ClimateCardProps) {
       <div className="flex items-start justify-between">
         <div className={cn(
           'flex h-10 w-10 items-center justify-center rounded-[14px]',
-          isOn ? 'bg-orange-500/15' : 'bg-white/8',
+          isOn ? 'bg-orange-500/15' : 'bg-black/8',
         )}>
           <Thermometer
             size={20}
             style={{ color: isOn ? modeColor : undefined }}
-            className={cn(!isOn && 'text-white/30')}
+            className={cn(!isOn && 'text-black/30')}
           />
         </div>
-        <span className="text-xs font-medium px-2 py-1 rounded-full bg-white/8 capitalize"
+        <span className="text-xs font-medium px-2 py-1 rounded-full bg-black/8 capitalize"
           style={{ color: modeColor }}>
           {hvacAction ?? entity?.state ?? '—'}
         </span>
@@ -65,7 +65,7 @@ export function ClimateCard({ entityId, label, className }: ClimateCardProps) {
 
       <div className="flex items-end justify-between mt-auto">
         <div>
-          <p className="text-sm font-medium text-white/90">{label}</p>
+          <p className="text-sm font-medium text-black/90">{label}</p>
           {currentTemp !== undefined && (
             <p className="text-xs mt-0.5" style={{ color: tokens.text.tertiary }}>
               Attuale {currentTemp}°
@@ -77,18 +77,18 @@ export function ClimateCard({ entityId, label, className }: ClimateCardProps) {
           <div className="flex items-center gap-1">
             <button
               onClick={(e) => { e.stopPropagation(); adjust(-0.5) }}
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-white/8 hover:bg-white/14 transition-colors active:scale-90"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-black/8 hover:bg-black/14 transition-colors active:scale-90"
             >
-              <ChevronDown size={16} className="text-white/70" />
+              <ChevronDown size={16} className="text-black/70" />
             </button>
-            <span className="text-lg font-semibold text-white w-12 text-center">
+            <span className="text-lg font-semibold text-[#1d1d1f] w-12 text-center">
               {targetTemp}°
             </span>
             <button
               onClick={(e) => { e.stopPropagation(); adjust(0.5) }}
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-white/8 hover:bg-white/14 transition-colors active:scale-90"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-black/8 hover:bg-black/14 transition-colors active:scale-90"
             >
-              <ChevronUp size={16} className="text-white/70" />
+              <ChevronUp size={16} className="text-black/70" />
             </button>
           </div>
         )}

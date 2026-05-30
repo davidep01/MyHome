@@ -21,9 +21,9 @@ interface MediaCardProps {
 function ProgressBar({ position, duration }: { position: number; duration: number }) {
   const pct = duration > 0 ? Math.min((position / duration) * 100, 100) : 0
   return (
-    <div className="h-0.5 w-full rounded-full bg-white/10">
+    <div className="h-0.5 w-full rounded-full bg-black/10">
       <motion.div
-        className="h-full rounded-full bg-white/50"
+        className="h-full rounded-full bg-black/50"
         animate={{ width: `${pct}%` }}
         transition={{ duration: 1, ease: 'linear' }}
       />
@@ -82,10 +82,10 @@ export function MediaCard({ entityId, label, className }: MediaCardProps) {
   if (isUnconfigured) {
     return (
       <GlassCard className={cn('flex flex-col items-center justify-center gap-2 min-h-[140px] text-center', className)}>
-        <Music2 size={28} className="text-white/15" />
-        <p className="text-xs font-medium text-white/30">Media Player</p>
-        <p className="text-[10px] text-white/20 max-w-[140px] leading-tight">
-          Aggiungi <code className="font-mono text-white/30">media_player.*</code> in rooms.ts
+        <Music2 size={28} className="text-black/15" />
+        <p className="text-xs font-medium text-black/30">Media Player</p>
+        <p className="text-[10px] text-black/20 max-w-[140px] leading-tight">
+          Aggiungi <code className="font-mono text-black/30">media_player.*</code> in rooms.ts
         </p>
       </GlassCard>
     )
@@ -99,17 +99,17 @@ export function MediaCard({ entityId, label, className }: MediaCardProps) {
         onClick={!isUnavailable ? turnOn : undefined}
         className={cn('flex items-center gap-3 min-h-[80px]', className)}
       >
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] bg-white/8">
-          <Music2 size={18} className="text-white/25" />
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] bg-black/8">
+          <Music2 size={18} className="text-black/25" />
         </div>
         <div>
-          <p className="text-sm font-medium text-white/90">{label}</p>
+          <p className="text-sm font-medium text-black/90">{label}</p>
           <p className="text-xs mt-0.5" style={{ color: tokens.text.tertiary }}>
             {isUnavailable ? 'Non disponibile' : 'Nessuna riproduzione'}
           </p>
         </div>
         {!isUnavailable && (
-          <button className="ml-auto flex h-8 w-8 items-center justify-center rounded-full bg-white/8 text-white/50">
+          <button className="ml-auto flex h-8 w-8 items-center justify-center rounded-full bg-black/8 text-black/50">
             <Play size={14} />
           </button>
         )}
@@ -139,17 +139,17 @@ export function MediaCard({ entityId, label, className }: MediaCardProps) {
             {pictureUrl ? (
               <img src={pictureUrl} alt={title} className="h-12 w-12 shrink-0 rounded-[12px] object-cover shadow-lg" />
             ) : (
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[12px] bg-white/10">
-                <Radio size={20} className="text-white/40" />
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[12px] bg-black/10">
+                <Radio size={20} className="text-black/40" />
               </div>
             )}
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-white truncate">{title ?? label}</p>
+              <p className="text-sm font-semibold text-[#1d1d1f] truncate">{title ?? label}</p>
               {artist && <p className="text-xs mt-0.5 truncate" style={{ color: tokens.text.secondary }}>{artist}</p>}
             </div>
             <div className="ml-auto flex items-center gap-1">
-              <Volume2 size={12} className="text-white/40" />
-              <span className="text-xs text-white/40">{Math.round(volume * 100)}%</span>
+              <Volume2 size={12} className="text-black/40" />
+              <span className="text-xs text-black/40">{Math.round(volume * 100)}%</span>
             </div>
           </div>
 
@@ -160,19 +160,19 @@ export function MediaCard({ entityId, label, className }: MediaCardProps) {
           <div className="flex items-center justify-center gap-2">
             <button
               onClick={prev}
-              className="flex h-11 w-11 items-center justify-center rounded-full text-white/50 hover:text-white hover:bg-white/8 transition-all active:scale-90"
+              className="flex h-11 w-11 items-center justify-center rounded-full text-black/50 hover:text-[#1d1d1f] hover:bg-black/8 transition-all active:scale-90"
             >
               <SkipBack size={20} />
             </button>
             <button
               onClick={playPause}
-              className="flex h-12 w-12 items-center justify-center rounded-full bg-white/15 hover:bg-white/22 transition-all active:scale-90"
+              className="flex h-12 w-12 items-center justify-center rounded-full bg-black/15 hover:bg-black/22 transition-all active:scale-90"
             >
-              {isPlaying ? <Pause size={20} className="text-white" /> : <Play size={20} className="text-white" />}
+              {isPlaying ? <Pause size={20} className="text-[#1d1d1f]" /> : <Play size={20} className="text-[#1d1d1f]" />}
             </button>
             <button
               onClick={next}
-              className="flex h-11 w-11 items-center justify-center rounded-full text-white/50 hover:text-white hover:bg-white/8 transition-all active:scale-90"
+              className="flex h-11 w-11 items-center justify-center rounded-full text-black/50 hover:text-[#1d1d1f] hover:bg-black/8 transition-all active:scale-90"
             >
               <SkipForward size={20} />
             </button>
@@ -184,14 +184,14 @@ export function MediaCard({ entityId, label, className }: MediaCardProps) {
       <GlassSheet open={volumeSheet} onClose={() => setVolumeSheet(false)} title="Volume">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <Volume2 size={18} className="text-white/50" />
-            <span className="text-lg font-semibold text-white">{Math.round(volume * 100)}%</span>
+            <Volume2 size={18} className="text-black/50" />
+            <span className="text-lg font-semibold text-[#1d1d1f]">{Math.round(volume * 100)}%</span>
           </div>
           <DragSlider
             value={Math.round(volume * 100)}
             onChange={(v) => setVolume(v / 100)}
             onChangeEnd={(v) => setVolume(v / 100)}
-            color="rgba(255,255,255,0.8)"
+            color="rgba(0,0,0,0.55)"
           />
           <div className="grid grid-cols-4 gap-2">
             {[25, 50, 75, 100].map((pct) => (
@@ -201,8 +201,8 @@ export function MediaCard({ entityId, label, className }: MediaCardProps) {
                 className={cn(
                   'rounded-[12px] py-2 text-sm font-medium transition-all',
                   Math.round(volume * 100) === pct
-                    ? 'bg-white/20 text-white'
-                    : 'bg-white/8 text-white/60 hover:bg-white/12',
+                    ? 'bg-black/20 text-[#1d1d1f]'
+                    : 'bg-black/8 text-black/60 hover:bg-black/12',
                 )}
               >
                 {pct}%

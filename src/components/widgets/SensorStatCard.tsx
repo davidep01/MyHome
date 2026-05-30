@@ -24,10 +24,10 @@ export function SensorStatCard({ entityId, label, className }: SensorStatCardPro
 
   return (
     <GlassCard className={cn('flex flex-col justify-between min-h-[110px]', className)}>
-      <p className="truncate text-xs font-medium text-white/55">{label}</p>
+      <p className="truncate text-xs font-medium text-black/55">{label}</p>
       <div className="flex items-end gap-1">
-        <span className="text-3xl font-semibold tabular-nums text-white">{hasValue ? value : '--'}</span>
-        <span className="mb-1 text-xs text-white/40">{unit}</span>
+        <span className="text-3xl font-semibold tabular-nums text-[#1d1d1f]">{hasValue ? value : '--'}</span>
+        <span className="mb-1 text-xs text-black/40">{unit}</span>
       </div>
       <Sparkline
         values={values.length > 1 ? values : [value || 0, value || 0]}

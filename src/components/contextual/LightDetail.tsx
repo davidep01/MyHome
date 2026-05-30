@@ -35,12 +35,12 @@ export function LightDetail({ entity }: { entity: HassEntity }) {
           onClick={toggle}
           className={cn(
             'flex h-24 w-24 items-center justify-center rounded-full transition-all',
-            isOn ? 'bg-yellow-500/20' : 'bg-white/8',
+            isOn ? 'bg-yellow-500/20' : 'bg-black/8',
           )}
         >
-          <Lightbulb size={40} className={isOn ? 'text-yellow-300' : 'text-white/30'} />
+          <Lightbulb size={40} className={isOn ? 'text-yellow-300' : 'text-black/30'} />
         </button>
-        <p className="text-sm text-white/50">{isOn ? `Accesa • ${brightness}%` : 'Spenta'}</p>
+        <p className="text-sm text-black/50">{isOn ? `Accesa • ${brightness}%` : 'Spenta'}</p>
       </div>
 
       <DragSlider value={brightness} onChange={preview} onChangeEnd={commit} color={accent.color} label="Intensità" />
@@ -52,7 +52,7 @@ export function LightDetail({ entity }: { entity: HassEntity }) {
             onClick={() => commit(pct)}
             className={cn(
               'rounded-[14px] py-2.5 text-sm font-medium transition',
-              brightness === pct ? 'bg-yellow-500 text-white' : 'bg-white/8 text-white/70 hover:bg-white/12',
+              brightness === pct ? 'bg-yellow-500 text-[#1d1d1f]' : 'bg-black/8 text-black/70 hover:bg-black/12',
             )}
           >
             {pct}%

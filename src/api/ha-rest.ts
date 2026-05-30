@@ -12,6 +12,10 @@ export function getCameraProxyUrl(entityId: string): string {
   return haApi.cameraProxyUrl(entityId)
 }
 
+export function getCameraStreamUrl(entityId: string): string {
+  return haApi.cameraStreamUrl(entityId)
+}
+
 export async function postService(
   domain: string,
   service: string,

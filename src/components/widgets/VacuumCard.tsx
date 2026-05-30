@@ -25,7 +25,7 @@ const stateLabels: Record<string, string> = {
 
 function Chip({ children }: { children: React.ReactNode }) {
   return (
-    <span className="rounded-full bg-white/8 px-2.5 py-1 text-[11px] font-medium text-white/55">{children}</span>
+    <span className="rounded-full bg-black/8 px-2.5 py-1 text-[11px] font-medium text-black/55">{children}</span>
   )
 }
 
@@ -52,12 +52,12 @@ export function VacuumCard({ entityId, label, className }: VacuumCardProps) {
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-1.5">
           <BatteryCharging size={16} style={{ color: tokens.accent.green }} />
-          <span className="text-xs font-medium text-white/70">{Math.round(battery)}% Batt.</span>
+          <span className="text-xs font-medium text-black/70">{Math.round(battery)}% Batt.</span>
         </div>
         <button
           type="button"
           onClick={action}
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-white/8 text-white/60 transition hover:text-white"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-black/8 text-black/60 transition hover:text-[#1d1d1f]"
           aria-label={cleaning ? 'Rientra alla base' : 'Avvia pulizia'}
         >
           {cleaning ? <Dock size={16} /> : <Play size={16} />}
@@ -67,16 +67,16 @@ export function VacuumCard({ entityId, label, className }: VacuumCardProps) {
       <div className="grid flex-1 place-items-center">
         <motion.div
           className="flex h-14 w-14 items-center justify-center rounded-full"
-          style={{ background: cleaning ? `${tokens.accent.blue}22` : 'rgba(255,255,255,0.06)' }}
+          style={{ background: cleaning ? `${tokens.accent.blue}22` : 'rgba(0,0,0,0.05)' }}
           animate={cleaning ? { rotate: 360 } : { rotate: 0 }}
           transition={cleaning ? { repeat: Infinity, duration: 4, ease: 'linear' } : {}}
         >
-          <div className="h-6 w-6 rounded-full border-2 border-white/30 border-t-white/80" />
+          <div className="h-6 w-6 rounded-full border-2 border-black/15 border-t-black/60" />
         </motion.div>
       </div>
 
       <div>
-        <p className="text-sm font-semibold text-white/90">{label}</p>
+        <p className="text-sm font-semibold text-black/90">{label}</p>
         <p className="text-xs" style={{ color: tokens.text.tertiary }}>
           {unavailable ? 'Non disponibile' : stateLabels[state] ?? state}
         </p>

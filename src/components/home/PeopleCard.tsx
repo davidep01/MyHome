@@ -21,14 +21,14 @@ export function PeopleCard({ className }: { className?: string }) {
   return (
     <GlassCard interactive className={cn('flex items-center justify-between gap-3 min-h-[96px]', className)}>
       <div className="min-w-0">
-        <p className="text-sm font-semibold text-white/85">Persone</p>
-        <p className="mt-0.5 text-xs text-white/40">
+        <p className="text-sm font-semibold text-black/85">Persone</p>
+        <p className="mt-0.5 text-xs text-black/40">
           {people.length === 0 ? 'Nessuna persona configurata' : `${home} a casa · ${people.length} totali`}
         </p>
         <div className="mt-3 flex -space-x-2">
           {people.length === 0 ? (
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/8 ring-2 ring-[#0b0b14]">
-              <Users size={16} className="text-white/40" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-black/8 ring-2 ring-white">
+              <Users size={16} className="text-black/40" />
             </div>
           ) : (
             people.slice(0, 5).map((p, i) => {
@@ -37,7 +37,7 @@ export function PeopleCard({ className }: { className?: string }) {
               return (
                 <div
                   key={p.entity_id}
-                  className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full text-[11px] font-semibold text-white ring-2 ring-[#0b0b14]"
+                  className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full text-[11px] font-semibold text-[#1d1d1f] ring-2 ring-white"
                   style={{ background: PALETTE[i % PALETTE.length] }}
                   title={`${name} — ${p.state === 'home' ? 'a casa' : p.state}`}
                 >
@@ -47,13 +47,13 @@ export function PeopleCard({ className }: { className?: string }) {
             })
           )}
           {people.length > 5 && (
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-[11px] font-semibold text-white/70 ring-2 ring-[#0b0b14]">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-black/10 text-[11px] font-semibold text-black/70 ring-2 ring-white">
               +{people.length - 5}
             </div>
           )}
         </div>
       </div>
-      <ChevronRight size={18} className="shrink-0 text-white/30" />
+      <ChevronRight size={18} className="shrink-0 text-black/30" />
     </GlassCard>
   )
 }

@@ -38,10 +38,10 @@ export function HomeHeader() {
     <div className="flex flex-wrap items-start justify-between gap-4">
       {/* Greeting */}
       <div className="min-w-0">
-        <h1 className="text-2xl font-semibold tracking-[-0.01em] text-white sm:text-3xl">
+        <h1 className="text-2xl font-semibold tracking-[-0.01em] text-[#1d1d1f] sm:text-3xl">
           {greeting}, {name}!
         </h1>
-        <p className="mt-1 truncate text-sm text-white/45">{subtitle}</p>
+        <p className="mt-1 truncate text-sm text-black/45">{subtitle}</p>
       </div>
 
       {/* Weather summary */}
@@ -54,8 +54,8 @@ export function HomeHeader() {
               className="h-12 w-12"
             />
             <div>
-              <div className="text-2xl font-light leading-none text-white">{weather.temp}°</div>
-              <div className="mt-1 flex items-center gap-1 text-[11px] text-white/45">
+              <div className="text-2xl font-light leading-none text-[#1d1d1f]">{weather.temp}°</div>
+              <div className="mt-1 flex items-center gap-1 text-[11px] text-black/45">
                 {weather.description.toLowerCase().includes('rain') || weather.humidity > 80
                   ? <CloudRain size={11} /> : <Droplets size={11} />}
                 {weather.humidity}%
@@ -68,10 +68,10 @@ export function HomeHeader() {
               {forecast.slice(0, 4).map((day, i) => {
                 const d = new Date(day.dt * 1000)
                 return (
-                  <div key={day.dt} className="flex flex-col items-center gap-0.5 rounded-[14px] bg-white/6 px-2.5 py-1.5">
-                    <span className="text-[10px] uppercase text-white/40">{i === 0 ? 'Oggi' : DAYS[d.getDay()]}</span>
+                  <div key={day.dt} className="flex flex-col items-center gap-0.5 rounded-[14px] bg-black/6 px-2.5 py-1.5">
+                    <span className="text-[10px] uppercase text-black/40">{i === 0 ? 'Oggi' : DAYS[d.getDay()]}</span>
                     <img src={`https://openweathermap.org/img/wn/${day.icon}.png`} alt="" className="h-6 w-6" />
-                    <span className="text-xs font-medium text-white/80">{day.temp_max}°</span>
+                    <span className="text-xs font-medium text-black/80">{day.temp_max}°</span>
                   </div>
                 )
               })}

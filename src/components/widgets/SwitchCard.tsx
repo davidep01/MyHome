@@ -53,13 +53,13 @@ export function SwitchCard({ entityId, label, className }: SwitchCardProps) {
       <div className="flex items-start justify-between">
         <div className={cn(
           'flex h-10 w-10 items-center justify-center rounded-[14px] transition-all duration-300',
-          isOn ? 'bg-green-500/20' : 'bg-white/8',
+          isOn ? 'bg-green-500/20' : 'bg-black/8',
         )}>
           <Power
             size={18}
             className={cn(
               'transition-colors duration-300',
-              isOn ? 'text-green-400' : 'text-white/30',
+              isOn ? 'text-green-400' : 'text-black/30',
               unavailable && 'opacity-30',
             )}
           />
@@ -68,7 +68,7 @@ export function SwitchCard({ entityId, label, className }: SwitchCardProps) {
         <div
           className={cn(
             'h-5 w-9 rounded-full transition-all duration-300 relative',
-            isOn ? 'bg-green-500' : 'bg-white/15',
+            isOn ? 'bg-green-500' : 'bg-black/15',
           )}
           onClick={(e) => { e.stopPropagation(); toggle() }}
         >
@@ -81,7 +81,7 @@ export function SwitchCard({ entityId, label, className }: SwitchCardProps) {
       </div>
 
       <div className="mt-auto">
-        <p className="text-sm font-medium text-white/90 leading-tight">{label}</p>
+        <p className="text-sm font-medium text-black/90 leading-tight">{label}</p>
         <div className="flex items-center gap-1.5 mt-0.5">
           <p className="text-xs" style={{ color: tokens.text.tertiary }}>
             {unavailable ? 'Non disponibile' : isOn ? 'Acceso' : 'Spento'}

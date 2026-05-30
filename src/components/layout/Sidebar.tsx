@@ -3,6 +3,7 @@ import { Home, LayoutGrid, ThermometerSun, ShieldCheck, BarChart3, Pencil } from
 import { useUIStore, type AppView } from '../../store/ui'
 import { useEntityStore } from '../../store/entities'
 import { NotificationBell } from '../notifications/NotificationCenter'
+import { AIAssistant } from '../ai/AIAssistant'
 import { cn } from '../../lib/utils'
 
 const nav: { id: AppView; label: string; Icon: React.ElementType }[] = [
@@ -33,13 +34,13 @@ function RailButton({
       aria-label={label}
       className={cn(
         'group relative flex h-11 w-11 items-center justify-center rounded-[16px] transition-colors',
-        active ? 'bg-white/14 text-white' : 'text-white/40 hover:bg-white/8 hover:text-white/80',
+        active ? 'bg-black/14 text-[#1d1d1f]' : 'text-black/40 hover:bg-black/8 hover:text-black/80',
       )}
     >
       {active && (
         <motion.span
           layoutId="rail-active"
-          className="absolute inset-0 rounded-[16px] bg-white/14"
+          className="absolute inset-0 rounded-[16px] bg-black/14"
           transition={{ type: 'spring', stiffness: 500, damping: 32 }}
         />
       )}
@@ -50,7 +51,7 @@ function RailButton({
         </span>
       ) : null}
       {/* Tooltip */}
-      <span className="pointer-events-none absolute left-full ml-3 whitespace-nowrap rounded-lg bg-black/70 px-2 py-1 text-xs text-white opacity-0 backdrop-blur transition-opacity group-hover:opacity-100 z-50">
+      <span className="pointer-events-none absolute left-full ml-3 whitespace-nowrap rounded-lg bg-black/80 px-2 py-1 text-xs text-white opacity-0 backdrop-blur transition-opacity group-hover:opacity-100 z-50">
         {label}
       </span>
     </motion.button>
@@ -67,18 +68,18 @@ export function Sidebar() {
     <nav className="glass glass-border flex h-full w-[68px] flex-col items-center gap-2 rounded-[24px] py-4">
       {/* Avatar + connection dot */}
       <div className="relative mb-2">
-        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-blue-500/40 to-purple-500/40 text-sm font-semibold text-white ring-1 ring-white/15">
-          <Home size={18} className="text-white/90" />
+        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-sm font-semibold text-white ring-1 ring-black/5">
+          <Home size={18} className="text-white" />
         </div>
         <span
           className={cn(
-            'absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full ring-2 ring-[#0b0b14]',
+            'absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full ring-2 ring-white',
             connected ? 'bg-green-400' : connectionStatus === 'connecting' ? 'bg-orange-400' : 'bg-red-400',
           )}
         />
       </div>
 
-      <div className="my-1 h-px w-7 bg-white/10" />
+      <div className="my-1 h-px w-7 bg-black/10" />
 
       {nav.map(({ id, label, Icon }) => (
         <RailButton key={id} active={activeView === id} label={label} onClick={() => setActiveView(id)}>
@@ -87,6 +88,7 @@ export function Sidebar() {
       ))}
 
       <div className="mt-auto flex flex-col items-center gap-2">
+        <AIAssistant />
         <RailButton label="Modifica" onClick={() => setActiveView('settings')} active={activeView === 'settings'}>
           <Pencil size={18} />
         </RailButton>

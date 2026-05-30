@@ -56,8 +56,8 @@ export function DragSlider({
     <div className={cn('space-y-2', className)}>
       {label && (
         <div className="flex justify-between text-sm">
-          <span className="text-white/50">{label}</span>
-          <span className="font-semibold text-white">{Math.round(value)}%</span>
+          <span className="text-black/50">{label}</span>
+          <span className="font-semibold text-[#1d1d1f]">{Math.round(value)}%</span>
         </div>
       )}
 
@@ -70,7 +70,7 @@ export function DragSlider({
         onPointerUp={handlePointerUp}
       >
         {/* Background rail */}
-        <div className="absolute inset-x-0 h-2 rounded-full bg-white/10" />
+        <div className="absolute inset-x-0 h-2 rounded-full bg-black/10" />
 
         {/* Filled portion */}
         <div

@@ -59,7 +59,7 @@ export function LightCard({ entityId, label, className }: LightCardProps) {
           onClick={toggle}
           className={cn(
             'flex h-10 w-10 items-center justify-center rounded-[14px] transition-all duration-300',
-            isOn ? 'bg-yellow-500/25' : 'bg-white/8',
+            isOn ? 'bg-yellow-500/25' : 'bg-black/8',
           )}
           aria-label={`Accendi/spegni ${label}`}
         >
@@ -67,14 +67,14 @@ export function LightCard({ entityId, label, className }: LightCardProps) {
             size={20}
             className={cn(
               'transition-colors duration-300',
-              isOn ? 'text-yellow-300' : 'text-white/30',
+              isOn ? 'text-yellow-300' : 'text-black/30',
               unavailable && 'opacity-30',
             )}
           />
         </button>
         <button
           type="button"
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-white/8 text-white/35 transition hover:text-white/70"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-black/8 text-black/35 transition hover:text-black/70"
           onClick={() => setSelectedEntity(entityId)}
           aria-label={`Apri controlli ${label}`}
         >
@@ -83,7 +83,7 @@ export function LightCard({ entityId, label, className }: LightCardProps) {
       </div>
 
       <div className="mt-auto">
-        <p className="text-sm font-medium leading-tight text-white/90">{label}</p>
+        <p className="text-sm font-medium leading-tight text-black/90">{label}</p>
         <p className="mt-0.5 text-xs" style={{ color: tokens.text.tertiary }}>
           {unavailable ? 'Non disponibile' : isOn ? `Accesa • ${brightness}%` : 'Spenta'}
         </p>

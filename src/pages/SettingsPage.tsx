@@ -31,7 +31,7 @@ function SectionTab({
       onClick={onClick}
       className={cn(
         'flex items-center gap-2 px-4 min-h-[44px] rounded-[14px] text-sm font-medium transition-all w-full',
-        active ? 'bg-white/12 text-white' : 'text-white/50 hover:text-white/75 hover:bg-white/6',
+        active ? 'bg-black/12 text-[#1d1d1f]' : 'text-black/50 hover:text-black/75 hover:bg-black/6',
       )}
     >
       <Icon size={16} />
@@ -44,7 +44,7 @@ function SectionTab({
 
 function PreferencesSection() {
   const { data: config } = useDashboardConfig()
-  if (!config) return <p className="text-sm text-white/40">Caricamento...</p>
+  if (!config) return <p className="text-sm text-black/40">Caricamento...</p>
 
   return <PreferencesForm key={`${config.userName}:${config.dashboardName}:${config.weatherCity}:${config.newsFeedUrl}`} config={config} />
 }
@@ -60,12 +60,12 @@ function PreferencesForm({ config }: { config: NonNullable<ReturnType<typeof use
 
   const field = (key: keyof typeof form, label: string, placeholder?: string) => (
     <div className="space-y-1.5">
-      <label className="text-xs font-medium text-white/50">{label}</label>
+      <label className="text-xs font-medium text-black/50">{label}</label>
       <input
         value={form[key]}
         onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
         placeholder={placeholder}
-        className="w-full rounded-[12px] bg-white/8 px-3 py-3 text-sm text-white placeholder-white/25 outline-none focus:bg-white/12 transition-colors min-h-[44px]"
+        className="w-full rounded-[12px] bg-black/8 px-3 py-3 text-sm text-[#1d1d1f] placeholder-white/25 outline-none focus:bg-black/12 transition-colors min-h-[44px]"
       />
     </div>
   )
@@ -78,7 +78,7 @@ function PreferencesForm({ config }: { config: NonNullable<ReturnType<typeof use
       {field('newsFeedUrl', 'Feed RSS news', 'https://www.ansa.it/sito/ansait_rss.xml')}
       <button
         onClick={() => update(form)}
-        className="flex w-full items-center justify-center gap-2 rounded-[14px] bg-blue-500 min-h-[44px] px-4 text-sm font-semibold text-white hover:bg-blue-400 transition-colors"
+        className="flex w-full items-center justify-center gap-2 rounded-[14px] bg-blue-500 min-h-[44px] px-4 text-sm font-semibold text-[#1d1d1f] hover:bg-blue-400 transition-colors"
       >
         <Save size={14} />
         Salva preferenze
@@ -91,7 +91,7 @@ function PreferencesForm({ config }: { config: NonNullable<ReturnType<typeof use
 
 function ConnectionSection() {
   const { data: config } = useDashboardConfig()
-  if (!config) return <p className="text-sm text-white/40">Caricamento...</p>
+  if (!config) return <p className="text-sm text-black/40">Caricamento...</p>
 
   return <ConnectionForm key={config.haUrl} config={config} />
 }
@@ -111,47 +111,47 @@ function ConnectionForm({ config }: { config: NonNullable<ReturnType<typeof useD
         </p>
       </div>
       {config.storage && !config.storage.writable && (
-        <div className="rounded-[14px] border border-white/10 bg-white/6 p-3">
-          <p className="text-xs leading-relaxed text-white/45">
+        <div className="rounded-[14px] border border-black/10 bg-black/6 p-3">
+          <p className="text-xs leading-relaxed text-black/45">
             Questo deploy è in sola lettura: le modifiche a stanze, entità e preferenze non vengono salvate qui.
           </p>
         </div>
       )}
       <div className="grid grid-cols-2 gap-2">
-        <div className="rounded-[12px] bg-white/6 p-3">
-          <p className="text-[10px] uppercase tracking-[0.12em] text-white/25">URL</p>
-          <p className="mt-1 text-xs font-semibold text-white/65">{config.haConfigSource?.url ?? 'db'}</p>
+        <div className="rounded-[12px] bg-black/6 p-3">
+          <p className="text-[10px] uppercase tracking-[0.12em] text-black/25">URL</p>
+          <p className="mt-1 text-xs font-semibold text-black/65">{config.haConfigSource?.url ?? 'db'}</p>
         </div>
-        <div className="rounded-[12px] bg-white/6 p-3">
-          <p className="text-[10px] uppercase tracking-[0.12em] text-white/25">Token</p>
-          <p className="mt-1 text-xs font-semibold text-white/65">{config.haConfigSource?.token ?? 'missing'}</p>
+        <div className="rounded-[12px] bg-black/6 p-3">
+          <p className="text-[10px] uppercase tracking-[0.12em] text-black/25">Token</p>
+          <p className="mt-1 text-xs font-semibold text-black/65">{config.haConfigSource?.token ?? 'missing'}</p>
         </div>
       </div>
       <div className="space-y-1.5">
-        <label className="text-xs font-medium text-white/50">Home Assistant URL</label>
+        <label className="text-xs font-medium text-black/50">Home Assistant URL</label>
         <input
           value={haUrl}
           onChange={(e) => setHaUrl(e.target.value)}
           disabled={urlLocked}
           placeholder="http://homeassistant.local:8123"
-          className="w-full rounded-[12px] bg-white/8 px-3 py-3 text-sm text-white placeholder-white/25 outline-none focus:bg-white/12 disabled:opacity-45 transition-colors min-h-[44px] font-mono"
+          className="w-full rounded-[12px] bg-black/8 px-3 py-3 text-sm text-[#1d1d1f] placeholder-white/25 outline-none focus:bg-black/12 disabled:opacity-45 transition-colors min-h-[44px] font-mono"
         />
       </div>
       <div className="space-y-1.5">
-        <label className="text-xs font-medium text-white/50">Token (lascia vuoto per non modificarlo)</label>
+        <label className="text-xs font-medium text-black/50">Token (lascia vuoto per non modificarlo)</label>
         <input
           type="password"
           value={haToken}
           onChange={(e) => setHaToken(e.target.value)}
           disabled={tokenLocked}
           placeholder="••••••••••••"
-          className="w-full rounded-[12px] bg-white/8 px-3 py-3 text-sm text-white placeholder-white/25 outline-none focus:bg-white/12 disabled:opacity-45 transition-colors min-h-[44px] font-mono"
+          className="w-full rounded-[12px] bg-black/8 px-3 py-3 text-sm text-[#1d1d1f] placeholder-white/25 outline-none focus:bg-black/12 disabled:opacity-45 transition-colors min-h-[44px] font-mono"
         />
       </div>
       <button
         onClick={() => update({ haUrl, ...(haToken ? { haToken } : {}) })}
         disabled={isPending || (urlLocked && tokenLocked)}
-        className="flex w-full items-center justify-center gap-2 rounded-[14px] bg-blue-500 min-h-[44px] px-4 text-sm font-semibold text-white hover:bg-blue-400 disabled:opacity-50 transition-colors"
+        className="flex w-full items-center justify-center gap-2 rounded-[14px] bg-blue-500 min-h-[44px] px-4 text-sm font-semibold text-[#1d1d1f] hover:bg-blue-400 disabled:opacity-50 transition-colors"
       >
         <Save size={14} />
         {isPending ? 'Salvataggio...' : 'Salva connessione'}
@@ -178,25 +178,25 @@ function AddEntitySheet({
   return (
     <div className="space-y-4">
       <div className="space-y-1.5">
-        <label className="text-xs font-medium text-white/50">Entity ID (da Home Assistant)</label>
+        <label className="text-xs font-medium text-black/50">Entity ID (da Home Assistant)</label>
         <input
           value={entityId}
           onChange={(e) => setEntityId(e.target.value)}
           placeholder="es. light.soggiorno"
-          className="w-full rounded-[12px] bg-white/8 px-3 py-3 text-sm text-white placeholder-white/25 outline-none focus:bg-white/12 transition-colors min-h-[44px] font-mono"
+          className="w-full rounded-[12px] bg-black/8 px-3 py-3 text-sm text-[#1d1d1f] placeholder-white/25 outline-none focus:bg-black/12 transition-colors min-h-[44px] font-mono"
         />
       </div>
       <div className="space-y-1.5">
-        <label className="text-xs font-medium text-white/50">Nome visualizzato</label>
+        <label className="text-xs font-medium text-black/50">Nome visualizzato</label>
         <input
           value={label}
           onChange={(e) => setLabel(e.target.value)}
           placeholder="es. Luce soggiorno"
-          className="w-full rounded-[12px] bg-white/8 px-3 py-3 text-sm text-white placeholder-white/25 outline-none focus:bg-white/12 transition-colors min-h-[44px]"
+          className="w-full rounded-[12px] bg-black/8 px-3 py-3 text-sm text-[#1d1d1f] placeholder-white/25 outline-none focus:bg-black/12 transition-colors min-h-[44px]"
         />
       </div>
       <div className="space-y-1.5">
-        <label className="text-xs font-medium text-white/50">Tipo widget</label>
+        <label className="text-xs font-medium text-black/50">Tipo widget</label>
         <div className="grid grid-cols-3 gap-2">
           {ENTITY_TYPES.map((t) => (
             <button
@@ -204,7 +204,7 @@ function AddEntitySheet({
               onClick={() => setType(t)}
               className={cn(
                 'rounded-[10px] py-2.5 text-xs font-medium transition-all min-h-[44px]',
-                type === t ? 'bg-blue-500 text-white' : 'bg-white/8 text-white/60 hover:bg-white/12',
+                type === t ? 'bg-blue-500 text-[#1d1d1f]' : 'bg-black/8 text-black/60 hover:bg-black/12',
               )}
             >
               {t}
@@ -215,7 +215,7 @@ function AddEntitySheet({
       <button
         onClick={submit}
         disabled={isPending || !entityId || !label}
-        className="flex w-full items-center justify-center gap-2 rounded-[14px] bg-blue-500 min-h-[44px] text-sm font-semibold text-white hover:bg-blue-400 disabled:opacity-40 transition-colors"
+        className="flex w-full items-center justify-center gap-2 rounded-[14px] bg-blue-500 min-h-[44px] text-sm font-semibold text-[#1d1d1f] hover:bg-blue-400 disabled:opacity-40 transition-colors"
       >
         <Plus size={14} />
         Aggiungi entità
@@ -234,16 +234,16 @@ function RoomCard({ room }: { room: Room }) {
     <>
       <GlassCard className="space-y-2">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-[12px] bg-white/8 text-white/50">
+          <div className="flex h-9 w-9 items-center justify-center rounded-[12px] bg-black/8 text-black/50">
             <Home size={16} />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-white/90">{room.label}</p>
+            <p className="text-sm font-semibold text-black/90">{room.label}</p>
             <p className="text-xs" style={{ color: tokens.text.tertiary }}>{room.entities.length} entità</p>
           </div>
           <button
             onClick={() => setExpanded((v) => !v)}
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-white/8 text-white/50 hover:text-white transition-colors"
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-black/8 text-black/50 hover:text-[#1d1d1f] transition-colors"
           >
             <motion.div animate={{ rotate: expanded ? 90 : 0 }} transition={framerSpring}>
               <ChevronRight size={16} />
@@ -266,11 +266,11 @@ function RoomCard({ room }: { room: Room }) {
               transition={framerSpring}
               className="overflow-hidden"
             >
-              <div className="space-y-1.5 pt-2 border-t border-white/8">
+              <div className="space-y-1.5 pt-2 border-t border-black/8">
                 {room.entities.map((e) => (
-                  <div key={e.id} className="flex items-center gap-2 rounded-[10px] bg-white/5 px-3 py-2">
-                    <span className="text-xs font-mono text-white/60 flex-1 truncate">{e.entityId}</span>
-                    <span className="text-[10px] text-white/30 px-1.5 py-0.5 rounded-full bg-white/8">{e.type}</span>
+                  <div key={e.id} className="flex items-center gap-2 rounded-[10px] bg-black/5 px-3 py-2">
+                    <span className="text-xs font-mono text-black/60 flex-1 truncate">{e.entityId}</span>
+                    <span className="text-[10px] text-black/30 px-1.5 py-0.5 rounded-full bg-black/8">{e.type}</span>
                     <button
                       onClick={() => removeEntity({ roomId: room.id, entityId: e.id })}
                       className="flex h-7 w-7 items-center justify-center rounded-full bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"
@@ -281,7 +281,7 @@ function RoomCard({ room }: { room: Room }) {
                 ))}
                 <button
                   onClick={() => setAddSheet(true)}
-                  className="flex w-full items-center justify-center gap-2 rounded-[10px] bg-white/8 min-h-[44px] text-xs font-medium text-white/60 hover:bg-white/12 hover:text-white transition-colors"
+                  className="flex w-full items-center justify-center gap-2 rounded-[10px] bg-black/8 min-h-[44px] text-xs font-medium text-black/60 hover:bg-black/12 hover:text-[#1d1d1f] transition-colors"
                 >
                   <Plus size={12} />
                   Aggiungi entità
@@ -312,18 +312,18 @@ function RoomsSection() {
     })
   }
 
-  if (isLoading) return <p className="text-sm text-white/40">Caricamento...</p>
+  if (isLoading) return <p className="text-sm text-black/40">Caricamento...</p>
 
   return (
     <div className="space-y-4">
       {/* Add room form */}
       <GlassCard className="space-y-3">
-        <p className="text-xs font-semibold text-white/50 uppercase tracking-wider">Nuova stanza</p>
+        <p className="text-xs font-semibold text-black/50 uppercase tracking-wider">Nuova stanza</p>
         <input
           value={newLabel}
           onChange={(e) => setNewLabel(e.target.value)}
           placeholder="es. Studio"
-          className="w-full rounded-[12px] bg-white/8 px-3 py-3 text-sm text-white placeholder-white/25 outline-none focus:bg-white/12 min-h-[44px]"
+          className="w-full rounded-[12px] bg-black/8 px-3 py-3 text-sm text-[#1d1d1f] placeholder-white/25 outline-none focus:bg-black/12 min-h-[44px]"
         />
         <div className="flex gap-2 flex-wrap">
           {ROOM_ICONS.map((icon) => (
@@ -332,7 +332,7 @@ function RoomsSection() {
               onClick={() => setNewIcon(icon)}
               className={cn(
                 'px-3 min-h-[36px] rounded-[10px] text-xs font-mono transition-all',
-                newIcon === icon ? 'bg-blue-500 text-white' : 'bg-white/8 text-white/50 hover:bg-white/12',
+                newIcon === icon ? 'bg-blue-500 text-[#1d1d1f]' : 'bg-black/8 text-black/50 hover:bg-black/12',
               )}
             >
               {icon}
@@ -342,7 +342,7 @@ function RoomsSection() {
         <button
           onClick={submit}
           disabled={isPending || !newLabel.trim()}
-          className="flex w-full items-center justify-center gap-2 rounded-[14px] bg-blue-500 min-h-[44px] text-sm font-semibold text-white hover:bg-blue-400 disabled:opacity-40 transition-colors"
+          className="flex w-full items-center justify-center gap-2 rounded-[14px] bg-blue-500 min-h-[44px] text-sm font-semibold text-[#1d1d1f] hover:bg-blue-400 disabled:opacity-40 transition-colors"
         >
           <Plus size={14} />
           Crea stanza
@@ -374,11 +374,11 @@ export function SettingsPage() {
     <div className="flex flex-col h-full gap-4 overflow-y-auto">
       {/* Header */}
       <GlassCard className="flex items-center gap-3 shrink-0">
-        <div className="flex h-10 w-10 items-center justify-center rounded-[14px] bg-white/8">
-          <Settings size={20} className="text-white/60" />
+        <div className="flex h-10 w-10 items-center justify-center rounded-[14px] bg-black/8">
+          <Settings size={20} className="text-black/60" />
         </div>
         <div>
-          <p className="text-base font-semibold text-white/90">Impostazioni</p>
+          <p className="text-base font-semibold text-black/90">Impostazioni</p>
           <p className="text-xs" style={{ color: tokens.text.tertiary }}>Configura la tua dashboard</p>
         </div>
       </GlassCard>
@@ -399,7 +399,7 @@ export function SettingsPage() {
               onClick={() => setSection(s.id)}
               className={cn(
                 'flex-1 flex flex-col items-center gap-1 rounded-[14px] py-2.5 text-xs font-medium min-h-[52px] transition-all',
-                section === s.id ? 'bg-white/12 text-white' : 'bg-white/5 text-white/40',
+                section === s.id ? 'bg-black/12 text-[#1d1d1f]' : 'bg-black/5 text-black/40',
               )}
             >
               <s.icon size={16} />

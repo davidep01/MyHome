@@ -8,6 +8,7 @@ import { entitiesRouter } from './routes/entities.js'
 import { weatherRouter } from './routes/weather.js'
 import { newsRouter } from './routes/news.js'
 import { haRouter } from './routes/ha.js'
+import { aiRouter } from './routes/ai.js'
 
 export const app = new Hono()
 
@@ -20,6 +21,7 @@ app.route('/api/rooms/:roomId/entities', entitiesRouter)
 app.route('/api/weather', weatherRouter)
 app.route('/api/news', newsRouter)
 app.route('/api/ha', haRouter)
+app.route('/api/ai', aiRouter)
 
 app.get('/api/health', (c) => c.json({ status: 'ok', ts: Date.now() }))
 

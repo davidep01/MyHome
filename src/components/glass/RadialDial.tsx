@@ -28,7 +28,7 @@ export function RadialDial({
   return (
     <div className="relative grid place-items-center" style={{ width: size, height: size }}>
       <svg viewBox="0 0 104 104" className="absolute inset-0 -rotate-90" aria-hidden="true">
-        <circle cx="52" cy="52" r={radius} fill="none" stroke="rgba(255,255,255,0.10)" strokeWidth="8" />
+        <circle cx="52" cy="52" r={radius} fill="none" stroke="rgba(0,0,0,0.10)" strokeWidth="8" />
         <circle
           cx="52"
           cy="52"
@@ -41,8 +41,8 @@ export function RadialDial({
         />
       </svg>
       <div className="relative text-center">
-        <div className="text-2xl font-semibold leading-none text-white tabular-nums">{label}</div>
-        {sublabel && <div className="mt-1 text-[10px] text-white/35">{sublabel}</div>}
+        <div className="text-2xl font-semibold leading-none text-[#1d1d1f] tabular-nums">{label}</div>
+        {sublabel && <div className="mt-1 text-[10px] text-black/35">{sublabel}</div>}
       </div>
     </div>
   )

@@ -1,6 +1,6 @@
 {
   "config": {
-    "haUrl": "http://homeassistant.local:8123",
+    "haUrl": "",
     "haToken": "",
     "weatherCity": "Ancona,IT",
     "newsCategory": "technology",

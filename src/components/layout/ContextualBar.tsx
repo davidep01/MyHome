@@ -91,7 +91,7 @@ export function ContextualBar() {
             <PeriodIcon size={16} style={{ color }} />
           </div>
           <div>
-            <p className="text-xs font-semibold text-white/85">{greeting}</p>
+            <p className="text-xs font-semibold text-black/85">{greeting}</p>
             <p className="text-[10px]" style={{ color: `${color}cc` }}>
               {hour.toString().padStart(2, '0')}:00
             </p>
@@ -99,7 +99,7 @@ export function ContextualBar() {
         </div>
 
         {/* Divider */}
-        <div className="w-px h-8 bg-white/10 shrink-0" />
+        <div className="w-px h-8 bg-black/10 shrink-0" />
 
         {/* Suggested actions */}
         <div className="flex gap-2 overflow-x-auto">
@@ -109,7 +109,7 @@ export function ContextualBar() {
               onClick={() => runAction(action)}
               whileTap={{ scale: 0.93 }}
               transition={framerSpringBounce}
-              className="flex shrink-0 items-center gap-1.5 rounded-[10px] bg-white/8 px-3 py-1.5 text-xs font-medium text-white/70 hover:bg-white/12 hover:text-white transition-colors"
+              className="flex shrink-0 items-center gap-1.5 rounded-[10px] bg-black/8 px-3 py-1.5 text-xs font-medium text-black/70 hover:bg-black/12 hover:text-[#1d1d1f] transition-colors"
             >
               <span>{action.emoji}</span>
               <span>{action.label}</span>

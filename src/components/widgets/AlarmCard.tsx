@@ -49,7 +49,7 @@ export function AlarmCard({ entityId, label, className }: AlarmCardProps) {
           <Icon size={17} style={{ color }} />
         </div>
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-white/90">{label}</p>
+          <p className="truncate text-sm font-semibold text-black/90">{label}</p>
           <p className="truncate text-xs" style={{ color: tokens.text.tertiary }}>
             {unavailable ? 'Non disponibile' : stateLabels[state] ?? state}
           </p>
@@ -61,7 +61,7 @@ export function AlarmCard({ entityId, label, className }: AlarmCardProps) {
           onClick={() => send('alarm_disarm', 'disarmed')}
           className={cn(
             'rounded-[12px] py-2 text-xs font-medium transition',
-            !armed ? 'bg-green-500/20 text-green-300' : 'bg-white/8 text-white/60 hover:bg-white/12',
+            !armed ? 'bg-green-500/20 text-green-300' : 'bg-black/8 text-black/60 hover:bg-black/12',
           )}
         >
           Disins.
@@ -71,7 +71,7 @@ export function AlarmCard({ entityId, label, className }: AlarmCardProps) {
           onClick={() => send('alarm_arm_away', 'armed_away')}
           className={cn(
             'rounded-[12px] py-2 text-xs font-medium transition',
-            armed ? 'bg-orange-500/20 text-orange-300' : 'bg-white/8 text-white/60 hover:bg-white/12',
+            armed ? 'bg-orange-500/20 text-orange-300' : 'bg-black/8 text-black/60 hover:bg-black/12',
           )}
         >
           Inser.

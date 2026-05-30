@@ -36,17 +36,17 @@ export function EnergyCard() {
     <GlassCard glow={watts && watts > 1200 ? tokens.accent.orangeGlow : undefined} className="min-h-[184px]">
       <div className="flex h-full flex-col">
         <div className="flex items-start justify-between">
-          <div className="flex h-10 w-10 items-center justify-center rounded-[14px] bg-white/8">
+          <div className="flex h-10 w-10 items-center justify-center rounded-[14px] bg-black/8">
             <Zap size={18} style={{ color }} />
           </div>
-          <span className="rounded-full bg-white/8 px-2 py-1 text-[10px] text-white/45">live</span>
+          <span className="rounded-full bg-black/8 px-2 py-1 text-[10px] text-black/45">live</span>
         </div>
         <div className="mt-auto">
-          <p className="text-[32px] font-semibold leading-none tabular-nums text-white">
+          <p className="text-[32px] font-semibold leading-none tabular-nums text-[#1d1d1f]">
             {kilowatts === undefined ? '--' : kilowatts.toFixed(2)}
-            <span className="ml-1 text-sm font-normal text-white/40">kW</span>
+            <span className="ml-1 text-sm font-normal text-black/40">kW</span>
           </p>
-          <p className="mt-2 text-xs text-white/40">{(powerEntity?.attributes?.friendly_name as string | undefined) ?? 'Consumo istantaneo'}</p>
+          <p className="mt-2 text-xs text-black/40">{(powerEntity?.attributes?.friendly_name as string | undefined) ?? 'Consumo istantaneo'}</p>
           <Sparkline values={values} color={color} className="mt-3 h-8 w-full" />
         </div>
       </div>

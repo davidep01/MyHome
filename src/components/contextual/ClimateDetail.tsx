@@ -65,20 +65,20 @@ export function ClimateDetail({ entity }: { entity: HassEntity }) {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setTemp(target - step)}
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-white/8 text-white/70 transition hover:bg-white/14 active:scale-90"
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-black/8 text-black/70 transition hover:bg-black/14 active:scale-90"
             aria-label="Diminuisci"
           >
             <Minus size={18} />
           </button>
           <button
             onClick={() => setTemp(Math.round(target))}
-            className="rounded-full bg-white/8 px-8 py-3 text-sm font-medium text-white/80 transition hover:bg-white/14"
+            className="rounded-full bg-black/8 px-8 py-3 text-sm font-medium text-black/80 transition hover:bg-black/14"
           >
             Allinea
           </button>
           <button
             onClick={() => setTemp(target + step)}
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-white/8 text-white/70 transition hover:bg-white/14 active:scale-90"
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-black/8 text-black/70 transition hover:bg-black/14 active:scale-90"
             aria-label="Aumenta"
           >
             <Plus size={18} />
@@ -88,8 +88,8 @@ export function ClimateDetail({ entity }: { entity: HassEntity }) {
 
       {/* Mode */}
       <div>
-        <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/35">Modalità</p>
-        <div className="flex gap-2 rounded-[18px] bg-white/5 p-1.5">
+        <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-black/35">Modalità</p>
+        <div className="flex gap-2 rounded-[18px] bg-black/5 p-1.5">
           {MODES.map(({ id, label, Icon }) => {
             const active = mode === id
             return (
@@ -98,9 +98,9 @@ export function ClimateDetail({ entity }: { entity: HassEntity }) {
                 onClick={() => setMode(id)}
                 className={cn(
                   'flex flex-1 flex-col items-center gap-1 rounded-[14px] py-3 text-[11px] font-medium transition',
-                  active ? 'text-white' : 'text-white/45 hover:text-white/70',
+                  active ? 'text-[#1d1d1f]' : 'text-black/45 hover:text-black/70',
                 )}
-                style={active ? { background: id === 'heat' ? tokens.accent.orange : 'rgba(255,255,255,0.14)' } : undefined}
+                style={active ? { background: id === 'heat' ? tokens.accent.orange : 'rgba(0,0,0,0.10)' } : undefined}
               >
                 <Icon size={18} />
                 {label}
@@ -112,7 +112,7 @@ export function ClimateDetail({ entity }: { entity: HassEntity }) {
 
       {/* Fan mode */}
       <div>
-        <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/35">Ventola</p>
+        <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-black/35">Ventola</p>
         <div className="flex gap-2">
           {fanModes.map((f) => {
             const active = fanMode === f
@@ -122,7 +122,7 @@ export function ClimateDetail({ entity }: { entity: HassEntity }) {
                 onClick={() => setFan(f)}
                 className={cn(
                   'flex h-11 flex-1 items-center justify-center rounded-[14px] text-sm font-semibold transition',
-                  active ? 'bg-white/16 text-white' : 'bg-white/6 text-white/45 hover:text-white/70',
+                  active ? 'bg-black/16 text-[#1d1d1f]' : 'bg-black/6 text-black/45 hover:text-black/70',
                 )}
               >
                 {f}

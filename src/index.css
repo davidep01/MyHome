@@ -1,15 +1,29 @@
 @import "tailwindcss";
 
+/* Apple design tokens — exposed both as Tailwind utility colors (text-foreground,
+   ring-foreground/50, …) and as raw CSS custom properties for oklch(from …) usage. */
+@theme {
+  --color-background: #ffffff;
+  --color-foreground: #1d1d1f;
+  --color-primary: #0066cc;
+  --color-primary-on-dark: #2997ff;
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #1d1d1f;
+}
+
 :root {
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
 
-  /* Glass materials */
-  --glass-bg-dark: rgba(15, 15, 25, 0.55);
-  --glass-bg-light: rgba(255, 255, 255, 0.55);
-  --glass-border-dark: rgba(255, 255, 255, 0.1);
-  --glass-border-light: rgba(255, 255, 255, 0.7);
-  --glass-blur: 24px;
-  --glass-saturate: 160%;
+  /* Liquid Glass material — light (Apple): translucent white frost + hairline */
+  --glass-bg-dark: rgba(255, 255, 255, 0.72);
+  --glass-bg-light: rgba(255, 255, 255, 0.85);
+  --glass-border-dark: rgba(0, 0, 0, 0.08);
+  --glass-border-light: rgba(0, 0, 0, 0.06);
+  --glass-blur: 20px;
+  --glass-saturate: 180%;
 
   /* Radius */
   --radius-card: 24px;
@@ -24,7 +38,7 @@
   --spring: cubic-bezier(0.25, 1, 0.5, 1);
   --spring-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
 
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 * {
@@ -39,11 +53,19 @@ html, body, #root {
   margin: 0;
   padding: 0;
   font-family: var(--font-sans);
-  background: #08080f;
-  color: #f0f0f5;
+  color: #1d1d1f;
   overflow: hidden;
   user-select: none;
   touch-action: manipulation;
+  /* Apple body type: 17px, tight tracking */
+  font-size: 17px;
+  letter-spacing: -0.374px;
+  line-height: 1.47;
+}
+
+/* Apple light canvas — parchment #f5f5f7 (flat, no decorative gradient). */
+body {
+  background: #f5f5f7;
 }
 
 /* Glass utility classes */
@@ -73,9 +95,9 @@ html, body, #root {
   padding: 1px;
   background: linear-gradient(
     135deg,
-    rgba(255,255,255,0.25) 0%,
-    rgba(255,255,255,0.05) 40%,
-    rgba(255,255,255,0.12) 100%
+    rgba(255,255,255,0.9) 0%,
+    rgba(0,0,0,0.04) 45%,
+    rgba(0,0,0,0.08) 100%
   );
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);

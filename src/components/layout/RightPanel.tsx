@@ -23,7 +23,7 @@ function DefaultPanel() {
             onClick={() => setTab(t)}
             className={cn(
               'flex flex-1 items-center justify-center gap-1.5 rounded-[12px] py-2 text-xs font-medium transition-all',
-              tab === t ? 'bg-white/12 text-white' : 'text-white/40 hover:text-white/60',
+              tab === t ? 'bg-black/12 text-[#1d1d1f]' : 'text-black/40 hover:text-black/60',
             )}
           >
             {t === 'weather' ? <CloudSun size={13} /> : <Newspaper size={13} />}

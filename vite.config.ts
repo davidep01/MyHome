@@ -1,9 +1,15 @@
+import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
   plugins: [
     react(),
     tailwindcss(),
@@ -14,8 +20,8 @@ export default defineConfig({
         name: 'MyHome',
         short_name: 'MyHome',
         description: 'Dashboard domotica premium',
-        theme_color: '#0a0a0f',
-        background_color: '#0a0a0f',
+        theme_color: '#f5f5f7',
+        background_color: '#f5f5f7',
         display: 'standalone',
         orientation: 'any',
         icons: [

@@ -103,6 +103,19 @@ haRouter.get('/camera-proxy/:entityId', async (c) => {
   return forwardResponse(res)
 })
 
+// Live MJPEG stream (continuous multipart) — usable directly as an <img> src.
+haRouter.get('/camera-stream/:entityId', async (c) => {
+  const entityId = c.req.param('entityId')
+  const res = await proxyHA(`/api/camera_proxy_stream/${encodeURIComponent(entityId)}`)
+  return new Response(res.body, {
+    status: res.status,
+    headers: {
+      'Content-Type': res.headers.get('Content-Type') ?? 'multipart/x-mixed-replace',
+      'Cache-Control': 'no-store',
+    },
+  })
+})
+
 haRouter.get('/media', async (c) => {
   const path = c.req.query('path')
   if (!path || !path.startsWith('/')) {

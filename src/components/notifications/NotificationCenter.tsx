@@ -41,7 +41,7 @@ function NotificationItem({
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20 }}
       transition={framerSpring}
-      className="flex items-start gap-3 rounded-[14px] bg-white/5 p-3"
+      className="flex items-start gap-3 rounded-[14px] bg-black/5 p-3"
     >
       <div
         className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px]"
@@ -50,7 +50,7 @@ function NotificationItem({
         <Icon size={14} style={{ color }} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-medium text-white/85 leading-snug">{notification.title}</p>
+        <p className="text-xs font-medium text-black/85 leading-snug">{notification.title}</p>
         {notification.message && (
           <p className="text-[10px] mt-0.5" style={{ color: tokens.text.tertiary }}>
             {notification.message}
@@ -60,7 +60,7 @@ function NotificationItem({
       {onDismiss && (
         <button
           onClick={onDismiss}
-          className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/8 text-white/30 hover:text-white/60 transition-colors"
+          className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-black/8 text-black/30 hover:text-black/60 transition-colors"
         >
           <X size={10} />
         </button>
@@ -91,12 +91,12 @@ export function NotificationBell() {
   return (
     <>
       <motion.button
-        className="relative flex h-11 w-11 items-center justify-center rounded-[14px] bg-white/8 hover:bg-white/12 transition-colors"
+        className="relative flex h-11 w-11 items-center justify-center rounded-[14px] bg-black/8 hover:bg-black/12 transition-colors"
         onClick={() => setOpen(true)}
         whileTap={{ scale: 0.92 }}
         transition={framerSpring}
       >
-        <Bell size={16} className={cn(hasCritical ? 'text-red-400' : 'text-white/50')} />
+        <Bell size={16} className={cn(hasCritical ? 'text-red-400' : 'text-black/50')} />
         <AnimatePresence>
           {badgeCount > 0 && (
             <motion.span
@@ -106,7 +106,7 @@ export function NotificationBell() {
               exit={{ scale: 0 }}
               transition={framerSpring}
               className={cn(
-                'absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-bold text-white',
+                'absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-bold text-[#1d1d1f]',
                 hasCritical ? 'bg-red-500' : 'bg-orange-500',
               )}
             >
@@ -121,7 +121,7 @@ export function NotificationBell() {
           {notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-3 py-12">
               <CheckCircle size={32} className="text-green-400/60" />
-              <p className="text-sm text-white/50">Tutto ok</p>
+              <p className="text-sm text-black/50">Tutto ok</p>
               <p className="text-xs" style={{ color: tokens.text.tertiary }}>
                 Nessun avviso attivo
               </p>

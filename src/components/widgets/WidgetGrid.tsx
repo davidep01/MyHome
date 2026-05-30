@@ -17,9 +17,9 @@ import { VacuumCard } from './VacuumCard'
 function UnsupportedEntityCard({ entity }: { entity: RoomEntity }) {
   return (
     <GlassCard className="flex min-h-[110px] flex-col justify-center gap-1">
-      <p className="text-sm font-medium text-white/85">{entity.label}</p>
-      <p className="truncate font-mono text-xs text-white/35">{entity.entityId}</p>
-      <p className="text-xs text-white/25">{entity.type}</p>
+      <p className="text-sm font-medium text-black/85">{entity.label}</p>
+      <p className="truncate font-mono text-xs text-black/35">{entity.entityId}</p>
+      <p className="text-xs text-black/25">{entity.type}</p>
     </GlassCard>
   )
 }

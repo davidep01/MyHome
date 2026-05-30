@@ -113,5 +113,6 @@ export const haApi = {
       body: JSON.stringify(data ?? {}),
     }),
   cameraProxyUrl: (entityId: string) => `/api/ha/camera-proxy/${encodeURIComponent(entityId)}`,
+  cameraStreamUrl: (entityId: string) => `/api/ha/camera-stream/${encodeURIComponent(entityId)}`,
   mediaUrl: (path: string) => `/api/ha/media?path=${encodeURIComponent(path)}`,
 }

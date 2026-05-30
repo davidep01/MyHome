@@ -11,8 +11,8 @@ export function ClimatePage() {
   return (
     <div className="flex h-full flex-col gap-5 overflow-y-auto pr-1">
       <div>
-        <h1 className="text-2xl font-semibold tracking-[-0.01em] text-white sm:text-3xl">Clima</h1>
-        <p className="mt-1 text-sm text-white/45">Termostati e zone climatiche</p>
+        <h1 className="text-2xl font-semibold tracking-[-0.01em] text-[#1d1d1f] sm:text-3xl">Clima</h1>
+        <p className="mt-1 text-sm text-black/45">Termostati e zone climatiche</p>
       </div>
       <ClimateSummaryCard />
       <SectionBand title="Zone" count={entities.length}>

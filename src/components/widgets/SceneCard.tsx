@@ -38,7 +38,7 @@ export function SceneCard({ entityId, label, icon = 'sunrise', className }: Scen
       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-purple-500/15">
         <Icon size={18} className="text-purple-400" />
       </div>
-      <span className="text-sm font-medium text-white/85">{label}</span>
+      <span className="text-sm font-medium text-black/85">{label}</span>
     </GlassCard>
   )
 }

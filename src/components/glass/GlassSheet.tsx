@@ -62,11 +62,11 @@ export function GlassSheet({
           >
             <div className="flex items-center justify-between mb-5">
               {title && (
-                <span className="text-base font-semibold text-white/90">{title}</span>
+                <span className="text-base font-semibold text-black/90">{title}</span>
               )}
               <button
                 onClick={onClose}
-                className="ml-auto flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white/60 hover:text-white transition-colors"
+                className="ml-auto flex h-8 w-8 items-center justify-center rounded-full bg-black/10 text-black/60 hover:text-[#1d1d1f] transition-colors"
               >
                 <X size={16} />
               </button>

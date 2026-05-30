@@ -22,11 +22,11 @@ export function ClimateSummaryCard() {
     <GlassCard glow={activeZones.length ? (isHeating ? tokens.accent.orangeGlow : tokens.accent.blueGlow) : undefined} className="min-h-[184px]">
       <div className="flex h-full items-center justify-between gap-4">
         <div className="min-w-0">
-          <div className="flex h-10 w-10 items-center justify-center rounded-[14px] bg-white/8">
+          <div className="flex h-10 w-10 items-center justify-center rounded-[14px] bg-black/8">
             <ThermometerSun size={19} style={{ color }} />
           </div>
-          <p className="mt-4 text-sm font-semibold text-white/90">Clima</p>
-          <p className="mt-1 text-xs text-white/40">
+          <p className="mt-4 text-sm font-semibold text-black/90">Clima</p>
+          <p className="mt-1 text-xs text-black/40">
             {activeZones.length > 0
               ? `${activeZones.length} zone attive`
               : climates.length > 0 ? 'Impianti in pausa' : 'Nessun clima'}

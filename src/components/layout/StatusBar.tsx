@@ -28,17 +28,17 @@ export function StatusBar() {
             exit={{ height: 0, opacity: 0, y: -8 }}
             transition={framerSpring}
           >
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-black/10">
               <AlertTriangle size={17} style={{ color: urgent.severity === 'critical' ? tokens.accent.red : tokens.accent.orange }} />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-white/90">{urgent.title}</p>
-              <p className="truncate text-xs text-white/45">{urgent.message ?? urgent.entityId}</p>
+              <p className="truncate text-sm font-semibold text-black/90">{urgent.title}</p>
+              <p className="truncate text-xs text-black/45">{urgent.message ?? urgent.entityId}</p>
             </div>
             {active.length > 1 && (
-              <span className="rounded-full bg-white/10 px-2 py-1 text-xs font-semibold text-white/70">+{active.length - 1}</span>
+              <span className="rounded-full bg-black/10 px-2 py-1 text-xs font-semibold text-black/70">+{active.length - 1}</span>
             )}
-            <ChevronRight size={17} className="text-white/40" />
+            <ChevronRight size={17} className="text-black/40" />
           </motion.button>
         )}
       </AnimatePresence>
@@ -46,9 +46,9 @@ export function StatusBar() {
       <GlassSheet open={open} onClose={() => setOpen(false)} title="Avvisi" side="right">
         <div className="space-y-2">
           {active.map((notification) => (
-            <div key={notification.id} className="rounded-[14px] bg-white/6 p-3">
-              <p className="text-sm font-semibold text-white/85">{notification.title}</p>
-              <p className="mt-1 text-xs text-white/40">{notification.message ?? notification.entityId}</p>
+            <div key={notification.id} className="rounded-[14px] bg-black/6 p-3">
+              <p className="text-sm font-semibold text-black/85">{notification.title}</p>
+              <p className="mt-1 text-xs text-black/40">{notification.message ?? notification.entityId}</p>
             </div>
           ))}
         </div>

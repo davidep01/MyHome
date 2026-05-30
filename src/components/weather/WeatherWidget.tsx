@@ -11,7 +11,7 @@ export function WeatherWidget() {
   if (loadingCurrent) {
     return (
       <div className="h-full flex items-center justify-center">
-        <div className="h-6 w-6 rounded-full border-2 border-white/20 border-t-white/60 animate-spin" />
+        <div className="h-6 w-6 rounded-full border-2 border-black/20 border-t-black/50 animate-spin" />
       </div>
     )
   }
@@ -19,8 +19,8 @@ export function WeatherWidget() {
   if (!current) {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-2">
-        <Thermometer size={24} className="text-white/20" />
-        <p className="text-xs text-white/30 text-center">
+        <Thermometer size={24} className="text-black/20" />
+        <p className="text-xs text-black/30 text-center">
           {error instanceof Error ? error.message : 'Meteo non disponibile'}
         </p>
       </div>
@@ -33,11 +33,11 @@ export function WeatherWidget() {
       <div className="flex items-start justify-between">
         <div>
           <div className="flex items-end gap-1">
-            <span className="text-4xl font-light text-white">{current.temp}°</span>
-            <span className="text-sm text-white/40 mb-1.5">C</span>
+            <span className="text-4xl font-light text-[#1d1d1f]">{current.temp}°</span>
+            <span className="text-sm text-black/40 mb-1.5">C</span>
           </div>
-          <p className="text-sm capitalize text-white/60 mt-0.5">{current.description}</p>
-          <p className="text-xs text-white/30 mt-0.5">{current.city}</p>
+          <p className="text-sm capitalize text-black/60 mt-0.5">{current.description}</p>
+          <p className="text-xs text-black/30 mt-0.5">{current.city}</p>
         </div>
         <img
           src={`https://openweathermap.org/img/wn/${current.icon}@2x.png`}
@@ -50,15 +50,15 @@ export function WeatherWidget() {
       <div className="flex gap-3">
         <div className="flex items-center gap-1.5">
           <Droplets size={12} style={{ color: tokens.accent.blue }} />
-          <span className="text-xs text-white/50">{current.humidity}%</span>
+          <span className="text-xs text-black/50">{current.humidity}%</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <Wind size={12} className="text-white/30" />
-          <span className="text-xs text-white/50">{current.wind_speed} km/h</span>
+          <Wind size={12} className="text-black/30" />
+          <span className="text-xs text-black/50">{current.wind_speed} km/h</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <Thermometer size={12} className="text-white/30" />
-          <span className="text-xs text-white/50">Percepita {current.feels_like}°</span>
+          <Thermometer size={12} className="text-black/30" />
+          <span className="text-xs text-black/50">Percepita {current.feels_like}°</span>
         </div>
       </div>
 
@@ -70,16 +70,16 @@ export function WeatherWidget() {
             return (
               <div
                 key={day.dt}
-                className="flex flex-col items-center gap-1 rounded-[12px] bg-white/6 p-2 min-w-[52px]"
+                className="flex flex-col items-center gap-1 rounded-[12px] bg-black/6 p-2 min-w-[52px]"
               >
-                <span className="text-xs text-white/40">{DAYS[d.getDay()]}</span>
+                <span className="text-xs text-black/40">{DAYS[d.getDay()]}</span>
                 <img
                   src={`https://openweathermap.org/img/wn/${day.icon}.png`}
                   alt=""
                   className="h-8 w-8"
                 />
-                <span className="text-xs font-medium text-white/80">{day.temp_max}°</span>
-                <span className="text-xs text-white/30">{day.temp_min}°</span>
+                <span className="text-xs font-medium text-black/80">{day.temp_max}°</span>
+                <span className="text-xs text-black/30">{day.temp_min}°</span>
               </div>
             )
           })}

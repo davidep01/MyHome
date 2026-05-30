@@ -14,9 +14,9 @@ export function SectionBand({ title, count, action, minColumn = 180, children }:
   return (
     <section className="flex flex-col gap-3">
       <div className="flex items-center gap-2 px-1">
-        <h2 className="text-base font-semibold text-white/85">{title}</h2>
+        <h2 className="text-base font-semibold text-black/85">{title}</h2>
         {count !== undefined && (
-          <span className="rounded-full bg-white/8 px-2 py-0.5 text-xs text-white/40">{count}</span>
+          <span className="rounded-full bg-black/8 px-2 py-0.5 text-xs text-black/40">{count}</span>
         )}
         {action && <div className="ml-auto">{action}</div>}
       </div>

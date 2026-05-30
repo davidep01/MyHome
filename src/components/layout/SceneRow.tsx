@@ -42,7 +42,7 @@ export function SceneRow() {
             >
               <Icon size={20} className="text-white" />
             </span>
-            <span className="text-[11px] font-medium text-white/60">{scene.label}</span>
+            <span className="text-[11px] font-medium text-black/55">{scene.label}</span>
           </motion.button>
         )
       })}

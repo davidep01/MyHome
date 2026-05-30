@@ -78,10 +78,10 @@ export function LockCard({ entityId, label, className }: LockCardProps) {
       onTouchStart={start}
       onTouchEnd={stop}
     >
-      <p className="text-sm font-semibold text-white/90">{label}</p>
+      <p className="text-sm font-semibold text-black/90">{label}</p>
       <div className="relative grid h-16 w-16 place-items-center">
         <svg viewBox="0 0 64 64" className="absolute inset-0 -rotate-90">
-          <circle cx="32" cy="32" r="28" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="4" />
+          <circle cx="32" cy="32" r="28" fill="none" stroke="rgba(0,0,0,0.10)" strokeWidth="4" />
           <circle
             cx="32" cy="32" r="28" fill="none" stroke={color} strokeWidth="4" strokeLinecap="round"
             strokeDasharray={`${progress * 2 * Math.PI * 28} ${2 * Math.PI * 28}`}
@@ -92,7 +92,7 @@ export function LockCard({ entityId, label, className }: LockCardProps) {
           style={{ background: `${color}22` }}
           animate={{ scale: progress > 0 ? 1 + progress * 0.08 : 1 }}
         >
-          <Icon size={22} style={{ color: unavailable ? 'rgba(255,255,255,0.25)' : color }} />
+          <Icon size={22} style={{ color: unavailable ? 'rgba(0,0,0,0.28)' : color }} />
         </motion.div>
       </div>
       <p className="text-[11px]" style={{ color: tokens.text.tertiary }}>

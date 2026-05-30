@@ -32,16 +32,16 @@ export function MediaNowPlayingCard() {
         </div>
       )}
       <div className="relative flex h-full flex-col p-4">
-        <div className="flex h-10 w-10 items-center justify-center rounded-[14px] bg-white/10">
+        <div className="flex h-10 w-10 items-center justify-center rounded-[14px] bg-black/10">
           <Music2 size={18} style={{ color: tokens.accent.green }} />
         </div>
         <div className="mt-auto min-w-0">
-          <p className="truncate text-sm font-semibold text-white/90">{title}</p>
-          {artist && <p className="mt-1 truncate text-xs text-white/45">{artist}</p>}
+          <p className="truncate text-sm font-semibold text-black/90">{title}</p>
+          {artist && <p className="mt-1 truncate text-xs text-black/45">{artist}</p>}
           <button
             type="button"
             onClick={toggle}
-            className="mt-3 flex h-11 w-11 items-center justify-center rounded-full bg-white/14 text-white transition active:scale-95"
+            className="mt-3 flex h-11 w-11 items-center justify-center rounded-full bg-black/14 text-[#1d1d1f] transition active:scale-95"
           >
             {entity.state === 'playing' ? <Pause size={18} /> : <Play size={18} />}
           </button>
