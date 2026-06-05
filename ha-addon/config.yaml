@@ -1,6 +1,6 @@
 name: "MyHome Dashboard"
 description: "Dashboard domotica personalizzata - MyHome"
-version: "2.2.0"
+version: "2.2.10"
 slug: "myhome_dashboard"
 init: false
 homeassistant: "2023.1.0"
