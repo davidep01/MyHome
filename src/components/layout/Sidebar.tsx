@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Home, LayoutGrid, Boxes, ThermometerSun, ShieldCheck, BarChart3, Pencil } from 'lucide-react'
+import { ActivitySquare, Camera, Droplets, Film, Home, LayoutGrid, Boxes, ThermometerSun, ShieldCheck, BarChart3, Lightbulb, Settings2, Zap } from 'lucide-react'
 import { useUIStore, type AppView } from '../../store/ui'
 import { useEntityStore } from '../../store/entities'
 import { NotificationBell } from '../notifications/NotificationCenter'
@@ -8,9 +8,15 @@ import { cn } from '../../lib/utils'
 const nav: { id: AppView; label: string; Icon: React.ElementType }[] = [
   { id: 'home', label: 'Home', Icon: LayoutGrid },
   { id: 'areas', label: 'Aree', Icon: Boxes },
+  { id: 'lights', label: 'Luci', Icon: Lightbulb },
   { id: 'climate', label: 'Clima', Icon: ThermometerSun },
   { id: 'security', label: 'Sicurezza', Icon: ShieldCheck },
   { id: 'energy', label: 'Energia', Icon: BarChart3 },
+  { id: 'cameras', label: 'Telecamere', Icon: Camera },
+  { id: 'automations', label: 'Automazioni', Icon: Zap },
+  { id: 'media', label: 'Media', Icon: Film },
+  { id: 'water', label: 'Acqua', Icon: Droplets },
+  { id: 'system', label: 'Sistema', Icon: ActivitySquare },
 ]
 
 function RailButton({
@@ -75,7 +81,7 @@ export function Sidebar() {
   const connected = connectionStatus === 'connected'
 
   return (
-    <nav className="glass glass-border flex h-full w-[68px] flex-col items-center gap-2 rounded-[24px] py-4">
+    <nav className="glass glass-border flex h-full w-[68px] flex-col items-center gap-2 overflow-y-auto rounded-[24px] py-4">
       {/* Avatar + connection dot */}
       <div className="relative mb-2">
         <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-sm font-semibold text-white ring-1 ring-black/5">
@@ -99,7 +105,7 @@ export function Sidebar() {
 
       <div className="mt-auto flex flex-col items-center gap-2">
         <RailButton label="Impostazioni" onClick={() => setActiveView('settings')} active={activeView === 'settings'}>
-          <Pencil size={18} />
+          <Settings2 size={18} />
         </RailButton>
         <NotificationBell />
       </div>

@@ -117,6 +117,7 @@ export type EntityType =
   | 'light' | 'climate' | 'cover' | 'scene' | 'security' | 'media'
   | 'sensor' | 'switch' | 'camera' | 'vacuum' | 'lock' | 'alarm'
   | 'number' | 'select' | 'button' | 'binary_sensor' | 'siren' | 'fan'
+  | 'automation' | 'script' | 'person' | 'device_tracker' | 'weather' | 'water_heater' | 'valve'
 
 export interface RoomEntity {
   id: string

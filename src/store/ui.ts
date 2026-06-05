@@ -1,7 +1,19 @@
 import { create } from 'zustand'
 
 type ThemeMode = 'dark' | 'light'
-export type AppView = 'home' | 'areas' | 'climate' | 'security' | 'energy' | 'settings'
+export type AppView =
+  | 'home'
+  | 'areas'
+  | 'lights'
+  | 'climate'
+  | 'security'
+  | 'energy'
+  | 'cameras'
+  | 'automations'
+  | 'media'
+  | 'water'
+  | 'system'
+  | 'settings'
 
 /** 'auto' = domain sections (default); 'grid' = user's custom tile layout. */
 export type DashboardView = 'auto' | 'grid'

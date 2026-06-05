@@ -520,11 +520,11 @@ function AdminPanel({ config }: { config: AppConfig }) {
         )}
       </div>
 
-      {/* Advanced mode — allow editing widgets on touch devices (tablet/kiosk) */}
+      {/* Advanced mode — admin-only preferences; widget editing remains desktop-only. */}
       <div className="flex items-center justify-between gap-3 rounded-[12px] bg-black/[0.04] px-3 py-2.5">
         <div className="min-w-0">
           <p className="text-sm font-medium text-[#1d1d1f]">Modalità avanzata</p>
-          <p className="text-[11px] text-black/45">Consente di modificare i widget anche dal tablet (di norma sola visualizzazione).</p>
+          <p className="text-[11px] text-black/45">Preferenze admin avanzate. La modifica widget resta disponibile solo da desktop.</p>
         </div>
         <div className={cn('lg-toggle shrink-0', advancedMode && 'on')} onClick={() => setAdvancedMode((v) => !v)}>
           <span className="lg-toggle-knob" />

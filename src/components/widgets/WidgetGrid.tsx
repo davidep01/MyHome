@@ -41,6 +41,13 @@ const SPAN: Record<EntityType, { c: number; r: number }> = {
   sensor: { c: 1, r: 1 },
   binary_sensor: { c: 1, r: 1 },
   security: { c: 1, r: 1 },
+  automation: { c: 1, r: 1 },
+  script: { c: 1, r: 1 },
+  person: { c: 1, r: 1 },
+  device_tracker: { c: 1, r: 1 },
+  weather: { c: 2, r: 2 },
+  water_heater: { c: 2, r: 2 },
+  valve: { c: 1, r: 1 },
 }
 
 function Tile({ type, children }: { type: EntityType; children: ReactNode }) {
@@ -53,7 +60,8 @@ function UnsupportedEntityCard({ entity }: { entity: RoomEntity }) {
   return (
     <GlassCard className="flex h-full flex-col justify-center gap-1">
       <p className="text-sm font-medium text-black/85">{entity.label}</p>
-      <p className="truncate font-mono text-xs text-black/35">{entity.entityId}</p>
+      <p className="text-xs capitalize text-black/45">{entity.type}</p>
+      <p className="truncate font-mono text-[10px] text-black/30">{entity.entityId}</p>
     </GlassCard>
   )
 }
@@ -79,6 +87,8 @@ function renderCard(e: RoomEntity): ReactNode {
     case 'binary_sensor': return <BinarySensorCard entityId={e.entityId} label={e.label} className={cls} />
     case 'siren': return <SirenCard entityId={e.entityId} label={e.label} className={cls} />
     case 'fan': return <FanCard entityId={e.entityId} label={e.label} className={cls} />
+    case 'script': return <ButtonCard entityId={e.entityId} label={e.label} className={cls} />
+    case 'automation': return <SwitchCard entityId={e.entityId} label={e.label} className={cls} iconName={e.icon} />
     default: return <UnsupportedEntityCard entity={e} />
   }
 }

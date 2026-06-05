@@ -215,7 +215,7 @@ grid-auto-flow: row dense;
 ### 📊 Sensore temperatura
 - Valore grande: **rosso ≥ 24 °C, blu ≤ 18 °C**, neutro tra 18–24 °C.
 - Sparkline storico 6h con lo stesso colore del valore.
-- Supporta sia °C che °F (normalizza internamente per la soglia).
+- Usa solo °C e normalizza internamente per la soglia.
 
 ### 🔒 Serratura
 - **Press-and-hold** (900ms): anello di progresso SVG animato.

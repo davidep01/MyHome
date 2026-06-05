@@ -8,7 +8,7 @@ import { cn } from '../../lib/utils'
 
 interface Props { entityId: string; label: string; className?: string }
 
-/** button / input_button → press. remote → toggle. */
+/** button / input_button → press. remote → toggle. scene/script → turn_on. */
 export function ButtonCard({ entityId, label, className }: Props) {
   const entity = useHAEntity(entityId)
   const { call } = useHAService()
@@ -21,6 +21,7 @@ export function ButtonCard({ entityId, label, className }: Props) {
     if (unavailable) return
     medium()
     if (domain === 'remote') call('remote', 'toggle', { entity_id: entityId })
+    else if (domain === 'scene' || domain === 'script') call(domain, 'turn_on', { entity_id: entityId })
     else call(domain, 'press', { entity_id: entityId })
     setPressed(true)
     setTimeout(() => setPressed(false), 1200)

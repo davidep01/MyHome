@@ -11,7 +11,7 @@ const SUPABASE_URL = process.env.SUPABASE_URL
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 const SUPABASE_TABLE = process.env.MYHOME_SUPABASE_TABLE ?? 'myhome_config'
 const SUPABASE_ROW_ID = process.env.MYHOME_SUPABASE_ROW_ID ?? 'default'
-const FILE_WRITES_ALLOWED = process.env.MYHOME_ALLOW_FILE_WRITES === 'true' || !process.env.VERCEL
+const FILE_WRITES_ALLOWED = process.env.MYHOME_READ_ONLY !== 'true'
 
 const DEFAULT_HOME_WIDGETS: HomeWidget[] = [
   { id: 'w-clock', type: 'clock', size: 'md' },

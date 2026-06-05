@@ -3,15 +3,22 @@ import { Sidebar } from './Sidebar'
 import { BottomTabBar } from './BottomTabBar'
 import { TabletDashboard } from '../../pages/TabletDashboard'
 import { AreasPage } from '../../pages/AreasPage'
+import { LightsPage } from '../../pages/LightsPage'
 import { ClimatePage } from '../../pages/ClimatePage'
 import { SecurityPage } from '../../pages/SecurityPage'
 import { EnergyPage } from '../../pages/EnergyPage'
+import { CamerasPage } from '../../pages/CamerasPage'
+import { AutomationsPage } from '../../pages/AutomationsPage'
+import { MediaPage } from '../../pages/MediaPage'
+import { WaterPage } from '../../pages/WaterPage'
+import { SystemPage } from '../../pages/SystemPage'
 import { connectHA, disconnectHA } from '../../api/ha-websocket'
 import { useUIStore } from '../../store/ui'
 import { GlassSheet } from '../glass/GlassSheet'
 import { ContextualPanel } from '../contextual/ContextualPanel'
 import { ConnectionOverlay } from '../system/ConnectionOverlay'
 import { DoorbellAlert } from '../system/DoorbellAlert'
+import { LiveActivityBar } from '../live/LiveActivityBar'
 import { useAmbientNightMode } from '../../hooks/useAmbientNightMode'
 import { usePerfMode } from '../../hooks/usePerfMode'
 import { useWakeLock } from '../../hooks/useWakeLock'
@@ -36,9 +43,15 @@ export function AppShell() {
     activeView === 'settings'
       ? <Suspense fallback={<div className="flex h-full items-center justify-center text-sm text-black/40">Caricamento…</div>}><SettingsPage /></Suspense> :
     activeView === 'areas' ? <AreasPage /> :
+    activeView === 'lights' ? <LightsPage /> :
     activeView === 'climate' ? <ClimatePage /> :
     activeView === 'security' ? <SecurityPage /> :
     activeView === 'energy' ? <EnergyPage /> :
+    activeView === 'cameras' ? <CamerasPage /> :
+    activeView === 'automations' ? <AutomationsPage /> :
+    activeView === 'media' ? <MediaPage /> :
+    activeView === 'water' ? <WaterPage /> :
+    activeView === 'system' ? <SystemPage /> :
     <TabletDashboard />
 
   return (
@@ -61,8 +74,11 @@ export function AppShell() {
         </div>
 
         {/* Main canvas — full width; extra bottom padding on mobile for the tab bar */}
-        <div className="flex-1 min-w-0 overflow-hidden pb-[80px] md:pb-0">
-          {page}
+        <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-hidden pb-[80px] md:pb-0">
+          <LiveActivityBar />
+          <div className="min-h-0 flex-1 overflow-hidden">
+            {page}
+          </div>
         </div>
       </div>
 

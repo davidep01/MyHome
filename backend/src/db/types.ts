@@ -6,6 +6,8 @@ export interface RoomEntity {
   type:
     | 'light' | 'climate' | 'cover' | 'scene' | 'security' | 'media'
     | 'sensor' | 'switch' | 'camera' | 'vacuum' | 'lock' | 'alarm'
+    | 'number' | 'select' | 'button' | 'binary_sensor' | 'siren' | 'fan'
+    | 'automation' | 'script' | 'person' | 'device_tracker' | 'weather' | 'water_heater' | 'valve'
   sortOrder: number
   favorite?: boolean
 }
@@ -30,7 +32,7 @@ export interface AppConfig {
   hiddenEntities: string[]
   /** Per-entity admin overrides: custom name, icon, card type, enable/disable. */
   deviceOverrides?: Record<string, DeviceOverride>
-  /** Force temperatures to display in Celsius (converts °F sources). */
+  /** Force temperatures to display in Celsius. */
   forceCelsius?: boolean
   /** Advanced mode: allow widget editing on touch devices (tablet/kiosk) too. */
   advancedMode?: boolean

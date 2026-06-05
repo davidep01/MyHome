@@ -117,7 +117,7 @@ export function WidgetHome() {
   const setEditMode = useUIStore((s) => s.setEditMode)
   const [pickerOpen, setPickerOpen] = useState(false)
 
-  const canEdit = isDesktop || Boolean(config?.advancedMode)
+  const canEdit = isDesktop
   const editMode = canEdit && editModeRaw
   const widgets = config?.home?.widgets ?? DEFAULT_WIDGETS
   const positions = config?.home?.positions ?? {}
