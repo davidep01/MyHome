@@ -32,8 +32,17 @@ export interface AppConfig {
   deviceOverrides?: Record<string, DeviceOverride>
   /** Force temperatures to display in Celsius (converts °F sources). */
   forceCelsius?: boolean
+  /** Doorbell fullscreen alert: which entity rings + which camera to show. */
+  doorbell?: DoorbellSettings
   /** User's custom tile layout (react-grid-layout positions per entity). */
   dashboardLayout?: DashboardLayout
+}
+
+export interface DoorbellSettings {
+  /** event.* / binary_sensor.* entity that fires when the bell rings */
+  entityId?: string
+  /** camera.* entity framing the door */
+  cameraEntityId?: string
 }
 
 export interface DashboardLayout {

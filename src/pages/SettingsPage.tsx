@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Settings, User, Wifi, Plus, Trash2,
-  ChevronRight, Save, X, Home, ShieldCheck, Eye, EyeOff, Search, Lock, Pencil,
+  ChevronRight, Save, X, Home, ShieldCheck, Eye, EyeOff, Search, Lock, Pencil, Bell,
 } from 'lucide-react'
 import { GlassCard } from '../components/glass/GlassCard'
 import { GlassSheet } from '../components/glass/GlassSheet'
@@ -11,7 +11,7 @@ import {
   useRooms, useCreateRoom, useDeleteRoom, useAddEntity, useRemoveEntity,
 } from '../hooks/useRooms'
 import { useEntityStore } from '../store/entities'
-import type { AppConfig, DeviceOverride, EntityType, Room, RoomEntity } from '../api/backend'
+import type { AppConfig, DeviceOverride, DoorbellSettings, EntityType, Room, RoomEntity } from '../api/backend'
 import { iconExists } from '../lib/lucide'
 import { DynamicIcon } from '../components/DynamicIcon'
 import { framerSpring, tokens } from '../design/tokens'
@@ -394,7 +394,17 @@ function AdminPanel({ config }: { config: AppConfig }) {
   const [hidden, setHidden] = useState<string[]>(config.hiddenEntities ?? [])
   const [overrides, setOverrides] = useState<Record<string, DeviceOverride>>(config.deviceOverrides ?? {})
   const [forceCelsius, setForceCelsius] = useState<boolean>(config.forceCelsius ?? false)
+  const [doorbell, setDoorbell] = useState<DoorbellSettings>(config.doorbell ?? {})
   const [editId, setEditId] = useState<string | null>(null)
+
+  const doorbellOptions = useMemo(
+    () => Object.values(entities).filter((e) => e.entity_id.startsWith('event.') || e.entity_id.startsWith('binary_sensor.')),
+    [entities],
+  )
+  const cameraOptions = useMemo(
+    () => Object.values(entities).filter((e) => e.entity_id.startsWith('camera.')),
+    [entities],
+  )
 
   const list = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -420,7 +430,7 @@ function AdminPanel({ config }: { config: AppConfig }) {
       return { ...o, [id]: next }
     })
 
-  const save = () => update({ hiddenEntities: hidden, deviceOverrides: overrides, forceCelsius })
+  const save = () => update({ hiddenEntities: hidden, deviceOverrides: overrides, forceCelsius, doorbell })
 
   // Auto-save: persist every change ~700ms after the last edit, so nothing is
   // lost by forgetting the Save button. Skips the initial mount.
@@ -428,10 +438,10 @@ function AdminPanel({ config }: { config: AppConfig }) {
   useEffect(() => {
     if (firstRun.current) { firstRun.current = false; return }
     const t = setTimeout(() => {
-      update({ hiddenEntities: hidden, deviceOverrides: overrides, forceCelsius })
+      update({ hiddenEntities: hidden, deviceOverrides: overrides, forceCelsius, doorbell })
     }, 700)
     return () => clearTimeout(t)
-  }, [hidden, overrides, forceCelsius]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [hidden, overrides, forceCelsius, doorbell]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!unlocked) {
     return (
@@ -489,6 +499,39 @@ function AdminPanel({ config }: { config: AppConfig }) {
         <div className={cn('lg-toggle', forceCelsius && 'on')} onClick={() => setForceCelsius((v) => !v)}>
           <span className="lg-toggle-knob" />
         </div>
+      </div>
+
+      {/* Doorbell — fullscreen alert source + camera */}
+      <div className="space-y-2 rounded-[12px] bg-black/[0.04] p-3">
+        <div className="flex items-center gap-2">
+          <Bell size={15} className="text-black/55" />
+          <span className="text-sm font-medium text-[#1d1d1f]">Campanello</span>
+        </div>
+        <p className="text-[11px] text-black/40">Alla pressione: video a tutto schermo 30s + riconoscimento Gemini.</p>
+        <select
+          value={doorbell.entityId ?? ''}
+          onChange={(e) => setDoorbell((d) => ({ ...d, entityId: e.target.value || undefined }))}
+          className="w-full rounded-[10px] border border-black/10 bg-white px-3 py-2.5 text-sm text-[#1d1d1f] outline-none focus:border-[#0066cc]"
+        >
+          <option value="">— Entità campanello (event/binary_sensor) —</option>
+          {doorbellOptions.map((e) => (
+            <option key={e.entity_id} value={e.entity_id}>
+              {(e.attributes?.friendly_name as string | undefined) ?? e.entity_id} · {e.entity_id}
+            </option>
+          ))}
+        </select>
+        <select
+          value={doorbell.cameraEntityId ?? ''}
+          onChange={(e) => setDoorbell((d) => ({ ...d, cameraEntityId: e.target.value || undefined }))}
+          className="w-full rounded-[10px] border border-black/10 bg-white px-3 py-2.5 text-sm text-[#1d1d1f] outline-none focus:border-[#0066cc]"
+        >
+          <option value="">— Camera della porta —</option>
+          {cameraOptions.map((e) => (
+            <option key={e.entity_id} value={e.entity_id}>
+              {(e.attributes?.friendly_name as string | undefined) ?? e.entity_id} · {e.entity_id}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className="relative">

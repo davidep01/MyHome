@@ -37,7 +37,13 @@ export interface AppConfig {
   hiddenEntities?: string[]
   deviceOverrides?: Record<string, DeviceOverride>
   forceCelsius?: boolean
+  doorbell?: DoorbellSettings
   dashboardLayout?: DashboardLayout
+}
+
+export interface DoorbellSettings {
+  entityId?: string
+  cameraEntityId?: string
 }
 
 export interface DashboardLayout {

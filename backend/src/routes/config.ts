@@ -42,6 +42,7 @@ configRouter.put('/', async (c) => {
     if (body.hiddenEntities !== undefined) store.config.hiddenEntities = body.hiddenEntities
     if (body.deviceOverrides !== undefined) store.config.deviceOverrides = body.deviceOverrides
     if (body.forceCelsius !== undefined) store.config.forceCelsius = body.forceCelsius
+    if (body.doorbell !== undefined) store.config.doorbell = body.doorbell
     if (body.dashboardLayout !== undefined) store.config.dashboardLayout = body.dashboardLayout
   })
   if (!ok) return c.json({ error: 'Configuration could not be saved' }, 500)
