@@ -1,0 +1,39 @@
+import { Clock, CloudSun, Gauge, Sparkles, ShieldCheck, ToggleRight, Layers, Activity, Video, Users } from 'lucide-react'
+import type { WidgetSize, WidgetType } from '../../../api/backend'
+
+/** Grid footprint (cols=8, rowHeight≈64) for each widget size — iOS-like proportions. */
+export const SIZE_WH: Record<WidgetSize, { w: number; h: number }> = {
+  sm: { w: 2, h: 2 },
+  md: { w: 4, h: 2 },
+  lg: { w: 4, h: 4 },
+  wide: { w: 8, h: 2 },
+}
+
+export const SIZE_LABEL: Record<WidgetSize, string> = {
+  sm: 'Piccolo', md: 'Medio', lg: 'Grande', wide: 'Largo',
+}
+
+export interface WidgetMeta {
+  label: string
+  Icon: React.ElementType
+  sizes: WidgetSize[]
+  /** what the widget must be bound to */
+  needs?: 'entity' | 'group' | 'sensor' | 'camera'
+}
+
+export const WIDGET_META: Record<WidgetType, WidgetMeta> = {
+  clock: { label: 'Orologio', Icon: Clock, sizes: ['sm', 'md'] },
+  weather: { label: 'Meteo', Icon: CloudSun, sizes: ['md', 'lg'] },
+  quickStats: { label: 'Riepilogo casa', Icon: Gauge, sizes: ['wide', 'md'] },
+  scenes: { label: 'Scene', Icon: Sparkles, sizes: ['wide'] },
+  status: { label: 'Stato casa', Icon: ShieldCheck, sizes: ['sm', 'md'] },
+  people: { label: 'Persone', Icon: Users, sizes: ['sm', 'md'] },
+  entity: { label: 'Dispositivo', Icon: ToggleRight, sizes: ['sm', 'md'], needs: 'entity' },
+  group: { label: 'Gruppo', Icon: Layers, sizes: ['sm', 'md'], needs: 'group' },
+  sensor: { label: 'Sensore', Icon: Activity, sizes: ['sm', 'md'], needs: 'sensor' },
+  camera: { label: 'Videocamera', Icon: Video, sizes: ['md', 'lg'], needs: 'camera' },
+}
+
+export const WIDGET_ORDER: WidgetType[] = [
+  'clock', 'status', 'quickStats', 'weather', 'scenes', 'people', 'entity', 'group', 'sensor', 'camera',
+]

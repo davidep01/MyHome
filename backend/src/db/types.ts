@@ -36,8 +36,30 @@ export interface AppConfig {
   doorbell?: DoorbellSettings
   /** Admin-defined groups: several entities merged into one card. */
   groups?: EntityGroup[]
+  /** iOS-style widget home: chosen widgets + their grid positions. */
+  home?: HomeConfig
   /** User's custom tile layout (react-grid-layout positions per entity). */
   dashboardLayout?: DashboardLayout
+}
+
+export type WidgetType =
+  | 'clock' | 'weather' | 'quickStats' | 'scenes' | 'status'
+  | 'entity' | 'group' | 'sensor' | 'camera' | 'people'
+
+export type WidgetSize = 'sm' | 'md' | 'lg' | 'wide'
+
+export interface HomeWidget {
+  id: string
+  type: WidgetType
+  size: WidgetSize
+  entityId?: string
+  groupId?: string
+}
+
+export interface HomeConfig {
+  widgets: HomeWidget[]
+  /** grid position per widget id */
+  positions?: Record<string, { x: number; y: number; w: number; h: number }>
 }
 
 export interface EntityGroup {

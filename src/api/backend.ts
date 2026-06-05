@@ -39,7 +39,27 @@ export interface AppConfig {
   forceCelsius?: boolean
   doorbell?: DoorbellSettings
   groups?: EntityGroup[]
+  home?: HomeConfig
   dashboardLayout?: DashboardLayout
+}
+
+export type WidgetType =
+  | 'clock' | 'weather' | 'quickStats' | 'scenes' | 'status'
+  | 'entity' | 'group' | 'sensor' | 'camera' | 'people'
+
+export type WidgetSize = 'sm' | 'md' | 'lg' | 'wide'
+
+export interface HomeWidget {
+  id: string
+  type: WidgetType
+  size: WidgetSize
+  entityId?: string
+  groupId?: string
+}
+
+export interface HomeConfig {
+  widgets: HomeWidget[]
+  positions?: Record<string, { x: number; y: number; w: number; h: number }>
 }
 
 export interface DoorbellSettings {
