@@ -2,7 +2,7 @@
 FROM node:22-alpine AS frontend
 WORKDIR /build
 COPY package.json package-lock.json ./
-RUN npm ci --ignore-scripts
+RUN npm ci
 COPY . .
 RUN npm run build
 
@@ -10,7 +10,7 @@ RUN npm run build
 FROM node:22-alpine AS backend-builder
 WORKDIR /build/backend
 COPY backend/package.json backend/package-lock.json ./
-RUN npm ci --ignore-scripts
+RUN npm ci
 COPY backend/src ./src
 COPY backend/tsconfig.json ./
 RUN npm run build
@@ -23,7 +23,7 @@ WORKDIR /app
 
 # Backend production dependencies only
 COPY backend/package.json backend/package-lock.json ./backend/
-RUN cd backend && npm ci --omit=dev --ignore-scripts
+RUN cd backend && npm ci --omit=dev
 
 # Built artifacts
 COPY --from=backend-builder /build/backend/dist ./backend/dist
