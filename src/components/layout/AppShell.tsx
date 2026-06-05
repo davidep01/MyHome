@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { Sidebar } from './Sidebar'
-import { RightPanel } from './RightPanel'
+import { InfoPanel } from './RightPanel'
 import { BottomTabBar } from './BottomTabBar'
 import { TabletDashboard } from '../../pages/TabletDashboard'
 import { AreasPage } from '../../pages/AreasPage'
@@ -22,6 +22,8 @@ export function AppShell() {
   const activeView = useUIStore((s) => s.activeView)
   const selectedEntityId = useUIStore((s) => s.selectedEntityId)
   const setSelectedEntity = useUIStore((s) => s.setSelectedEntity)
+  const infoPanelOpen = useUIStore((s) => s.rightPanelOpen)
+  const toggleInfoPanel = useUIStore((s) => s.toggleRightPanel)
   const night = useAmbientNightMode()
   usePerfMode()
   useWakeLock()
@@ -58,31 +60,29 @@ export function AppShell() {
           <Sidebar />
         </div>
 
-        {/* Main canvas — extra bottom padding on mobile for the tab bar */}
+        {/* Main canvas — full width; extra bottom padding on mobile for the tab bar */}
         <div className="flex-1 min-w-0 overflow-hidden pb-[80px] md:pb-0">
           {page}
-        </div>
-
-        {/* Right panel — desktop only (contextual device controls or weather/news) */}
-        <div className="hidden shrink-0 lg:block lg:w-80">
-          <RightPanel />
         </div>
       </div>
 
       {/* Bottom tab bar — mobile only */}
       <BottomTabBar />
 
-      {/* Contextual device controls — mobile/tablet sheet (desktop uses the right panel) */}
-      <div className="lg:hidden">
-        <GlassSheet
-          open={Boolean(selectedEntityId)}
-          onClose={() => setSelectedEntity(null)}
-          side="bottom"
-          className="max-h-[88vh] overflow-y-auto"
-        >
-          {selectedEntityId && <ContextualPanel entityId={selectedEntityId} />}
-        </GlassSheet>
-      </div>
+      {/* Contextual device controls — centered modal, always fully on-screen */}
+      <GlassSheet
+        open={Boolean(selectedEntityId)}
+        onClose={() => setSelectedEntity(null)}
+        side="center"
+        hideHeader
+      >
+        {selectedEntityId && <ContextualPanel entityId={selectedEntityId} />}
+      </GlassSheet>
+
+      {/* Weather + news — on-demand centered modal (was the fixed right bar) */}
+      <GlassSheet open={infoPanelOpen} onClose={toggleInfoPanel} side="center" title="Meteo · News">
+        <InfoPanel />
+      </GlassSheet>
 
       {/* Night mode dimming scrim (driven by ambient light / clock) */}
       {night && (

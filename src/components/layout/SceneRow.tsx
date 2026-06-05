@@ -28,7 +28,9 @@ export function SceneRow() {
   }
 
   return (
-    <div className="flex items-start gap-[18px] overflow-x-auto pb-1">
+    // pt/pb give the orb glow + press-scale room — overflow-x:auto also clips
+    // the y-axis, so without padding the circles look cut off at the top.
+    <div className="flex shrink-0 items-start gap-[18px] overflow-x-auto px-0.5 pt-1.5 pb-3">
       {scenes.map((scene) => {
         const Icon = sceneIcons[scene.icon] ?? Sparkles
         return (

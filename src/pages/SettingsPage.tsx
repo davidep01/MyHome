@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Settings, User, Wifi, Plus, Trash2,
@@ -422,6 +422,17 @@ function AdminPanel({ config }: { config: AppConfig }) {
 
   const save = () => update({ hiddenEntities: hidden, deviceOverrides: overrides, forceCelsius })
 
+  // Auto-save: persist every change ~700ms after the last edit, so nothing is
+  // lost by forgetting the Save button. Skips the initial mount.
+  const firstRun = useRef(true)
+  useEffect(() => {
+    if (firstRun.current) { firstRun.current = false; return }
+    const t = setTimeout(() => {
+      update({ hiddenEntities: hidden, deviceOverrides: overrides, forceCelsius })
+    }, 700)
+    return () => clearTimeout(t)
+  }, [hidden, overrides, forceCelsius]) // eslint-disable-line react-hooks/exhaustive-deps
+
   if (!unlocked) {
     return (
       <GlassCard className="mx-auto max-w-sm space-y-4 text-center">
@@ -461,13 +472,15 @@ function AdminPanel({ config }: { config: AppConfig }) {
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2 px-1">
         <p className="text-xs text-black/50">{hidden.length} nascoste · {total} totali</p>
-        <button
-          onClick={save}
-          disabled={isPending}
-          className="flex items-center gap-2 rounded-full bg-[#0066cc] px-4 py-2 text-sm font-semibold text-white transition active:scale-95 disabled:opacity-50"
-        >
-          <Save size={14} /> {isPending ? 'Salvo…' : 'Salva'}
-        </button>
+        {config.storage && !config.storage.writable ? (
+          <span className="rounded-full bg-red-500/12 px-3 py-1.5 text-xs font-medium text-red-600">
+            Sola lettura — modifiche non salvabili
+          </span>
+        ) : (
+          <span className="flex items-center gap-1.5 text-xs font-medium text-black/45">
+            <Save size={13} /> {isPending ? 'Salvataggio…' : 'Salvataggio automatico'}
+          </span>
+        )}
       </div>
 
       {/* Force Celsius */}

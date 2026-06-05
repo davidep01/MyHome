@@ -5,7 +5,6 @@ import { useEntityStore } from '../store/entities'
 import { useUIStore } from '../store/ui'
 import { HomeHeader } from '../components/home/HomeHeader'
 import { QuickStats } from '../components/home/QuickStats'
-import { PeopleCard } from '../components/home/PeopleCard'
 import { SectionBand } from '../components/home/SectionBand'
 import { EditableHome } from '../components/home/EditableHome'
 import { SceneRow } from '../components/layout/SceneRow'
@@ -104,20 +103,18 @@ export function TabletDashboard() {
   const view = useUIStore((s) => s.dashboardView)
 
   return (
-    <div className="flex h-full flex-col gap-5 overflow-y-auto pr-1">
-      <HomeHeader />
+    // Fixed single-screen frame: glance area (clock/status/stats/scenes) stays
+    // put while only the device area scrolls — the home reads at a glance.
+    <div className="flex h-full flex-col gap-4 overflow-hidden">
+      <div className="shrink-0 px-0.5 pt-1">
+        <HomeHeader />
+      </div>
       <QuickStats />
       <SceneRow />
-
-      <SectionBand title="Persone">
-        <div className="min-w-0" style={{ gridColumn: 'span 2', gridRow: 'span 1' }}>
-          <PeopleCard className="h-full" />
-        </div>
-      </SectionBand>
-
       <ViewControls />
-
-      {view === 'grid' ? <EditableHome /> : <AutoHome />}
+      <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+        {view === 'grid' ? <EditableHome /> : <AutoHome />}
+      </div>
     </div>
   )
 }
