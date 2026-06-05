@@ -11,7 +11,7 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write   # commit the auto version bump back to the repo
       packages: write
 
     steps:
@@ -43,12 +43,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # HA pulls {image}:{version}, so the image must carry a tag matching
-      # the add-on version in ha-addon/config.yaml. Derive it automatically
-      # so bumping the version there is the only thing needed to ship updates.
-      - name: Read add-on version
-        id: addon
-        run: echo "version=$(grep '^version:' ha-addon/config.yaml | sed -E 's/version:[[:space:]]*"?([^"]+)"?/\1/')" >> "$GITHUB_OUTPUT"
+      # Auto version: monotonically increasing, always above the 2.2.0 baseline.
+      # HA only re-pulls an image-based add-on when its version increases, so we
+      # bump it on every push. run_number strictly increases per workflow run.
+      - name: Compute version
+        id: ver
+        run: echo "version=2.2.${{ github.run_number }}" >> "$GITHUB_OUTPUT"
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
@@ -58,6 +58,18 @@ jobs:
           push: true
           tags: |
             ${{ env.IMAGE }}:latest
-            ${{ env.IMAGE }}:${{ steps.addon.outputs.version }}
+            ${{ env.IMAGE }}:${{ steps.ver.outputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      # Write the new version into the add-on manifest and commit it back, so the
+      # HA Supervisor sees a newer version and (with Auto update on) installs it.
+      # Pushing with GITHUB_TOKEN does not re-trigger this workflow.
+      - name: Bump add-on version
+        run: |
+          sed -i -E 's/^version:.*/version: "${{ steps.ver.outputs.version }}"/' ha-addon/config.yaml
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add ha-addon/config.yaml
+          git commit -m "chore: release ${{ steps.ver.outputs.version }} [skip ci]"
+          git push origin HEAD:main
