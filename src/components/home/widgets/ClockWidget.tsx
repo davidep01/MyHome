@@ -1,7 +1,7 @@
 import { useClock } from '../../../hooks/useClock'
 import { useTimeOfDay } from '../../../hooks/useTimeOfDay'
 import { useDashboardConfig } from '../../../hooks/useDashboardConfig'
-import { GlassCard } from '../../glass/GlassCard'
+import { AnimatedCard } from '../../anim/AnimatedCard'
 import type { WidgetSize } from '../../../api/backend'
 
 export function ClockWidget({ size }: { size: WidgetSize }) {
@@ -11,7 +11,7 @@ export function ClockWidget({ size }: { size: WidgetSize }) {
   const big = size !== 'sm'
 
   return (
-    <GlassCard className="flex h-full flex-col justify-center">
+    <AnimatedCard ambient="sheen" index={0} contentClassName="justify-center">
       <div
         className="font-light leading-none tracking-[-0.03em] text-[#1d1d1f] tabular-nums"
         style={{ fontSize: big ? 'clamp(40px, 7vw, 64px)' : 'clamp(30px, 9vw, 44px)' }}
@@ -20,6 +20,6 @@ export function ClockWidget({ size }: { size: WidgetSize }) {
       </div>
       <div className="mt-2 truncate text-sm capitalize text-black/45">{date}</div>
       {big && <div className="mt-0.5 truncate text-sm font-medium text-black/70">{greeting}, {config?.userName ?? 'Casa'}</div>}
-    </GlassCard>
+    </AnimatedCard>
   )
 }

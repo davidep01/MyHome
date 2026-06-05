@@ -3,6 +3,8 @@ import { useHomeSummary } from '../../hooks/useHomeSummary'
 import { useHAService } from '../../hooks/useHAService'
 import { useHaptic } from '../../hooks/useHaptic'
 import { useEntityStore } from '../../store/entities'
+import { CountUp } from '../anim/CountUp'
+import { LiveDot } from '../anim/LiveDot'
 
 /**
  * Glanceable live summary of the house with one-tap actions — the kind of thing
@@ -31,8 +33,8 @@ export function QuickStats() {
           onClick={allLightsOff}
           className="press-card flex items-center gap-2 rounded-full bg-[rgba(234,179,8,0.16)] py-2.5 pl-3.5 pr-3 text-[15px] font-medium text-[#7a5b08] active:scale-95"
         >
-          <Lightbulb size={17} className="fill-[#eab308]/30" />
-          <span className="tabular-nums">{lightsOn}</span>
+          <Lightbulb size={17} className="amb-float fill-[#eab308]/30" />
+          <CountUp value={lightsOn} className="tabular-nums" />
           <span className="text-[#7a5b08]/70">{lightsOn === 1 ? 'luce accesa' : 'luci accese'}</span>
           <span className="ml-1 flex items-center gap-1 rounded-full bg-black/8 px-2 py-0.5 text-xs text-[#7a5b08]">
             <Power size={11} /> Spegni
@@ -43,15 +45,15 @@ export function QuickStats() {
       {avgIndoorTemp !== null && (
         <div className="flex items-center gap-2 rounded-full bg-black/[0.05] py-2.5 px-3.5 text-[15px] font-medium text-black/70">
           <Thermometer size={17} className="text-[#0066cc]" />
-          <span className="tabular-nums">{avgIndoorTemp}{tempUnit}</span>
+          <CountUp value={avgIndoorTemp} decimals={1} suffix={tempUnit} className="tabular-nums" />
           <span className="text-black/40">in casa</span>
         </div>
       )}
 
       {climateActive > 0 && (
         <div className="flex items-center gap-2 rounded-full bg-[rgba(220,38,38,0.10)] py-2.5 px-3.5 text-[15px] font-medium text-[#b91c1c]">
-          <Thermometer size={17} />
-          <span className="tabular-nums">{climateActive}</span>
+          <LiveDot color="#dc2626" size={8} />
+          <CountUp value={climateActive} className="tabular-nums" />
           <span className="text-[#b91c1c]/70">clima attivo</span>
         </div>
       )}
@@ -59,7 +61,7 @@ export function QuickStats() {
       {coversOpen > 0 && (
         <div className="flex items-center gap-2 rounded-full bg-black/[0.05] py-2.5 px-3.5 text-[15px] font-medium text-black/70">
           <Blinds size={17} className="text-[#7c3aed]" />
-          <span className="tabular-nums">{coversOpen}</span>
+          <CountUp value={coversOpen} className="tabular-nums" />
           <span className="text-black/40">{coversOpen === 1 ? 'aperta' : 'aperte'}</span>
         </div>
       )}

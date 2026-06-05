@@ -1,6 +1,7 @@
 import { Layers, Play } from 'lucide-react'
 import { GlassCard } from '../glass/GlassCard'
 import { DynamicIcon } from '../DynamicIcon'
+import { LiveDot } from '../anim/LiveDot'
 import { useEntityStore } from '../../store/entities'
 import { useHAService } from '../../hooks/useHAService'
 import { useHaptic } from '../../hooks/useHaptic'
@@ -58,12 +59,13 @@ export function GroupCard({ group, className }: { group: EntityGroup; className?
       className={cn('flex h-full items-center gap-3 min-h-[104px]', className)}
     >
       <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full" style={{ background: accent }}>
-        <DynamicIcon name={group.icon} fallback={Layers} size={20} style={{ color: iconColor }} />
+        <DynamicIcon name={group.icon} fallback={Layers} size={20} className="amb-float" style={{ color: iconColor }} />
       </div>
 
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold text-black/90">{group.label}</p>
-        <p className="mt-0.5 text-xs text-black/45">
+        <p className="mt-0.5 flex items-center gap-1.5 text-xs text-black/45">
+          {anyOn && isOnOff && <LiveDot color="#eab308" size={7} />}
           {isOnOff ? `${activeCount}/${total} attive` : `${total} dispositivi`}
         </p>
       </div>

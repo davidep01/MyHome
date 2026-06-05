@@ -13,6 +13,7 @@ import {
 import { useEntityStore } from '../store/entities'
 import type { AppConfig, DeviceOverride, DoorbellSettings, EntityGroup, EntityType, Room, RoomEntity } from '../api/backend'
 import { iconExists } from '../lib/lucide'
+import { uid } from '../lib/uid'
 import { DynamicIcon } from '../components/DynamicIcon'
 import { framerSpring, tokens } from '../design/tokens'
 import { cn } from '../lib/utils'
@@ -554,7 +555,7 @@ function AdminPanel({ config }: { config: AppConfig }) {
             <span className="text-sm font-medium text-[#1d1d1f]">Gruppi</span>
           </div>
           <button
-            onClick={() => { setGroupQuery(''); setDraft({ id: crypto.randomUUID(), label: '', entityIds: [] }) }}
+            onClick={() => { setGroupQuery(''); setDraft({ id: uid('g'), label: '', entityIds: [] }) }}
             className="flex items-center gap-1 rounded-full bg-[#0066cc] px-3 py-1.5 text-xs font-semibold text-white active:scale-95"
           >
             <Plus size={13} /> Nuovo

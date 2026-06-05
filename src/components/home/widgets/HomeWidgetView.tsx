@@ -12,6 +12,7 @@ import { SceneRow } from '../../layout/SceneRow'
 import { PeopleCard } from '../PeopleCard'
 import { ClockWidget } from './ClockWidget'
 import { StatusWidget } from './StatusWidget'
+import { AnimatedCard } from '../../anim/AnimatedCard'
 import type { EntityType, HomeWidget, RoomEntity } from '../../../api/backend'
 
 /** Build a RoomEntity for a bare entity id, honouring admin overrides. */
@@ -55,7 +56,7 @@ export function HomeWidgetView({ widget }: { widget: HomeWidget }) {
     case 'scenes':
       return <GlassCard className="flex h-full items-center overflow-hidden"><SceneRow /></GlassCard>
     case 'weather':
-      return <GlassCard className="h-full overflow-hidden"><WeatherWidget /></GlassCard>
+      return <AnimatedCard ambient="drift" index={2} ambientColor="rgba(41,151,255,0.12)" noPadding className="h-full"><div className="h-full overflow-hidden p-[14px]"><WeatherWidget /></div></AnimatedCard>
     case 'sensor':
       return roomEntity
         ? <SensorStatCard entityId={roomEntity.entityId} label={roomEntity.label} className="h-full" />

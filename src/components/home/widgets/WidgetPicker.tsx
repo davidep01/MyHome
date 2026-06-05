@@ -6,6 +6,7 @@ import { useDashboardConfig } from '../../../hooks/useDashboardConfig'
 import { DOMAIN_TYPE } from '../../../hooks/useDiscoveredEntities'
 import { WIDGET_META, WIDGET_ORDER, SIZE_LABEL } from './widgetCatalog'
 import type { HomeWidget, WidgetSize, WidgetType } from '../../../api/backend'
+import { uid } from '../../../lib/uid'
 import { cn } from '../../../lib/utils'
 
 interface Props {
@@ -60,7 +61,7 @@ export function WidgetPicker({ open, onClose, onAdd }: Props) {
 
   const add = () => {
     if (!type || !canAdd) return
-    const w: HomeWidget = { id: crypto.randomUUID(), type, size }
+    const w: HomeWidget = { id: uid('w'), type, size }
     if (meta?.needs === 'group') w.groupId = bind
     else if (meta?.needs) w.entityId = bind
     onAdd(w)

@@ -301,6 +301,33 @@ html, body, #root {
 .press-card:active { transform: scale(0.985); }
 
 /* ============================================================================
+   Ambient kiosk animations — always-on, slow, GPU-cheap (transform/opacity only).
+   Applied to small inner decorative elements, never to the frosted card
+   container (animating a backdrop-filter element re-renders the blur per frame).
+   Disabled under perf-lite (weak devices) and prefers-reduced-motion.
+   ============================================================================ */
+@keyframes amb-float   { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-2px) } }
+@keyframes amb-pulse   { 0%, 100% { opacity: .5; transform: scale(1) } 50% { opacity: 1; transform: scale(1.18) } }
+@keyframes amb-drift   { 0% { transform: translate(0, 0) } 33% { transform: translate(6%, -4%) } 66% { transform: translate(-4%, 3%) } 100% { transform: translate(0, 0) } }
+@keyframes amb-sheen   { 0% { transform: translateX(-130%) } 100% { transform: translateX(230%) } }
+@keyframes amb-fill    { 0% { transform: scaleX(.15) } 50% { transform: scaleX(1) } 100% { transform: scaleX(.15) } }
+@keyframes amb-breathe { 0%, 100% { opacity: .55 } 50% { opacity: 1 } }
+
+.amb-float   { animation: amb-float 6s ease-in-out infinite; will-change: transform; }
+.amb-pulse   { animation: amb-pulse 3.4s ease-in-out infinite; will-change: transform, opacity; }
+.amb-drift   { animation: amb-drift 16s ease-in-out infinite; will-change: transform; }
+.amb-sheen   { animation: amb-sheen 9s ease-in-out infinite; will-change: transform; }
+.amb-fill    { transform-origin: left center; animation: amb-fill 8s ease-in-out infinite; will-change: transform; }
+.amb-breathe { animation: amb-breathe 5s ease-in-out infinite; }
+
+.perf-lite .amb-float,
+.perf-lite .amb-pulse,
+.perf-lite .amb-drift,
+.perf-lite .amb-sheen,
+.perf-lite .amb-fill,
+.perf-lite .amb-breathe { animation: none; }
+
+/* ============================================================================
    Scrollbar
    ============================================================================ */
 ::-webkit-scrollbar { width: 9px; height: 9px; }
