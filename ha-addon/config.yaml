@@ -8,7 +8,7 @@ arch:
   - aarch64
   - armv7
   - amd64
-image: "ghcr.io/davidep01/myhome:latest"
+image: "ghcr.io/davidep01/myhome"
 ports:
   3001/tcp: 3001
 ports_description:

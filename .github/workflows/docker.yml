@@ -43,12 +43,21 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # HA pulls {image}:{version}, so the image must carry a tag matching
+      # the add-on version in ha-addon/config.yaml. Derive it automatically
+      # so bumping the version there is the only thing needed to ship updates.
+      - name: Read add-on version
+        id: addon
+        run: echo "version=$(grep '^version:' ha-addon/config.yaml | sed -E 's/version:[[:space:]]*"?([^"]+)"?/\1/')" >> "$GITHUB_OUTPUT"
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
           context: .
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           push: true
-          tags: ${{ env.IMAGE }}:latest
+          tags: |
+            ${{ env.IMAGE }}:latest
+            ${{ env.IMAGE }}:${{ steps.addon.outputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
