@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import ReactGridLayout, { WidthProvider, type Layout, type LayoutItem } from 'react-grid-layout/legacy'
 import 'react-grid-layout/css/styles.css'
@@ -6,6 +6,7 @@ import { Plus, Check, Pencil, X, Maximize2, GripVertical } from 'lucide-react'
 import { useDashboardConfig, useUpdateConfig } from '../../../hooks/useDashboardConfig'
 import { useUIStore } from '../../../store/ui'
 import { useIsDesktop } from '../../../hooks/useIsDesktop'
+import { useMinWidth } from '../../../hooks/useMinWidth'
 import { HomeWidgetView } from './HomeWidgetView'
 import { WidgetErrorBoundary } from './WidgetErrorBoundary'
 import { WidgetPicker } from './WidgetPicker'
@@ -113,15 +114,20 @@ export function WidgetHome() {
   const { data: config } = useDashboardConfig()
   const { mutate: update } = useUpdateConfig()
   const isDesktop = useIsDesktop()
+  const isTabletViewport = useMinWidth(768)
   const editModeRaw = useUIStore((s) => s.editMode)
   const setEditMode = useUIStore((s) => s.setEditMode)
   const [pickerOpen, setPickerOpen] = useState(false)
 
-  const canEdit = isDesktop
+  const canEdit = isDesktop || (Boolean(config?.advancedMode) && isTabletViewport)
   const editMode = canEdit && editModeRaw
   const widgets = config?.home?.widgets ?? DEFAULT_WIDGETS
   const positions = config?.home?.positions ?? {}
   const layout = useMemo(() => buildLayout(widgets, positions), [widgets, positions])
+
+  useEffect(() => {
+    if (!canEdit && editModeRaw) setEditMode(false)
+  }, [canEdit, editModeRaw, setEditMode])
 
   const persist = (nextWidgets: HomeWidget[], nextLayout = buildLayout(nextWidgets, positions)) => {
     update({
@@ -148,7 +154,7 @@ export function WidgetHome() {
 
   return (
     <div className="flex h-full flex-col">
-      {/* Toolbar — desktop, or any device when advanced mode is enabled */}
+      {/* Toolbar — desktop, or tablet+ when advanced mode is enabled */}
       {canEdit && (
         <div className="mb-3 flex shrink-0 items-center justify-end gap-2 px-0.5">
           <button

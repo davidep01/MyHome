@@ -3,6 +3,7 @@ import { GlassCard } from '../glass/GlassCard'
 import { RadialDial } from '../glass/RadialDial'
 import { useEntityStore } from '../../store/entities'
 import { tokens } from '../../design/tokens'
+import { getClimateVisualState } from '../../lib/climate'
 
 export function ClimateSummaryCard() {
   const entities = useEntityStore((s) => s.entities)
@@ -12,14 +13,15 @@ export function ClimateSummaryCard() {
     .filter((value): value is number => typeof value === 'number')
   const average = temps.length ? temps.reduce((sum, value) => sum + value, 0) / temps.length : undefined
   const activeZones = climates.filter((entity) => {
-    const action = entity.attributes?.hvac_action
-    return action === 'heating' || action === 'cooling'
+    const action = getClimateVisualState(entity).activeAction
+    return action === 'heating' || action === 'cooling' || action === 'drying' || action === 'fan'
   })
-  const isHeating = activeZones.some((entity) => entity.attributes?.hvac_action === 'heating')
-  const color = isHeating ? tokens.accent.orange : tokens.accent.blue
+  const isHeating = activeZones.some((entity) => getClimateVisualState(entity).activeAction === 'heating')
+  const isCooling = activeZones.some((entity) => getClimateVisualState(entity).activeAction === 'cooling')
+  const color = isHeating ? tokens.accent.orange : isCooling ? tokens.accent.blue : tokens.accent.green
 
   return (
-    <GlassCard glow={activeZones.length ? (isHeating ? tokens.accent.orangeGlow : tokens.accent.blueGlow) : undefined} className="min-h-[184px]">
+    <GlassCard glow={activeZones.length ? (isHeating ? tokens.accent.orangeGlow : isCooling ? tokens.accent.blueGlow : tokens.accent.greenGlow) : undefined} className="min-h-[184px]">
       <div className="flex h-full items-center justify-between gap-4">
         <div className="min-w-0">
           <div className="flex h-10 w-10 items-center justify-center rounded-[14px] bg-black/8">

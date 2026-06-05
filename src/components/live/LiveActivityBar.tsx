@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import type { ElementType } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { HassEntity } from 'home-assistant-js-websocket'
-import { AlarmClock, Bell, ChevronDown, ChevronRight, CloudRain, DoorOpen, Droplets, Flame, ShieldAlert, Thermometer, Video, Waves } from 'lucide-react'
+import { AlarmClock, Bell, ChevronDown, ChevronRight, CloudRain, DoorOpen, Droplets, Fan, Flame, ShieldAlert, Snowflake, Video, Waves } from 'lucide-react'
 import { useDashboardConfig } from '../../hooks/useDashboardConfig'
 import { useEntityStore } from '../../store/entities'
 import { useUIStore } from '../../store/ui'
@@ -25,7 +25,7 @@ interface LiveActivity {
 
 const ACTIVE_COVER_STATES = new Set(['opening', 'closing'])
 const OPEN_STATES = new Set(['open', 'on'])
-const CLIMATE_ACTIONS = new Set(['heating', 'cooling'])
+const CLIMATE_ACTIONS = new Set(['heating', 'cooling', 'drying', 'fan'])
 
 function label(entity: HassEntity): string {
   return (entity.attributes?.friendly_name as string | undefined) ?? entity.entity_id
@@ -131,15 +131,23 @@ function buildActivities(entities: Record<string, HassEntity>, doorbellIds: stri
 
     if (domain === 'climate' && CLIMATE_ACTIONS.has(String(entity.attributes?.hvac_action))) {
       const action = String(entity.attributes?.hvac_action)
+      const climateMeta =
+        action === 'heating'
+          ? { status: 'Riscaldamento', Icon: Flame, color: '#c2410c' }
+          : action === 'cooling'
+            ? { status: 'Raffrescamento', Icon: Snowflake, color: '#0066cc' }
+            : action === 'drying'
+              ? { status: 'Deumidificazione', Icon: Droplets, color: '#0891b2' }
+              : { status: 'Ventilazione', Icon: Fan, color: '#15803d' }
       activities.push({
         id: `climate:${entity.entity_id}`,
         title: name,
-        status: action === 'heating' ? 'Riscaldamento' : 'Raffrescamento',
+        status: climateMeta.status,
         detail: `${entity.attributes?.current_temperature ?? '--'} °C → ${entity.attributes?.temperature ?? '--'} °C`,
         entityId: entity.entity_id,
         priority: 'normal',
-        Icon: action === 'heating' ? Flame : Thermometer,
-        color: action === 'heating' ? '#c2410c' : '#0066cc',
+        Icon: climateMeta.Icon,
+        color: climateMeta.color,
         progress: climateProgress(entity),
       })
     }

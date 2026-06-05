@@ -23,7 +23,7 @@ import { useAmbientNightMode } from '../../hooks/useAmbientNightMode'
 import { usePerfMode } from '../../hooks/usePerfMode'
 import { useWakeLock } from '../../hooks/useWakeLock'
 
-// Admin/settings is heavy and desktop-only — load it on demand, not at startup.
+// Admin/settings is heavy — load it on demand, not at startup.
 const SettingsPage = lazy(() => import('../../pages/SettingsPage').then((m) => ({ default: m.SettingsPage })))
 
 export function AppShell() {

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Settings, User, Wifi, Plus, Trash2,
-  ChevronRight, Save, X, Home, ShieldCheck, Eye, EyeOff, Search, Lock, Pencil, Bell, Layers, Check, Monitor, Volume2, VolumeX,
+  ChevronRight, Save, X, Home, ShieldCheck, Eye, EyeOff, Search, Lock, Pencil, Bell, Layers, Check, Volume2, VolumeX,
 } from 'lucide-react'
 import { GlassCard } from '../components/glass/GlassCard'
 import { GlassSheet } from '../components/glass/GlassSheet'
@@ -14,7 +14,6 @@ import { useEntityStore } from '../store/entities'
 import type { AppConfig, DeviceOverride, DoorbellDevice, EntityGroup, EntityType, Room, RoomEntity } from '../api/backend'
 import { iconExists } from '../lib/lucide'
 import { uid } from '../lib/uid'
-import { useIsDesktop } from '../hooks/useIsDesktop'
 import { useSoundNotifications } from '../hooks/useSoundNotifications'
 import { normalizeDoorbells } from '../lib/doorbell'
 import type { SoundPreset } from '../lib/sound/SoundManager'
@@ -520,11 +519,11 @@ function AdminPanel({ config }: { config: AppConfig }) {
         )}
       </div>
 
-      {/* Advanced mode — admin-only preferences; widget editing remains desktop-only. */}
+      {/* Advanced mode — admin-only preferences; unlocks tablet widget editing. */}
       <div className="flex items-center justify-between gap-3 rounded-[12px] bg-black/[0.04] px-3 py-2.5">
         <div className="min-w-0">
           <p className="text-sm font-medium text-[#1d1d1f]">Modalità avanzata</p>
-          <p className="text-[11px] text-black/45">Preferenze admin avanzate. La modifica widget resta disponibile solo da desktop.</p>
+          <p className="text-[11px] text-black/45">Abilita la modifica widget anche su tablet. Su mobile stretto resta bloccata.</p>
         </div>
         <div className={cn('lg-toggle shrink-0', advancedMode && 'on')} onClick={() => setAdvancedMode((v) => !v)}>
           <span className="lg-toggle-knob" />
@@ -926,31 +925,8 @@ function AdminPanel({ config }: { config: AppConfig }) {
 
 // ── Main SettingsPage ────────────────────────────────────────────────────────
 
-function DesktopOnlyAdmin() {
-  return (
-    <div className="flex h-full items-center justify-center p-6">
-      <GlassCard className="max-w-sm space-y-4 text-center">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-[18px] bg-black/8">
-          <Monitor size={26} className="text-black/55" />
-        </div>
-        <div>
-          <p className="text-lg font-semibold text-[#1d1d1f]">Area Admin disponibile solo da desktop</p>
-          <p className="mt-1.5 text-sm text-black/50">
-            Configura widget e impostazioni da un computer collegato alla stessa dashboard.
-            Il tablet mostra la home in sola visualizzazione.
-          </p>
-        </div>
-      </GlassCard>
-    </div>
-  )
-}
-
 export function SettingsPage() {
-  const isDesktop = useIsDesktop()
   const [section, setSection] = useState<Section>('preferences')
-
-  // Functional guard: never mount the heavy admin tree on a tablet/kiosk.
-  if (!isDesktop) return <DesktopOnlyAdmin />
 
   const sections: { id: Section; label: string; icon: React.ElementType }[] = [
     { id: 'preferences', label: 'Preferenze', icon: User },

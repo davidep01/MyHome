@@ -2,9 +2,8 @@ import { useEffect, useState } from 'react'
 
 /**
  * True on a mouse-driven device (desktop/laptop). A touch wall tablet reports a
- * coarse pointer and is treated as non-desktop regardless of width, so editing
- * and Admin stay off there unless advanced mode is enabled. Pointer is a more
- * reliable signal than width (a small desktop window is still a desktop).
+ * coarse pointer and is treated as non-desktop regardless of width. Pointer is
+ * a more reliable signal than width (a small desktop window is still a desktop).
  */
 export function useIsDesktop(): boolean {
   const query = '(pointer: fine)'
