@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Minus, Plus, Power, Flame, Sparkles } from 'lucide-react'
 import type { HassEntity } from 'home-assistant-js-websocket'
 import { RadialDial } from '../glass/RadialDial'
@@ -15,9 +16,11 @@ const MODES: { id: string; label: string; Icon: React.ElementType }[] = [
 
 export function ClimateDetail({ entity }: { entity: HassEntity }) {
   const { call } = useHAService()
-  const { light, medium } = useHaptic()
+  const { light, medium, tick } = useHaptic()
   const setOptimisticState = useEntityStore((s) => s.setOptimisticState)
   const tempUnit = useEntityStore((s) => s.temperatureUnit)
+  // Live value while the wheel is being turned (HA command sent only on release).
+  const [dragValue, setDragValue] = useState<number | null>(null)
 
   const entityId = entity.entity_id
   const current = entity.attributes?.current_temperature as number | undefined
@@ -53,16 +56,20 @@ export function ClimateDetail({ entity }: { entity: HassEntity }) {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Radial dial */}
+      {/* Rotary temperature wheel — drag to set the target (haptic click per step) */}
       <div className="flex flex-col items-center gap-4 pt-2">
         <RadialDial
-          value={target}
+          value={dragValue ?? target}
           min={min}
           max={max}
+          step={step}
           color={color}
-          size={208}
-          label={`${target.toFixed(1)}${tempUnit}`}
+          size={236}
+          label={`${(dragValue ?? target).toFixed(1)}${tempUnit}`}
           sublabel={current !== undefined ? `Attuale: ${current}${tempUnit}` : undefined}
+          onChange={setDragValue}
+          onTick={tick}
+          onCommit={(v) => { setTemp(v); setDragValue(null) }}
         />
         <div className="flex items-center gap-3">
           <button

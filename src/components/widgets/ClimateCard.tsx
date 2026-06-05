@@ -82,11 +82,11 @@ export function ClimateCard({ entityId, label, className }: ClimateCardProps) {
       {/* +/− controls */}
       {targetTemp !== undefined && !unavailable && (
         <div className="flex items-center gap-2 mt-auto" onClick={(e) => e.stopPropagation()}>
-          <button onClick={() => adjust(-0.5)} className="flex h-9 w-9 items-center justify-center rounded-full transition active:scale-90" style={{ background: 'rgba(0,0,0,0.06)' }}>
-            <ChevronDown size={16} style={{ color: 'var(--ink)' }} />
+          <button onClick={() => adjust(-0.5)} aria-label="Diminuisci temperatura" className="flex h-11 w-11 items-center justify-center rounded-full transition active:scale-90" style={{ background: 'rgba(0,0,0,0.06)' }}>
+            <ChevronDown size={18} style={{ color: 'var(--ink)' }} />
           </button>
-          <button onClick={() => adjust(0.5)} className="flex h-9 w-9 items-center justify-center rounded-full transition active:scale-90" style={{ background: 'rgba(0,0,0,0.06)' }}>
-            <ChevronUp size={16} style={{ color: 'var(--ink)' }} />
+          <button onClick={() => adjust(0.5)} aria-label="Aumenta temperatura" className="flex h-11 w-11 items-center justify-center rounded-full transition active:scale-90" style={{ background: 'rgba(0,0,0,0.06)' }}>
+            <ChevronUp size={18} style={{ color: 'var(--ink)' }} />
           </button>
         </div>
       )}

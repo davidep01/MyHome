@@ -1,12 +1,20 @@
 import { useMemo } from 'react'
 import { CloudRain, Droplets } from 'lucide-react'
 import { useTimeOfDay } from '../../hooks/useTimeOfDay'
+import { useClock } from '../../hooks/useClock'
 import { useHomeStatus } from '../../hooks/useHomeStatus'
 import { useDashboardConfig } from '../../hooks/useDashboardConfig'
 import { useCurrentWeather, useWeatherForecast } from '../../hooks/useWeather'
 import { useEntityStore } from '../../store/entities'
+import { useUIStore } from '../../store/ui'
 
 const DAYS = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab']
+
+const TONE_BG: Record<string, string> = {
+  ok: 'rgba(21,128,61,0.12)',
+  warning: 'rgba(194,65,12,0.14)',
+  critical: 'rgba(220,38,38,0.14)',
+}
 
 function useMediaStatus(): string | null {
   const entities = useEntityStore((s) => s.entities)
@@ -25,23 +33,39 @@ function useMediaStatus(): string | null {
 
 export function HomeHeader() {
   const { greeting } = useTimeOfDay()
+  const { time, date } = useClock()
   const status = useHomeStatus()
   const { data: config } = useDashboardConfig()
   const { data: weather } = useCurrentWeather()
   const { data: forecast } = useWeatherForecast()
   const mediaStatus = useMediaStatus()
+  const setActiveView = useUIStore((s) => s.setActiveView)
 
   const name = config?.userName ?? 'Casa'
-  const subtitle = mediaStatus ?? status.detail ?? status.label
+  const StatusIcon = status.Icon
 
   return (
-    <div className="flex flex-wrap items-start justify-between gap-4">
-      {/* Greeting */}
+    <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
+      {/* Clock + greeting + live home status */}
       <div className="min-w-0">
-        <h1 className="text-2xl font-semibold tracking-[-0.01em] text-[#1d1d1f] sm:text-3xl">
-          {greeting}, {name}!
-        </h1>
-        <p className="mt-1 truncate text-sm text-black/45">{subtitle}</p>
+        <div className="flex items-baseline gap-3">
+          <span className="text-[44px] font-light leading-none tracking-[-0.02em] text-[#1d1d1f] tabular-nums">{time}</span>
+          <span className="truncate text-sm capitalize text-black/45">{date}</span>
+        </div>
+        <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-2">
+          <h1 className="text-xl font-semibold tracking-[-0.01em] text-[#1d1d1f]">
+            {greeting}, {name}
+          </h1>
+          <button
+            onClick={() => setActiveView('security')}
+            className="press-card flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium active:scale-95"
+            style={{ background: TONE_BG[status.tone] ?? TONE_BG.ok, color: status.color }}
+          >
+            <StatusIcon size={15} />
+            {status.label}
+          </button>
+        </div>
+        {mediaStatus && <p className="mt-1.5 truncate text-sm text-black/45">♪ {mediaStatus}</p>}
       </div>
 
       {/* Weather summary */}

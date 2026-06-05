@@ -4,6 +4,7 @@ import { useDiscoveredEntities } from '../hooks/useDiscoveredEntities'
 import { useEntityStore } from '../store/entities'
 import { useUIStore } from '../store/ui'
 import { HomeHeader } from '../components/home/HomeHeader'
+import { QuickStats } from '../components/home/QuickStats'
 import { PeopleCard } from '../components/home/PeopleCard'
 import { SectionBand } from '../components/home/SectionBand'
 import { EditableHome } from '../components/home/EditableHome'
@@ -105,6 +106,7 @@ export function TabletDashboard() {
   return (
     <div className="flex h-full flex-col gap-5 overflow-y-auto pr-1">
       <HomeHeader />
+      <QuickStats />
       <SceneRow />
 
       <SectionBand title="Persone">

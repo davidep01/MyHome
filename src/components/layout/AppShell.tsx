@@ -15,12 +15,16 @@ import { ContextualPanel } from '../contextual/ContextualPanel'
 import { ConnectionOverlay } from '../system/ConnectionOverlay'
 import { DoorbellAlert } from '../system/DoorbellAlert'
 import { useAmbientNightMode } from '../../hooks/useAmbientNightMode'
+import { usePerfMode } from '../../hooks/usePerfMode'
+import { useWakeLock } from '../../hooks/useWakeLock'
 
 export function AppShell() {
   const activeView = useUIStore((s) => s.activeView)
   const selectedEntityId = useUIStore((s) => s.selectedEntityId)
   const setSelectedEntity = useUIStore((s) => s.setSelectedEntity)
   const night = useAmbientNightMode()
+  usePerfMode()
+  useWakeLock()
 
   useEffect(() => {
     connectHA().catch(console.error)

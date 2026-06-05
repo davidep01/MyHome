@@ -116,6 +116,29 @@ html, body, #root {
   backdrop-filter: saturate(180%) blur(var(--glass-blur));
   border: 1px solid var(--hairline);
 }
+
+/* ----------------------------------------------------------------------------
+   Performance mode — dozens of simultaneous backdrop-filters jank mid-range
+   tablet GPUs (scroll stutter, repaint flicker). When `perf-lite` is set on
+   <html> (weak device, reduced-transparency, or manual) we drop the blur and
+   the gradient hairline for a solid frosted surface that looks ~identical but
+   composites for free. Also honour the OS reduced-transparency preference.
+   ------------------------------------------------------------------------- */
+.perf-lite .glass {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background: rgba(248, 248, 250, 0.94);
+}
+.perf-lite .glass-border::before { display: none; }
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: rgba(248, 248, 250, 0.94);
+  }
+  .glass-border::before { display: none; }
+}
 .glass-border {
   position: relative;
 }
@@ -228,6 +251,14 @@ html, body, #root {
   cursor: pointer;
 }
 .lg-toggle.on { background: var(--ok-green); }
+/* Expand the tap area to ≥44px tall without changing the visual size —
+   reliable touch on a wall-mounted tablet. */
+.lg-toggle::before {
+  content: '';
+  position: absolute;
+  inset: -7px -4px;
+  border-radius: 999px;
+}
 .lg-toggle-knob {
   position: absolute;
   top: 3px;

@@ -6,6 +6,7 @@ import Hls from 'hls.js'
 import { Mic, Video } from 'lucide-react'
 import type { Connection } from 'home-assistant-js-websocket'
 import { useHAEntity } from '../../hooks/useHAEntity'
+import { useActiveWhenVisible } from '../../hooks/useActiveWhenVisible'
 import { getConnection } from '../../api/ha-websocket'
 import { getCameraStreamUrl, getCameraProxyUrl, toProxiedHlsUrl } from '../../api/ha-rest'
 import { cn } from '../../lib/utils'
@@ -28,7 +29,7 @@ interface CameraStreamProps {
  *   4. Snapshot— polled stills.
  *   5. Error   — nothing worked.
  */
-type Mode = 'connecting' | 'webrtc' | 'hls' | 'mjpeg' | 'snapshot' | 'error'
+type Mode = 'connecting' | 'webrtc' | 'hls' | 'mjpeg' | 'snapshot' | 'error' | 'paused'
 
 interface WebRtcEvent {
   type: 'session' | 'answer' | 'candidate' | 'offer' | 'error'
@@ -44,6 +45,7 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
   const videoRef = useRef<HTMLVideoElement>(null)
   const audioSenderRef = useRef<RTCRtpSender | null>(null)
   const micRef = useRef<MediaStream | null>(null)
+  const { ref: containerRef, active } = useActiveWhenVisible<HTMLDivElement>()
   const [mode, setMode] = useState<Mode>('connecting')
   const [talking, setTalking] = useState(false)
   const [snap, setSnap] = useState('')
@@ -51,6 +53,9 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
 
   useEffect(() => {
     if (unavailable) { setMode('error'); return }
+    // Don't stream while off-screen or with the display off — the effect's
+    // cleanup tears down any existing stream when `active` flips to false.
+    if (!active) { setMode('paused'); return }
 
     let cancelled = false
     let pc: RTCPeerConnection | null = null
@@ -182,7 +187,7 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
       pc?.getSenders().forEach((s) => s.track?.stop())
       pc?.close()
     }
-  }, [entityId, allowTalkback, unavailable])
+  }, [entityId, allowTalkback, unavailable, active])
 
   // ── Snapshot polling — only once MJPEG has failed ──
   useEffect(() => {
@@ -214,7 +219,7 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
   const videoVisible = mode === 'webrtc' || mode === 'hls'
 
   return (
-    <div className={cn('relative h-full w-full overflow-hidden bg-[#15171c]', className)}>
+    <div ref={containerRef} className={cn('relative h-full w-full overflow-hidden bg-[#15171c]', className)}>
       <video
         ref={videoRef}
         autoPlay
