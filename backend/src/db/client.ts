@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs'
 import { join, dirname, basename } from 'node:path'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
-import type { DbStore } from './types.js'
+import type { DbStore, HomeWidget } from './types.js'
 
 const cwd = process.cwd()
 const backendRoot = basename(cwd) === 'backend' ? cwd : join(cwd, 'backend')
@@ -13,6 +13,14 @@ const SUPABASE_TABLE = process.env.MYHOME_SUPABASE_TABLE ?? 'myhome_config'
 const SUPABASE_ROW_ID = process.env.MYHOME_SUPABASE_ROW_ID ?? 'default'
 const FILE_WRITES_ALLOWED = process.env.MYHOME_ALLOW_FILE_WRITES === 'true' || !process.env.VERCEL
 
+const DEFAULT_HOME_WIDGETS: HomeWidget[] = [
+  { id: 'w-clock', type: 'clock', size: 'md' },
+  { id: 'w-status', type: 'status', size: 'sm' },
+  { id: 'w-weather', type: 'weather', size: 'md' },
+  { id: 'w-stats', type: 'quickStats', size: 'wide' },
+  { id: 'w-scenes', type: 'scenes', size: 'wide' },
+]
+
 const DEFAULT_DB: DbStore = {
   config: {
     haUrl: 'http://homeassistant.local:8123',
@@ -22,6 +30,8 @@ const DEFAULT_DB: DbStore = {
     newsFeedUrl: 'https://www.ansa.it/sito/ansait_rss.xml',
     userName: 'Davide',
     dashboardName: 'MyHome',
+    hiddenEntities: [],
+    home: { widgets: DEFAULT_HOME_WIDGETS },
   },
   rooms: [
     { id: 'soggiorno', label: 'Soggiorno', icon: 'sofa', sortOrder: 0 },
@@ -140,6 +150,11 @@ class JsonStore {
 
     if (!this.data.config.newsFeedUrl) {
       this.data.config.newsFeedUrl = DEFAULT_DB.config.newsFeedUrl
+      changed = true
+    }
+
+    if (!this.data.config.home?.widgets) {
+      this.data.config.home = { widgets: DEFAULT_HOME_WIDGETS }
       changed = true
     }
 

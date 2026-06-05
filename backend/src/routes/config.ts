@@ -46,7 +46,12 @@ configRouter.put('/', async (c) => {
     if (body.doorbell !== undefined) store.config.doorbell = body.doorbell
     if (body.doorbells !== undefined) store.config.doorbells = body.doorbells
     if (body.groups !== undefined) store.config.groups = body.groups
-    if (body.home !== undefined) store.config.home = body.home
+    if (body.home !== undefined) {
+      store.config.home = {
+        ...(store.config.home ?? { widgets: [] }),
+        ...body.home,
+      }
+    }
     if (body.dashboardLayout !== undefined) store.config.dashboardLayout = body.dashboardLayout
   })
   if (!ok) return c.json({ error: 'Configuration could not be saved' }, 500)
