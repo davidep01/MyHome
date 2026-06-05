@@ -1,5 +1,5 @@
 # ── Stage 1: Build React frontend ────────────────────────────────────────────
-FROM node:22-alpine AS frontend
+FROM node:24-alpine AS frontend
 WORKDIR /build
 COPY package.json package-lock.json ./
 RUN npm ci
@@ -7,7 +7,7 @@ COPY . .
 RUN npm run build
 
 # ── Stage 2: Build Hono backend ──────────────────────────────────────────────
-FROM node:22-alpine AS backend-builder
+FROM node:24-alpine AS backend-builder
 WORKDIR /build/backend
 COPY backend/package.json backend/package-lock.json ./
 RUN npm ci
@@ -16,7 +16,7 @@ COPY backend/tsconfig.json ./
 RUN npm run build
 
 # ── Stage 3: Runtime (minimal) ───────────────────────────────────────────────
-FROM node:22-alpine
+FROM node:24-alpine
 RUN apk add --no-cache jq
 
 WORKDIR /app
