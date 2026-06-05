@@ -38,12 +38,21 @@ export interface AppConfig {
   deviceOverrides?: Record<string, DeviceOverride>
   forceCelsius?: boolean
   doorbell?: DoorbellSettings
+  groups?: EntityGroup[]
   dashboardLayout?: DashboardLayout
 }
 
 export interface DoorbellSettings {
   entityId?: string
   cameraEntityId?: string
+}
+
+export interface EntityGroup {
+  id: string
+  label: string
+  icon?: string
+  type?: EntityType
+  entityIds: string[]
 }
 
 export interface DashboardLayout {

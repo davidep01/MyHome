@@ -72,11 +72,13 @@ export function useDiscoveredEntities(): { sections: DiscoveredSection[]; total:
   const { data: config } = useDashboardConfig()
   const hidden = config?.hiddenEntities
   const overrides = config?.deviceOverrides
+  const groups = config?.groups
   const haHidden = useHAHiddenEntities()
 
   return useMemo(() => {
-    // Merge: entities hidden via Admin panel + entities hidden inside HA itself.
-    const hiddenSet = new Set([...(hidden ?? []), ...haHidden])
+    // Merge: Admin-hidden + HA-hidden + entities already shown inside a group.
+    const groupMembers = (groups ?? []).flatMap((g) => g.entityIds)
+    const hiddenSet = new Set([...(hidden ?? []), ...haHidden, ...groupMembers])
     const byDomain = new Map<string, RoomEntity[]>()
 
     for (const e of Object.values(entities)) {
@@ -121,5 +123,5 @@ export function useDiscoveredEntities(): { sections: DiscoveredSection[]; total:
 
     const total = sections.reduce((n, s) => n + s.entities.length, 0)
     return { sections, total }
-  }, [entities, hidden, overrides, haHidden])
+  }, [entities, hidden, overrides, groups, haHidden])
 }

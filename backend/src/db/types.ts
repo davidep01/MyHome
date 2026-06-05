@@ -34,8 +34,20 @@ export interface AppConfig {
   forceCelsius?: boolean
   /** Doorbell fullscreen alert: which entity rings + which camera to show. */
   doorbell?: DoorbellSettings
+  /** Admin-defined groups: several entities merged into one card. */
+  groups?: EntityGroup[]
   /** User's custom tile layout (react-grid-layout positions per entity). */
   dashboardLayout?: DashboardLayout
+}
+
+export interface EntityGroup {
+  id: string
+  label: string
+  /** lucide icon name */
+  icon?: string
+  /** card type to render the group as (defaults to the first member's domain) */
+  type?: string
+  entityIds: string[]
 }
 
 export interface DoorbellSettings {

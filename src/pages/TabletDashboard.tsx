@@ -9,6 +9,8 @@ import { SectionBand } from '../components/home/SectionBand'
 import { EditableHome } from '../components/home/EditableHome'
 import { SceneRow } from '../components/layout/SceneRow'
 import { WidgetGrid } from '../components/widgets/WidgetGrid'
+import { GroupCard } from '../components/widgets/GroupCard'
+import { useGroups } from '../hooks/useGroups'
 import { cn } from '../lib/utils'
 
 const SECTION_LIMIT = 8
@@ -16,6 +18,7 @@ const SECTION_LIMIT = 8
 /** Auto-configuring home: sections built live from the HA entity stream. */
 function AutoHome() {
   const { sections, total } = useDiscoveredEntities()
+  const groups = useGroups()
   const status = useEntityStore((s) => s.connectionStatus)
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
 
@@ -27,7 +30,7 @@ function AutoHome() {
       return next
     })
 
-  if (total === 0) {
+  if (total === 0 && groups.length === 0) {
     return (
       <p className="px-1 text-sm text-black/40">
         {status === 'connected'
@@ -41,6 +44,15 @@ function AutoHome() {
 
   return (
     <>
+      {groups.length > 0 && (
+        <SectionBand title="Gruppi" count={groups.length} minColumn={220}>
+          {groups.map((g) => (
+            <div key={g.id} className="min-w-0" style={{ gridColumn: 'span 2', gridRow: 'span 1' }}>
+              <GroupCard group={g} className="h-full" />
+            </div>
+          ))}
+        </SectionBand>
+      )}
       {sections.map((s) => {
         const open = expanded.has(s.domain)
         const shown = open ? s.entities : s.entities.slice(0, SECTION_LIMIT)

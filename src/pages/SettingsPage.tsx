@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Settings, User, Wifi, Plus, Trash2,
-  ChevronRight, Save, X, Home, ShieldCheck, Eye, EyeOff, Search, Lock, Pencil, Bell,
+  ChevronRight, Save, X, Home, ShieldCheck, Eye, EyeOff, Search, Lock, Pencil, Bell, Layers, Check,
 } from 'lucide-react'
 import { GlassCard } from '../components/glass/GlassCard'
 import { GlassSheet } from '../components/glass/GlassSheet'
@@ -11,7 +11,7 @@ import {
   useRooms, useCreateRoom, useDeleteRoom, useAddEntity, useRemoveEntity,
 } from '../hooks/useRooms'
 import { useEntityStore } from '../store/entities'
-import type { AppConfig, DeviceOverride, DoorbellSettings, EntityType, Room, RoomEntity } from '../api/backend'
+import type { AppConfig, DeviceOverride, DoorbellSettings, EntityGroup, EntityType, Room, RoomEntity } from '../api/backend'
 import { iconExists } from '../lib/lucide'
 import { DynamicIcon } from '../components/DynamicIcon'
 import { framerSpring, tokens } from '../design/tokens'
@@ -395,7 +395,19 @@ function AdminPanel({ config }: { config: AppConfig }) {
   const [overrides, setOverrides] = useState<Record<string, DeviceOverride>>(config.deviceOverrides ?? {})
   const [forceCelsius, setForceCelsius] = useState<boolean>(config.forceCelsius ?? false)
   const [doorbell, setDoorbell] = useState<DoorbellSettings>(config.doorbell ?? {})
+  const [groups, setGroups] = useState<EntityGroup[]>(config.groups ?? [])
   const [editId, setEditId] = useState<string | null>(null)
+  const [draft, setDraft] = useState<EntityGroup | null>(null)
+  const [groupQuery, setGroupQuery] = useState('')
+
+  const saveDraft = () => {
+    if (!draft || !draft.label.trim() || draft.entityIds.length === 0) return
+    setGroups((gs) => (gs.some((g) => g.id === draft.id) ? gs.map((g) => (g.id === draft.id ? draft : g)) : [...gs, draft]))
+    setDraft(null)
+  }
+  const deleteGroup = (id: string) => setGroups((gs) => gs.filter((g) => g.id !== id))
+  const toggleMember = (id: string) =>
+    setDraft((d) => (d ? { ...d, entityIds: d.entityIds.includes(id) ? d.entityIds.filter((x) => x !== id) : [...d.entityIds, id] } : d))
 
   const doorbellOptions = useMemo(
     () => Object.values(entities).filter((e) => e.entity_id.startsWith('event.') || e.entity_id.startsWith('binary_sensor.')),
@@ -430,7 +442,7 @@ function AdminPanel({ config }: { config: AppConfig }) {
       return { ...o, [id]: next }
     })
 
-  const save = () => update({ hiddenEntities: hidden, deviceOverrides: overrides, forceCelsius, doorbell })
+  const save = () => update({ hiddenEntities: hidden, deviceOverrides: overrides, forceCelsius, doorbell, groups })
 
   // Auto-save: persist every change ~700ms after the last edit, so nothing is
   // lost by forgetting the Save button. Skips the initial mount.
@@ -438,10 +450,10 @@ function AdminPanel({ config }: { config: AppConfig }) {
   useEffect(() => {
     if (firstRun.current) { firstRun.current = false; return }
     const t = setTimeout(() => {
-      update({ hiddenEntities: hidden, deviceOverrides: overrides, forceCelsius, doorbell })
+      update({ hiddenEntities: hidden, deviceOverrides: overrides, forceCelsius, doorbell, groups })
     }, 700)
     return () => clearTimeout(t)
-  }, [hidden, overrides, forceCelsius, doorbell]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [hidden, overrides, forceCelsius, doorbell, groups]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!unlocked) {
     return (
@@ -532,6 +544,41 @@ function AdminPanel({ config }: { config: AppConfig }) {
             </option>
           ))}
         </select>
+      </div>
+
+      {/* Groups — merge several entities into one card */}
+      <div className="space-y-2 rounded-[12px] bg-black/[0.04] p-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Layers size={15} className="text-black/55" />
+            <span className="text-sm font-medium text-[#1d1d1f]">Gruppi</span>
+          </div>
+          <button
+            onClick={() => { setGroupQuery(''); setDraft({ id: crypto.randomUUID(), label: '', entityIds: [] }) }}
+            className="flex items-center gap-1 rounded-full bg-[#0066cc] px-3 py-1.5 text-xs font-semibold text-white active:scale-95"
+          >
+            <Plus size={13} /> Nuovo
+          </button>
+        </div>
+        {groups.length === 0 ? (
+          <p className="text-[11px] text-black/40">Unisci più entità (es. tutte le luci del salotto) in un'unica card.</p>
+        ) : (
+          groups.map((g) => (
+            <div key={g.id} className="flex items-center gap-2 rounded-[10px] bg-white px-3 py-2">
+              <DynamicIcon name={g.icon} fallback={Layers} size={16} className="shrink-0 text-black/55" />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-[#1d1d1f]">{g.label}</p>
+                <p className="text-[11px] text-black/40">{g.entityIds.length} entità{g.type ? ` · ${g.type}` : ''}</p>
+              </div>
+              <button onClick={() => { setGroupQuery(''); setDraft({ ...g }) }} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-black/8 text-black/55" aria-label="Modifica">
+                <Pencil size={13} />
+              </button>
+              <button onClick={() => deleteGroup(g.id)} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-500/10 text-red-500" aria-label="Elimina">
+                <Trash2 size={13} />
+              </button>
+            </div>
+          ))
+        )}
       </div>
 
       <div className="relative">
@@ -646,6 +693,95 @@ function AdminPanel({ config }: { config: AppConfig }) {
               className="flex w-full items-center justify-center gap-2 rounded-[14px] bg-[#0066cc] py-3 text-sm font-semibold text-white transition active:scale-95"
             >
               <Save size={14} /> Salva dispositivo
+            </button>
+          </div>
+        )}
+      </GlassSheet>
+
+      {/* Group editor */}
+      <GlassSheet open={Boolean(draft)} onClose={() => setDraft(null)} title="Gruppo" side="right">
+        {draft && (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-black/50">Nome gruppo</label>
+              <input
+                value={draft.label}
+                onChange={(e) => setDraft((d) => (d ? { ...d, label: e.target.value } : d))}
+                placeholder="es. Luci salotto"
+                className="w-full rounded-[12px] bg-black/8 px-3 py-3 text-sm text-[#1d1d1f] outline-none focus:bg-black/12"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-black/50">Tipo</label>
+                <select
+                  value={draft.type ?? ''}
+                  onChange={(e) => setDraft((d) => (d ? { ...d, type: (e.target.value || undefined) as EntityType | undefined } : d))}
+                  className="w-full rounded-[12px] bg-black/8 px-3 py-3 text-sm text-[#1d1d1f] outline-none focus:bg-black/12"
+                >
+                  <option value="">Auto</option>
+                  {OVERRIDE_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-black/50">Icona</label>
+                <input
+                  value={draft.icon ?? ''}
+                  onChange={(e) => setDraft((d) => (d ? { ...d, icon: e.target.value || undefined } : d))}
+                  placeholder="es. sofa"
+                  className="w-full rounded-[12px] bg-black/8 px-3 py-3 font-mono text-sm text-[#1d1d1f] outline-none focus:bg-black/12"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-black/50">Membri ({draft.entityIds.length})</label>
+              <div className="relative">
+                <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-black/35" />
+                <input
+                  value={groupQuery}
+                  onChange={(e) => setGroupQuery(e.target.value)}
+                  placeholder="Cerca entità…"
+                  className="w-full rounded-full border border-black/10 bg-white py-2 pl-9 pr-3 text-sm text-[#1d1d1f] outline-none focus:border-[#0066cc]"
+                />
+              </div>
+              <div className="max-h-[38vh] space-y-1 overflow-y-auto pr-1">
+                {Object.values(entities)
+                  .filter((e) => {
+                    const q = groupQuery.trim().toLowerCase()
+                    const n = ((e.attributes?.friendly_name as string | undefined) ?? e.entity_id).toLowerCase()
+                    return !q || e.entity_id.toLowerCase().includes(q) || n.includes(q)
+                  })
+                  .sort((a, b) => a.entity_id.localeCompare(b.entity_id))
+                  .slice(0, 80)
+                  .map((e) => {
+                    const checked = draft.entityIds.includes(e.entity_id)
+                    return (
+                      <button
+                        key={e.entity_id}
+                        onClick={() => toggleMember(e.entity_id)}
+                        className={cn('flex w-full items-center gap-2 rounded-[10px] px-3 py-2 text-left', checked ? 'bg-[#0066cc]/12' : 'bg-black/[0.04]')}
+                      >
+                        <div className={cn('flex h-4 w-4 shrink-0 items-center justify-center rounded border', checked ? 'border-[#0066cc] bg-[#0066cc] text-white' : 'border-black/25')}>
+                          {checked && <Check size={11} />}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm text-[#1d1d1f]">{(e.attributes?.friendly_name as string | undefined) ?? e.entity_id}</p>
+                          <p className="truncate font-mono text-[10px] text-black/35">{e.entity_id}</p>
+                        </div>
+                      </button>
+                    )
+                  })}
+              </div>
+            </div>
+
+            <button
+              onClick={saveDraft}
+              disabled={!draft.label.trim() || draft.entityIds.length === 0}
+              className="flex w-full items-center justify-center gap-2 rounded-[14px] bg-[#0066cc] py-3 text-sm font-semibold text-white transition active:scale-95 disabled:opacity-40"
+            >
+              <Save size={14} /> Salva gruppo
             </button>
           </div>
         )}
