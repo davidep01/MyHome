@@ -47,6 +47,7 @@ export interface AppConfig {
 export type WidgetType =
   | 'clock' | 'weather' | 'quickStats' | 'scenes' | 'status'
   | 'entity' | 'group' | 'sensor' | 'camera' | 'people'
+  | 'security' | 'system' | 'insight' | 'news' | 'calendar'
 
 export type WidgetSize = 'sm' | 'md' | 'lg' | 'wide'
 

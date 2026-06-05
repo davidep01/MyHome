@@ -10,8 +10,13 @@ import { GlassCard } from '../../glass/GlassCard'
 import { QuickStats } from '../QuickStats'
 import { SceneRow } from '../../layout/SceneRow'
 import { PeopleCard } from '../PeopleCard'
+import { NewsWidget } from '../../news/NewsWidget'
 import { ClockWidget } from './ClockWidget'
 import { StatusWidget } from './StatusWidget'
+import { SecurityWidget } from './SecurityWidget'
+import { SystemStatusWidget } from './SystemStatusWidget'
+import { QuickInsightWidget } from './QuickInsightWidget'
+import { CalendarWidget } from './CalendarWidget'
 import { AnimatedCard } from '../../anim/AnimatedCard'
 import type { EntityType, HomeWidget, RoomEntity } from '../../../api/backend'
 
@@ -50,6 +55,12 @@ export function HomeWidgetView({ widget }: { widget: HomeWidget }) {
   switch (widget.type) {
     case 'clock': return <ClockWidget size={widget.size} />
     case 'status': return <StatusWidget />
+    case 'security': return <SecurityWidget size={widget.size} />
+    case 'system': return <SystemStatusWidget />
+    case 'insight': return <QuickInsightWidget />
+    case 'calendar': return <CalendarWidget size={widget.size} />
+    case 'news':
+      return <GlassCard className="h-full overflow-hidden"><NewsWidget /></GlassCard>
     case 'people': return <PeopleCard className="h-full" />
     case 'quickStats':
       return <GlassCard className="flex h-full items-center"><QuickStats /></GlassCard>

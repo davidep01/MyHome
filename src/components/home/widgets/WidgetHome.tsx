@@ -6,6 +6,7 @@ import { useDashboardConfig, useUpdateConfig } from '../../../hooks/useDashboard
 import { useUIStore } from '../../../store/ui'
 import { useIsDesktop } from '../../../hooks/useIsDesktop'
 import { HomeWidgetView } from './HomeWidgetView'
+import { WidgetErrorBoundary } from './WidgetErrorBoundary'
 import { WidgetPicker } from './WidgetPicker'
 import { SIZE_WH } from './widgetCatalog'
 import type { HomeConfig, HomeWidget } from '../../../api/backend'
@@ -121,7 +122,9 @@ export function WidgetHome() {
                   transition={editMode ? { repeat: Infinity, duration: 0.32, ease: 'easeInOut' } : { duration: 0.15 }}
                   style={{ transformOrigin: 'center' }}
                 >
-                  <HomeWidgetView widget={w} />
+                  <WidgetErrorBoundary>
+                    <HomeWidgetView widget={w} />
+                  </WidgetErrorBoundary>
                 </motion.div>
                 {editMode && (
                   <>
