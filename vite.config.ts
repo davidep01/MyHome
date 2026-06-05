@@ -13,34 +13,13 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
-    VitePWA({
-      registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'icons/*.png'],
-      manifest: {
-        name: 'MyHome',
-        short_name: 'MyHome',
-        description: 'Dashboard domotica premium',
-        theme_color: '#f5f5f7',
-        background_color: '#f5f5f7',
-        display: 'standalone',
-        orientation: 'any',
-        icons: [
-          { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
-          { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
-          { src: '/icons/icon-512-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
-        ],
-      },
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/api\.openweathermap\.org\/.*/i,
-            handler: 'StaleWhileRevalidate',
-            options: { cacheName: 'weather-cache', expiration: { maxAgeSeconds: 600 } },
-          },
-        ],
-      },
-    }),
+    // Service worker disabled for kiosk use (Fully Kiosk loads the URL directly).
+    // The SW only caused stale builds — tablets kept serving an old cached shell.
+    // `selfDestroying` ships a SW that unregisters any previously installed one
+    // and clears its caches, so existing tablets clean themselves up and then
+    // always load fresh from the server. Can be dropped entirely once every
+    // client has loaded this build at least once.
+    VitePWA({ selfDestroying: true }),
   ],
   server: {
     proxy: {

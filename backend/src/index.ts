@@ -22,7 +22,19 @@ function lanAddress(): string | null {
 
 // Serve built React app (production only)
 if (existsSync(DIST)) {
-  app.use('/*', serveStatic({ root: DIST }))
+  app.use('/*', serveStatic({
+    root: DIST,
+    onFound: (path, c) => {
+      // Entry points must always revalidate so a new build is picked up on the
+      // next load (critical for Fully Kiosk, which keeps a tab open for days).
+      // Content-hashed assets are safe to cache forever.
+      if (/(?:sw\.js|registerSW\.js|index\.html|\.webmanifest)$/.test(path)) {
+        c.header('Cache-Control', 'no-cache, no-store, must-revalidate')
+      } else if (/\.(?:js|css|woff2?|png|svg|ico|jpe?g)$/.test(path)) {
+        c.header('Cache-Control', 'public, max-age=31536000, immutable')
+      }
+    },
+  }))
   app.get('*', (c) => {
     return c.html(`<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=/"></head></html>`)
   })
