@@ -21,6 +21,10 @@ const DEFAULT_HOME_WIDGETS: HomeWidget[] = [
   { id: 'w-scenes', type: 'scenes', size: 'wide' },
 ]
 
+function defaultHomeWidgets(): HomeWidget[] {
+  return structuredClone(DEFAULT_HOME_WIDGETS)
+}
+
 const DEFAULT_DB: DbStore = {
   config: {
     haUrl: 'http://homeassistant.local:8123',
@@ -31,7 +35,7 @@ const DEFAULT_DB: DbStore = {
     userName: 'Davide',
     dashboardName: 'MyHome',
     hiddenEntities: [],
-    home: { widgets: DEFAULT_HOME_WIDGETS },
+    home: { widgets: defaultHomeWidgets() },
   },
   rooms: [
     { id: 'soggiorno', label: 'Soggiorno', icon: 'sofa', sortOrder: 0 },
@@ -153,8 +157,12 @@ class JsonStore {
       changed = true
     }
 
-    if (!this.data.config.home?.widgets) {
-      this.data.config.home = { widgets: DEFAULT_HOME_WIDGETS }
+    const homeWidgets = this.data.config.home?.widgets
+    if (!Array.isArray(homeWidgets) || homeWidgets.length === 0) {
+      this.data.config.home = {
+        ...(this.data.config.home ?? {}),
+        widgets: defaultHomeWidgets(),
+      }
       changed = true
     }
 
