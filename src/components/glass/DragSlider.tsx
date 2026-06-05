@@ -1,21 +1,31 @@
-import { useRef, useCallback } from 'react'
-import { motion } from 'framer-motion'
+import { useRef } from 'react'
+import { Sun } from 'lucide-react'
 import { cn } from '../../lib/utils'
 
 interface DragSliderProps {
-  value: number          // 0–100
+  value: number        // 0–100
   onChange: (v: number) => void
   onChangeEnd?: (v: number) => void
+  /** Pass any hex/css color — but prefer using `variant` for semantic styling */
   color?: string
+  /** 'amber' = brightness (warm yellow fill), 'blue' = generic */
+  variant?: 'amber' | 'blue' | 'default'
   className?: string
   label?: string
 }
 
+/**
+ * Refined Liquid Glass slider (hearth-design-system spec):
+ * - Inset groove (recessed channel with inner shadow)
+ * - Coloured fill: amber gradient for brightness, action-blue for others
+ * - Layered-shadow knob with center dimple
+ * - Value readout anchored to the right edge of the track
+ */
 export function DragSlider({
   value,
   onChange,
   onChangeEnd,
-  color = '#3b82f6',
+  variant = 'amber',
   className,
   label,
 }: DragSliderProps) {
@@ -23,72 +33,67 @@ export function DragSlider({
 
   const clamp = (v: number) => Math.min(100, Math.max(0, v))
 
-  const getValueFromX = useCallback((clientX: number) => {
-    const track = trackRef.current
-    if (!track) return value
-    const { left, width } = track.getBoundingClientRect()
-    return clamp(((clientX - left) / width) * 100)
-  }, [value])
+  const getVal = (clientX: number) => {
+    const el = trackRef.current
+    if (!el) return value
+    const { left, width } = el.getBoundingClientRect()
+    return clamp(Math.round(((clientX - left) / width) * 100))
+  }
 
-  // Pointer-based handler (works on both mouse and touch)
-  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     e.currentTarget.setPointerCapture(e.pointerId)
-    const v = getValueFromX(e.clientX)
-    onChange(Math.round(v))
+    onChange(getVal(e.clientX))
   }
-
-  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.buttons === 0 && e.pressure === 0) return
-    const v = getValueFromX(e.clientX)
-    onChange(Math.round(v))
+    onChange(getVal(e.clientX))
+  }
+  const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    const v = getVal(e.clientX)
+    onChange(v)
+    onChangeEnd?.(v)
   }
 
-  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
-    const v = getValueFromX(e.clientX)
-    const rounded = Math.round(v)
-    onChange(rounded)
-    onChangeEnd?.(rounded)
-  }
-
-  const pct = `${clamp(value)}%`
+  const pct = clamp(value)
+  const isAmber = variant === 'amber'
 
   return (
     <div className={cn('space-y-2', className)}>
       {label && (
         <div className="flex justify-between text-sm">
-          <span className="text-black/50">{label}</span>
-          <span className="font-semibold text-[#1d1d1f]">{Math.round(value)}%</span>
+          <span style={{ color: 'var(--ink-secondary)' }}>{label}</span>
+          <span style={{ fontWeight: 600, color: 'var(--ink)', fontVariantNumeric: 'tabular-nums' }}>{pct}%</span>
         </div>
       )}
 
-      {/* Track — tall enough (44px) for comfortable touch */}
+      {/* Inset groove track */}
       <div
         ref={trackRef}
-        className="relative flex items-center h-11 cursor-pointer select-none touch-none"
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
+        className="lg-slider"
+        style={{ height: 36, cursor: 'pointer', touchAction: 'none', userSelect: 'none' }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
       >
-        {/* Background rail */}
-        <div className="absolute inset-x-0 h-2 rounded-full bg-black/10" />
-
-        {/* Filled portion */}
+        {/* Coloured fill — amber variant carries a sun icon riding the fill */}
         <div
-          className="absolute left-0 h-2 rounded-full transition-none"
-          style={{ width: pct, background: color }}
-        />
+          className={cn('lg-slider-fill', isAmber && 'amber', !isAmber && 'blue')}
+          style={{ width: `calc(${pct}% - 2px)` }}
+        >
+          {isAmber && (
+            <Sun
+              size={17}
+              color="#fff"
+              style={{ position: 'absolute', left: 9, top: '50%', transform: 'translateY(-50%)', opacity: 0.9, pointerEvents: 'none', flexShrink: 0 }}
+            />
+          )}
+        </div>
 
-        {/* Thumb */}
-        <motion.div
-          className="absolute h-5 w-5 rounded-full bg-white shadow-lg"
-          style={{
-            left: pct,
-            x: '-50%',
-            boxShadow: `0 0 0 3px ${color}55, 0 2px 8px rgba(0,0,0,0.4)`,
-          }}
-          whileTap={{ scale: 1.25 }}
-          transition={{ type: 'spring', stiffness: 600, damping: 30 }}
-        />
+        {/* Layered-shadow knob with center dimple */}
+        <div className="lg-slider-knob" style={{ left: `${pct}%` }} />
+
+        {/* Value readout */}
+        <span className={cn('lg-slider-val', isAmber && 'amber-text')}>{pct}%</span>
       </div>
     </div>
   )

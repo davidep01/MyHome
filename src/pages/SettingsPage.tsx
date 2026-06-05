@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Settings, User, Wifi, Plus, Trash2,
-  ChevronRight, Save, X, Home,
+  ChevronRight, Save, X, Home, ShieldCheck, Eye, EyeOff, Search, Lock, Pencil,
 } from 'lucide-react'
 import { GlassCard } from '../components/glass/GlassCard'
 import { GlassSheet } from '../components/glass/GlassSheet'
@@ -10,11 +10,16 @@ import { useDashboardConfig, useUpdateConfig } from '../hooks/useDashboardConfig
 import {
   useRooms, useCreateRoom, useDeleteRoom, useAddEntity, useRemoveEntity,
 } from '../hooks/useRooms'
-import type { Room, RoomEntity } from '../api/backend'
+import { useEntityStore } from '../store/entities'
+import type { AppConfig, DeviceOverride, EntityType, Room, RoomEntity } from '../api/backend'
+import { iconExists } from '../lib/lucide'
+import { DynamicIcon } from '../components/DynamicIcon'
 import { framerSpring, tokens } from '../design/tokens'
 import { cn } from '../lib/utils'
 
-type Section = 'preferences' | 'rooms' | 'connection'
+const ADMIN_PIN = '8999'
+
+type Section = 'preferences' | 'rooms' | 'connection' | 'admin'
 
 const ENTITY_TYPES: RoomEntity['type'][] = [
   'light', 'climate', 'cover', 'scene', 'security', 'media', 'switch', 'camera', 'sensor',
@@ -78,7 +83,7 @@ function PreferencesForm({ config }: { config: NonNullable<ReturnType<typeof use
       {field('newsFeedUrl', 'Feed RSS news', 'https://www.ansa.it/sito/ansait_rss.xml')}
       <button
         onClick={() => update(form)}
-        className="flex w-full items-center justify-center gap-2 rounded-[14px] bg-blue-500 min-h-[44px] px-4 text-sm font-semibold text-[#1d1d1f] hover:bg-blue-400 transition-colors"
+        className="flex w-full items-center justify-center gap-2 rounded-[14px] bg-[#0066cc] min-h-[44px] px-4 text-sm font-semibold text-white hover:bg-[#0052a3] transition-colors"
       >
         <Save size={14} />
         Salva preferenze
@@ -151,7 +156,7 @@ function ConnectionForm({ config }: { config: NonNullable<ReturnType<typeof useD
       <button
         onClick={() => update({ haUrl, ...(haToken ? { haToken } : {}) })}
         disabled={isPending || (urlLocked && tokenLocked)}
-        className="flex w-full items-center justify-center gap-2 rounded-[14px] bg-blue-500 min-h-[44px] px-4 text-sm font-semibold text-[#1d1d1f] hover:bg-blue-400 disabled:opacity-50 transition-colors"
+        className="flex w-full items-center justify-center gap-2 rounded-[14px] bg-[#0066cc] min-h-[44px] px-4 text-sm font-semibold text-white hover:bg-[#0052a3] disabled:opacity-50 transition-colors"
       >
         <Save size={14} />
         {isPending ? 'Salvataggio...' : 'Salva connessione'}
@@ -204,7 +209,7 @@ function AddEntitySheet({
               onClick={() => setType(t)}
               className={cn(
                 'rounded-[10px] py-2.5 text-xs font-medium transition-all min-h-[44px]',
-                type === t ? 'bg-blue-500 text-[#1d1d1f]' : 'bg-black/8 text-black/60 hover:bg-black/12',
+                type === t ? 'bg-[#0066cc] text-white' : 'bg-black/8 text-black/60 hover:bg-black/12',
               )}
             >
               {t}
@@ -215,7 +220,7 @@ function AddEntitySheet({
       <button
         onClick={submit}
         disabled={isPending || !entityId || !label}
-        className="flex w-full items-center justify-center gap-2 rounded-[14px] bg-blue-500 min-h-[44px] text-sm font-semibold text-[#1d1d1f] hover:bg-blue-400 disabled:opacity-40 transition-colors"
+        className="flex w-full items-center justify-center gap-2 rounded-[14px] bg-[#0066cc] min-h-[44px] text-sm font-semibold text-white hover:bg-[#0052a3] disabled:opacity-40 transition-colors"
       >
         <Plus size={14} />
         Aggiungi entità
@@ -332,7 +337,7 @@ function RoomsSection() {
               onClick={() => setNewIcon(icon)}
               className={cn(
                 'px-3 min-h-[36px] rounded-[10px] text-xs font-mono transition-all',
-                newIcon === icon ? 'bg-blue-500 text-[#1d1d1f]' : 'bg-black/8 text-black/50 hover:bg-black/12',
+                newIcon === icon ? 'bg-[#0066cc] text-white' : 'bg-black/8 text-black/50 hover:bg-black/12',
               )}
             >
               {icon}
@@ -342,7 +347,7 @@ function RoomsSection() {
         <button
           onClick={submit}
           disabled={isPending || !newLabel.trim()}
-          className="flex w-full items-center justify-center gap-2 rounded-[14px] bg-blue-500 min-h-[44px] text-sm font-semibold text-[#1d1d1f] hover:bg-blue-400 disabled:opacity-40 transition-colors"
+          className="flex w-full items-center justify-center gap-2 rounded-[14px] bg-[#0066cc] min-h-[44px] text-sm font-semibold text-white hover:bg-[#0052a3] disabled:opacity-40 transition-colors"
         >
           <Plus size={14} />
           Crea stanza
@@ -359,6 +364,240 @@ function RoomsSection() {
   )
 }
 
+// ── Admin: exclude HA entities (PIN-gated) ───────────────────────────────────
+
+function AdminSection() {
+  const { data: config } = useDashboardConfig()
+  if (!config) return <p className="text-sm text-black/40">Caricamento...</p>
+  return <AdminPanel config={config} />
+}
+
+const OVERRIDE_TYPES: { value: EntityType; label: string }[] = [
+  { value: 'light', label: 'Luce' }, { value: 'switch', label: 'Interruttore' },
+  { value: 'climate', label: 'Clima' }, { value: 'cover', label: 'Tapparella' },
+  { value: 'lock', label: 'Serratura' }, { value: 'fan', label: 'Ventilatore' },
+  { value: 'media', label: 'Media' }, { value: 'camera', label: 'Videocamera' },
+  { value: 'vacuum', label: 'Robot' }, { value: 'scene', label: 'Scena' },
+  { value: 'alarm', label: 'Allarme' }, { value: 'siren', label: 'Sirena' },
+  { value: 'number', label: 'Slider' }, { value: 'select', label: 'Selettore' },
+  { value: 'button', label: 'Pulsante' }, { value: 'binary_sensor', label: 'Sensore stato' },
+  { value: 'sensor', label: 'Sensore valore' },
+]
+
+function AdminPanel({ config }: { config: AppConfig }) {
+  const entities = useEntityStore((s) => s.entities)
+  const { mutate: update, isPending } = useUpdateConfig()
+  const [unlocked, setUnlocked] = useState(false)
+  const [pin, setPin] = useState('')
+  const [pinError, setPinError] = useState(false)
+  const [query, setQuery] = useState('')
+  const [hidden, setHidden] = useState<string[]>(config.hiddenEntities ?? [])
+  const [overrides, setOverrides] = useState<Record<string, DeviceOverride>>(config.deviceOverrides ?? {})
+  const [forceCelsius, setForceCelsius] = useState<boolean>(config.forceCelsius ?? false)
+  const [editId, setEditId] = useState<string | null>(null)
+
+  const list = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    return Object.values(entities)
+      .map((e) => ({
+        id: e.entity_id,
+        name: (e.attributes?.friendly_name as string | undefined) ?? e.entity_id,
+        state: e.state,
+      }))
+      .filter((e) => !q || e.id.toLowerCase().includes(q) || e.name.toLowerCase().includes(q))
+      .sort((a, b) => a.id.localeCompare(b.id))
+  }, [entities, query])
+
+  const toggleHide = (id: string) =>
+    setHidden((h) => (h.includes(id) ? h.filter((x) => x !== id) : [...h, id]))
+
+  const patchOverride = (id: string, patch: Partial<DeviceOverride>) =>
+    setOverrides((o) => {
+      const next: DeviceOverride = { ...(o[id] ?? {}), ...patch }
+      ;(Object.keys(next) as (keyof DeviceOverride)[]).forEach((k) => {
+        if (next[k] === '' || next[k] === undefined) delete next[k]
+      })
+      return { ...o, [id]: next }
+    })
+
+  const save = () => update({ hiddenEntities: hidden, deviceOverrides: overrides, forceCelsius })
+
+  if (!unlocked) {
+    return (
+      <GlassCard className="mx-auto max-w-sm space-y-4 text-center">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-[16px] bg-black/8">
+          <Lock size={22} className="text-black/55" />
+        </div>
+        <div>
+          <p className="text-base font-semibold text-black/90">Area amministratore</p>
+          <p className="mt-1 text-xs text-black/45">Inserisci il codice per gestire le entità importate da HA.</p>
+        </div>
+        <input
+          type="password"
+          inputMode="numeric"
+          value={pin}
+          onChange={(e) => { setPin(e.target.value); setPinError(false) }}
+          onKeyDown={(e) => e.key === 'Enter' && (pin === ADMIN_PIN ? setUnlocked(true) : setPinError(true))}
+          placeholder="Codice"
+          className={cn(
+            'w-full rounded-[12px] bg-black/8 px-3 py-3 text-center text-lg tracking-[0.4em] text-[#1d1d1f] outline-none focus:bg-black/12',
+            pinError && 'ring-2 ring-red-500/60',
+          )}
+        />
+        {pinError && <p className="text-xs text-red-500">Codice errato</p>}
+        <button
+          onClick={() => (pin === ADMIN_PIN ? setUnlocked(true) : setPinError(true))}
+          className="flex w-full items-center justify-center gap-2 rounded-[14px] bg-[#0066cc] py-3 text-sm font-semibold text-white transition active:scale-95"
+        >
+          Sblocca
+        </button>
+      </GlassCard>
+    )
+  }
+
+  const total = Object.keys(entities).length
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between gap-2 px-1">
+        <p className="text-xs text-black/50">{hidden.length} nascoste · {total} totali</p>
+        <button
+          onClick={save}
+          disabled={isPending}
+          className="flex items-center gap-2 rounded-full bg-[#0066cc] px-4 py-2 text-sm font-semibold text-white transition active:scale-95 disabled:opacity-50"
+        >
+          <Save size={14} /> {isPending ? 'Salvo…' : 'Salva'}
+        </button>
+      </div>
+
+      {/* Force Celsius */}
+      <div className="flex items-center justify-between rounded-[12px] bg-black/[0.04] px-3 py-2.5">
+        <span className="text-sm text-[#1d1d1f]">Forza temperature in °C</span>
+        <div className={cn('lg-toggle', forceCelsius && 'on')} onClick={() => setForceCelsius((v) => !v)}>
+          <span className="lg-toggle-knob" />
+        </div>
+      </div>
+
+      <div className="relative">
+        <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-black/35" />
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Cerca dispositivo…"
+          className="w-full rounded-full border border-black/10 bg-white py-2.5 pl-9 pr-4 text-sm text-[#1d1d1f] outline-none focus:border-[#0066cc]"
+        />
+      </div>
+
+      <div className="max-h-[48vh] space-y-1.5 overflow-y-auto pr-1">
+        {list.length === 0 && <p className="px-1 py-6 text-center text-sm text-black/40">Nessuna entità</p>}
+        {list.map((e) => {
+          const isHidden = hidden.includes(e.id)
+          const ov = overrides[e.id]
+          return (
+            <div
+              key={e.id}
+              className={cn('flex items-center gap-2 rounded-[12px] px-3 py-2', isHidden ? 'bg-black/[0.03] opacity-60' : 'bg-black/[0.05]')}
+            >
+              <div className="min-w-0 flex-1">
+                <p className={cn('truncate text-sm font-medium', isHidden ? 'text-black/45 line-through' : 'text-[#1d1d1f]')}>
+                  {ov?.label || e.name}
+                </p>
+                <p className="truncate font-mono text-[11px] text-black/35">{e.id}{ov?.type ? ` · ${ov.type}` : ''}</p>
+              </div>
+              <button
+                onClick={() => setEditId(e.id)}
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-black/8 text-black/55 transition hover:text-[#1d1d1f]"
+                aria-label="Modifica"
+              >
+                <Pencil size={14} />
+              </button>
+              <button
+                onClick={() => toggleHide(e.id)}
+                className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-full', isHidden ? 'bg-black/8 text-black/40' : 'bg-[#0066cc]/12 text-[#0066cc]')}
+                aria-label={isHidden ? 'Mostra' : 'Nascondi'}
+              >
+                {isHidden ? <EyeOff size={15} /> : <Eye size={15} />}
+              </button>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Per-device editor */}
+      <GlassSheet open={Boolean(editId)} onClose={() => setEditId(null)} title="Modifica dispositivo" side="right">
+        {editId && (
+          <div className="space-y-4">
+            <p className="break-all font-mono text-[11px] text-black/35">{editId}</p>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-black/50">Nome</label>
+              <input
+                value={overrides[editId]?.label ?? ''}
+                onChange={(e) => patchOverride(editId, { label: e.target.value })}
+                placeholder={(entities[editId]?.attributes?.friendly_name as string | undefined) ?? editId}
+                className="w-full rounded-[12px] bg-black/8 px-3 py-3 text-sm text-[#1d1d1f] outline-none focus:bg-black/12"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-black/50">Tipo card</label>
+              <div className="grid grid-cols-2 gap-2">
+                {OVERRIDE_TYPES.map((t) => (
+                  <button
+                    key={t.value}
+                    onClick={() => patchOverride(editId, { type: overrides[editId]?.type === t.value ? undefined : t.value })}
+                    className={cn(
+                      'rounded-[10px] px-2 py-2 text-xs font-medium transition',
+                      overrides[editId]?.type === t.value ? 'bg-[#0066cc] text-white' : 'bg-black/8 text-black/60 hover:bg-black/12',
+                    )}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[11px] text-black/35">Vuoto = tipo automatico.</p>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-black/50">Icona (nome lucide)</label>
+              <div className="flex items-center gap-2">
+                <input
+                  value={overrides[editId]?.icon ?? ''}
+                  onChange={(e) => patchOverride(editId, { icon: e.target.value })}
+                  placeholder="es. lightbulb"
+                  className="w-full rounded-[12px] bg-black/8 px-3 py-3 font-mono text-sm text-[#1d1d1f] outline-none focus:bg-black/12"
+                />
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[12px] bg-black/8 text-black/60">
+                  {iconExists(overrides[editId]?.icon)
+                    ? <DynamicIcon name={overrides[editId]?.icon} fallback={Pencil} size={18} />
+                    : <span className="text-[10px] text-black/30">—</span>}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between rounded-[12px] bg-black/[0.04] px-3 py-2.5">
+              <span className="text-sm text-[#1d1d1f]">Attivo</span>
+              <div
+                className={cn('lg-toggle', overrides[editId]?.enabled !== false && 'on')}
+                onClick={() => patchOverride(editId, { enabled: overrides[editId]?.enabled === false ? true : false })}
+              >
+                <span className="lg-toggle-knob" />
+              </div>
+            </div>
+
+            <button
+              onClick={() => { save(); setEditId(null) }}
+              className="flex w-full items-center justify-center gap-2 rounded-[14px] bg-[#0066cc] py-3 text-sm font-semibold text-white transition active:scale-95"
+            >
+              <Save size={14} /> Salva dispositivo
+            </button>
+          </div>
+        )}
+      </GlassSheet>
+    </div>
+  )
+}
+
 // ── Main SettingsPage ────────────────────────────────────────────────────────
 
 export function SettingsPage() {
@@ -368,6 +607,7 @@ export function SettingsPage() {
     { id: 'preferences', label: 'Preferenze', icon: User },
     { id: 'rooms', label: 'Stanze & Entità', icon: Home },
     { id: 'connection', label: 'Connessione HA', icon: Wifi },
+    { id: 'admin', label: 'Admin', icon: ShieldCheck },
   ]
 
   return (
@@ -421,6 +661,7 @@ export function SettingsPage() {
               {section === 'preferences' && <PreferencesSection />}
               {section === 'rooms' && <RoomsSection />}
               {section === 'connection' && <ConnectionSection />}
+              {section === 'admin' && <AdminSection />}
             </motion.div>
           </AnimatePresence>
         </div>

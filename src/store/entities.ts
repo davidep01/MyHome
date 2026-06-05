@@ -8,9 +8,12 @@ interface EntityStore {
   connected: boolean
   connectionStatus: HAConnectionStatus
   lastError?: string
+  /** Temperature unit from HA's unit system ('°C' | '°F'). */
+  temperatureUnit: string
   setEntities: (entities: HassEntities) => void
   setConnected: (connected: boolean) => void
   setConnectionStatus: (status: HAConnectionStatus, error?: string) => void
+  setTemperatureUnit: (unit: string) => void
   patchEntity: (entityId: string, patch: Partial<HassEntity>) => void
   setOptimisticState: (entityId: string, state: string, attributes?: Record<string, unknown>) => void
   getEntity: (entityId: string) => HassEntity | undefined
@@ -20,6 +23,8 @@ export const useEntityStore = create<EntityStore>((set, get) => ({
   entities: {},
   connected: false,
   connectionStatus: 'idle',
+  temperatureUnit: '°C',
+  setTemperatureUnit: (temperatureUnit) => set({ temperatureUnit }),
   setEntities: (entities) => set({ entities }),
   setConnected: (connected) => set({ connected }),
   setConnectionStatus: (connectionStatus, lastError) => set({

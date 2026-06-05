@@ -1,0 +1,32 @@
+@import url('../colors_and_type.css');
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  font-family: var(--font-ui);
+  background: var(--canvas-page);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  padding: 18px;
+}
+.card-wrap {
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgba(0,102,204,0.05), transparent 60%),
+    var(--canvas-page);
+  border-radius: 14px;
+}
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.col { display: flex; flex-direction: column; }
+.lbl { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; color: var(--ink-tertiary); text-transform: uppercase; }
+.mono { font-variant-numeric: tabular-nums; }
+.glass-demo {
+  background: var(--canvas-card); border: 1px solid var(--hairline);
+  -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+}
+
+/* swatch */
+.sw { display: flex; flex-direction: column; gap: 6px; }
+.chip { height: 52px; border-radius: 12px; border: 1px solid var(--hairline); }
+.sw .n { font-size: 12px; font-weight: 600; color: var(--ink); }
+.sw .h { font-size: 11px; color: var(--ink-tertiary); font-variant-numeric: tabular-nums; }
+.ic { display: inline-flex; }
+.ic svg { stroke-width: 2; }

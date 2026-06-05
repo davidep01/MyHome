@@ -22,13 +22,23 @@ export function GlassSheet({
 }: GlassSheetProps) {
   const variants =
     side === 'bottom'
+      ? { hidden: { y: '100%', opacity: 0 }, visible: { y: 0, opacity: 1 } }
+      : { hidden: { x: '100%', opacity: 0 }, visible: { x: 0, opacity: 1 } }
+
+  // Viewport-safe sizing: dvh (not vh), clamped widths, safe-area insets.
+  const sheetStyle =
+    side === 'bottom'
       ? {
-          hidden: { y: '100%', opacity: 0 },
-          visible: { y: 0, opacity: 1 },
+          maxHeight: 'min(92dvh, 920px)',
+          paddingBottom: 'max(24px, env(safe-area-inset-bottom))',
+          paddingTop: '20px',
         }
       : {
-          hidden: { x: '100%', opacity: 0 },
-          visible: { x: 0, opacity: 1 },
+          width: 'min(420px, 96vw)',
+          maxWidth: '96vw',
+          paddingTop: 'max(20px, env(safe-area-inset-top))',
+          paddingBottom: 'max(20px, env(safe-area-inset-bottom))',
+          paddingRight: 'max(20px, env(safe-area-inset-right))',
         }
 
   return (
@@ -45,33 +55,36 @@ export function GlassSheet({
             onClick={onClose}
           />
 
-          {/* Sheet */}
+          {/* Sheet — flex column: fixed header + scrollable body, never exceeds viewport */}
           <motion.div
             className={cn(
-              'glass glass-border fixed z-50',
+              'glass glass-border fixed z-50 flex flex-col',
               side === 'bottom'
-                ? 'bottom-0 left-0 right-0 rounded-t-[28px] p-6'
-                : 'top-0 right-0 bottom-0 w-96 rounded-l-[28px] p-6',
+                ? 'bottom-0 left-0 right-0 rounded-t-[28px] px-6'
+                : 'top-0 right-0 bottom-0 rounded-l-[28px] pl-6',
               className,
             )}
+            style={sheetStyle}
             variants={variants}
             initial="hidden"
             animate="visible"
             exit="hidden"
             transition={framerSpring}
           >
-            <div className="flex items-center justify-between mb-5">
-              {title && (
-                <span className="text-base font-semibold text-black/90">{title}</span>
-              )}
+            <div className="mb-4 flex shrink-0 items-center justify-between pt-1">
+              {title && <span className="text-base font-semibold text-black/90">{title}</span>}
               <button
                 onClick={onClose}
-                className="ml-auto flex h-8 w-8 items-center justify-center rounded-full bg-black/10 text-black/60 hover:text-[#1d1d1f] transition-colors"
+                className="ml-auto flex h-8 w-8 items-center justify-center rounded-full bg-black/10 text-black/60 transition-colors hover:text-[#1d1d1f]"
+                aria-label="Chiudi"
               >
                 <X size={16} />
               </button>
             </div>
-            {children}
+            {/* Scrollable body — keeps content within the viewport */}
+            <div className={cn('min-h-0 flex-1 overflow-y-auto', side === 'right' && 'pr-1')}>
+              {children}
+            </div>
           </motion.div>
         </>
       )}

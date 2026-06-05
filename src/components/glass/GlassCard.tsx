@@ -1,9 +1,9 @@
 import { motion, type HTMLMotionProps } from 'framer-motion'
-import { framerSpring } from '../../design/tokens'
 import { cn } from '../../lib/utils'
 
 interface GlassCardProps extends HTMLMotionProps<'div'> {
   interactive?: boolean
+  /** Glow ring color (used for heating/cooling/light-on states). */
   glow?: string
   noPadding?: boolean
 }
@@ -14,20 +14,23 @@ export function GlassCard({
   interactive = false,
   glow,
   noPadding = false,
+  style,
   ...props
 }: GlassCardProps) {
   return (
     <motion.div
       className={cn(
-        'glass glass-border relative overflow-hidden',
-        'rounded-[24px]',
-        !noPadding && 'p-4',
-        interactive && 'cursor-pointer select-none',
+        'glass glass-border relative overflow-hidden rounded-[18px]',
+        !noPadding && 'p-[14px]',
+        interactive && 'cursor-pointer select-none press-card',
         className,
       )}
-      style={glow ? { boxShadow: `0 0 24px ${glow}` } : undefined}
-      whileTap={interactive ? { scale: 0.97 } : undefined}
-      transition={framerSpring}
+      style={{
+        boxShadow: glow ? `0 0 24px 0 ${glow}` : undefined,
+        ...style,
+      }}
+      whileTap={interactive ? { scale: 0.985 } : undefined}
+      transition={{ type: 'spring', stiffness: 500, damping: 32 }}
       {...props}
     >
       {children}

@@ -1,6 +1,7 @@
-import { X, Flame, Lightbulb, Cpu } from 'lucide-react'
+import { X, Flame, Lightbulb, ShieldCheck, Cpu } from 'lucide-react'
 import { ClimateDetail } from './ClimateDetail'
 import { LightDetail } from './LightDetail'
+import { AlarmDetail } from './AlarmDetail'
 import { useHAEntity } from '../../hooks/useHAEntity'
 import { useUIStore } from '../../store/ui'
 import { GlassCard } from '../glass/GlassCard'
@@ -9,6 +10,7 @@ import { tokens } from '../../design/tokens'
 const domainMeta: Record<string, { Icon: React.ElementType; color: string }> = {
   climate: { Icon: Flame, color: tokens.accent.orange },
   light: { Icon: Lightbulb, color: tokens.accent.yellow },
+  alarm_control_panel: { Icon: ShieldCheck, color: tokens.accent.red },
 }
 
 export function ContextualPanel({ entityId }: { entityId: string }) {
@@ -23,7 +25,7 @@ export function ContextualPanel({ entityId }: { entityId: string }) {
     <GlassCard noPadding className="flex h-full flex-col overflow-hidden p-5">
       {/* Header */}
       <div className="mb-5 flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-[14px]" style={{ background: `${meta.color}22` }}>
+        <div className="flex h-10 w-10 items-center justify-center rounded-full" style={{ background: `${meta.color}22` }}>
           <Icon size={18} style={{ color: meta.color }} />
         </div>
         <div className="min-w-0 flex-1">
@@ -49,6 +51,8 @@ export function ContextualPanel({ entityId }: { entityId: string }) {
           <ClimateDetail entity={entity} />
         ) : domain === 'light' ? (
           <LightDetail entity={entity} />
+        ) : domain === 'alarm_control_panel' ? (
+          <AlarmDetail entity={entity} />
         ) : (
           <div className="rounded-[16px] bg-black/5 p-4">
             <p className="font-mono text-xs text-black/40">{entityId}</p>

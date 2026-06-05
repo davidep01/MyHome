@@ -8,6 +8,7 @@ import { useHAEntity } from '../../hooks/useHAEntity'
 import { useHAService } from '../../hooks/useHAService'
 import { useHaptic } from '../../hooks/useHaptic'
 import { useLongPress } from '../../hooks/useLongPress'
+import { useEntityStore } from '../../store/entities'
 import { haApi } from '../../api/backend'
 import { tokens } from '../../design/tokens'
 import { cn } from '../../lib/utils'
@@ -35,7 +36,9 @@ export function MediaCard({ entityId, label, className }: MediaCardProps) {
   const entity = useHAEntity(entityId)
   const { call } = useHAService()
   const { light, medium } = useHaptic()
+  const setOptimisticState = useEntityStore((s) => s.setOptimisticState)
   const [volumeSheet, setVolumeSheet] = useState(false)
+  const [volPreview, setVolPreview] = useState<number | null>(null)
   const [now, setNow] = useState(0)
 
   const state = entity?.state
@@ -76,7 +79,13 @@ export function MediaCard({ entityId, label, className }: MediaCardProps) {
   const prev = () => { light(); call('media_player', 'media_previous_track', { entity_id: entityId }) }
   const next = () => { light(); call('media_player', 'media_next_track', { entity_id: entityId }) }
   const turnOn = () => { light(); call('media_player', 'turn_on', { entity_id: entityId }) }
-  const setVolume = (v: number) => call('media_player', 'volume_set', { entity_id: entityId, volume_level: v })
+  const volPct = volPreview ?? Math.round(volume * 100)
+  const setVolume = (level: number) => {
+    setOptimisticState(entityId, state ?? 'playing', { volume_level: level })
+    call('media_player', 'volume_set', { entity_id: entityId, volume_level: level })
+  }
+  // Slider: preview locally during the drag, push to HA once on release.
+  const commitVolume = (v: number) => { setVolPreview(null); setVolume(v / 100) }
 
   // ── Unconfigured / unavailable state ─────────────────────────────────────
   if (isUnconfigured) {
@@ -185,13 +194,13 @@ export function MediaCard({ entityId, label, className }: MediaCardProps) {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <Volume2 size={18} className="text-black/50" />
-            <span className="text-lg font-semibold text-[#1d1d1f]">{Math.round(volume * 100)}%</span>
+            <span className="text-lg font-semibold text-[#1d1d1f]">{volPct}%</span>
           </div>
           <DragSlider
-            value={Math.round(volume * 100)}
-            onChange={(v) => setVolume(v / 100)}
-            onChangeEnd={(v) => setVolume(v / 100)}
-            color="rgba(0,0,0,0.55)"
+            value={volPct}
+            onChange={(v) => setVolPreview(Math.round(v))}
+            onChangeEnd={commitVolume}
+            variant="blue"
           />
           <div className="grid grid-cols-4 gap-2">
             {[25, 50, 75, 100].map((pct) => (
@@ -200,7 +209,7 @@ export function MediaCard({ entityId, label, className }: MediaCardProps) {
                 onClick={() => setVolume(pct / 100)}
                 className={cn(
                   'rounded-[12px] py-2 text-sm font-medium transition-all',
-                  Math.round(volume * 100) === pct
+                  volPct === pct
                     ? 'bg-black/20 text-[#1d1d1f]'
                     : 'bg-black/8 text-black/60 hover:bg-black/12',
                 )}

@@ -83,13 +83,14 @@ export const rooms: Room[] = [
 ]
 
 /** Circular quick-scenes shown in the home header (label, icon, accent color). */
+/** Exact scene orb colors from hearth-design-system/project/preview/comp-scenes.html */
 export const quickScenes = [
-  { entityId: 'scene.musica', label: 'Musica', icon: 'music', color: '#ec4899' },
-  { entityId: 'scene.fuori_casa', label: 'Fuori', icon: 'door-open', color: '#3b82f6' },
-  { entityId: 'scene.buonanotte', label: 'Notte', icon: 'moon', color: '#6366f1' },
-  { entityId: 'scene.film', label: 'Film', icon: 'film', color: '#ef4444' },
-  { entityId: 'scene.buongiorno', label: 'Mattino', icon: 'sunrise', color: '#f59e0b' },
-  { entityId: 'scene.in_casa', label: 'Arrivo', icon: 'house', color: '#22c55e' },
+  { entityId: 'scene.musica', label: 'Musica', icon: 'music', color: '#e8508d' },
+  { entityId: 'scene.fuori_casa', label: 'Fuori', icon: 'door-open', color: '#0a84ff' },
+  { entityId: 'scene.buonanotte', label: 'Notte', icon: 'moon', color: '#7c5cff' },
+  { entityId: 'scene.film', label: 'Film', icon: 'film', color: '#ff453a' },
+  { entityId: 'scene.buongiorno', label: 'Mattino', icon: 'sunrise', color: '#ff9f0a' },
+  { entityId: 'scene.in_casa', label: 'Arrivo', icon: 'house', color: '#30b15a' },
 ]
 
 /**

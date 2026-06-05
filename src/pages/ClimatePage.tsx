@@ -1,12 +1,11 @@
 import { ClimateSummaryCard } from '../components/home/ClimateSummaryCard'
 import { SectionBand } from '../components/home/SectionBand'
 import { WidgetGrid } from '../components/widgets/WidgetGrid'
-import { useRooms } from '../hooks/useRooms'
-import { withAllRoom } from '../lib/rooms'
+import { useDiscoveredEntities } from '../hooks/useDiscoveredEntities'
 
 export function ClimatePage() {
-  const { data, isError } = useRooms()
-  const entities = withAllRoom(data)[0]?.entities.filter((entity) => entity.type === 'climate') ?? []
+  const { sections } = useDiscoveredEntities()
+  const entities = sections.find((s) => s.domain === 'climate')?.entities ?? []
 
   return (
     <div className="flex h-full flex-col gap-5 overflow-y-auto pr-1">
@@ -16,11 +15,9 @@ export function ClimatePage() {
       </div>
       <ClimateSummaryCard />
       <SectionBand title="Zone" count={entities.length}>
-        {isError ? (
-          <p className="col-span-full py-12 text-center text-sm text-red-300/80">Backend non raggiungibile</p>
-        ) : (
-          <WidgetGrid entities={entities} />
-        )}
+        {entities.length === 0
+          ? <p className="col-span-full py-8 text-center text-sm text-black/40">Nessuna zona climatica esposta da HA</p>
+          : <WidgetGrid entities={entities} />}
       </SectionBand>
     </div>
   )

@@ -24,7 +24,7 @@ export function SceneRow() {
   }
 
   return (
-    <div className="flex items-start gap-4 overflow-x-auto pb-1">
+    <div className="flex items-start gap-[18px] overflow-x-auto pb-1">
       {quickScenes.map((scene) => {
         const Icon = sceneIcons[scene.icon] ?? Sparkles
         return (
@@ -32,17 +32,18 @@ export function SceneRow() {
             key={scene.entityId}
             type="button"
             onClick={() => activate(scene.entityId)}
-            whileTap={{ scale: 0.9 }}
+            whileTap={{ scale: 0.92 }}
             transition={framerSpringBounce}
-            className="flex shrink-0 flex-col items-center gap-1.5"
+            className="flex shrink-0 flex-col items-center gap-2"
+            style={{ width: 64 }}
           >
-            <span
-              className="flex h-12 w-12 items-center justify-center rounded-full ring-1 ring-white/10"
-              style={{ background: scene.color, boxShadow: `0 6px 18px ${scene.color}55` }}
-            >
-              <Icon size={20} className="text-white" />
+            {/* Scene orb — uses the .scene-orb CSS class from index.css */}
+            <span className="scene-orb" style={{ background: scene.color, boxShadow: `inset 0 1px 0 rgba(255,255,255,0.35), 0 4px 14px ${scene.color}50` }}>
+              <Icon size={22} color="#fff" strokeWidth={2.1} />
             </span>
-            <span className="text-[11px] font-medium text-black/55">{scene.label}</span>
+            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink-secondary)', letterSpacing: '-0.1px' }}>
+              {scene.label}
+            </span>
           </motion.button>
         )
       })}

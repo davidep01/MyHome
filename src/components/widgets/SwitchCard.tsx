@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion'
 import { Power, Zap } from 'lucide-react'
 import { GlassCard } from '../glass/GlassCard'
 import { useHAEntity } from '../../hooks/useHAEntity'
@@ -6,15 +5,17 @@ import { useHAService } from '../../hooks/useHAService'
 import { useHaptic } from '../../hooks/useHaptic'
 import { domainAccent, tokens } from '../../design/tokens'
 import { useEntityStore } from '../../store/entities'
+import { DynamicIcon } from '../DynamicIcon'
 import { cn } from '../../lib/utils'
 
 interface SwitchCardProps {
   entityId: string
   label: string
   className?: string
+  iconName?: string
 }
 
-export function SwitchCard({ entityId, label, className }: SwitchCardProps) {
+export function SwitchCard({ entityId, label, className, iconName }: SwitchCardProps) {
   const entity = useHAEntity(entityId)
   const { call } = useHAService()
   const { light } = useHaptic()
@@ -52,10 +53,12 @@ export function SwitchCard({ entityId, label, className }: SwitchCardProps) {
     >
       <div className="flex items-start justify-between">
         <div className={cn(
-          'flex h-10 w-10 items-center justify-center rounded-[14px] transition-all duration-300',
+          'flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300',
           isOn ? 'bg-green-500/20' : 'bg-black/8',
         )}>
-          <Power
+          <DynamicIcon
+            name={iconName}
+            fallback={Power}
             size={18}
             className={cn(
               'transition-colors duration-300',
@@ -65,18 +68,12 @@ export function SwitchCard({ entityId, label, className }: SwitchCardProps) {
           />
         </div>
 
+        {/* Liquid Glass toggle pill */}
         <div
-          className={cn(
-            'h-5 w-9 rounded-full transition-all duration-300 relative',
-            isOn ? 'bg-green-500' : 'bg-black/15',
-          )}
+          className={cn('lg-toggle', isOn && 'on')}
           onClick={(e) => { e.stopPropagation(); toggle() }}
         >
-          <motion.div
-            className="absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-sm"
-            animate={{ left: isOn ? '18px' : '2px' }}
-            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-          />
+          <span className="lg-toggle-knob" />
         </div>
       </div>
 

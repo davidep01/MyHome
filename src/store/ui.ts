@@ -1,9 +1,10 @@
 import { create } from 'zustand'
 
 type ThemeMode = 'dark' | 'light'
-export type AppView = 'home' | 'climate' | 'security' | 'energy' | 'settings'
-/** 'auto' = entities discovered live from HA; 'demo' = the curated rooms in db.json. */
-export type DashboardSource = 'auto' | 'demo'
+export type AppView = 'home' | 'areas' | 'climate' | 'security' | 'energy' | 'settings'
+
+/** 'auto' = domain sections (default); 'grid' = user's custom tile layout. */
+export type DashboardView = 'auto' | 'grid'
 
 interface UIStore {
   activeRoom: string
@@ -12,13 +13,16 @@ interface UIStore {
   rightPanelOpen: boolean
   /** Entity shown in the on-demand contextual side panel (null = default weather/news panel). */
   selectedEntityId: string | null
-  dashboardSource: DashboardSource
+  dashboardView: DashboardView
+  /** True while the user is arranging the custom tile layout (drag/resize). */
+  editMode: boolean
   setActiveRoom: (room: string) => void
   setActiveView: (view: AppView) => void
   setTheme: (theme: ThemeMode) => void
   toggleRightPanel: () => void
   setSelectedEntity: (entityId: string | null) => void
-  setDashboardSource: (source: DashboardSource) => void
+  setDashboardView: (view: DashboardView) => void
+  setEditMode: (on: boolean) => void
 }
 
 export const useUIStore = create<UIStore>((set) => ({
@@ -27,11 +31,13 @@ export const useUIStore = create<UIStore>((set) => ({
   theme: 'dark',
   rightPanelOpen: true,
   selectedEntityId: null,
-  dashboardSource: 'auto',
+  dashboardView: 'auto',
+  editMode: false,
   setActiveRoom: (activeRoom) => set({ activeRoom }),
-  setActiveView: (activeView) => set({ activeView, selectedEntityId: null }),
+  setActiveView: (activeView) => set({ activeView, selectedEntityId: null, editMode: false }),
   setTheme: (theme) => set({ theme }),
   toggleRightPanel: () => set((s) => ({ rightPanelOpen: !s.rightPanelOpen })),
   setSelectedEntity: (selectedEntityId) => set({ selectedEntityId }),
-  setDashboardSource: (dashboardSource) => set({ dashboardSource }),
+  setDashboardView: (dashboardView) => set({ dashboardView }),
+  setEditMode: (editMode) => set({ editMode }),
 }))

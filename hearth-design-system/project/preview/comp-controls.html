@@ -1,0 +1,30 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><link rel="stylesheet" href="preview.css">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+.sld{--v:62%;position:relative;height:34px;border-radius:999px;background:#ececef;
+  box-shadow:inset 0 1px 2px rgba(0,0,0,0.10),inset 0 0 0 1px rgba(0,0,0,0.04);overflow:hidden}
+.sld-fill{position:absolute;inset:1px auto 1px 1px;width:calc(var(--v) - 2px);min-width:32px;border-radius:999px;
+  background:linear-gradient(90deg,#f6cf6a,#eab308);box-shadow:inset 0 1px 0 rgba(255,255,255,0.45)}
+.sld-fill i{position:absolute;left:9px;top:50%;transform:translateY(-50%);width:17px;height:17px;color:#fff;opacity:0.9}
+.sld-knob{position:absolute;top:50%;left:var(--v);transform:translate(-50%,-50%);width:28px;height:28px;border-radius:999px;
+  background:#fff;box-shadow:0 1px 1px rgba(0,0,0,0.10),0 2px 6px rgba(0,0,0,0.18),inset 0 0 0 0.5px rgba(0,0,0,0.06)}
+.sld-knob::after{content:"";position:absolute;inset:0;margin:auto;width:4px;height:4px;border-radius:999px;background:rgba(0,0,0,0.14)}
+.sld-val{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:12px;font-weight:600;
+  color:#7a5b08;font-variant-numeric:tabular-nums;letter-spacing:-0.1px}
+</style></head>
+<body><div class="card-wrap" style="padding:20px">
+  <div class="lbl" style="margin-bottom:14px">Buttons &amp; controls</div>
+  <div class="row" style="gap:12px;align-items:center">
+    <button style="padding:11px 22px;border-radius:999px;background:#0066cc;color:#fff;font-size:15px;font-weight:600;border:none;letter-spacing:-0.2px">Imposta</button>
+    <button style="padding:11px 20px;border-radius:999px;background:rgba(0,0,0,0.05);color:#1d1d1f;font-size:15px;font-weight:600;border:none">Annulla</button>
+    <button style="width:42px;height:42px;border-radius:999px;background:rgba(0,0,0,0.05);border:none;display:inline-flex;align-items:center;justify-content:center"><i data-lucide="plus"></i></button>
+    <div style="width:48px;height:30px;border-radius:999px;background:#15803d;position:relative"><span style="position:absolute;top:3px;left:21px;width:24px;height:24px;border-radius:999px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.25)"></span></div>
+    <div style="width:48px;height:30px;border-radius:999px;background:rgba(0,0,0,0.14);position:relative"><span style="position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:999px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.25)"></span></div>
+  </div>
+  <div class="sld" style="margin-top:16px">
+    <div class="sld-fill"><i data-lucide="sun"></i></div>
+    <span class="sld-val">62%</span>
+    <div class="sld-knob"></div>
+  </div>
+  <script>lucide.createIcons();</script>
+</div></body></html>

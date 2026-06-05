@@ -4,7 +4,7 @@ import { DragSlider } from '../glass/DragSlider'
 import { useHAEntity } from '../../hooks/useHAEntity'
 import { useHAService } from '../../hooks/useHAService'
 import { useHaptic } from '../../hooks/useHaptic'
-import { domainAccent, tokens } from '../../design/tokens'
+import { tokens } from '../../design/tokens'
 import { useEntityStore } from '../../store/entities'
 import { useUIStore } from '../../store/ui'
 import { cn } from '../../lib/utils'
@@ -22,7 +22,6 @@ export function LightCard({ entityId, label, className }: LightCardProps) {
   const setOptimisticState = useEntityStore((s) => s.setOptimisticState)
   const patchEntity = useEntityStore((s) => s.patchEntity)
   const setSelectedEntity = useUIStore((s) => s.setSelectedEntity)
-  const accent = domainAccent('light')
 
   const isOn = entity?.state === 'on'
   const brightness = entity?.attributes?.brightness
@@ -50,27 +49,25 @@ export function LightCard({ entityId, label, className }: LightCardProps) {
 
   return (
     <GlassCard
-      glow={isOn ? accent.glow : undefined}
-      className={cn('flex flex-col gap-3 min-h-[120px]', isOn && 'bg-[rgba(234,179,8,0.10)]', className)}
+      glow={isOn ? 'rgba(234,179,8,0.30)' : undefined}
+      className={cn(
+        'flex flex-col gap-3 min-h-[120px]',
+        isOn && 'bg-[rgba(234,179,8,0.10)]',
+        isOn && '[border-color:rgba(234,179,8,0.30)]',
+        unavailable && 'opacity-55',
+        className,
+      )}
     >
       <div className="flex items-start justify-between">
+        {/* Icon — circle (999px), matches design system .tico spec */}
         <button
           type="button"
           onClick={toggle}
-          className={cn(
-            'flex h-10 w-10 items-center justify-center rounded-[14px] transition-all duration-300',
-            isOn ? 'bg-yellow-500/25' : 'bg-black/8',
-          )}
+          className="flex h-[38px] w-[38px] items-center justify-center rounded-full transition-all duration-300"
+          style={isOn ? { background: 'rgba(234,179,8,0.18)', color: '#b8860b' } : { background: 'rgba(0,0,0,0.05)', color: 'rgba(29,29,31,0.45)' }}
           aria-label={`Accendi/spegni ${label}`}
         >
-          <Lightbulb
-            size={20}
-            className={cn(
-              'transition-colors duration-300',
-              isOn ? 'text-yellow-300' : 'text-black/30',
-              unavailable && 'opacity-30',
-            )}
-          />
+          <Lightbulb size={20} />
         </button>
         <button
           type="button"
@@ -90,7 +87,7 @@ export function LightCard({ entityId, label, className }: LightCardProps) {
       </div>
 
       {isOn && !unavailable && (
-        <DragSlider value={brightness} onChange={setBrightness} onChangeEnd={commitBrightness} color={accent.color} />
+        <DragSlider value={brightness} onChange={setBrightness} onChangeEnd={commitBrightness} variant="amber" />
       )}
     </GlassCard>
   )

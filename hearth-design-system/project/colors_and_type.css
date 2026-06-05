@@ -1,0 +1,149 @@
+/* ============================================================================
+   MyHome — Design Tokens
+   Dashboard domotica (Home Assistant). Apple "Liquid Glass" lineage:
+   light parchment canvas, white frosted-glass cards, a SINGLE interactive
+   accent (Action Blue), functional state colors ONLY for device status.
+   Source of truth: DESIGN_SYSTEM.md (v1.0, maggio 2026).
+
+   Load this file, then use the semantic vars + .glass / .t-* helpers below.
+   ============================================================================ */
+
+/* SF Pro is resolved by the system on Apple platforms; Inter is the documented
+   cross-platform fallback. */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
+
+:root {
+  /* ------------------------------------------------------------------ *
+   *  TYPE FAMILIES                                                      *
+   * ------------------------------------------------------------------ */
+  --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+             "Inter", system-ui, sans-serif;
+  /* numeric read-outs use the same family with tabular figures */
+
+  /* ================================================================== *
+   *  CANVAS & SURFACES                                                  *
+   * ================================================================== */
+  --canvas-page:        #f5f5f7;                    /* whole-app background */
+  --canvas-card:        rgba(255, 255, 255, 0.72);  /* frosted glass card  */
+  --canvas-card-hover:  rgba(255, 255, 255, 0.88);  /* card hover          */
+  --canvas-card-solid:  #fbfbfd;                    /* opaque fallback      */
+  --glass-blur:         20px;                        /* backdrop-filter      */
+  --hairline:           rgba(0, 0, 0, 0.08);        /* card borders         */
+  --hairline-strong:    rgba(0, 0, 0, 0.12);        /* emphasised borders   */
+
+  /* ================================================================== *
+   *  TEXT                                                               *
+   * ================================================================== */
+  --ink:                #1d1d1f;                    /* all primary text     */
+  --ink-secondary:      rgba(29, 29, 31, 0.60);     /* subtitles, labels    */
+  --ink-tertiary:       rgba(29, 29, 31, 0.42);     /* metadata, placeholder*/
+  --on-accent:          #ffffff;                    /* text on accent/state */
+  --on-dark:            #ffffff;                    /* text on dark overlays */
+  --on-dark-link:       #2997ff;                    /* links on dark surface */
+
+  /* ================================================================== *
+   *  ACCENT — the single interactive color                             *
+   * ================================================================== */
+  --action-blue:        #0066cc;   /* CTA, focus, AI, links — the ONE accent */
+  --action-blue-dark:   #2997ff;   /* the same action on dark overlays        */
+
+  /* ---- Functional STATE colors (device status only — never brand) -- */
+  --hot-red:            #dc2626;   /* heating active, temp >= 24 C            */
+  --cold-blue:          #0066cc;   /* cooling active, temp <= 18 C            */
+  --ok-green:           #15803d;   /* OK state, lock open, stable sensor      */
+  --alert-orange:       #c2410c;   /* non-critical warnings, low battery      */
+  --danger-red:         #dc2626;   /* active alarm, critical errors           */
+  --offline-amber:      #b45309;   /* offline / unavailable badge text        */
+
+  /* state tints (for card backgrounds when a device is active) */
+  --hot-tint:           rgba(220, 38, 38, 0.12);
+  --cold-tint:          rgba(0, 102, 204, 0.10);
+  --light-on-tint:      rgba(234, 179, 8, 0.10);    /* amber, light ON         */
+  --ok-tint:            rgba(21, 128, 61, 0.10);
+  --alert-tint:         rgba(194, 65, 12, 0.12);
+  --offline-tint:       rgba(180, 83, 9, 0.12);
+  --accent-tint:        rgba(0, 102, 204, 0.10);
+
+  /* AI button gradient (rail ✦) — the one place a gradient is allowed */
+  --ai-gradient:        linear-gradient(135deg, #0066cc 0%, #7c3aed 100%);
+
+  /* ================================================================== *
+   *  RADIUS                                                             *
+   * ================================================================== */
+  --radius-card:   18px;   /* bento card, GlassSheet, panel        */
+  --radius-inner:  11px;   /* elements inside a card               */
+  --radius-sm:     8px;    /* utility buttons, compact chips       */
+  --radius-pill:   999px;  /* primary CTA, search, badges, toggle  */
+
+  /* ================================================================== *
+   *  SPACING — 8px grid                                                 *
+   * ================================================================== */
+  --space-xs:   8px;
+  --space-sm:   12px;
+  --space-md:   16px;
+  --space-lg:   24px;
+  --space-xl:   32px;
+  --section-gap: 20px;     /* vertical gap between SectionBands     */
+
+  /* bento grid units */
+  --grid-col-min: 150px;   /* minmax(150px, 1fr)                    */
+  --grid-row:     112px;   /* grid-auto-rows                        */
+  --grid-gap:     12px;
+
+  /* rail / panel dims */
+  --rail-w:    68px;
+  --panel-w:   320px;
+
+  /* ================================================================== *
+   *  ELEVATION — NO shadows on cards/buttons. Glass + glow only.        *
+   * ================================================================== */
+  --product-shadow: 3px 5px 30px rgba(0, 0, 0, 0.22);   /* product imgs/video */
+  --glow-hot:   0 0 24px 0 rgba(220, 38, 38, 0.32);     /* heating tile glow  */
+  --glow-cold:  0 0 24px 0 rgba(0, 102, 204, 0.28);     /* cooling tile glow  */
+  --glow-light: 0 0 24px 0 rgba(234, 179, 8, 0.30);     /* light-on glow      */
+  --focus-ring: 0 0 0 3px rgba(0, 102, 204, 0.35);      /* keyboard focus     */
+
+  /* ================================================================== *
+   *  MOTION — Apple-physical. One spring feel, press = scale(0.95).     *
+   * ================================================================== */
+  --spring:   cubic-bezier(0.32, 0.72, 0, 1);
+  --dur-fast: 140ms;
+  --dur:      240ms;
+  --dur-slow: 380ms;
+}
+
+/* ==================================================================== *
+ *  GLASS SURFACE UTILITY                                                *
+ * ==================================================================== */
+.glass {
+  background: var(--canvas-card);
+  -webkit-backdrop-filter: saturate(180%) blur(var(--glass-blur));
+  backdrop-filter: saturate(180%) blur(var(--glass-blur));
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-card);
+}
+.glass:hover { background: var(--canvas-card-hover); }
+
+/* ==================================================================== *
+ *  TYPOGRAPHY  —  weights 300 / 400 / 600 only (NO 500).               *
+ *  Body is 17px (not 16). Negative tracking on titles ("Apple tight"). *
+ * ==================================================================== */
+.t-page-title { font: 600 30px/1.1 var(--font-ui);  letter-spacing: -0.374px; color: var(--ink); }
+.t-h1         { font: 600 28px/1.12 var(--font-ui); letter-spacing: -0.374px; color: var(--ink); }
+.t-h2         { font: 600 22px/1.2 var(--font-ui);  letter-spacing: -0.32px;  color: var(--ink); }
+.t-section    { font: 600 16px/1.25 var(--font-ui); letter-spacing: -0.224px; color: var(--ink); }
+.t-body       { font: 400 17px/1.47 var(--font-ui); letter-spacing: -0.374px; color: var(--ink); }
+.t-body-sec   { font: 400 17px/1.47 var(--font-ui); letter-spacing: -0.374px; color: var(--ink-secondary); }
+.t-label      { font: 400 14px/1.3 var(--font-ui);  letter-spacing: -0.224px; color: var(--ink-secondary); }
+.t-label-ink  { font: 600 14px/1.3 var(--font-ui);  letter-spacing: -0.224px; color: var(--ink); }
+.t-micro      { font: 600 12px/1.2 var(--font-ui);  letter-spacing: 0;        color: var(--ink-secondary); }
+.t-badge      { font: 600 11px/1.2 var(--font-ui);  letter-spacing: 0.2px;    color: var(--ink); }
+/* big numeric read-out (temperatures, kW, %) — tabular figures */
+.t-readout    { font: 300 56px/1.0 var(--font-ui);  letter-spacing: -1.5px; font-variant-numeric: tabular-nums; color: var(--ink); }
+.t-readout-sm { font: 600 22px/1.1 var(--font-ui);  font-variant-numeric: tabular-nums; color: var(--ink); }
+
+/* ==================================================================== *
+ *  PRESS micro-interaction — Apple universal                           *
+ * ==================================================================== */
+.press { transition: transform var(--dur-fast) var(--spring); }
+.press:active { transform: scale(0.95); }

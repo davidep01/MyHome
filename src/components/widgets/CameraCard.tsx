@@ -1,15 +1,12 @@
-import { useState, useEffect, useCallback } from 'react'
-import { Camera, RefreshCw, Maximize2, Clock } from 'lucide-react'
+import { useState } from 'react'
+import { Camera, Maximize2 } from 'lucide-react'
 import { GlassCard } from '../glass/GlassCard'
 import { GlassSheet } from '../glass/GlassSheet'
 import { useHAEntity } from '../../hooks/useHAEntity'
 import { useHAService } from '../../hooks/useHAService'
 import { useHaptic } from '../../hooks/useHaptic'
-import { getCameraProxyUrl, getCameraStreamUrl } from '../../api/ha-rest'
-import { tokens } from '../../design/tokens'
+import { CameraStream } from './CameraStream'
 import { cn } from '../../lib/utils'
-
-const REFRESH_INTERVAL = 30_000
 
 interface CameraCardProps {
   entityId: string
@@ -17,69 +14,24 @@ interface CameraCardProps {
   className?: string
 }
 
-function timeAgoSecs(secs: number): string {
-  if (secs < 60) return `${secs}s fa`
-  return `${Math.floor(secs / 60)}m fa`
-}
-
-function cacheBust(url: string) {
-  return `${url}${url.includes('?') ? '&' : '?'}_t=${Date.now()}`
-}
-
 export function CameraCard({ entityId, label, className }: CameraCardProps) {
   const entity = useHAEntity(entityId)
   const { call } = useHAService()
   const { light } = useHaptic()
-
-  const [snapshotUrl, setSnapshotUrl] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [lastRefresh, setLastRefresh] = useState<number>(0)
-  const [elapsed, setElapsed] = useState(0)
   const [sheetOpen, setSheetOpen] = useState(false)
-  const [liveFailed, setLiveFailed] = useState(false)
 
   const isUnavailable = !entity || entity.state === 'unavailable'
 
-  const refresh = useCallback(() => {
-    setLoading(true)
-    // Cache-bust the snapshot URL so the browser fetches a fresh frame
-    setSnapshotUrl(cacheBust(getCameraProxyUrl(entityId)))
-    setLastRefresh(Date.now())
-    setElapsed(0)
-  }, [entityId])
-
-  // Initial load + interval
-  useEffect(() => {
-    if (isUnavailable) return
-    const first = setTimeout(refresh, 0)
-    const id = setInterval(refresh, REFRESH_INTERVAL)
-    return () => {
-      clearTimeout(first)
-      clearInterval(id)
-    }
-  }, [isUnavailable, refresh])
-
-  // Elapsed counter
-  useEffect(() => {
-    if (!lastRefresh) return
-    const id = setInterval(() => {
-      setElapsed(Math.floor((Date.now() - lastRefresh) / 1000))
-    }, 1000)
-    return () => clearInterval(id)
-  }, [lastRefresh])
-
-  const forceSnapshot = () => {
+  const snapshot = () => {
     light()
     call('camera', 'snapshot', { entity_id: entityId, filename: `/tmp/${entityId.replace('.', '_')}.jpg` })
-    setTimeout(refresh, 1000)
   }
 
   if (!entity) {
     return (
-      <GlassCard className={cn('flex flex-col items-center justify-center gap-2 min-h-[140px]', className)}>
-        <Camera size={28} className="text-white/15" />
-        <p className="text-xs text-white/30">Telecamera non configurata</p>
-        <p className="text-[10px] text-white/20">Aggiungi <code className="font-mono">camera.*</code> in rooms.ts</p>
+      <GlassCard className={cn('flex h-full flex-col items-center justify-center gap-2 min-h-[140px]', className)}>
+        <Camera size={28} className="text-black/15" />
+        <p className="text-xs text-black/30">Telecamera non configurata</p>
       </GlassCard>
     )
   }
@@ -89,29 +41,13 @@ export function CameraCard({ entityId, label, className }: CameraCardProps) {
       <GlassCard
         noPadding
         interactive={!isUnavailable}
-        onClick={() => !isUnavailable && (setLiveFailed(false), setSheetOpen(true))}
-        className={cn('overflow-hidden min-h-[140px] relative', className)}
+        onClick={() => !isUnavailable && setSheetOpen(true)}
+        className={cn('relative h-full min-h-[140px] overflow-hidden', className)}
       >
-        {/* Snapshot image */}
-        {snapshotUrl && !isUnavailable && (
-          <img
-            src={snapshotUrl}
-            alt={label}
-            className="absolute inset-0 h-full w-full object-cover"
-            onLoad={() => setLoading(false)}
-            onError={() => setLoading(false)}
-          />
-        )}
-
-        {/* Loading skeleton */}
-        {loading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/5">
-            <RefreshCw size={20} className="text-white/20 animate-spin" />
-          </div>
-        )}
-
-        {/* Unavailable overlay */}
-        {isUnavailable && (
+        {/* Live thumbnail — CameraStream picks WebRTC/MJPEG/snapshot automatically */}
+        {!isUnavailable ? (
+          <CameraStream entityId={entityId} fit="cover" />
+        ) : (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-[rgba(20,24,40,0.7)]">
             <Camera size={24} className="text-white/25" />
             <p className="text-xs text-white/35">Immagine non disponibile</p>
@@ -122,64 +58,33 @@ export function CameraCard({ entityId, label, className }: CameraCardProps) {
           </div>
         )}
 
-        {/* Top gradient overlay with label */}
-        <div className="absolute inset-x-0 top-0 bg-gradient-to-b from-black/60 to-transparent px-3 py-2">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-medium text-white/90">{label}</p>
-            <button
-              onClick={(e) => { e.stopPropagation(); refresh() }}
-              className="flex h-6 w-6 items-center justify-center rounded-full bg-black/30 text-white/50 hover:text-white transition-colors"
-            >
-              <RefreshCw size={10} />
-            </button>
-          </div>
+        {/* Top gradient + label + LIVE pill */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-between bg-gradient-to-b from-black/60 to-transparent px-3 py-2">
+          <p className="text-xs font-medium text-white/90">{label}</p>
+          {!isUnavailable && (
+            <span className="flex items-center gap-1 rounded-full bg-black/35 px-1.5 py-0.5 text-[9px] font-semibold text-white backdrop-blur">
+              <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
+              LIVE
+            </span>
+          )}
         </div>
 
-        {/* Bottom info bar */}
-        <div className="absolute inset-x-0 bottom-0 flex items-center gap-1.5 bg-gradient-to-t from-black/60 to-transparent px-3 py-2">
-          <Clock size={9} style={{ color: tokens.text.tertiary }} />
-          <span className="text-[10px]" style={{ color: tokens.text.tertiary }}>
-            {timeAgoSecs(elapsed)}
-          </span>
-          <Maximize2 size={9} className="ml-auto text-white/30" />
+        {/* Bottom hint */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-end bg-gradient-to-t from-black/50 to-transparent px-3 py-2">
+          <Maximize2 size={11} className="text-white/40" />
         </div>
       </GlassCard>
 
       {/* Fullscreen sheet */}
-      <GlassSheet
-        open={sheetOpen}
-        onClose={() => setSheetOpen(false)}
-        title={label}
-        side="bottom"
-        className="h-[80vh]"
-      >
-        <div className="flex flex-col gap-4 h-full">
-          {/* Live MJPEG stream via the backend HA proxy, falling back to snapshots. */}
-          <div className="flex-1 rounded-[16px] overflow-hidden bg-black/40">
-            {!isUnavailable && !liveFailed ? (
-              <img
-                src={getCameraStreamUrl(entityId)}
-                alt={label}
-                className="h-full w-full object-contain"
-                onError={() => setLiveFailed(true)}
-              />
-            ) : snapshotUrl ? (
-              <img src={snapshotUrl} alt={label} className="h-full w-full object-contain" />
-            ) : null}
+      <GlassSheet open={sheetOpen} onClose={() => setSheetOpen(false)} title={label} side="bottom">
+        <div className="flex flex-col gap-4 pb-1">
+          <div className="h-[min(62vh,460px)] overflow-hidden rounded-[16px] bg-black/40">
+            {!isUnavailable && <CameraStream entityId={entityId} fit="contain" allowTalkback />}
           </div>
-
-          {/* Actions */}
-          <div className="flex gap-3 shrink-0">
+          <div className="flex shrink-0 gap-3">
             <button
-              onClick={refresh}
-              className="flex flex-1 items-center justify-center gap-2 rounded-[14px] bg-white/8 py-3 text-sm font-medium text-white/70 hover:bg-white/12 transition-all"
-            >
-              <RefreshCw size={14} />
-              Aggiorna
-            </button>
-            <button
-              onClick={forceSnapshot}
-              className="flex flex-1 items-center justify-center gap-2 rounded-[14px] bg-white/8 py-3 text-sm font-medium text-white/70 hover:bg-white/12 transition-all"
+              onClick={snapshot}
+              className="flex flex-1 items-center justify-center gap-2 rounded-[14px] bg-black/8 py-3 text-sm font-medium text-black/70 transition-all hover:bg-black/12"
             >
               <Camera size={14} />
               Cattura

@@ -3,15 +3,15 @@ import { GlassCard } from '../components/glass/GlassCard'
 import { SectionBand } from '../components/home/SectionBand'
 import { WidgetGrid } from '../components/widgets/WidgetGrid'
 import { useHomeStatus } from '../hooks/useHomeStatus'
-import { useRooms } from '../hooks/useRooms'
-import { withAllRoom } from '../lib/rooms'
+import { useDiscoveredEntities } from '../hooks/useDiscoveredEntities'
 
 export function SecurityPage() {
   const status = useHomeStatus()
-  const { data, isError } = useRooms()
-  const all = withAllRoom(data)[0]?.entities ?? []
-  const cameras = all.filter((e) => e.type === 'camera')
-  const access = all.filter((e) => e.type === 'lock' || e.type === 'alarm' || e.type === 'security')
+  const { sections } = useDiscoveredEntities()
+  const cameras = sections.find((s) => s.domain === 'camera')?.entities ?? []
+  const locks = sections.find((s) => s.domain === 'lock')?.entities ?? []
+  const alarms = sections.find((s) => s.domain === 'alarm_control_panel')?.entities ?? []
+  const access = [...locks, ...alarms]
   const Icon = status.Icon ?? ShieldCheck
 
   return (
@@ -33,20 +33,16 @@ export function SecurityPage() {
         </div>
       </GlassCard>
 
-      {isError ? (
-        <p className="py-12 text-center text-sm text-red-300/80">Backend non raggiungibile</p>
-      ) : (
-        <>
-          {access.length > 0 && (
-            <SectionBand title="Accessi" count={access.length} minColumn={160}>
-              <WidgetGrid entities={access} />
-            </SectionBand>
-          )}
-          <SectionBand title="Videocamere" count={cameras.length} minColumn={240}>
-            <WidgetGrid entities={cameras} />
-          </SectionBand>
-        </>
+      {access.length > 0 && (
+        <SectionBand title="Accessi" count={access.length}>
+          <WidgetGrid entities={access} />
+        </SectionBand>
       )}
+      <SectionBand title="Videocamere" count={cameras.length}>
+        {cameras.length === 0
+          ? <p className="col-span-full py-8 text-center text-sm text-black/40">Nessuna videocamera esposta da HA</p>
+          : <WidgetGrid entities={cameras} />}
+      </SectionBand>
     </div>
   )
 }

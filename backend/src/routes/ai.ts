@@ -1,8 +1,38 @@
 import { Hono } from 'hono'
+import { getHAConfig } from '../lib/ha-config.js'
 
 export const aiRouter = new Hono()
 
 const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models'
+
+type GeminiPart = { text: string } | { inline_data: { mime_type: string; data: string } }
+type GeminiContent = { role: 'user' | 'model'; parts: GeminiPart[] }
+
+/** Low-level Gemini call accepting raw multimodal parts + optional JSON mode. */
+async function geminiGenerate(
+  contents: GeminiContent[],
+  opts?: { system?: string; generationConfig?: Record<string, unknown> },
+) {
+  const { apiKey, model } = getConfig()
+  if (!apiKey) return { ok: false as const, status: 400, error: 'GEMINI_API_KEY mancante nel backend' }
+  const res = await fetch(`${GEMINI_BASE}/${model}:generateContent`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+    body: JSON.stringify({
+      ...(opts?.system ? { systemInstruction: { parts: [{ text: opts.system }] } } : {}),
+      contents,
+      generationConfig: opts?.generationConfig ?? { temperature: 0.4, maxOutputTokens: 1024 },
+    }),
+  })
+  const data = (await res.json().catch(() => ({}))) as Record<string, unknown>
+  if (!res.ok) {
+    const message = (data?.error as { message?: string } | undefined)?.message ?? `Gemini ha risposto ${res.status}`
+    return { ok: false as const, status: res.status, error: message }
+  }
+  const text = (data as { candidates?: { content?: { parts?: { text?: string }[] } }[] })
+    ?.candidates?.[0]?.content?.parts?.map((p) => p.text ?? '').join('') ?? ''
+  return { ok: true as const, text }
+}
 
 function getConfig() {
   const apiKey = process.env.GEMINI_API_KEY ?? ''
@@ -96,4 +126,82 @@ aiRouter.post('/suggest', async (c) => {
   )
   if (!result.ok) return c.json({ error: result.error }, result.status as 400 | 502)
   return c.json({ text: result.text })
+})
+
+// POST /api/ai/recognize — Gemini Vision on a camera snapshot (doorbell face recognition)
+aiRouter.post('/recognize', async (c) => {
+  const body = await c.req.json<{ entityId: string; names?: string[] }>().catch(() => null)
+  if (!body?.entityId) return c.json({ error: 'entityId mancante' }, 400)
+  const { haUrl, haToken } = await getHAConfig()
+  if (!haToken) return c.json({ error: 'HA token mancante' }, 400)
+
+  let b64: string
+  try {
+    const r = await fetch(`${haUrl.replace(/\/$/, '')}/api/camera_proxy/${encodeURIComponent(body.entityId)}`, {
+      headers: { Authorization: `Bearer ${haToken}` },
+    })
+    if (!r.ok) return c.json({ error: `Snapshot non disponibile (${r.status})` }, 502)
+    b64 = Buffer.from(await r.arrayBuffer()).toString('base64')
+  } catch {
+    return c.json({ error: 'Snapshot non raggiungibile' }, 502)
+  }
+
+  const names = (body.names ?? []).filter(Boolean)
+  const known = names.length ? `Persone note della famiglia: ${names.join(', ')}.\n` : ''
+  const prompt = `Questa è l'immagine di un videocitofono/campanello. Identifica CHI o COSA c'è alla porta.
+${known}Rispondi con UNA sola etichetta brevissima in italiano, senza punteggiatura:
+- il nome esatto se riconosci una persona nota della famiglia;
+- altrimenti una descrizione breve di chi/cosa vedi (es. "un corriere", "una persona sconosciuta", "un gatto", "un pacco");
+- "nessuno" se non c'è nessuno e niente di rilevante.
+Solo l'etichetta.`
+
+  const result = await geminiGenerate(
+    [{ role: 'user', parts: [{ text: prompt }, { inline_data: { mime_type: 'image/jpeg', data: b64 } }] }],
+    { generationConfig: { temperature: 0, maxOutputTokens: 32 } },
+  )
+  if (!result.ok) return c.json({ error: result.error }, result.status as 400 | 502)
+  return c.json({ name: result.text.trim().replace(/[."\n\r]/g, '').trim() })
+})
+
+// POST /api/ai/automation — generate a valid HA automation config (JSON) for preview
+aiRouter.post('/automation', async (c) => {
+  const body = await c.req.json<ChatBody>().catch(() => null)
+  if (!body?.prompt) return c.json({ error: 'prompt mancante' }, 400)
+  const system = `${SYSTEM_PROMPT}\nGenera UNA automazione Home Assistant valida come JSON puro (niente markdown) con i campi: alias (string), trigger (array), condition (array, può essere vuoto), action (array). Usa SOLO entità realmente presenti.\nStato attuale:\n${contextToText(body.context)}`
+  const result = await geminiGenerate(
+    [{ role: 'user', parts: [{ text: `Crea un'automazione per: ${body.prompt}` }] }],
+    { system, generationConfig: { temperature: 0.3, maxOutputTokens: 1024, responseMimeType: 'application/json' } },
+  )
+  if (!result.ok) return c.json({ error: result.error }, result.status as 400 | 502)
+  try {
+    return c.json({ automation: JSON.parse(result.text) })
+  } catch {
+    return c.json({ error: 'Gemini non ha prodotto JSON valido', raw: result.text }, 502)
+  }
+})
+
+// POST /api/ai/automation/create — write the automation into Home Assistant
+aiRouter.post('/automation/create', async (c) => {
+  const body = await c.req.json<{ automation: Record<string, unknown> }>().catch(() => null)
+  if (!body?.automation) return c.json({ error: 'automation mancante' }, 400)
+  const { haUrl, haToken } = await getHAConfig()
+  if (!haToken) return c.json({ error: 'HA token mancante' }, 400)
+  const id = `myhome_${Date.now()}`
+  const base = haUrl.replace(/\/$/, '')
+  try {
+    const r = await fetch(`${base}/api/config/automation/config/${id}`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${haToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body.automation),
+    })
+    if (!r.ok) return c.json({ error: `Home Assistant ha rifiutato l'automazione (${r.status})` }, 502)
+    // Reload so it becomes active immediately
+    await fetch(`${base}/api/services/automation/reload`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${haToken}` },
+    }).catch(() => {})
+    return c.json({ ok: true, id })
+  } catch {
+    return c.json({ error: 'Home Assistant non raggiungibile' }, 502)
+  }
 })

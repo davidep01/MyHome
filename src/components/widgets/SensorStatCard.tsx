@@ -11,28 +11,44 @@ interface SensorStatCardProps {
   className?: string
 }
 
+const HOT = '#dc2626'
+const COLD = '#0066cc'
+
 export function SensorStatCard({ entityId, label, className }: SensorStatCardProps) {
   const entity = useHAEntity(entityId)
   const { data: history } = useHistory(entityId, 6)
 
   const value = Number(entity?.state)
   const hasValue = Number.isFinite(value)
-  const unit = (entity?.attributes?.unit_of_measurement as string | undefined) ?? '%'
+  const deviceClass = entity?.attributes?.device_class as string | undefined
+  const unit = (entity?.attributes?.unit_of_measurement as string | undefined) ?? ''
+  const isTemp = deviceClass === 'temperature' || unit === '°C' || unit === '°F'
+
   const values = (history ?? []).map((p) => Number(p.state)).filter(Number.isFinite)
   const trend = values.length > 1 ? values[values.length - 1] - values[0] : 0
-  const color = trend >= 0 ? tokens.accent.green : tokens.accent.orange
+
+  // Temperature: hot → red, cold → blue. Otherwise trend up=green, down=orange.
+  let lineColor = trend >= 0 ? tokens.accent.green : tokens.accent.orange
+  let valueColor = tokens.text.primary
+  if (isTemp && hasValue) {
+    const c = unit === '°F' ? (value - 32) * (5 / 9) : value
+    if (c >= 24) { lineColor = HOT; valueColor = HOT }
+    else if (c <= 18) { lineColor = COLD; valueColor = COLD }
+  }
 
   return (
-    <GlassCard className={cn('flex flex-col justify-between min-h-[110px]', className)}>
+    <GlassCard className={cn('flex h-full flex-col justify-between min-h-[100px]', className)}>
       <p className="truncate text-xs font-medium text-black/55">{label}</p>
       <div className="flex items-end gap-1">
-        <span className="text-3xl font-semibold tabular-nums text-[#1d1d1f]">{hasValue ? value : '--'}</span>
-        <span className="mb-1 text-xs text-black/40">{unit}</span>
+        <span className="text-3xl font-semibold leading-none tabular-nums" style={{ color: valueColor }}>
+          {hasValue ? value : (entity?.state ?? '--')}
+        </span>
+        {unit && <span className="mb-0.5 text-xs text-black/40">{unit}</span>}
       </div>
       <Sparkline
         values={values.length > 1 ? values : [value || 0, value || 0]}
-        color={color}
-        className="mt-1 h-6 w-full opacity-70"
+        color={lineColor}
+        className="mt-1 h-5 w-full opacity-70"
       />
     </GlassCard>
   )

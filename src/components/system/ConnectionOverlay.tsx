@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { WifiOff, RotateCw } from 'lucide-react'
+import { WifiOff, RotateCw, Settings } from 'lucide-react'
 import { useEntityStore } from '../../store/entities'
+import { useUIStore } from '../../store/ui'
 import { connectHA } from '../../api/ha-websocket'
 
 /**
@@ -12,9 +13,12 @@ import { connectHA } from '../../api/ha-websocket'
 export function ConnectionOverlay() {
   const status = useEntityStore((s) => s.connectionStatus)
   const lastError = useEntityStore((s) => s.lastError)
+  const activeView = useUIStore((s) => s.activeView)
+  const setActiveView = useUIStore((s) => s.setActiveView)
   const [show, setShow] = useState(false)
 
-  const down = status === 'error' || status === 'disconnected'
+  // Never block the Settings page — that's where the user fixes the credentials.
+  const down = (status === 'error' || status === 'disconnected') && activeView !== 'settings'
 
   useEffect(() => {
     if (!down) {
@@ -59,12 +63,20 @@ export function ConnectionOverlay() {
             <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-orange-400" />
             In attesa della connessione
           </div>
-          <button
-            onClick={retry}
-            className="flex items-center gap-2 rounded-full bg-[#0066cc] px-5 py-2.5 text-sm font-medium text-white transition active:scale-95"
-          >
-            <RotateCw size={15} /> Riprova adesso
-          </button>
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <button
+              onClick={retry}
+              className="flex items-center gap-2 rounded-full bg-[#0066cc] px-5 py-2.5 text-sm font-medium text-white transition active:scale-95"
+            >
+              <RotateCw size={15} /> Riprova adesso
+            </button>
+            <button
+              onClick={() => setActiveView('settings')}
+              className="flex items-center gap-2 rounded-full bg-black/8 px-5 py-2.5 text-sm font-medium text-[#1d1d1f] transition hover:bg-black/12 active:scale-95"
+            >
+              <Settings size={15} /> Configura connessione
+            </button>
+          </div>
         </motion.div>
       )}
     </AnimatePresence>

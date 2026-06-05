@@ -26,6 +26,29 @@ export interface AppConfig {
   newsFeedUrl: string
   userName: string
   dashboardName: string
+  /** HA entity IDs excluded from the auto-discovered dashboard (admin-managed). */
+  hiddenEntities: string[]
+  /** Per-entity admin overrides: custom name, icon, card type, enable/disable. */
+  deviceOverrides?: Record<string, DeviceOverride>
+  /** Force temperatures to display in Celsius (converts °F sources). */
+  forceCelsius?: boolean
+  /** User's custom tile layout (react-grid-layout positions per entity). */
+  dashboardLayout?: DashboardLayout
+}
+
+export interface DashboardLayout {
+  cols: number
+  items: Record<string, { x: number; y: number; w: number; h: number }>
+}
+
+export interface DeviceOverride {
+  label?: string
+  /** lucide icon name, e.g. "lightbulb" */
+  icon?: string
+  /** override the card type used for this entity */
+  type?: string
+  /** false = hide from the dashboard (like hiddenEntities, per-entity) */
+  enabled?: boolean
 }
 
 export interface DbStore {

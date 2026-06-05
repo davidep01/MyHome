@@ -1,10 +1,10 @@
-import { Thermometer, ChevronUp, ChevronDown } from 'lucide-react'
+import { Flame, Snowflake, ChevronUp, ChevronDown } from 'lucide-react'
 import { GlassCard } from '../glass/GlassCard'
 import { useHAEntity } from '../../hooks/useHAEntity'
 import { useHAService } from '../../hooks/useHAService'
 import { useHaptic } from '../../hooks/useHaptic'
-import { tokens } from '../../design/tokens'
 import { useUIStore } from '../../store/ui'
+import { useEntityStore } from '../../store/entities'
 import { cn } from '../../lib/utils'
 
 interface ClimateCardProps {
@@ -18,6 +18,7 @@ export function ClimateCard({ entityId, label, className }: ClimateCardProps) {
   const { call } = useHAService()
   const { light } = useHaptic()
   const setSelectedEntity = useUIStore((s) => s.setSelectedEntity)
+  const setOptimisticState = useEntityStore((s) => s.setOptimisticState)
 
   const isOn = entity?.state !== 'off' && entity?.state !== 'unavailable'
   const currentTemp = entity?.attributes?.current_temperature as number | undefined
@@ -25,74 +26,70 @@ export function ClimateCard({ entityId, label, className }: ClimateCardProps) {
   const hvacAction = entity?.attributes?.hvac_action as string | undefined
   const unavailable = !entity || entity.state === 'unavailable'
 
+  const heating = hvacAction === 'heating' || entity?.state === 'heat'
+  const cooling = hvacAction === 'cooling' || entity?.state === 'cool'
+
+  // Exact colors from comp-tiles.html
+  const accent = heating ? '#dc2626' : cooling ? '#0066cc' : 'rgba(29,29,31,0.45)'
+  const icoTint = heating ? 'rgba(220,38,38,0.14)' : cooling ? 'rgba(0,102,204,0.10)' : 'rgba(0,0,0,0.05)'
+  const cardBg = heating ? 'rgba(220,38,38,0.12)' : cooling ? 'rgba(0,102,204,0.10)' : undefined
+  const cardBorder = heating ? 'rgba(220,38,38,0.22)' : cooling ? 'rgba(0,102,204,0.22)' : undefined
+  const glow = heating ? 'rgba(220,38,38,0.32)' : cooling ? 'rgba(0,102,204,0.28)' : undefined
+
   const adjust = (delta: number) => {
-    if (!targetTemp) return
+    if (targetTemp === undefined || !entity) return
     light()
-    call('climate', 'set_temperature', {
-      entity_id: entityId,
-      temperature: targetTemp + delta,
-    })
+    const next = Number((targetTemp + delta).toFixed(1))
+    setOptimisticState(entityId, entity.state, { temperature: next })
+    call('climate', 'set_temperature', { entity_id: entityId, temperature: next })
   }
 
-  const modeColor =
-    hvacAction === 'heating' ? tokens.accent.orange :
-    hvacAction === 'cooling' ? tokens.accent.blue :
-    tokens.text.tertiary
+  const Icon = cooling ? Snowflake : Flame
 
   return (
     <GlassCard
       interactive
       onClick={() => setSelectedEntity(entityId)}
-      glow={isOn ? (hvacAction === 'heating' ? tokens.accent.orangeGlow : tokens.accent.blueGlow) : undefined}
-      className={cn('flex flex-col gap-3 min-h-[140px]', isOn && hvacAction === 'heating' && 'bg-[rgba(249,115,22,0.16)]', className)}
+      glow={isOn ? glow : undefined}
+      className={cn('flex flex-col gap-2 min-h-[140px]', unavailable && 'opacity-55', className)}
+      style={cardBg ? { background: cardBg, borderColor: cardBorder } : undefined}
     >
+      {/* Header: circle icon + mode label */}
       <div className="flex items-start justify-between">
-        <div className={cn(
-          'flex h-10 w-10 items-center justify-center rounded-[14px]',
-          isOn ? 'bg-orange-500/15' : 'bg-black/8',
-        )}>
-          <Thermometer
-            size={20}
-            style={{ color: isOn ? modeColor : undefined }}
-            className={cn(!isOn && 'text-black/30')}
-          />
+        <div className="flex h-[38px] w-[38px] items-center justify-center rounded-full" style={{ background: icoTint, color: accent }}>
+          <Icon size={20} />
         </div>
-        <span className="text-xs font-medium px-2 py-1 rounded-full bg-black/8 capitalize"
-          style={{ color: modeColor }}>
+        <span className="text-xs font-medium px-2 py-1 rounded-full" style={{ background: 'rgba(0,0,0,0.05)', color: accent }}>
           {hvacAction ?? entity?.state ?? '—'}
         </span>
       </div>
 
-      <div className="flex items-end justify-between mt-auto">
-        <div>
-          <p className="text-sm font-medium text-black/90">{label}</p>
-          {currentTemp !== undefined && (
-            <p className="text-xs mt-0.5" style={{ color: tokens.text.tertiary }}>
-              Attuale {currentTemp}°
-            </p>
-          )}
-        </div>
+      {/* Name */}
+      <p className="text-sm font-semibold leading-tight text-black/90">{label}</p>
 
-        {targetTemp !== undefined && !unavailable && (
-          <div className="flex items-center gap-1">
-            <button
-              onClick={(e) => { e.stopPropagation(); adjust(-0.5) }}
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-black/8 hover:bg-black/14 transition-colors active:scale-90"
-            >
-              <ChevronDown size={16} className="text-black/70" />
-            </button>
-            <span className="text-lg font-semibold text-[#1d1d1f] w-12 text-center">
-              {targetTemp}°
-            </span>
-            <button
-              onClick={(e) => { e.stopPropagation(); adjust(0.5) }}
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-black/8 hover:bg-black/14 transition-colors active:scale-90"
-            >
-              <ChevronUp size={16} className="text-black/70" />
-            </button>
-          </div>
-        )}
-      </div>
+      {/* Large target temperature — 26px/300 weight in state color */}
+      {targetTemp !== undefined && (
+        <div style={{ fontSize: 26, fontWeight: 300, color: isOn ? accent : 'rgba(29,29,31,0.45)', letterSpacing: '-1px', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
+          {targetTemp.toFixed(1)}°
+        </div>
+      )}
+
+      {/* Current temp below */}
+      {currentTemp !== undefined && (
+        <p className="text-xs" style={{ color: 'var(--ink-secondary)' }}>Attuale {currentTemp.toFixed(1)}°</p>
+      )}
+
+      {/* +/− controls */}
+      {targetTemp !== undefined && !unavailable && (
+        <div className="flex items-center gap-2 mt-auto" onClick={(e) => e.stopPropagation()}>
+          <button onClick={() => adjust(-0.5)} className="flex h-9 w-9 items-center justify-center rounded-full transition active:scale-90" style={{ background: 'rgba(0,0,0,0.06)' }}>
+            <ChevronDown size={16} style={{ color: 'var(--ink)' }} />
+          </button>
+          <button onClick={() => adjust(0.5)} className="flex h-9 w-9 items-center justify-center rounded-full transition active:scale-90" style={{ background: 'rgba(0,0,0,0.06)' }}>
+            <ChevronUp size={16} style={{ color: 'var(--ink)' }} />
+          </button>
+        </div>
+      )}
     </GlassCard>
   )
 }

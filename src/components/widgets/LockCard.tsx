@@ -52,7 +52,7 @@ export function LockCard({ entityId, label, className }: LockCardProps) {
   }
 
   const start = () => {
-    if (unavailable) return
+    if (unavailable || timerRef.current) return // guard: never run two timers at once
     medium()
     let p = 0
     timerRef.current = setInterval(() => {
@@ -72,11 +72,10 @@ export function LockCard({ entityId, label, className }: LockCardProps) {
   return (
     <GlassCard
       className={cn('flex flex-col items-center justify-center gap-2 min-h-[150px] select-none', className)}
-      onMouseDown={start}
-      onMouseUp={stop}
-      onMouseLeave={stop}
-      onTouchStart={start}
-      onTouchEnd={stop}
+      onPointerDown={start}
+      onPointerUp={stop}
+      onPointerLeave={stop}
+      onPointerCancel={stop}
     >
       <p className="text-sm font-semibold text-black/90">{label}</p>
       <div className="relative grid h-16 w-16 place-items-center">

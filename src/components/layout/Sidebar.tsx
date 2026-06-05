@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Home, LayoutGrid, ThermometerSun, ShieldCheck, BarChart3, Pencil } from 'lucide-react'
+import { Home, LayoutGrid, Boxes, ThermometerSun, ShieldCheck, BarChart3, Pencil } from 'lucide-react'
 import { useUIStore, type AppView } from '../../store/ui'
 import { useEntityStore } from '../../store/entities'
 import { NotificationBell } from '../notifications/NotificationCenter'
@@ -8,6 +8,7 @@ import { cn } from '../../lib/utils'
 
 const nav: { id: AppView; label: string; Icon: React.ElementType }[] = [
   { id: 'home', label: 'Home', Icon: LayoutGrid },
+  { id: 'areas', label: 'Aree', Icon: Boxes },
   { id: 'climate', label: 'Clima', Icon: ThermometerSun },
   { id: 'security', label: 'Sicurezza', Icon: ShieldCheck },
   { id: 'energy', label: 'Energia', Icon: BarChart3 },
@@ -19,12 +20,14 @@ function RailButton({
   onClick,
   children,
   badge,
+  ai,
 }: {
   active?: boolean
   label: string
   onClick: () => void
   children: React.ReactNode
   badge?: number
+  ai?: boolean
 }) {
   return (
     <motion.button
@@ -34,13 +37,18 @@ function RailButton({
       aria-label={label}
       className={cn(
         'group relative flex h-11 w-11 items-center justify-center rounded-[16px] transition-colors',
-        active ? 'bg-black/14 text-[#1d1d1f]' : 'text-black/40 hover:bg-black/8 hover:text-black/80',
+        ai
+          ? 'text-white'
+          : active
+            ? 'bg-black/10 text-[#1d1d1f]'
+            : 'text-black/40 hover:bg-black/5 hover:text-[#1d1d1f]',
       )}
+      style={ai ? { background: 'var(--ai-gradient)' } : undefined}
     >
-      {active && (
+      {active && !ai && (
         <motion.span
           layoutId="rail-active"
-          className="absolute inset-0 rounded-[16px] bg-black/14"
+          className="absolute inset-0 rounded-[16px] bg-black/10"
           transition={{ type: 'spring', stiffness: 500, damping: 32 }}
         />
       )}
@@ -50,8 +58,11 @@ function RailButton({
           {badge}
         </span>
       ) : null}
-      {/* Tooltip */}
-      <span className="pointer-events-none absolute left-full ml-3 whitespace-nowrap rounded-lg bg-black/80 px-2 py-1 text-xs text-white opacity-0 backdrop-blur transition-opacity group-hover:opacity-100 z-50">
+      {/* Tooltip pill — matches design system rail-tip */}
+      <span
+        className="pointer-events-none absolute left-[54px] top-1/2 z-50 -translate-y-1/2 scale-95 whitespace-nowrap rounded-lg px-[10px] py-[5px] text-xs font-semibold text-white opacity-0 transition-all group-hover:scale-100 group-hover:opacity-100"
+        style={{ background: 'var(--ink)', letterSpacing: '-0.1px', transformOrigin: 'left center' }}
+      >
         {label}
       </span>
     </motion.button>
@@ -88,7 +99,7 @@ export function Sidebar() {
       ))}
 
       <div className="mt-auto flex flex-col items-center gap-2">
-        <AIAssistant />
+        <AIAssistant />  {/* uses ai prop → gradient bg handled in AIAssistant itself */}
         <RailButton label="Modifica" onClick={() => setActiveView('settings')} active={activeView === 'settings'}>
           <Pencil size={18} />
         </RailButton>

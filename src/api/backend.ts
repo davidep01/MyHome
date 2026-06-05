@@ -34,6 +34,22 @@ export interface AppConfig {
   newsFeedUrl: string
   userName: string
   dashboardName: string
+  hiddenEntities?: string[]
+  deviceOverrides?: Record<string, DeviceOverride>
+  forceCelsius?: boolean
+  dashboardLayout?: DashboardLayout
+}
+
+export interface DashboardLayout {
+  cols: number
+  items: Record<string, { x: number; y: number; w: number; h: number }>
+}
+
+export interface DeviceOverride {
+  label?: string
+  icon?: string
+  type?: EntityType
+  enabled?: boolean
 }
 
 export const configApi = {
@@ -48,6 +64,7 @@ export const configApi = {
 export type EntityType =
   | 'light' | 'climate' | 'cover' | 'scene' | 'security' | 'media'
   | 'sensor' | 'switch' | 'camera' | 'vacuum' | 'lock' | 'alarm'
+  | 'number' | 'select' | 'button' | 'binary_sensor' | 'siren' | 'fan'
 
 export interface RoomEntity {
   id: string
@@ -58,6 +75,8 @@ export interface RoomEntity {
   sortOrder: number
   /** Surfaced in the home "Preferiti" section when true. */
   favorite?: boolean
+  /** Optional admin-override lucide icon name. */
+  icon?: string
 }
 
 export interface Room {

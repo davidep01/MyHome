@@ -1,7 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect --
-   This hook is an edge detector: it must compare the entity state across renders
-   inside an effect and set `ringing` when a rising edge occurs. That is the
-   intended pattern here, not a cascading-render bug. */
 import { useEffect, useRef, useState } from 'react'
 import { useEntityStore } from '../store/entities'
 import { doorbellConfig } from '../config/doorbell'
@@ -32,7 +28,9 @@ export function useDoorbell(): DoorbellState {
     const prev = prevState.current
     prevState.current = state
 
-    // Rising edge into an active state → ring (unless we already dismissed this episode)
+    // Rising edge into an active state → ring (unless we already dismissed this episode).
+    // We deliberately do NOT clear on the falling edge: a doorbell press is momentary,
+    // so the fullscreen stays up for the full autoDismissMs window (or until dismissed).
     if (isActive && prev !== undefined && !doorbellConfig.activeStates.includes(prev)) {
       const key = `${state}-${entity?.last_changed ?? Date.now()}`
       if (dismissedFor.current !== key) {
@@ -44,10 +42,7 @@ export function useDoorbell(): DoorbellState {
         }
       }
     }
-
-    // Sensor returned idle → clear
-    if (!isActive && ringing) setRinging(false)
-  }, [state, isActive, ringing, entity?.last_changed])
+  }, [state, isActive, entity?.last_changed])
 
   useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current) }, [])
 

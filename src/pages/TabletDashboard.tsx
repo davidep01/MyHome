@@ -1,45 +1,31 @@
-import { useMemo } from 'react'
-import { useRooms } from '../hooks/useRooms'
+import { useState } from 'react'
+import { LayoutGrid, Rows3, Check, Pencil } from 'lucide-react'
 import { useDiscoveredEntities } from '../hooks/useDiscoveredEntities'
-import { useUIStore } from '../store/ui'
 import { useEntityStore } from '../store/entities'
+import { useUIStore } from '../store/ui'
 import { HomeHeader } from '../components/home/HomeHeader'
 import { PeopleCard } from '../components/home/PeopleCard'
 import { SectionBand } from '../components/home/SectionBand'
+import { EditableHome } from '../components/home/EditableHome'
 import { SceneRow } from '../components/layout/SceneRow'
 import { WidgetGrid } from '../components/widgets/WidgetGrid'
 import { cn } from '../lib/utils'
-import type { Room, RoomEntity } from '../api/backend'
 
-function SourceToggle() {
-  const source = useUIStore((s) => s.dashboardSource)
-  const setSource = useUIStore((s) => s.setDashboardSource)
-  const options = [
-    { id: 'auto' as const, label: 'Auto (HA live)' },
-    { id: 'demo' as const, label: 'Layout demo' },
-  ]
-  return (
-    <div className="flex gap-1 rounded-full bg-black/5 p-1">
-      {options.map((o) => (
-        <button
-          key={o.id}
-          onClick={() => setSource(o.id)}
-          className={cn(
-            'rounded-full px-3 py-1 text-xs font-medium transition',
-            source === o.id ? 'bg-white text-[#1d1d1f] shadow-sm' : 'text-black/45 hover:text-black/70',
-          )}
-        >
-          {o.label}
-        </button>
-      ))}
-    </div>
-  )
-}
+const SECTION_LIMIT = 8
 
 /** Auto-configuring home: sections built live from the HA entity stream. */
 function AutoHome() {
   const { sections, total } = useDiscoveredEntities()
   const status = useEntityStore((s) => s.connectionStatus)
+  const [expanded, setExpanded] = useState<Set<string>>(new Set())
+
+  const toggle = (domain: string) =>
+    setExpanded((prev) => {
+      const next = new Set(prev)
+      if (next.has(domain)) next.delete(domain)
+      else next.add(domain)
+      return next
+    })
 
   if (total === 0) {
     return (
@@ -55,89 +41,81 @@ function AutoHome() {
 
   return (
     <>
-      {sections.map((s) => (
-        <SectionBand key={s.domain} title={s.label} count={s.entities.length} minColumn={s.minColumn}>
-          <WidgetGrid entities={s.entities} />
-        </SectionBand>
-      ))}
+      {sections.map((s) => {
+        const open = expanded.has(s.domain)
+        const shown = open ? s.entities : s.entities.slice(0, SECTION_LIMIT)
+        const action = s.entities.length > SECTION_LIMIT ? (
+          <button
+            onClick={() => toggle(s.domain)}
+            className="rounded-full bg-black/5 px-3 py-1 text-xs font-medium text-[#0066cc] transition hover:bg-black/8"
+          >
+            {open ? 'Comprimi' : `Mostra tutti (${s.entities.length})`}
+          </button>
+        ) : undefined
+        return (
+          <SectionBand key={s.domain} title={s.label} count={s.entities.length} minColumn={s.minColumn} action={action}>
+            <WidgetGrid entities={shown} />
+          </SectionBand>
+        )
+      })}
     </>
   )
 }
 
-/** Curated layout that mirrors the reference screenshot, sourced from db.json. */
-function DemoHome() {
-  const { data, isLoading } = useRooms()
-
-  const groups = useMemo(() => {
-    const rooms: Room[] = data ?? []
-    const all = rooms.flatMap((r) => r.entities)
-    const cameras = all.filter((e) => e.type === 'camera')
-    const locks = all.filter((e) => e.type === 'lock')
-    const favorites = all.filter((e) => e.favorite)
-    const roomSections = rooms
-      .map((room) => ({
-        room,
-        entities: room.entities.filter(
-          (e: RoomEntity) => e.type !== 'camera' && e.type !== 'lock' && !e.favorite,
-        ),
-      }))
-      .filter((s) => s.entities.length > 0)
-    return { cameras, locks, favorites, roomSections }
-  }, [data])
+function ViewControls() {
+  const view = useUIStore((s) => s.dashboardView)
+  const setView = useUIStore((s) => s.setDashboardView)
+  const editMode = useUIStore((s) => s.editMode)
+  const setEditMode = useUIStore((s) => s.setEditMode)
 
   return (
-    <>
-      {isLoading && <p className="px-1 text-sm text-black/40">Caricamento…</p>}
-      {groups.roomSections.map(({ room, entities }) => (
-        <SectionBand key={room.id} title={room.label} count={entities.length}>
-          <WidgetGrid entities={entities} />
-        </SectionBand>
-      ))}
-      {groups.cameras.length > 0 && (
-        <SectionBand title="Videocamere" count={groups.cameras.length} minColumn={240}>
-          <WidgetGrid entities={groups.cameras} />
-        </SectionBand>
+    <div className="flex items-center justify-between gap-2 px-1">
+      <div className="flex gap-1 rounded-full bg-black/5 p-1">
+        {([['auto', 'Sezioni', Rows3], ['grid', 'Griglia', LayoutGrid]] as const).map(([id, label, Icon]) => (
+          <button
+            key={id}
+            onClick={() => { setView(id); if (id === 'auto') setEditMode(false) }}
+            className={cn(
+              'flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition',
+              view === id ? 'bg-white text-[#1d1d1f] shadow-sm' : 'text-black/45 hover:text-black/70',
+            )}
+          >
+            <Icon size={13} /> {label}
+          </button>
+        ))}
+      </div>
+      {view === 'grid' && (
+        <button
+          onClick={() => setEditMode(!editMode)}
+          className={cn(
+            'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition active:scale-95',
+            editMode ? 'bg-[#0066cc] text-white' : 'bg-black/5 text-black/55 hover:text-[#1d1d1f]',
+          )}
+        >
+          {editMode ? <><Check size={14} /> Fatto</> : <><Pencil size={13} /> Modifica</>}
+        </button>
       )}
-      {groups.locks.length > 0 && (
-        <SectionBand title="Serrature" count={groups.locks.length} minColumn={160}>
-          <WidgetGrid entities={groups.locks} />
-        </SectionBand>
-      )}
-      {groups.favorites.length > 0 && (
-        <SectionBand title="Preferiti" count={groups.favorites.length}>
-          <WidgetGrid entities={groups.favorites} />
-        </SectionBand>
-      )}
-    </>
+    </div>
   )
 }
 
 export function TabletDashboard() {
-  const source = useUIStore((s) => s.dashboardSource)
-  const { isError } = useRooms()
+  const view = useUIStore((s) => s.dashboardView)
 
   return (
     <div className="flex h-full flex-col gap-5 overflow-y-auto pr-1">
       <HomeHeader />
       <SceneRow />
 
-      <div className="flex items-center justify-between gap-2 px-1">
-        <SectionBand title="Persone" minColumn={260}>
-          <PeopleCard />
-        </SectionBand>
-      </div>
+      <SectionBand title="Persone">
+        <div className="min-w-0" style={{ gridColumn: 'span 2', gridRow: 'span 1' }}>
+          <PeopleCard className="h-full" />
+        </div>
+      </SectionBand>
 
-      <div className="flex justify-end px-1">
-        <SourceToggle />
-      </div>
+      <ViewControls />
 
-      {source === 'auto' ? (
-        <AutoHome />
-      ) : isError ? (
-        <p className="px-1 text-sm text-red-500/80">Backend non raggiungibile</p>
-      ) : (
-        <DemoHome />
-      )}
+      {view === 'grid' ? <EditableHome /> : <AutoHome />}
     </div>
   )
 }

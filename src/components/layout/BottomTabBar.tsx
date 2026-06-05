@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { Home, Settings, ShieldCheck, ThermometerSun, Zap } from 'lucide-react'
+import { Home, Boxes, Settings, ShieldCheck, ThermometerSun, Zap } from 'lucide-react'
 import { useUIStore } from '../../store/ui'
 import { framerSpringBounce } from '../../design/tokens'
 import { cn } from '../../lib/utils'
@@ -9,6 +9,7 @@ export function BottomTabBar() {
   const setActiveView = useUIStore((s) => s.setActiveView)
   const tabs = [
     { id: 'home' as const, label: 'Home', Icon: Home },
+    { id: 'areas' as const, label: 'Aree', Icon: Boxes },
     { id: 'climate' as const, label: 'Clima', Icon: ThermometerSun },
     { id: 'security' as const, label: 'Sicurezza', Icon: ShieldCheck },
     { id: 'energy' as const, label: 'Energia', Icon: Zap },

@@ -1,0 +1,27 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><link rel="stylesheet" href="preview.css">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+.tile{position:relative;border-radius:18px;padding:14px;border:1px solid var(--hairline);background:var(--canvas-card);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);display:flex;flex-direction:column;height:150px;width:150px}
+.tico{width:38px;height:38px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.05);color:var(--ink-secondary)}
+.tn{font-size:14px;font-weight:600;letter-spacing:-0.2px;margin-top:auto}
+.ts{font-size:12px;color:var(--ink-secondary)}
+.tile i{width:20px;height:20px}
+</style></head>
+<body><div class="card-wrap" style="padding:18px"><div class="row" style="gap:12px">
+  <div class="tile" style="background:rgba(220,38,38,0.12);border-color:rgba(220,38,38,0.22);box-shadow:0 0 24px 0 rgba(220,38,38,0.32)">
+    <div class="tico" style="background:rgba(220,38,38,0.14);color:#dc2626"><i data-lucide="flame"></i></div>
+    <div class="tn">Termostufa</div><div style="font-size:26px;font-weight:300;color:#dc2626;letter-spacing:-1px">22.0°</div>
+  </div>
+  <div class="tile" style="background:rgba(234,179,8,0.10);border-color:rgba(234,179,8,0.30);box-shadow:0 0 24px 0 rgba(234,179,8,0.30)">
+    <div class="tico" style="background:rgba(234,179,8,0.18);color:#b8860b"><i data-lucide="lightbulb"></i></div>
+    <div class="tn">Luce Cucina</div><div class="ts">Accesa · 40%</div>
+  </div>
+  <div class="tile">
+    <div class="tico" style="background:var(--ok-tint);color:#15803d"><i data-lucide="lock-open"></i></div>
+    <div class="tn" style="text-align:center">Portone</div><div class="ts" style="text-align:center">Tieni premuto</div>
+  </div>
+  <div class="tile" style="opacity:0.55">
+    <div class="tico"><i data-lucide="lightbulb"></i></div>
+    <div class="tn">Luce Bagno</div><div class="ts">Non disponibile</div>
+  </div>
+</div><script>lucide.createIcons();</script></div></body></html>

@@ -1,49 +1,898 @@
 {
   "config": {
-    "haUrl": "",
+    "haUrl": "http://192.168.188.92:8123",
     "haToken": "",
     "weatherCity": "Ancona,IT",
     "newsCategory": "technology",
     "userName": "Davide",
     "dashboardName": "MyHome",
-    "newsFeedUrl": "https://www.ansa.it/sito/ansait_rss.xml"
+    "newsFeedUrl": "https://www.ansa.it/sito/ansait_rss.xml",
+    "hiddenEntities": [
+      "alarm_control_panel.ezviz_alarm",
+      "binary_sensor.giardino_cam_crittografia",
+      "binary_sensor.giardino_cam_movimento",
+      "binary_sensor.giardino_cam_pianificazioni_di_allarme_abilitate",
+      "binary_sensor.rpi_power_status",
+      "binary_sensor.soggiorno_keyboard_focus",
+      "button.shelly1_10521c45a24b_riavvia",
+      "button.shelly1minig3_34b7da8de43c_riavvia",
+      "conversation.home_assistant",
+      "event.backup_backup_automatico",
+      "image.giardino_cam_ultima_immagine_motion",
+      "light.cucina_giardino_centrale_cucina",
+      "number.giardino_cam_sensibilita_di_rilevamento",
+      "select.cucina_giardino_sonoff_10021c64c0_4",
+      "select.giardino_cam_suono_di_avviso",
+      "sensor.backup_backup_manager_state",
+      "sensor.backup_last_attempted_automatic_backup",
+      "sensor.backup_last_successful_automatic_backup",
+      "sensor.backup_next_scheduled_automatic_backup",
+      "sensor.giardino_cam_ip_locale",
+      "sensor.giardino_cam_ip_wan",
+      "sensor.giardino_cam_nome_dell_ultimo_tipo_di_allarme",
+      "sensor.giardino_cam_stato_pir",
+      "sensor.giardino_cam_codice_del_tipo_di_ultimo_allarme"
+    ],
+    "deviceOverrides": {},
+    "forceCelsius": true,
+    "dashboardLayout": {
+      "cols": 8,
+      "items": {
+        "light.cucina_giardino_laterale_esterno": {
+          "x": 0,
+          "y": 0,
+          "w": 1,
+          "h": 2
+        },
+        "light.cucina_giardino_laterali_interno": {
+          "x": 2,
+          "y": 0,
+          "w": 2,
+          "h": 4
+        },
+        "light.laterale_porta_sonoff_10021a5b24": {
+          "x": 4,
+          "y": 0,
+          "w": 2,
+          "h": 4
+        },
+        "light.laterale_porta_centrale_soggiorno": {
+          "x": 6,
+          "y": 0,
+          "w": 2,
+          "h": 4
+        },
+        "light.laterale_porta_laterale_soggiorno": {
+          "x": 0,
+          "y": 2,
+          "w": 2,
+          "h": 4
+        },
+        "light.laterale_porta_scale": {
+          "x": 2,
+          "y": 4,
+          "w": 2,
+          "h": 4
+        },
+        "light.soggiorno_cucina_sonoff_10021a5713": {
+          "x": 4,
+          "y": 4,
+          "w": 2,
+          "h": 4
+        },
+        "light.soggiorno_cucina_centrale_cucina": {
+          "x": 6,
+          "y": 4,
+          "w": 2,
+          "h": 4
+        },
+        "light.soggiorno_cucina_doppio_soggiorno": {
+          "x": 0,
+          "y": 6,
+          "w": 2,
+          "h": 4
+        },
+        "light.soggiorno_cucina_laterale_cucina": {
+          "x": 2,
+          "y": 8,
+          "w": 2,
+          "h": 4
+        },
+        "switch.shelly1_10521c45a24b": {
+          "x": 4,
+          "y": 8,
+          "w": 2,
+          "h": 2
+        },
+        "switch.shelly1minig3_34b7da8de43c": {
+          "x": 6,
+          "y": 8,
+          "w": 2,
+          "h": 2
+        },
+        "switch.cucina_sonoff_100047d73d_2": {
+          "x": 0,
+          "y": 10,
+          "w": 2,
+          "h": 2
+        },
+        "switch.cucina_sonoff_100047d73d_3": {
+          "x": 2,
+          "y": 12,
+          "w": 2,
+          "h": 2
+        },
+        "switch.cucina_sonoff_100047d73d_1": {
+          "x": 4,
+          "y": 10,
+          "w": 2,
+          "h": 2
+        },
+        "switch.entrata_live_stream": {
+          "x": 6,
+          "y": 10,
+          "w": 2,
+          "h": 2
+        },
+        "switch.entrata_motion_detection": {
+          "x": 0,
+          "y": 12,
+          "w": 2,
+          "h": 2
+        },
+        "switch.entrata_motion_detection_2": {
+          "x": 2,
+          "y": 14,
+          "w": 2,
+          "h": 2
+        },
+        "switch.giardino_cam_audio": {
+          "x": 4,
+          "y": 12,
+          "w": 2,
+          "h": 2
+        },
+        "switch.giardino_cam_luce_a_intermittenza_sul_movimento": {
+          "x": 6,
+          "y": 12,
+          "w": 2,
+          "h": 2
+        },
+        "switch.giardino_cam_luce_di_stato": {
+          "x": 0,
+          "y": 14,
+          "w": 2,
+          "h": 2
+        },
+        "switch.giardino_cam_registrazione_video_per_tutto_il_giorno": {
+          "x": 2,
+          "y": 16,
+          "w": 2,
+          "h": 2
+        },
+        "switch.giardino_cam_sospensione": {
+          "x": 4,
+          "y": 14,
+          "w": 2,
+          "h": 2
+        },
+        "switch.giardino_live_stream": {
+          "x": 6,
+          "y": 14,
+          "w": 2,
+          "h": 2
+        },
+        "switch.giardino_motion_detection": {
+          "x": 0,
+          "y": 16,
+          "w": 2,
+          "h": 2
+        },
+        "switch.giardino_motion_detection_2": {
+          "x": 2,
+          "y": 18,
+          "w": 2,
+          "h": 2
+        },
+        "switch.sirolo_alarm_siren": {
+          "x": 4,
+          "y": 16,
+          "w": 2,
+          "h": 2
+        },
+        "switch.tastierino_dell_ingresso_chirps": {
+          "x": 6,
+          "y": 16,
+          "w": 2,
+          "h": 2
+        },
+        "climate.camera_angela": {
+          "x": 0,
+          "y": 20,
+          "w": 4,
+          "h": 4
+        },
+        "climate.camera_davide": {
+          "x": 4,
+          "y": 18,
+          "w": 4,
+          "h": 4
+        },
+        "climate.cucina_soggiorno": {
+          "x": 0,
+          "y": 24,
+          "w": 4,
+          "h": 4
+        },
+        "siren.giardino_cam_sirena": {
+          "x": 4,
+          "y": 22,
+          "w": 2,
+          "h": 2
+        },
+        "vacuum.roborock_q7_l5": {
+          "x": 6,
+          "y": 22,
+          "w": 2,
+          "h": 4
+        },
+        "media_player.soggiorno": {
+          "x": 0,
+          "y": 28,
+          "w": 4,
+          "h": 4
+        },
+        "camera.entrata_live_view": {
+          "x": 4,
+          "y": 26,
+          "w": 4,
+          "h": 6
+        },
+        "camera.giardino_cam": {
+          "x": 0,
+          "y": 32,
+          "w": 4,
+          "h": 6
+        },
+        "camera.giardino_live_view": {
+          "x": 4,
+          "y": 32,
+          "w": 4,
+          "h": 6
+        },
+        "button.entrata_take_snapshot": {
+          "x": 0,
+          "y": 38,
+          "w": 2,
+          "h": 2
+        },
+        "button.giardino_take_snapshot": {
+          "x": 2,
+          "y": 38,
+          "w": 2,
+          "h": 2
+        },
+        "remote.soggiorno": {
+          "x": 4,
+          "y": 38,
+          "w": 2,
+          "h": 2
+        },
+        "select.cucina_giardino_sonoff_10021c64c0_2": {
+          "x": 6,
+          "y": 38,
+          "w": 2,
+          "h": 2
+        },
+        "select.cucina_giardino_sonoff_10021c64c0_3": {
+          "x": 0,
+          "y": 40,
+          "w": 2,
+          "h": 2
+        },
+        "select.cucina_giardino_sonoff_10021c64c0_1": {
+          "x": 2,
+          "y": 40,
+          "w": 2,
+          "h": 2
+        },
+        "select.entrata_snapshot_mode": {
+          "x": 4,
+          "y": 40,
+          "w": 2,
+          "h": 2
+        },
+        "select.finestra_cucina_bypass_mode": {
+          "x": 6,
+          "y": 40,
+          "w": 2,
+          "h": 2
+        },
+        "select.finestra_cucina_chirp_tone": {
+          "x": 0,
+          "y": 42,
+          "w": 2,
+          "h": 2
+        },
+        "select.giardino_snapshot_mode": {
+          "x": 2,
+          "y": 42,
+          "w": 2,
+          "h": 2
+        },
+        "select.laterale_porta_sonoff_10021a5b24_3": {
+          "x": 4,
+          "y": 42,
+          "w": 2,
+          "h": 2
+        },
+        "select.laterale_porta_sonoff_10021a5b24_1": {
+          "x": 6,
+          "y": 42,
+          "w": 2,
+          "h": 2
+        },
+        "select.laterale_porta_sonoff_10021a5b24_2": {
+          "x": 0,
+          "y": 44,
+          "w": 2,
+          "h": 2
+        },
+        "select.porta_cucina_bypass_mode": {
+          "x": 2,
+          "y": 44,
+          "w": 2,
+          "h": 2
+        },
+        "select.porta_cucina_chirp_tone": {
+          "x": 4,
+          "y": 44,
+          "w": 2,
+          "h": 2
+        },
+        "select.porta_soggiorno_bypass_mode": {
+          "x": 6,
+          "y": 44,
+          "w": 2,
+          "h": 2
+        },
+        "select.porta_soggiorno_chirp_tone": {
+          "x": 0,
+          "y": 46,
+          "w": 2,
+          "h": 2
+        },
+        "select.roborock_q7_l5_cleaning_mode": {
+          "x": 2,
+          "y": 46,
+          "w": 2,
+          "h": 2
+        },
+        "select.roborock_q7_l5_cleaning_route": {
+          "x": 4,
+          "y": 46,
+          "w": 2,
+          "h": 2
+        },
+        "select.roborock_q7_l5_water_flow": {
+          "x": 6,
+          "y": 46,
+          "w": 2,
+          "h": 2
+        },
+        "select.sensore_movimento_tugurio_bypass_mode": {
+          "x": 0,
+          "y": 48,
+          "w": 2,
+          "h": 2
+        },
+        "select.sensore_movimento_tugurio_chirp_tone": {
+          "x": 2,
+          "y": 48,
+          "w": 2,
+          "h": 2
+        },
+        "select.soggiorno_cucina_sonoff_10021a5713_2": {
+          "x": 4,
+          "y": 48,
+          "w": 2,
+          "h": 2
+        },
+        "select.soggiorno_cucina_sonoff_10021a5713_3": {
+          "x": 6,
+          "y": 48,
+          "w": 2,
+          "h": 2
+        },
+        "select.soggiorno_cucina_sonoff_10021a5713_1": {
+          "x": 0,
+          "y": 50,
+          "w": 2,
+          "h": 2
+        },
+        "number.entrata_ding_duration": {
+          "x": 2,
+          "y": 50,
+          "w": 2,
+          "h": 4
+        },
+        "number.entrata_motion_duration": {
+          "x": 4,
+          "y": 50,
+          "w": 2,
+          "h": 4
+        },
+        "number.entrata_snapshot_interval": {
+          "x": 6,
+          "y": 50,
+          "w": 2,
+          "h": 4
+        },
+        "number.entrata_volume": {
+          "x": 0,
+          "y": 52,
+          "w": 2,
+          "h": 4
+        },
+        "number.giardino_ding_duration": {
+          "x": 2,
+          "y": 54,
+          "w": 2,
+          "h": 4
+        },
+        "number.giardino_motion_duration": {
+          "x": 4,
+          "y": 54,
+          "w": 2,
+          "h": 4
+        },
+        "number.giardino_snapshot_interval": {
+          "x": 6,
+          "y": 54,
+          "w": 2,
+          "h": 4
+        },
+        "number.giardino_volume": {
+          "x": 0,
+          "y": 56,
+          "w": 2,
+          "h": 4
+        },
+        "number.sirolo_base_station_volume": {
+          "x": 2,
+          "y": 58,
+          "w": 2,
+          "h": 4
+        },
+        "number.tastierino_dell_ingresso_volume": {
+          "x": 4,
+          "y": 58,
+          "w": 2,
+          "h": 4
+        },
+        "alarm_control_panel.sirolo_alarm": {
+          "x": 0,
+          "y": 62,
+          "w": 4,
+          "h": 4
+        },
+        "binary_sensor.entrata_ding": {
+          "x": 4,
+          "y": 62,
+          "w": 2,
+          "h": 2
+        },
+        "binary_sensor.entrata_motion": {
+          "x": 6,
+          "y": 58,
+          "w": 2,
+          "h": 2
+        },
+        "binary_sensor.finestra_cucina": {
+          "x": 0,
+          "y": 66,
+          "w": 2,
+          "h": 2
+        },
+        "binary_sensor.finestra_cucina_tamper": {
+          "x": 2,
+          "y": 66,
+          "w": 2,
+          "h": 2
+        },
+        "binary_sensor.giardino_ding": {
+          "x": 4,
+          "y": 64,
+          "w": 2,
+          "h": 2
+        },
+        "binary_sensor.giardino_motion": {
+          "x": 6,
+          "y": 60,
+          "w": 2,
+          "h": 2
+        },
+        "binary_sensor.porta_cucina": {
+          "x": 0,
+          "y": 68,
+          "w": 2,
+          "h": 2
+        },
+        "binary_sensor.porta_cucina_tamper": {
+          "x": 2,
+          "y": 68,
+          "w": 2,
+          "h": 2
+        },
+        "binary_sensor.porta_soggiorno": {
+          "x": 4,
+          "y": 66,
+          "w": 2,
+          "h": 2
+        },
+        "binary_sensor.porta_soggiorno_tamper": {
+          "x": 6,
+          "y": 62,
+          "w": 2,
+          "h": 2
+        },
+        "binary_sensor.sensore_movimento_tugurio": {
+          "x": 0,
+          "y": 70,
+          "w": 2,
+          "h": 2
+        },
+        "binary_sensor.sensore_movimento_tugurio_tamper": {
+          "x": 2,
+          "y": 70,
+          "w": 2,
+          "h": 2
+        },
+        "binary_sensor.shelly1_10521c45a24b_ingresso": {
+          "x": 4,
+          "y": 68,
+          "w": 2,
+          "h": 2
+        },
+        "binary_sensor.shelly1minig3_34b7da8de43c_cancello_piccolo": {
+          "x": 6,
+          "y": 64,
+          "w": 2,
+          "h": 2
+        },
+        "binary_sensor.sirolo_alarm_tamper": {
+          "x": 0,
+          "y": 72,
+          "w": 2,
+          "h": 2
+        },
+        "binary_sensor.sirolo_base_station_tamper": {
+          "x": 2,
+          "y": 72,
+          "w": 2,
+          "h": 2
+        },
+        "binary_sensor.tastierino_dell_ingresso_motion": {
+          "x": 4,
+          "y": 70,
+          "w": 2,
+          "h": 2
+        },
+        "binary_sensor.tastierino_dell_ingresso_tamper": {
+          "x": 6,
+          "y": 66,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.camera_1_sonoff_abc8001b13": {
+          "x": 0,
+          "y": 74,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.camera_2_sonoff_abc8001b14": {
+          "x": 2,
+          "y": 74,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.camera_angela_energia_consumata": {
+          "x": 4,
+          "y": 72,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.camera_angela_temperatura_ambiente": {
+          "x": 6,
+          "y": 68,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.camera_angela_temperatura_esterna": {
+          "x": 0,
+          "y": 76,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.camera_davide_energia_consumata": {
+          "x": 2,
+          "y": 76,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.camera_davide_temperatura_ambiente": {
+          "x": 4,
+          "y": 74,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.camera_davide_temperatura_esterna": {
+          "x": 6,
+          "y": 70,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.cucina_soggiorno_energia_consumata": {
+          "x": 0,
+          "y": 78,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.cucina_soggiorno_temperatura_ambiente": {
+          "x": 2,
+          "y": 78,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.cucina_soggiorno_temperatura_esterna": {
+          "x": 4,
+          "y": 76,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.cucina_giardino_sonoff_10021c64c0_action": {
+          "x": 6,
+          "y": 72,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.entrata_batteria": {
+          "x": 0,
+          "y": 80,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.entrata_battery": {
+          "x": 2,
+          "y": 80,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.entrata_info": {
+          "x": 4,
+          "y": 78,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.entrata_ultima_attivita": {
+          "x": 6,
+          "y": 74,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.entrata_wireless": {
+          "x": 0,
+          "y": 82,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.finestra_cucina_battery": {
+          "x": 2,
+          "y": 82,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.finestra_cucina_info": {
+          "x": 4,
+          "y": 80,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.giardino_batteria": {
+          "x": 6,
+          "y": 76,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.giardino_battery": {
+          "x": 0,
+          "y": 84,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.giardino_cam_canali_supportati": {
+          "x": 2,
+          "y": 84,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.giardino_info": {
+          "x": 4,
+          "y": 82,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.giardino_ultima_attivita": {
+          "x": 6,
+          "y": 78,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.giardino_wireless": {
+          "x": 0,
+          "y": 86,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.laterale_porta_sonoff_10021a5b24_action": {
+          "x": 2,
+          "y": 86,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.porta_cucina_battery": {
+          "x": 4,
+          "y": 84,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.porta_cucina_info": {
+          "x": 6,
+          "y": 80,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.porta_soggiorno_battery": {
+          "x": 0,
+          "y": 88,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.porta_soggiorno_info": {
+          "x": 2,
+          "y": 88,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.roborock_q7_l5_batteria": {
+          "x": 4,
+          "y": 86,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.roborock_q7_l5_mop_life_time_left": {
+          "x": 6,
+          "y": 82,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.roborock_q7_l5_status": {
+          "x": 0,
+          "y": 90,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.roborock_q7_l5_tempo_di_filtraggio_rimanente": {
+          "x": 2,
+          "y": 90,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.roborock_q7_l5_tempo_residuo_del_sensore": {
+          "x": 4,
+          "y": 88,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.roborock_q7_l5_tempo_residuo_della_spazzola_laterale": {
+          "x": 6,
+          "y": 84,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.roborock_q7_l5_tempo_residuo_della_spazzola_principale": {
+          "x": 0,
+          "y": 92,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.sensore_movimento_tugurio_battery": {
+          "x": 2,
+          "y": 92,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.sensore_movimento_tugurio_info": {
+          "x": 4,
+          "y": 90,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.sirolo_alarm_info": {
+          "x": 6,
+          "y": 86,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.sirolo_base_station_info": {
+          "x": 0,
+          "y": 94,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.sirolo_base_station_wireless": {
+          "x": 2,
+          "y": 94,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.soggiorno_cucina_sonoff_10021a5713_action": {
+          "x": 4,
+          "y": 92,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.sun_next_dawn": {
+          "x": 6,
+          "y": 88,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.sun_next_rising": {
+          "x": 0,
+          "y": 96,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.sun_next_midnight": {
+          "x": 2,
+          "y": 96,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.sun_next_dusk": {
+          "x": 4,
+          "y": 94,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.sun_next_noon": {
+          "x": 6,
+          "y": 90,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.sun_next_setting": {
+          "x": 0,
+          "y": 98,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.tastierino_dell_ingresso_battery": {
+          "x": 2,
+          "y": 98,
+          "w": 2,
+          "h": 2
+        },
+        "sensor.tastierino_dell_ingresso_info": {
+          "x": 4,
+          "y": 96,
+          "w": 2,
+          "h": 2
+        }
+      }
+    }
   },
-  "rooms": [
-    { "id": "cucina", "label": "Cucina", "icon": "utensils", "sortOrder": 0 },
-    { "id": "soggiorno", "label": "Soggiorno", "icon": "sofa", "sortOrder": 1 },
-    { "id": "camera", "label": "Camera", "icon": "bed", "sortOrder": 2 },
-    { "id": "bagno", "label": "Bagno", "icon": "bath", "sortOrder": 3 },
-    { "id": "esterno", "label": "Esterno", "icon": "tree-pine", "sortOrder": 4 }
-  ],
-  "entities": [
-    { "id": "e1", "roomId": "cucina", "entityId": "light.cucina", "label": "Cucina", "type": "light", "sortOrder": 0 },
-    { "id": "e2", "roomId": "cucina", "entityId": "vacuum.robot", "label": "Robot", "type": "vacuum", "sortOrder": 1 },
-    { "id": "e3", "roomId": "cucina", "entityId": "cover.cucina_finestra", "label": "Finestra", "type": "cover", "sortOrder": 2 },
-    { "id": "e4", "roomId": "cucina", "entityId": "light.cucina_piano", "label": "Piano cottura", "type": "light", "sortOrder": 3 },
-
-    { "id": "e5", "roomId": "soggiorno", "entityId": "light.soggiorno", "label": "Luci", "type": "light", "sortOrder": 0 },
-    { "id": "e6", "roomId": "soggiorno", "entityId": "cover.soggiorno_tende", "label": "Tende", "type": "cover", "sortOrder": 1 },
-    { "id": "e7", "roomId": "soggiorno", "entityId": "climate.soggiorno", "label": "Clima", "type": "climate", "sortOrder": 2 },
-    { "id": "e8", "roomId": "soggiorno", "entityId": "media_player.soggiorno", "label": "Musica", "type": "media", "sortOrder": 3 },
-
-    { "id": "e9", "roomId": "camera", "entityId": "climate.termostufa", "label": "Termostufa Integrata", "type": "climate", "sortOrder": 0, "favorite": true },
-    { "id": "e10", "roomId": "camera", "entityId": "light.camera_mattia", "label": "Luce Camera", "type": "light", "sortOrder": 1, "favorite": true },
-    { "id": "e11", "roomId": "camera", "entityId": "light.comodino", "label": "Comodino", "type": "light", "sortOrder": 2, "favorite": true },
-    { "id": "e12", "roomId": "camera", "entityId": "cover.camera_tapparelle", "label": "Tapparelle", "type": "cover", "sortOrder": 3 },
-
-    { "id": "e13", "roomId": "bagno", "entityId": "light.bagno", "label": "Luci", "type": "light", "sortOrder": 0 },
-    { "id": "e14", "roomId": "bagno", "entityId": "light.bagno_specchio", "label": "Specchio", "type": "light", "sortOrder": 1 },
-
-    { "id": "e15", "roomId": "esterno", "entityId": "camera.angolo_giardino", "label": "Angolo Giardino", "type": "camera", "sortOrder": 0 },
-    { "id": "e16", "roomId": "esterno", "entityId": "camera.new_camera", "label": "New camera", "type": "camera", "sortOrder": 1 },
-    { "id": "e17", "roomId": "esterno", "entityId": "camera.giardino_anteriore", "label": "Giardino Anteriore", "type": "camera", "sortOrder": 2 },
-    { "id": "e18", "roomId": "esterno", "entityId": "camera.terrazzo", "label": "Terrazzo", "type": "camera", "sortOrder": 3 },
-    { "id": "e19", "roomId": "esterno", "entityId": "lock.cancello", "label": "Cancello", "type": "lock", "sortOrder": 4 },
-    { "id": "e20", "roomId": "esterno", "entityId": "lock.cancelletto", "label": "Cancelletto", "type": "lock", "sortOrder": 5 },
-    { "id": "e21", "roomId": "esterno", "entityId": "lock.porta_ingresso", "label": "Porta ingresso", "type": "lock", "sortOrder": 6, "favorite": true },
-    { "id": "e22", "roomId": "esterno", "entityId": "light.esterno", "label": "Giardino", "type": "light", "sortOrder": 7 },
-
-    { "id": "e23", "roomId": "soggiorno", "entityId": "sensor.ups_battery", "label": "Batteria UPS", "type": "sensor", "sortOrder": 4, "favorite": true },
-    { "id": "e24", "roomId": "soggiorno", "entityId": "alarm_control_panel.casa", "label": "EZ Allarme", "type": "alarm", "sortOrder": 5, "favorite": true }
-  ]
+  "rooms": [],
+  "entities": []
 }

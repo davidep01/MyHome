@@ -3,6 +3,7 @@ import { Sidebar } from './Sidebar'
 import { RightPanel } from './RightPanel'
 import { BottomTabBar } from './BottomTabBar'
 import { TabletDashboard } from '../../pages/TabletDashboard'
+import { AreasPage } from '../../pages/AreasPage'
 import { SettingsPage } from '../../pages/SettingsPage'
 import { ClimatePage } from '../../pages/ClimatePage'
 import { SecurityPage } from '../../pages/SecurityPage'
@@ -28,6 +29,7 @@ export function AppShell() {
 
   const page =
     activeView === 'settings' ? <SettingsPage /> :
+    activeView === 'areas' ? <AreasPage /> :
     activeView === 'climate' ? <ClimatePage /> :
     activeView === 'security' ? <SecurityPage /> :
     activeView === 'energy' ? <EnergyPage /> :

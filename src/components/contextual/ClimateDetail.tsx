@@ -17,6 +17,7 @@ export function ClimateDetail({ entity }: { entity: HassEntity }) {
   const { call } = useHAService()
   const { light, medium } = useHaptic()
   const setOptimisticState = useEntityStore((s) => s.setOptimisticState)
+  const tempUnit = useEntityStore((s) => s.temperatureUnit)
 
   const entityId = entity.entity_id
   const current = entity.attributes?.current_temperature as number | undefined
@@ -28,7 +29,8 @@ export function ClimateDetail({ entity }: { entity: HassEntity }) {
   const fanModes = (entity.attributes?.fan_modes as string[] | undefined) ?? ['1', '2', '3', '4', '5']
   const fanMode = entity.attributes?.fan_mode as string | undefined
   const isHeating = (entity.attributes?.hvac_action as string | undefined) === 'heating' || mode === 'heat'
-  const color = isHeating ? tokens.accent.orange : tokens.accent.blue
+  const isCooling = (entity.attributes?.hvac_action as string | undefined) === 'cooling' || mode === 'cool'
+  const color = isHeating ? 'var(--hot-red)' : isCooling ? 'var(--cold-blue)' : 'var(--ink-secondary)'
 
   const setTemp = (next: number) => {
     light()
@@ -59,8 +61,8 @@ export function ClimateDetail({ entity }: { entity: HassEntity }) {
           max={max}
           color={color}
           size={208}
-          label={`${target.toFixed(1)}°C`}
-          sublabel={current !== undefined ? `Attuale: ${current}°C` : undefined}
+          label={`${target.toFixed(1)}${tempUnit}`}
+          sublabel={current !== undefined ? `Attuale: ${current}${tempUnit}` : undefined}
         />
         <div className="flex items-center gap-3">
           <button
@@ -98,7 +100,7 @@ export function ClimateDetail({ entity }: { entity: HassEntity }) {
                 onClick={() => setMode(id)}
                 className={cn(
                   'flex flex-1 flex-col items-center gap-1 rounded-[14px] py-3 text-[11px] font-medium transition',
-                  active ? 'text-[#1d1d1f]' : 'text-black/45 hover:text-black/70',
+                  active ? (id === 'heat' ? 'text-white' : 'text-[#1d1d1f]') : 'text-black/45 hover:text-black/70',
                 )}
                 style={active ? { background: id === 'heat' ? tokens.accent.orange : 'rgba(0,0,0,0.10)' } : undefined}
               >

@@ -1,11 +1,22 @@
-import { ChevronUp, ChevronDown, Minus } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { useState } from 'react'
 import { GlassCard } from '../glass/GlassCard'
+import { DragSlider } from '../glass/DragSlider'
 import { useHAEntity } from '../../hooks/useHAEntity'
 import { useHAService } from '../../hooks/useHAService'
 import { useHaptic } from '../../hooks/useHaptic'
-import { framerSpringBounce, tokens } from '../../design/tokens'
+import { useEntityStore } from '../../store/entities'
 import { cn } from '../../lib/utils'
+
+function BlindsIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <line x1="3" y1="8" x2="21" y2="8" />
+      <line x1="3" y1="13" x2="21" y2="13" />
+      <line x1="3" y1="18" x2="21" y2="18" />
+    </svg>
+  )
+}
 
 interface CoverCardProps {
   entityId: string
@@ -17,60 +28,49 @@ export function CoverCard({ entityId, label, className }: CoverCardProps) {
   const entity = useHAEntity(entityId)
   const { call } = useHAService()
   const { light } = useHaptic()
+  const setOptimisticState = useEntityStore((s) => s.setOptimisticState)
 
-  const position = entity?.attributes?.current_position as number | undefined
-  const isOpen = entity?.state === 'open'
+  const position = (entity?.attributes?.current_position as number | undefined) ?? 0
   const unavailable = !entity || entity.state === 'unavailable'
 
-  const open = () => { light(); call('cover', 'open_cover', { entity_id: entityId }) }
-  const close = () => { light(); call('cover', 'close_cover', { entity_id: entityId }) }
-  const stop = () => { light(); call('cover', 'stop_cover', { entity_id: entityId }) }
+  // Local preview during the drag so the slider is smooth at 60fps; the HA call
+  // fires only once on release to avoid flooding the WebSocket.
+  const [preview, setPreview] = useState<number | null>(null)
+  const display = preview ?? position
+
+  const commit = (v: number) => {
+    light()
+    const newPos = Math.round(v)
+    setPreview(null)
+    setOptimisticState(entityId, newPos > 0 ? 'open' : 'closed', { current_position: newPos })
+    call('cover', 'set_cover_position', { entity_id: entityId, position: newPos })
+  }
 
   return (
-    <GlassCard className={cn('flex flex-col gap-3 min-h-[140px]', className)}>
+    <GlassCard className={cn('flex flex-col gap-3', unavailable && 'opacity-55', className)}>
+      {/* Header: circle icon + position badge */}
       <div className="flex items-start justify-between">
-        <div className="flex h-10 w-10 items-center justify-center rounded-[14px] bg-black/8">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-            stroke={isOpen ? tokens.accent.blue : 'rgba(0,0,0,0.18)'}
-            strokeWidth="2" strokeLinecap="round">
-            <rect x="3" y="3" width="18" height="18" rx="2" />
-            <line x1="3" y1="8" x2="21" y2="8" />
-            <line x1="3" y1="13" x2="21" y2="13" />
-            <line x1="3" y1="18" x2="21" y2="18" />
-          </svg>
+        <div className="flex h-[38px] w-[38px] items-center justify-center rounded-full" style={{ background: 'rgba(0,0,0,0.05)', color: 'var(--ink-secondary)' }}>
+          <BlindsIcon />
         </div>
-        {position !== undefined && (
-          <span className="text-xs font-semibold text-black/60">{position}%</span>
+        {!unavailable && (
+          <span className="text-xs font-semibold" style={{ color: 'var(--ink-secondary)' }}>{display}%</span>
         )}
       </div>
 
       <div className="mt-auto">
-        <p className="text-sm font-medium text-black/90 mb-3">{label}</p>
-        <div className="flex gap-2">
-          {[
-            { icon: ChevronUp, action: open, label: 'Su', disabled: position === 100 },
-            { icon: Minus, action: stop, label: 'Stop', disabled: false },
-            { icon: ChevronDown, action: close, label: 'Giù', disabled: position === 0 },
-          ].map(({ icon: Icon, action, label: btnLabel, disabled }) => (
-            <motion.button
-              key={btnLabel}
-              onClick={action}
-              disabled={disabled || unavailable}
-              whileTap={!disabled && !unavailable ? { scale: 0.91 } : undefined}
-              transition={framerSpringBounce}
-              // min 44px touch target height
-              className={cn(
-                'flex flex-1 flex-col items-center justify-center gap-1 rounded-[12px] min-h-[44px] py-2 text-xs font-medium transition-all',
-                disabled || unavailable
-                  ? 'bg-black/5 text-black/20 cursor-not-allowed'
-                  : 'bg-black/10 text-black/70 hover:bg-black/16 hover:text-[#1d1d1f]',
-              )}
-            >
-              <Icon size={14} />
-              <span>{btnLabel}</span>
-            </motion.button>
-          ))}
-        </div>
+        <p className="text-sm font-semibold leading-tight text-black/90 mb-3">{label}</p>
+        <p className="text-xs mb-3" style={{ color: 'var(--ink-secondary)' }}>
+          {unavailable ? 'Non disponibile' : display > 0 ? `Aperta ${display}%` : 'Chiusa'}
+        </p>
+        {!unavailable && (
+          <DragSlider
+            value={display}
+            onChange={(v) => setPreview(Math.round(v))}
+            onChangeEnd={commit}
+            variant="blue"
+          />
+        )}
       </div>
     </GlassCard>
   )

@@ -1,13 +1,15 @@
 import { useMemo } from 'react'
 import { useEntityStore } from '../store/entities'
+import { useDashboardConfig } from './useDashboardConfig'
+import { useHAHiddenEntities } from './useHAHiddenEntities'
 import type { EntityType, RoomEntity } from '../api/backend'
 
 /** HA domain → dashboard card type. Domains not listed are ignored (infra/system). */
-const DOMAIN_TYPE: Record<string, EntityType> = {
+export const DOMAIN_TYPE: Record<string, EntityType> = {
   light: 'light',
   switch: 'switch',
   input_boolean: 'switch',
-  fan: 'switch',
+  fan: 'fan',
   climate: 'climate',
   cover: 'cover',
   lock: 'lock',
@@ -16,6 +18,15 @@ const DOMAIN_TYPE: Record<string, EntityType> = {
   media_player: 'media',
   scene: 'scene',
   alarm_control_panel: 'alarm',
+  siren: 'siren',
+  number: 'number',
+  input_number: 'number',
+  select: 'select',
+  input_select: 'select',
+  button: 'button',
+  input_button: 'button',
+  remote: 'button',
+  binary_sensor: 'binary_sensor',
   sensor: 'sensor',
 }
 
@@ -27,13 +38,22 @@ const DOMAIN_META: { domain: string; label: string; order: number; minColumn?: n
   { domain: 'fan', label: 'Ventilazione', order: 2 },
   { domain: 'climate', label: 'Clima', order: 3 },
   { domain: 'cover', label: 'Tapparelle e tende', order: 4 },
-  { domain: 'lock', label: 'Serrature', order: 5, minColumn: 160 },
-  { domain: 'vacuum', label: 'Aspirapolvere', order: 6 },
-  { domain: 'media_player', label: 'Media', order: 7 },
-  { domain: 'camera', label: 'Videocamere', order: 8, minColumn: 240 },
-  { domain: 'scene', label: 'Scene', order: 9 },
-  { domain: 'alarm_control_panel', label: 'Allarme', order: 10 },
-  { domain: 'sensor', label: 'Sensori', order: 11 },
+  { domain: 'lock', label: 'Serrature', order: 5 },
+  { domain: 'siren', label: 'Sirene', order: 6 },
+  { domain: 'vacuum', label: 'Aspirapolvere', order: 7 },
+  { domain: 'media_player', label: 'Media', order: 8 },
+  { domain: 'camera', label: 'Videocamere', order: 9 },
+  { domain: 'scene', label: 'Scene', order: 10 },
+  { domain: 'button', label: 'Pulsanti', order: 11 },
+  { domain: 'input_button', label: 'Pulsanti', order: 11 },
+  { domain: 'remote', label: 'Telecomandi', order: 12 },
+  { domain: 'select', label: 'Selettori', order: 13 },
+  { domain: 'input_select', label: 'Selettori', order: 13 },
+  { domain: 'number', label: 'Regolazioni', order: 14 },
+  { domain: 'input_number', label: 'Regolazioni', order: 14 },
+  { domain: 'alarm_control_panel', label: 'Allarme', order: 15 },
+  { domain: 'binary_sensor', label: 'Stato sensori', order: 16 },
+  { domain: 'sensor', label: 'Sensori', order: 17 },
 ]
 
 export interface DiscoveredSection {
@@ -49,24 +69,40 @@ export interface DiscoveredSection {
  */
 export function useDiscoveredEntities(): { sections: DiscoveredSection[]; total: number } {
   const entities = useEntityStore((s) => s.entities)
+  const { data: config } = useDashboardConfig()
+  const hidden = config?.hiddenEntities
+  const overrides = config?.deviceOverrides
+  const haHidden = useHAHiddenEntities()
 
   return useMemo(() => {
+    // Merge: entities hidden via Admin panel + entities hidden inside HA itself.
+    const hiddenSet = new Set([...(hidden ?? []), ...haHidden])
     const byDomain = new Map<string, RoomEntity[]>()
 
     for (const e of Object.values(entities)) {
+      if (hiddenSet.has(e.entity_id)) continue
+      const ov = overrides?.[e.entity_id]
+      if (ov?.enabled === false) continue // per-entity disable
       const domain = e.entity_id.split('.')[0]
-      const type = DOMAIN_TYPE[domain]
+      const type = (ov?.type as EntityType | undefined) ?? DOMAIN_TYPE[domain]
       if (!type) continue
-      // Skip diagnostic/config sensors with no friendly value
-      if (domain === 'sensor' && e.attributes?.entity_category === 'diagnostic') continue
+      // Skip diagnostic entities (noise) across all domains
+      if (e.attributes?.entity_category === 'diagnostic') continue
+      // Skip snapshot-only cameras (no STREAM feature) — only show live-capable ones.
+      if (domain === 'camera' && !ov?.type) {
+        const feat = Number(e.attributes?.supported_features ?? 0)
+        const isSnapshotOnly = (feat & 2) === 0 || e.entity_id.endsWith('_snapshot')
+        if (isSnapshotOnly) continue
+      }
 
       const item: RoomEntity = {
         id: e.entity_id,
         roomId: 'auto',
         entityId: e.entity_id,
-        label: (e.attributes?.friendly_name as string | undefined) ?? e.entity_id.split('.')[1],
+        label: ov?.label || (e.attributes?.friendly_name as string | undefined) || e.entity_id.split('.')[1],
         type,
         sortOrder: 0,
+        icon: ov?.icon,
       }
       const list = byDomain.get(domain) ?? []
       list.push(item)
@@ -85,5 +121,5 @@ export function useDiscoveredEntities(): { sections: DiscoveredSection[]; total:
 
     const total = sections.reduce((n, s) => n + s.entities.length, 0)
     return { sections, total }
-  }, [entities])
+  }, [entities, hidden, overrides, haHidden])
 }

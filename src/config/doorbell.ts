@@ -16,5 +16,5 @@ export const doorbellConfig: DoorbellConfig = {
   doorbellEntityId: 'binary_sensor.campanello',
   cameraEntityId: 'camera.ingresso',
   activeStates: ['on', 'ringing', 'detected', 'pressed'],
-  autoDismissMs: 60_000,
+  autoDismissMs: 30_000,
 }

@@ -116,6 +116,16 @@ haRouter.get('/camera-stream/:entityId', async (c) => {
   })
 })
 
+// HLS proxy — serves HA's /api/hls/* through the same origin so the browser's
+// player (hls.js) avoids cross-origin/CORS blocks. Path is preserved so the
+// playlist's relative segment URLs resolve back through this same route.
+haRouter.get('/hls/:rest{.*}', async (c) => {
+  const rest = c.req.param('rest')
+  const search = new URL(c.req.url).search
+  const res = await proxyHA(`/api/hls/${rest}${search}`)
+  return forwardResponse(res)
+})
+
 haRouter.get('/media', async (c) => {
   const path = c.req.query('path')
   if (!path || !path.startsWith('/')) {

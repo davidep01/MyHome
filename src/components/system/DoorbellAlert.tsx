@@ -1,29 +1,71 @@
 /* eslint-disable react-hooks/set-state-in-effect --
-   Snapshot fallback + per-ring reset are deliberately driven by effects. */
-import { useEffect, useState } from 'react'
+   The recognition result is driven by the ring lifecycle effect. */
+import { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Bell, X, Video, ScanFace } from 'lucide-react'
+import { Bell, X, Video, ScanFace, Check } from 'lucide-react'
 import { useDoorbell } from '../../hooks/useDoorbell'
 import { useEntityStore } from '../../store/entities'
-import { haApi } from '../../api/backend'
+import { doorbellConfig } from '../../config/doorbell'
+import { CameraStream } from '../widgets/CameraStream'
+import { aiApi } from '../../api/ai'
+
+type Recog = { status: 'scanning' | 'done' | 'error'; name?: string }
+type Tone = 'scan' | 'known' | 'unknown' | 'none' | 'error'
+
+const TONE_COLOR: Record<Tone, string> = {
+  scan: '#2997ff',
+  known: '#30d158',
+  unknown: '#ff9f0a',
+  none: 'rgba(255,255,255,0.7)',
+  error: 'rgba(255,255,255,0.55)',
+}
+
+/** Builds the headline + status pill from the recognition result. */
+function describe(r: Recog | null, known: string[]): { title: string; pill: string; tone: Tone } {
+  const fallbackTitle = "C'è qualcuno alla porta!"
+  if (!r || r.status === 'scanning') return { title: fallbackTitle, pill: 'Riconoscimento in corso…', tone: 'scan' }
+  if (r.status === 'error') return { title: fallbackTitle, pill: 'Riconoscimento non disponibile', tone: 'error' }
+  const raw = (r.name ?? '').trim()
+  const lower = raw.toLowerCase()
+  if (!raw || lower === 'nessuno' || lower === 'niente') return { title: fallbackTitle, pill: 'Nessuno rilevato', tone: 'none' }
+  const isKnown = known.some((k) => k.toLowerCase() === lower)
+  return {
+    title: `C'è ${raw} alla porta`,
+    pill: isKnown ? `${raw} riconosciuto` : 'Identificato con AI',
+    tone: isKnown ? 'known' : 'unknown',
+  }
+}
 
 export function DoorbellAlert() {
   const { ringing, cameraEntityId, ringAt, dismiss } = useDoorbell()
-  const camera = useEntityStore((s) => s.entities[cameraEntityId])
+  const entities = useEntityStore((s) => s.entities)
+  const camera = entities[cameraEntityId]
   const hasCamera = Boolean(camera) && camera?.state !== 'unavailable'
-  const [streamFailed, setStreamFailed] = useState(false)
-  const [snap, setSnap] = useState('')
+  const [recog, setRecog] = useState<Recog | null>(null)
 
-  // Snapshot fallback (cache-busted) if the live MJPEG stream errors out.
+  const personNames = useMemo(
+    () => Object.values(entities)
+      .filter((e) => e.entity_id.startsWith('person.'))
+      .map((e) => (e.attributes?.friendly_name as string | undefined) ?? e.entity_id.split('.')[1]),
+    [entities],
+  )
+
+  // Run Gemini Vision recognition once per ring.
   useEffect(() => {
-    if (!ringing || !hasCamera || !streamFailed) return
-    const tick = () => setSnap(`${haApi.cameraProxyUrl(cameraEntityId)}?_t=${Date.now()}`)
-    tick()
-    const id = setInterval(tick, 1500)
-    return () => clearInterval(id)
-  }, [ringing, hasCamera, streamFailed, cameraEntityId])
+    if (!ringing || !hasCamera) { setRecog(null); return }
+    let cancelled = false
+    setRecog({ status: 'scanning' })
+    aiApi.recognize(cameraEntityId, personNames)
+      .then((r) => { if (!cancelled) setRecog({ status: 'done', name: r.name }) })
+      .catch(() => { if (!cancelled) setRecog({ status: 'error' }) })
+    return () => { cancelled = true }
+    // personNames intentionally read at ring time only
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ringing, hasCamera, cameraEntityId, ringAt])
 
-  useEffect(() => { if (ringing) setStreamFailed(false) }, [ringing, ringAt])
+  const { title, pill, tone } = describe(recog, personNames)
+  const toneColor = TONE_COLOR[tone]
+  const countdownSec = doorbellConfig.autoDismissMs / 1000
 
   return (
     <AnimatePresence>
@@ -34,14 +76,10 @@ export function DoorbellAlert() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
         >
-          {/* Live video / snapshot */}
           {hasCamera ? (
-            <img
-              src={streamFailed ? snap : haApi.cameraStreamUrl(cameraEntityId)}
-              alt="Campanello"
-              className="absolute inset-0 h-full w-full object-cover"
-              onError={() => setStreamFailed(true)}
-            />
+            <div className="absolute inset-0">
+              <CameraStream entityId={cameraEntityId} fit="cover" muted allowTalkback />
+            </div>
           ) : (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[#111]">
               <Video size={40} className="text-white/30" />
@@ -50,17 +88,44 @@ export function DoorbellAlert() {
             </div>
           )}
 
-          {/* Top gradient + title */}
-          <div className="relative z-10 flex items-center gap-3 bg-gradient-to-b from-black/70 to-transparent px-6 pt-[max(24px,env(safe-area-inset-top))] pb-10">
+          {/* 30s auto-dismiss countdown bar */}
+          {doorbellConfig.autoDismissMs > 0 && (
             <motion.div
-              className="flex h-12 w-12 items-center justify-center rounded-full bg-white/15 backdrop-blur"
+              key={ringAt ?? 'bar'}
+              className="absolute inset-x-0 top-0 z-20 h-[3px] origin-left"
+              style={{ background: toneColor }}
+              initial={{ scaleX: 1 }}
+              animate={{ scaleX: 0 }}
+              transition={{ duration: countdownSec, ease: 'linear' }}
+            />
+          )}
+
+          <motion.div
+            className="relative z-10 flex items-center gap-3 bg-gradient-to-b from-black/70 to-transparent px-6 pt-[max(24px,env(safe-area-inset-top))] pb-10"
+            initial={{ y: -24, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 360, damping: 30 }}
+          >
+            <motion.div
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/15 backdrop-blur"
               animate={{ scale: [1, 1.12, 1] }}
               transition={{ repeat: Infinity, duration: 1.1 }}
             >
               <Bell size={22} className="text-white" />
             </motion.div>
-            <div className="flex-1">
-              <p className="text-xl font-semibold text-white">Qualcuno alla porta</p>
+            <div className="min-w-0 flex-1">
+              <AnimatePresence mode="popLayout">
+                <motion.p
+                  key={title}
+                  className="truncate text-xl font-semibold text-white"
+                  initial={{ y: 8, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: -8, opacity: 0 }}
+                  transition={{ duration: 0.25 }}
+                >
+                  {title}
+                </motion.p>
+              </AnimatePresence>
               <p className="text-sm text-white/60">
                 {ringAt ? new Date(ringAt).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }) : ''}
                 {' · Ingresso'}
@@ -68,19 +133,34 @@ export function DoorbellAlert() {
             </div>
             <button
               onClick={dismiss}
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur transition active:scale-90"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur transition active:scale-90"
               aria-label="Chiudi"
             >
               <X size={20} />
             </button>
-          </div>
+          </motion.div>
 
-          {/* Bottom: AI recognition placeholder (deploy-later) + actions */}
-          <div className="relative z-10 mt-auto flex flex-col gap-4 bg-gradient-to-t from-black/75 to-transparent px-6 pb-[max(28px,env(safe-area-inset-bottom))] pt-12">
-            <div className="flex items-center gap-2 self-start rounded-full bg-white/12 px-3 py-1.5 text-sm text-white/80 backdrop-blur">
-              <ScanFace size={15} className="text-[#2997ff]" />
-              Riconoscimento volto: <span className="text-white/50">in arrivo</span>
-            </div>
+          <motion.div
+            className="relative z-10 mt-auto flex flex-col gap-4 bg-gradient-to-t from-black/75 to-transparent px-6 pb-[max(28px,env(safe-area-inset-bottom))] pt-12"
+            initial={{ y: 28, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 360, damping: 30, delay: 0.05 }}
+          >
+            <AnimatePresence mode="popLayout">
+              <motion.div
+                key={pill}
+                className="flex items-center gap-2 self-start rounded-full bg-white/12 px-3.5 py-1.5 text-sm font-medium text-white/90 backdrop-blur"
+                initial={{ scale: 0.92, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.92, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                {tone === 'known'
+                  ? <Check size={15} style={{ color: toneColor }} />
+                  : <ScanFace size={15} className={tone === 'scan' ? 'animate-pulse' : ''} style={{ color: toneColor }} />}
+                {pill}
+              </motion.div>
+            </AnimatePresence>
             <div className="flex gap-3">
               <button
                 onClick={dismiss}
@@ -95,7 +175,7 @@ export function DoorbellAlert() {
                 Visto
               </button>
             </div>
-          </div>
+          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>
