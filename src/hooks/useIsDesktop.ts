@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 
 /**
- * True only on a real desktop (wide viewport + a fine pointer/mouse). A wall
- * tablet in landscape can be ≥1024px wide but reports a coarse pointer, so it is
- * correctly treated as non-desktop — editing and Admin are desktop-only.
+ * True on a mouse-driven device (desktop/laptop). A touch wall tablet reports a
+ * coarse pointer and is treated as non-desktop regardless of width, so editing
+ * and Admin stay off there unless advanced mode is enabled. Pointer is a more
+ * reliable signal than width (a small desktop window is still a desktop).
  */
-export function useIsDesktop(minWidth = 1024): boolean {
-  const query = `(min-width: ${minWidth}px) and (pointer: fine)`
+export function useIsDesktop(): boolean {
+  const query = '(pointer: fine)'
   const [isDesktop, setIsDesktop] = useState(
     () => typeof window !== 'undefined' && window.matchMedia(query).matches,
   )

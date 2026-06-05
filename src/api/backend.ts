@@ -37,6 +37,7 @@ export interface AppConfig {
   hiddenEntities?: string[]
   deviceOverrides?: Record<string, DeviceOverride>
   forceCelsius?: boolean
+  advancedMode?: boolean
   doorbell?: DoorbellSettings
   doorbells?: DoorbellDevice[]
   groups?: EntityGroup[]

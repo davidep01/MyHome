@@ -9,6 +9,7 @@ import { useHAService } from '../../hooks/useHAService'
 import { useHaptic } from '../../hooks/useHaptic'
 import { useLongPress } from '../../hooks/useLongPress'
 import { useEntityStore } from '../../store/entities'
+import { useUIStore } from '../../store/ui'
 import { haApi } from '../../api/backend'
 import { tokens } from '../../design/tokens'
 import { cn } from '../../lib/utils'
@@ -37,6 +38,8 @@ export function MediaCard({ entityId, label, className }: MediaCardProps) {
   const { call } = useHAService()
   const { light, medium } = useHaptic()
   const setOptimisticState = useEntityStore((s) => s.setOptimisticState)
+  const setSelectedEntity = useUIStore((s) => s.setSelectedEntity)
+  const openDetail = () => setSelectedEntity(entityId)
   const [volumeSheet, setVolumeSheet] = useState(false)
   const [volPreview, setVolPreview] = useState<number | null>(null)
   const [now, setNow] = useState(0)
@@ -105,7 +108,7 @@ export function MediaCard({ entityId, label, className }: MediaCardProps) {
     return (
       <GlassCard
         interactive={!isUnavailable}
-        onClick={!isUnavailable ? turnOn : undefined}
+        onClick={!isUnavailable ? openDetail : undefined}
         className={cn('flex items-center gap-3 min-h-[80px]', className)}
       >
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] bg-black/8">
@@ -114,11 +117,11 @@ export function MediaCard({ entityId, label, className }: MediaCardProps) {
         <div>
           <p className="text-sm font-medium text-black/90">{label}</p>
           <p className="text-xs mt-0.5" style={{ color: tokens.text.tertiary }}>
-            {isUnavailable ? 'Non disponibile' : 'Nessuna riproduzione'}
+            {isUnavailable ? 'Non disponibile' : 'Tocca per controlli e telecomando'}
           </p>
         </div>
         {!isUnavailable && (
-          <button className="ml-auto flex h-8 w-8 items-center justify-center rounded-full bg-black/8 text-black/50">
+          <button onClick={(e) => { e.stopPropagation(); turnOn() }} className="ml-auto flex h-8 w-8 items-center justify-center rounded-full bg-black/8 text-black/50 active:scale-90">
             <Play size={14} />
           </button>
         )}
@@ -143,8 +146,8 @@ export function MediaCard({ entityId, label, className }: MediaCardProps) {
         )}
 
         <div className="relative flex flex-col gap-3 p-4 h-full">
-          {/* Album art + track info */}
-          <div className="flex items-center gap-3">
+          {/* Album art + track info — tap to open full controls + remote */}
+          <div className="flex cursor-pointer items-center gap-3" onClick={openDetail}>
             {pictureUrl ? (
               <img src={pictureUrl} alt={title} className="h-12 w-12 shrink-0 rounded-[12px] object-cover shadow-lg" />
             ) : (

@@ -32,6 +32,8 @@ export interface AppConfig {
   deviceOverrides?: Record<string, DeviceOverride>
   /** Force temperatures to display in Celsius (converts °F sources). */
   forceCelsius?: boolean
+  /** Advanced mode: allow widget editing on touch devices (tablet/kiosk) too. */
+  advancedMode?: boolean
   /** Legacy single doorbell — migrated into `doorbells` on read. */
   doorbell?: DoorbellSettings
   /** Multiple doorbells, each with its own trigger, camera, sound and priority. */

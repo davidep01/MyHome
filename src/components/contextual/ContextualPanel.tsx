@@ -1,7 +1,8 @@
-import { X, Flame, Lightbulb, ShieldCheck, Cpu } from 'lucide-react'
+import { X, Flame, Lightbulb, ShieldCheck, Cpu, Tv } from 'lucide-react'
 import { ClimateDetail } from './ClimateDetail'
 import { LightDetail } from './LightDetail'
 import { AlarmDetail } from './AlarmDetail'
+import { MediaDetail } from './MediaDetail'
 import { useHAEntity } from '../../hooks/useHAEntity'
 import { useUIStore } from '../../store/ui'
 import { tokens } from '../../design/tokens'
@@ -10,6 +11,7 @@ const domainMeta: Record<string, { Icon: React.ElementType; color: string }> = {
   climate: { Icon: Flame, color: tokens.accent.orange },
   light: { Icon: Lightbulb, color: tokens.accent.yellow },
   alarm_control_panel: { Icon: ShieldCheck, color: tokens.accent.red },
+  media_player: { Icon: Tv, color: tokens.accent.green },
 }
 
 export function ContextualPanel({ entityId }: { entityId: string }) {
@@ -52,6 +54,8 @@ export function ContextualPanel({ entityId }: { entityId: string }) {
           <LightDetail entity={entity} />
         ) : domain === 'alarm_control_panel' ? (
           <AlarmDetail entity={entity} />
+        ) : domain === 'media_player' ? (
+          <MediaDetail entity={entity} />
         ) : (
           <div className="rounded-[16px] bg-black/5 p-4">
             <p className="font-mono text-xs text-black/40">{entityId}</p>

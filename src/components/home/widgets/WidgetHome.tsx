@@ -62,8 +62,9 @@ export function WidgetHome() {
   const { ref, width } = useElementWidth()
   const [pickerOpen, setPickerOpen] = useState(false)
 
-  // Editing is desktop-only; tablets/kiosk are strictly view-only.
-  const editMode = isDesktop && editModeRaw
+  // Editing is allowed on desktop, or anywhere once Admin enables advanced mode.
+  const canEdit = isDesktop || Boolean(config?.advancedMode)
+  const editMode = canEdit && editModeRaw
 
   const widgets = config?.home?.widgets ?? DEFAULT_WIDGETS
   const positions = useMemo(() => config?.home?.positions ?? {}, [config?.home?.positions])
@@ -86,8 +87,8 @@ export function WidgetHome() {
 
   return (
     <div className="flex h-full flex-col">
-      {/* Toolbar — desktop only (tablets/kiosk are view-only) */}
-      {isDesktop && (
+      {/* Toolbar — desktop, or any device when advanced mode is enabled */}
+      {canEdit && (
         <div className="mb-3 flex shrink-0 items-center justify-end gap-2 px-0.5">
           <button
             onClick={() => setPickerOpen(true)}
