@@ -32,8 +32,10 @@ export interface AppConfig {
   deviceOverrides?: Record<string, DeviceOverride>
   /** Force temperatures to display in Celsius (converts °F sources). */
   forceCelsius?: boolean
-  /** Doorbell fullscreen alert: which entity rings + which camera to show. */
+  /** Legacy single doorbell — migrated into `doorbells` on read. */
   doorbell?: DoorbellSettings
+  /** Multiple doorbells, each with its own trigger, camera, sound and priority. */
+  doorbells?: DoorbellDevice[]
   /** Admin-defined groups: several entities merged into one card. */
   groups?: EntityGroup[]
   /** iOS-style widget home: chosen widgets + their grid positions. */
@@ -77,6 +79,23 @@ export interface DoorbellSettings {
   entityId?: string
   /** camera.* entity framing the door */
   cameraEntityId?: string
+}
+
+export type DoorbellPriority = 'low' | 'medium' | 'high' | 'critical'
+
+export interface DoorbellDevice {
+  id: string
+  name: string
+  location?: string
+  /** trigger entity (event.* / binary_sensor.*) */
+  entityId: string
+  cameraEntityId?: string
+  /** synth sound preset id, e.g. 'dingdong' | 'chime' | 'alert' | 'none' */
+  sound?: string
+  /** 0..1 */
+  volume?: number
+  priority?: DoorbellPriority
+  active?: boolean
 }
 
 export interface DashboardLayout {

@@ -3,9 +3,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Bell, X, Video, ScanFace, Check } from 'lucide-react'
-import { useDoorbell } from '../../hooks/useDoorbell'
+import { useDoorbells } from '../../hooks/useDoorbells'
 import { useEntityStore } from '../../store/entities'
-import { doorbellConfig } from '../../config/doorbell'
 import { CameraStream } from '../widgets/CameraStream'
 import { aiApi } from '../../api/ai'
 
@@ -37,8 +36,13 @@ function describe(r: Recog | null, known: string[]): { title: string; pill: stri
 }
 
 export function DoorbellAlert() {
-  const { ringing, cameraEntityId, ringAt, dismiss } = useDoorbell()
+  const { active, dismiss, autoDismissMs } = useDoorbells()
   const entities = useEntityStore((s) => s.entities)
+  const ringing = Boolean(active)
+  const cameraEntityId = active?.device.cameraEntityId ?? ''
+  const ringAt = active?.ringAt ?? null
+  const doorbellName = active?.device.name ?? 'Campanello'
+  const doorbellLocation = active?.device.location
   const camera = entities[cameraEntityId]
   const hasCamera = Boolean(camera) && camera?.state !== 'unavailable'
   const [recog, setRecog] = useState<Recog | null>(null)
@@ -65,7 +69,7 @@ export function DoorbellAlert() {
 
   const { title, pill, tone } = describe(recog, personNames)
   const toneColor = TONE_COLOR[tone]
-  const countdownSec = doorbellConfig.autoDismissMs / 1000
+  const countdownSec = autoDismissMs / 1000
 
   return (
     <AnimatePresence>
@@ -89,7 +93,7 @@ export function DoorbellAlert() {
           )}
 
           {/* 30s auto-dismiss countdown bar */}
-          {doorbellConfig.autoDismissMs > 0 && (
+          {autoDismissMs > 0 && (
             <motion.div
               key={ringAt ?? 'bar'}
               className="absolute inset-x-0 top-0 z-20 h-[3px] origin-left"
@@ -128,7 +132,7 @@ export function DoorbellAlert() {
               </AnimatePresence>
               <p className="text-sm text-white/60">
                 {ringAt ? new Date(ringAt).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }) : ''}
-                {' · Ingresso'}
+                {' · '}{doorbellLocation ? `${doorbellName} · ${doorbellLocation}` : doorbellName}
               </p>
             </div>
             <button

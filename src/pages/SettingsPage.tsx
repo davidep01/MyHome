@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Settings, User, Wifi, Plus, Trash2,
-  ChevronRight, Save, X, Home, ShieldCheck, Eye, EyeOff, Search, Lock, Pencil, Bell, Layers, Check, Monitor,
+  ChevronRight, Save, X, Home, ShieldCheck, Eye, EyeOff, Search, Lock, Pencil, Bell, Layers, Check, Monitor, Volume2, VolumeX,
 } from 'lucide-react'
 import { GlassCard } from '../components/glass/GlassCard'
 import { GlassSheet } from '../components/glass/GlassSheet'
@@ -11,10 +11,13 @@ import {
   useRooms, useCreateRoom, useDeleteRoom, useAddEntity, useRemoveEntity,
 } from '../hooks/useRooms'
 import { useEntityStore } from '../store/entities'
-import type { AppConfig, DeviceOverride, DoorbellSettings, EntityGroup, EntityType, Room, RoomEntity } from '../api/backend'
+import type { AppConfig, DeviceOverride, DoorbellDevice, EntityGroup, EntityType, Room, RoomEntity } from '../api/backend'
 import { iconExists } from '../lib/lucide'
 import { uid } from '../lib/uid'
 import { useIsDesktop } from '../hooks/useIsDesktop'
+import { useSoundNotifications } from '../hooks/useSoundNotifications'
+import { normalizeDoorbells } from '../lib/doorbell'
+import type { SoundPreset } from '../lib/sound/SoundManager'
 import { DynamicIcon } from '../components/DynamicIcon'
 import { framerSpring, tokens } from '../design/tokens'
 import { cn } from '../lib/utils'
@@ -395,9 +398,18 @@ function AdminPanel({ config }: { config: AppConfig }) {
   const [query, setQuery] = useState('')
   const [hidden, setHidden] = useState<string[]>(config.hiddenEntities ?? [])
   const [overrides, setOverrides] = useState<Record<string, DeviceOverride>>(config.deviceOverrides ?? {})
-  const [doorbell, setDoorbell] = useState<DoorbellSettings>(config.doorbell ?? {})
+  const [doorbells, setDoorbells] = useState<DoorbellDevice[]>(() => config.doorbells ?? normalizeDoorbells(config))
+  const [doorbellDraft, setDoorbellDraft] = useState<DoorbellDevice | null>(null)
   const [groups, setGroups] = useState<EntityGroup[]>(config.groups ?? [])
   const forceCelsius = true // Italy: always Celsius
+  const { muted, volume, setMuted, setVolume, play } = useSoundNotifications()
+
+  const saveDoorbellDraft = () => {
+    if (!doorbellDraft || !doorbellDraft.name.trim() || !doorbellDraft.entityId) return
+    setDoorbells((list) => (list.some((d) => d.id === doorbellDraft.id) ? list.map((d) => (d.id === doorbellDraft.id ? doorbellDraft : d)) : [...list, doorbellDraft]))
+    setDoorbellDraft(null)
+  }
+  const deleteDoorbell = (id: string) => setDoorbells((list) => list.filter((d) => d.id !== id))
   const [editId, setEditId] = useState<string | null>(null)
   const [draft, setDraft] = useState<EntityGroup | null>(null)
   const [groupQuery, setGroupQuery] = useState('')
@@ -444,7 +456,7 @@ function AdminPanel({ config }: { config: AppConfig }) {
       return { ...o, [id]: next }
     })
 
-  const save = () => update({ hiddenEntities: hidden, deviceOverrides: overrides, forceCelsius, doorbell, groups })
+  const save = () => update({ hiddenEntities: hidden, deviceOverrides: overrides, forceCelsius, doorbells, groups })
 
   // Auto-save: persist every change ~700ms after the last edit, so nothing is
   // lost by forgetting the Save button. Skips the initial mount.
@@ -452,10 +464,10 @@ function AdminPanel({ config }: { config: AppConfig }) {
   useEffect(() => {
     if (firstRun.current) { firstRun.current = false; return }
     const t = setTimeout(() => {
-      update({ hiddenEntities: hidden, deviceOverrides: overrides, forceCelsius, doorbell, groups })
+      update({ hiddenEntities: hidden, deviceOverrides: overrides, forceCelsius, doorbells, groups })
     }, 700)
     return () => clearTimeout(t)
-  }, [hidden, overrides, forceCelsius, doorbell, groups]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [hidden, overrides, forceCelsius, doorbells, groups]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!unlocked) {
     return (
@@ -507,37 +519,51 @@ function AdminPanel({ config }: { config: AppConfig }) {
         )}
       </div>
 
-      {/* Doorbell — fullscreen alert source + camera */}
+      {/* Doorbells — multiple devices, each with its own trigger, camera and sound */}
       <div className="space-y-2 rounded-[12px] bg-black/[0.04] p-3">
-        <div className="flex items-center gap-2">
-          <Bell size={15} className="text-black/55" />
-          <span className="text-sm font-medium text-[#1d1d1f]">Campanello</span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Bell size={15} className="text-black/55" />
+            <span className="text-sm font-medium text-[#1d1d1f]">Campanelli</span>
+          </div>
+          <button
+            onClick={() => setDoorbellDraft({ id: uid('db'), name: '', entityId: '', sound: 'dingdong', volume: 1, priority: 'high', active: true })}
+            className="flex items-center gap-1 rounded-full bg-[#0066cc] px-3 py-1.5 text-xs font-semibold text-white active:scale-95"
+          >
+            <Plus size={13} /> Nuovo
+          </button>
         </div>
-        <p className="text-[11px] text-black/40">Alla pressione: video a tutto schermo 30s + riconoscimento Gemini.</p>
-        <select
-          value={doorbell.entityId ?? ''}
-          onChange={(e) => setDoorbell((d) => ({ ...d, entityId: e.target.value || undefined }))}
-          className="w-full rounded-[10px] border border-black/10 bg-white px-3 py-2.5 text-sm text-[#1d1d1f] outline-none focus:border-[#0066cc]"
-        >
-          <option value="">— Entità campanello (event/binary_sensor) —</option>
-          {doorbellOptions.map((e) => (
-            <option key={e.entity_id} value={e.entity_id}>
-              {(e.attributes?.friendly_name as string | undefined) ?? e.entity_id} · {e.entity_id}
-            </option>
-          ))}
-        </select>
-        <select
-          value={doorbell.cameraEntityId ?? ''}
-          onChange={(e) => setDoorbell((d) => ({ ...d, cameraEntityId: e.target.value || undefined }))}
-          className="w-full rounded-[10px] border border-black/10 bg-white px-3 py-2.5 text-sm text-[#1d1d1f] outline-none focus:border-[#0066cc]"
-        >
-          <option value="">— Camera della porta —</option>
-          {cameraOptions.map((e) => (
-            <option key={e.entity_id} value={e.entity_id}>
-              {(e.attributes?.friendly_name as string | undefined) ?? e.entity_id} · {e.entity_id}
-            </option>
-          ))}
-        </select>
+        {doorbells.length === 0 ? (
+          <p className="text-[11px] text-black/40">Alla pressione: video fullscreen 30s + riconoscimento Gemini + suono.</p>
+        ) : (
+          doorbells.map((d) => (
+            <div key={d.id} className="flex items-center gap-2 rounded-[10px] bg-white px-3 py-2">
+              <Bell size={15} className="shrink-0 text-black/45" />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-[#1d1d1f]">{d.name || 'Senza nome'}</p>
+                <p className="truncate text-[11px] text-black/40">{d.location ? `${d.location} · ` : ''}{d.entityId || 'nessuna entità'}</p>
+              </div>
+              <button onClick={() => setDoorbellDraft({ ...d })} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-black/8 text-black/55" aria-label="Modifica">
+                <Pencil size={13} />
+              </button>
+              <button onClick={() => deleteDoorbell(d.id)} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-500/10 text-red-500" aria-label="Elimina">
+                <Trash2 size={13} />
+              </button>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Global sound */}
+      <div className="flex items-center gap-3 rounded-[12px] bg-black/[0.04] px-3 py-2.5">
+        <button onClick={() => setMuted(!muted)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-black/8 text-black/60" aria-label={muted ? 'Riattiva audio' : 'Silenzia'}>
+          {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+        </button>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm text-[#1d1d1f]">Suoni notifiche</p>
+          <input type="range" min={0} max={1} step={0.05} value={volume} disabled={muted} onChange={(e) => setVolume(Number(e.target.value))} className="mt-1 w-full accent-[#0066cc]" />
+        </div>
+        <button onClick={() => play('dingdong', { cooldownMs: 0 })} className="shrink-0 rounded-full bg-black/8 px-3 py-1.5 text-xs font-medium text-black/60">Prova</button>
       </div>
 
       {/* Groups — merge several entities into one card */}
@@ -776,6 +802,108 @@ function AdminPanel({ config }: { config: AppConfig }) {
               className="flex w-full items-center justify-center gap-2 rounded-[14px] bg-[#0066cc] py-3 text-sm font-semibold text-white transition active:scale-95 disabled:opacity-40"
             >
               <Save size={14} /> Salva gruppo
+            </button>
+          </div>
+        )}
+      </GlassSheet>
+
+      {/* Doorbell editor */}
+      <GlassSheet open={Boolean(doorbellDraft)} onClose={() => setDoorbellDraft(null)} title="Campanello" side="right">
+        {doorbellDraft && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-black/50">Nome</label>
+                <input
+                  value={doorbellDraft.name}
+                  onChange={(e) => setDoorbellDraft((d) => (d ? { ...d, name: e.target.value } : d))}
+                  placeholder="es. Ingresso"
+                  className="w-full rounded-[12px] bg-black/8 px-3 py-3 text-sm text-[#1d1d1f] outline-none focus:bg-black/12"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-black/50">Posizione</label>
+                <input
+                  value={doorbellDraft.location ?? ''}
+                  onChange={(e) => setDoorbellDraft((d) => (d ? { ...d, location: e.target.value || undefined } : d))}
+                  placeholder="es. Cancello"
+                  className="w-full rounded-[12px] bg-black/8 px-3 py-3 text-sm text-[#1d1d1f] outline-none focus:bg-black/12"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-black/50">Entità campanello</label>
+              <select
+                value={doorbellDraft.entityId}
+                onChange={(e) => setDoorbellDraft((d) => (d ? { ...d, entityId: e.target.value } : d))}
+                className="w-full rounded-[12px] bg-black/8 px-3 py-3 text-sm text-[#1d1d1f] outline-none focus:bg-black/12"
+              >
+                <option value="">— event / binary_sensor —</option>
+                {doorbellOptions.map((e) => (
+                  <option key={e.entity_id} value={e.entity_id}>{(e.attributes?.friendly_name as string | undefined) ?? e.entity_id} · {e.entity_id}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-black/50">Camera</label>
+              <select
+                value={doorbellDraft.cameraEntityId ?? ''}
+                onChange={(e) => setDoorbellDraft((d) => (d ? { ...d, cameraEntityId: e.target.value || undefined } : d))}
+                className="w-full rounded-[12px] bg-black/8 px-3 py-3 text-sm text-[#1d1d1f] outline-none focus:bg-black/12"
+              >
+                <option value="">— nessuna —</option>
+                {cameraOptions.map((e) => (
+                  <option key={e.entity_id} value={e.entity_id}>{(e.attributes?.friendly_name as string | undefined) ?? e.entity_id} · {e.entity_id}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-black/50">Suono</label>
+                <div className="flex gap-2">
+                  <select
+                    value={doorbellDraft.sound ?? 'dingdong'}
+                    onChange={(e) => setDoorbellDraft((d) => (d ? { ...d, sound: e.target.value } : d))}
+                    className="w-full rounded-[12px] bg-black/8 px-3 py-3 text-sm text-[#1d1d1f] outline-none focus:bg-black/12"
+                  >
+                    <option value="dingdong">Ding-dong</option>
+                    <option value="chime">Chime</option>
+                    <option value="alert">Alert</option>
+                    <option value="soft">Soft</option>
+                    <option value="none">Nessuno</option>
+                  </select>
+                  <button onClick={() => play((doorbellDraft.sound as SoundPreset) ?? 'dingdong', { cooldownMs: 0 })} className="shrink-0 rounded-[12px] bg-black/8 px-3 text-xs font-medium text-black/60">▶</button>
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-black/50">Priorità</label>
+                <select
+                  value={doorbellDraft.priority ?? 'high'}
+                  onChange={(e) => setDoorbellDraft((d) => (d ? { ...d, priority: e.target.value as DoorbellDevice['priority'] } : d))}
+                  className="w-full rounded-[12px] bg-black/8 px-3 py-3 text-sm text-[#1d1d1f] outline-none focus:bg-black/12"
+                >
+                  <option value="low">Bassa</option>
+                  <option value="medium">Media</option>
+                  <option value="high">Alta</option>
+                  <option value="critical">Critica</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-black/50">Volume ({Math.round((doorbellDraft.volume ?? 1) * 100)}%)</label>
+              <input type="range" min={0} max={1} step={0.05} value={doorbellDraft.volume ?? 1} onChange={(e) => setDoorbellDraft((d) => (d ? { ...d, volume: Number(e.target.value) } : d))} className="w-full accent-[#0066cc]" />
+            </div>
+
+            <button
+              onClick={saveDoorbellDraft}
+              disabled={!doorbellDraft.name.trim() || !doorbellDraft.entityId}
+              className="flex w-full items-center justify-center gap-2 rounded-[14px] bg-[#0066cc] py-3 text-sm font-semibold text-white transition active:scale-95 disabled:opacity-40"
+            >
+              <Save size={14} /> Salva campanello
             </button>
           </div>
         )}

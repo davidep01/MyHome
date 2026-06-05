@@ -43,6 +43,7 @@ configRouter.put('/', async (c) => {
     if (body.deviceOverrides !== undefined) store.config.deviceOverrides = body.deviceOverrides
     if (body.forceCelsius !== undefined) store.config.forceCelsius = body.forceCelsius
     if (body.doorbell !== undefined) store.config.doorbell = body.doorbell
+    if (body.doorbells !== undefined) store.config.doorbells = body.doorbells
     if (body.groups !== undefined) store.config.groups = body.groups
     if (body.home !== undefined) store.config.home = body.home
     if (body.dashboardLayout !== undefined) store.config.dashboardLayout = body.dashboardLayout

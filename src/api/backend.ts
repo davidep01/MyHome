@@ -38,6 +38,7 @@ export interface AppConfig {
   deviceOverrides?: Record<string, DeviceOverride>
   forceCelsius?: boolean
   doorbell?: DoorbellSettings
+  doorbells?: DoorbellDevice[]
   groups?: EntityGroup[]
   home?: HomeConfig
   dashboardLayout?: DashboardLayout
@@ -65,6 +66,20 @@ export interface HomeConfig {
 export interface DoorbellSettings {
   entityId?: string
   cameraEntityId?: string
+}
+
+export type DoorbellPriority = 'low' | 'medium' | 'high' | 'critical'
+
+export interface DoorbellDevice {
+  id: string
+  name: string
+  location?: string
+  entityId: string
+  cameraEntityId?: string
+  sound?: string
+  volume?: number
+  priority?: DoorbellPriority
+  active?: boolean
 }
 
 export interface EntityGroup {
