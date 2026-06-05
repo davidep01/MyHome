@@ -1,0 +1,14 @@
+node_modules
+backend/node_modules
+dist
+backend/dist
+backend/data
+.git
+.github
+ha-addon
+hearth-design-system
+docs
+*.log
+.env
+.env.*
+.DS_Store

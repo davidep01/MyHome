@@ -1,0 +1,33 @@
+name: "MyHome Dashboard"
+description: "Dashboard domotica personalizzata - MyHome"
+version: "2.2.0"
+slug: "myhome_dashboard"
+init: false
+homeassistant: "2023.1.0"
+arch:
+  - aarch64
+  - armv7
+  - amd64
+image: "ghcr.io/davidep01/myhome:latest"
+ports:
+  3001/tcp: 3001
+ports_description:
+  3001/tcp: "MyHome Dashboard (web)"
+map:
+  - data
+options:
+  ha_url: "http://homeassistant.local:8123"
+  ha_token: ""
+  supabase_url: ""
+  supabase_key: ""
+  openweather_key: ""
+  gemini_key: ""
+  port: 3001
+schema:
+  ha_url: str
+  ha_token: str
+  supabase_url: str
+  supabase_key: str
+  openweather_key: str
+  gemini_key: str
+  port: int
