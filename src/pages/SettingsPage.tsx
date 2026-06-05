@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Settings, User, Wifi, Plus, Trash2,
-  ChevronRight, Save, X, Home, ShieldCheck, Eye, EyeOff, Search, Lock, Pencil, Bell, Layers, Check,
+  ChevronRight, Save, X, Home, ShieldCheck, Eye, EyeOff, Search, Lock, Pencil, Bell, Layers, Check, Monitor,
 } from 'lucide-react'
 import { GlassCard } from '../components/glass/GlassCard'
 import { GlassSheet } from '../components/glass/GlassSheet'
@@ -14,6 +14,7 @@ import { useEntityStore } from '../store/entities'
 import type { AppConfig, DeviceOverride, DoorbellSettings, EntityGroup, EntityType, Room, RoomEntity } from '../api/backend'
 import { iconExists } from '../lib/lucide'
 import { uid } from '../lib/uid'
+import { useIsDesktop } from '../hooks/useIsDesktop'
 import { DynamicIcon } from '../components/DynamicIcon'
 import { framerSpring, tokens } from '../design/tokens'
 import { cn } from '../lib/utils'
@@ -113,7 +114,7 @@ function ConnectionForm({ config }: { config: NonNullable<ReturnType<typeof useD
     <div className="space-y-4">
       <div className="rounded-[14px] bg-orange-500/10 border border-orange-500/20 p-3">
         <p className="text-xs text-orange-300 leading-relaxed">
-          In produzione usa <code className="font-mono text-orange-200">HA_URL</code> e <code className="font-mono text-orange-200">HA_TOKEN</code> su Vercel. I valori da env non sono modificabili dalla dashboard.
+          In produzione puoi impostare <code className="font-mono text-orange-200">HA_URL</code> e <code className="font-mono text-orange-200">HA_TOKEN</code> come variabili d'ambiente. I valori da env non sono modificabili dalla dashboard.
         </p>
       </div>
       {config.storage && !config.storage.writable && (
@@ -394,9 +395,9 @@ function AdminPanel({ config }: { config: AppConfig }) {
   const [query, setQuery] = useState('')
   const [hidden, setHidden] = useState<string[]>(config.hiddenEntities ?? [])
   const [overrides, setOverrides] = useState<Record<string, DeviceOverride>>(config.deviceOverrides ?? {})
-  const [forceCelsius, setForceCelsius] = useState<boolean>(config.forceCelsius ?? false)
   const [doorbell, setDoorbell] = useState<DoorbellSettings>(config.doorbell ?? {})
   const [groups, setGroups] = useState<EntityGroup[]>(config.groups ?? [])
+  const forceCelsius = true // Italy: always Celsius
   const [editId, setEditId] = useState<string | null>(null)
   const [draft, setDraft] = useState<EntityGroup | null>(null)
   const [groupQuery, setGroupQuery] = useState('')
@@ -504,14 +505,6 @@ function AdminPanel({ config }: { config: AppConfig }) {
             <Save size={13} /> {isPending ? 'Salvataggio…' : 'Salvataggio automatico'}
           </span>
         )}
-      </div>
-
-      {/* Force Celsius */}
-      <div className="flex items-center justify-between rounded-[12px] bg-black/[0.04] px-3 py-2.5">
-        <span className="text-sm text-[#1d1d1f]">Forza temperature in °C</span>
-        <div className={cn('lg-toggle', forceCelsius && 'on')} onClick={() => setForceCelsius((v) => !v)}>
-          <span className="lg-toggle-knob" />
-        </div>
       </div>
 
       {/* Doorbell — fullscreen alert source + camera */}
@@ -793,8 +786,31 @@ function AdminPanel({ config }: { config: AppConfig }) {
 
 // ── Main SettingsPage ────────────────────────────────────────────────────────
 
+function DesktopOnlyAdmin() {
+  return (
+    <div className="flex h-full items-center justify-center p-6">
+      <GlassCard className="max-w-sm space-y-4 text-center">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-[18px] bg-black/8">
+          <Monitor size={26} className="text-black/55" />
+        </div>
+        <div>
+          <p className="text-lg font-semibold text-[#1d1d1f]">Area Admin disponibile solo da desktop</p>
+          <p className="mt-1.5 text-sm text-black/50">
+            Configura widget e impostazioni da un computer collegato alla stessa dashboard.
+            Il tablet mostra la home in sola visualizzazione.
+          </p>
+        </div>
+      </GlassCard>
+    </div>
+  )
+}
+
 export function SettingsPage() {
+  const isDesktop = useIsDesktop()
   const [section, setSection] = useState<Section>('preferences')
+
+  // Functional guard: never mount the heavy admin tree on a tablet/kiosk.
+  if (!isDesktop) return <DesktopOnlyAdmin />
 
   const sections: { id: Section; label: string; icon: React.ElementType }[] = [
     { id: 'preferences', label: 'Preferenze', icon: User },

@@ -2,7 +2,6 @@ import {
   createConnection,
   createLongLivedTokenAuth,
   subscribeEntities,
-  getConfig as haGetConfig,
   callService as haCallService,
   type HassEntities,
   type Connection,
@@ -76,14 +75,6 @@ async function connectOnce(): Promise<Connection> {
     useEntityStore.getState().setConnectionStatus('connected')
     reconnectAttempt = 0
   })
-
-  // Read HA's unit system so temperatures render in the real unit (°C / °F).
-  haGetConfig(nextConnection)
-    .then((cfg) => {
-      const unit = (cfg as { unit_system?: { temperature?: string } }).unit_system?.temperature
-      if (unit) useEntityStore.getState().setTemperatureUnit(unit)
-    })
-    .catch(() => {})
 
   nextConnection.addEventListener('disconnected', () => {
     connection = null

@@ -1,9 +1,8 @@
 import { motion } from 'framer-motion'
-import { Home, LayoutGrid, Boxes, ThermometerSun, ShieldCheck, BarChart3, Pencil, CloudSun } from 'lucide-react'
+import { Home, LayoutGrid, Boxes, ThermometerSun, ShieldCheck, BarChart3, Pencil } from 'lucide-react'
 import { useUIStore, type AppView } from '../../store/ui'
 import { useEntityStore } from '../../store/entities'
 import { NotificationBell } from '../notifications/NotificationCenter'
-import { AIAssistant } from '../ai/AIAssistant'
 import { cn } from '../../lib/utils'
 
 const nav: { id: AppView; label: string; Icon: React.ElementType }[] = [
@@ -72,7 +71,6 @@ function RailButton({
 export function Sidebar() {
   const activeView = useUIStore((s) => s.activeView)
   const setActiveView = useUIStore((s) => s.setActiveView)
-  const toggleInfoPanel = useUIStore((s) => s.toggleRightPanel)
   const connectionStatus = useEntityStore((s) => s.connectionStatus)
   const connected = connectionStatus === 'connected'
 
@@ -100,10 +98,6 @@ export function Sidebar() {
       ))}
 
       <div className="mt-auto flex flex-col items-center gap-2">
-        <RailButton label="Meteo · News" onClick={toggleInfoPanel}>
-          <CloudSun size={20} />
-        </RailButton>
-        <AIAssistant />  {/* uses ai prop → gradient bg handled in AIAssistant itself */}
         <RailButton label="Impostazioni" onClick={() => setActiveView('settings')} active={activeView === 'settings'}>
           <Pencil size={18} />
         </RailButton>

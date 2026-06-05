@@ -6,6 +6,7 @@ import { useHAService } from '../../hooks/useHAService'
 import { useHaptic } from '../../hooks/useHaptic'
 import { useEntityStore } from '../../store/entities'
 import { tokens } from '../../design/tokens'
+import { TEMP_UNIT } from '../../lib/units'
 import { cn } from '../../lib/utils'
 
 const MODES: { id: string; label: string; Icon: React.ElementType }[] = [
@@ -18,7 +19,7 @@ export function ClimateDetail({ entity }: { entity: HassEntity }) {
   const { call } = useHAService()
   const { light, medium, tick } = useHaptic()
   const setOptimisticState = useEntityStore((s) => s.setOptimisticState)
-  const tempUnit = useEntityStore((s) => s.temperatureUnit)
+  const tempUnit = TEMP_UNIT
   // Live value while the wheel is being turned (HA command sent only on release).
   const [dragValue, setDragValue] = useState<number | null>(null)
 

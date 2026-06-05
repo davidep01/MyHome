@@ -1,10 +1,8 @@
-import { useEffect } from 'react'
+import { useEffect, lazy, Suspense } from 'react'
 import { Sidebar } from './Sidebar'
-import { InfoPanel } from './RightPanel'
 import { BottomTabBar } from './BottomTabBar'
 import { TabletDashboard } from '../../pages/TabletDashboard'
 import { AreasPage } from '../../pages/AreasPage'
-import { SettingsPage } from '../../pages/SettingsPage'
 import { ClimatePage } from '../../pages/ClimatePage'
 import { SecurityPage } from '../../pages/SecurityPage'
 import { EnergyPage } from '../../pages/EnergyPage'
@@ -18,12 +16,13 @@ import { useAmbientNightMode } from '../../hooks/useAmbientNightMode'
 import { usePerfMode } from '../../hooks/usePerfMode'
 import { useWakeLock } from '../../hooks/useWakeLock'
 
+// Admin/settings is heavy and desktop-only — load it on demand, not at startup.
+const SettingsPage = lazy(() => import('../../pages/SettingsPage').then((m) => ({ default: m.SettingsPage })))
+
 export function AppShell() {
   const activeView = useUIStore((s) => s.activeView)
   const selectedEntityId = useUIStore((s) => s.selectedEntityId)
   const setSelectedEntity = useUIStore((s) => s.setSelectedEntity)
-  const infoPanelOpen = useUIStore((s) => s.rightPanelOpen)
-  const toggleInfoPanel = useUIStore((s) => s.toggleRightPanel)
   const night = useAmbientNightMode()
   usePerfMode()
   useWakeLock()
@@ -34,7 +33,8 @@ export function AppShell() {
   }, [])
 
   const page =
-    activeView === 'settings' ? <SettingsPage /> :
+    activeView === 'settings'
+      ? <Suspense fallback={<div className="flex h-full items-center justify-center text-sm text-black/40">Caricamento…</div>}><SettingsPage /></Suspense> :
     activeView === 'areas' ? <AreasPage /> :
     activeView === 'climate' ? <ClimatePage /> :
     activeView === 'security' ? <SecurityPage /> :
@@ -79,10 +79,6 @@ export function AppShell() {
         {selectedEntityId && <ContextualPanel entityId={selectedEntityId} />}
       </GlassSheet>
 
-      {/* Weather + news — on-demand centered modal (was the fixed right bar) */}
-      <GlassSheet open={infoPanelOpen} onClose={toggleInfoPanel} side="center" title="Meteo · News">
-        <InfoPanel />
-      </GlassSheet>
 
       {/* Night mode dimming scrim (driven by ambient light / clock) */}
       {night && (

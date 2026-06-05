@@ -22,7 +22,7 @@ export function SensorStatCard({ entityId, label, className }: SensorStatCardPro
   const hasValue = Number.isFinite(value)
   const deviceClass = entity?.attributes?.device_class as string | undefined
   const unit = (entity?.attributes?.unit_of_measurement as string | undefined) ?? ''
-  const isTemp = deviceClass === 'temperature' || unit === '°C' || unit === '°F'
+  const isTemp = deviceClass === 'temperature' || unit === '°C'
 
   const values = (history ?? []).map((p) => Number(p.state)).filter(Number.isFinite)
   const trend = values.length > 1 ? values[values.length - 1] - values[0] : 0
@@ -31,9 +31,9 @@ export function SensorStatCard({ entityId, label, className }: SensorStatCardPro
   let lineColor = trend >= 0 ? tokens.accent.green : tokens.accent.orange
   let valueColor = tokens.text.primary
   if (isTemp && hasValue) {
-    const c = unit === '°F' ? (value - 32) * (5 / 9) : value
-    if (c >= 24) { lineColor = HOT; valueColor = HOT }
-    else if (c <= 18) { lineColor = COLD; valueColor = COLD }
+    // Celsius only (Italy): hot ≥ 24°, cold ≤ 18°.
+    if (value >= 24) { lineColor = HOT; valueColor = HOT }
+    else if (value <= 18) { lineColor = COLD; valueColor = COLD }
   }
 
   return (

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { Plus, Check, Pencil, X } from 'lucide-react'
 import { useDashboardConfig, useUpdateConfig } from '../../../hooks/useDashboardConfig'
 import { useUIStore } from '../../../store/ui'
+import { useIsDesktop } from '../../../hooks/useIsDesktop'
 import { HomeWidgetView } from './HomeWidgetView'
 import { WidgetPicker } from './WidgetPicker'
 import { SIZE_WH } from './widgetCatalog'
@@ -54,10 +55,14 @@ function useElementWidth() {
 export function WidgetHome() {
   const { data: config } = useDashboardConfig()
   const { mutate: update } = useUpdateConfig()
-  const editMode = useUIStore((s) => s.editMode)
+  const isDesktop = useIsDesktop()
+  const editModeRaw = useUIStore((s) => s.editMode)
   const setEditMode = useUIStore((s) => s.setEditMode)
   const { ref, width } = useElementWidth()
   const [pickerOpen, setPickerOpen] = useState(false)
+
+  // Editing is desktop-only; tablets/kiosk are strictly view-only.
+  const editMode = isDesktop && editModeRaw
 
   const widgets = config?.home?.widgets ?? DEFAULT_WIDGETS
   const positions = useMemo(() => config?.home?.positions ?? {}, [config?.home?.positions])
@@ -80,21 +85,23 @@ export function WidgetHome() {
 
   return (
     <div className="flex h-full flex-col">
-      {/* Toolbar */}
-      <div className="mb-3 flex shrink-0 items-center justify-end gap-2 px-0.5">
-        <button
-          onClick={() => setPickerOpen(true)}
-          className="flex items-center gap-1.5 rounded-full bg-black/[0.06] px-3.5 py-2 text-sm font-medium text-[#1d1d1f] transition active:scale-95 hover:bg-black/10"
-        >
-          <Plus size={15} /> Aggiungi widget
-        </button>
-        <button
-          onClick={() => setEditMode(!editMode)}
-          className={cnEdit(editMode)}
-        >
-          {editMode ? <><Check size={15} /> Fatto</> : <><Pencil size={14} /> Modifica</>}
-        </button>
-      </div>
+      {/* Toolbar — desktop only (tablets/kiosk are view-only) */}
+      {isDesktop && (
+        <div className="mb-3 flex shrink-0 items-center justify-end gap-2 px-0.5">
+          <button
+            onClick={() => setPickerOpen(true)}
+            className="flex items-center gap-1.5 rounded-full bg-black/[0.06] px-3.5 py-2 text-sm font-medium text-[#1d1d1f] transition active:scale-95 hover:bg-black/10"
+          >
+            <Plus size={15} /> Aggiungi widget
+          </button>
+          <button
+            onClick={() => setEditMode(!editMode)}
+            className={cnEdit(editMode)}
+          >
+            {editMode ? <><Check size={15} /> Fatto</> : <><Pencil size={14} /> Modifica</>}
+          </button>
+        </div>
+      )}
 
       <div ref={ref} className="min-h-0 flex-1 overflow-y-auto pr-1">
         {width > 0 && (

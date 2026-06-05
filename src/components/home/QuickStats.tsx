@@ -2,7 +2,7 @@ import { Lightbulb, Thermometer, Blinds, Power } from 'lucide-react'
 import { useHomeSummary } from '../../hooks/useHomeSummary'
 import { useHAService } from '../../hooks/useHAService'
 import { useHaptic } from '../../hooks/useHaptic'
-import { useEntityStore } from '../../store/entities'
+import { TEMP_UNIT } from '../../lib/units'
 import { CountUp } from '../anim/CountUp'
 import { LiveDot } from '../anim/LiveDot'
 
@@ -14,7 +14,6 @@ export function QuickStats() {
   const { lightsOn, lightIds, climateActive, coversOpen, avgIndoorTemp } = useHomeSummary()
   const { call } = useHAService()
   const { medium } = useHaptic()
-  const tempUnit = useEntityStore((s) => s.temperatureUnit)
 
   const allLightsOff = () => {
     if (lightIds.length === 0) return
@@ -45,7 +44,7 @@ export function QuickStats() {
       {avgIndoorTemp !== null && (
         <div className="flex items-center gap-2 rounded-full bg-black/[0.05] py-2.5 px-3.5 text-[15px] font-medium text-black/70">
           <Thermometer size={17} className="text-[#0066cc]" />
-          <CountUp value={avgIndoorTemp} decimals={1} suffix={tempUnit} className="tabular-nums" />
+          <CountUp value={avgIndoorTemp} decimals={1} suffix={TEMP_UNIT} className="tabular-nums" />
           <span className="text-black/40">in casa</span>
         </div>
       )}
