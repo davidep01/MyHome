@@ -4,7 +4,13 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  define: {
+    'process.env': JSON.stringify({
+      NODE_ENV: mode === 'production' ? 'production' : 'development',
+      DRAGGABLE_DEBUG: false,
+    }),
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
@@ -47,4 +53,4 @@ export default defineConfig({
       },
     },
   },
-})
+}))
