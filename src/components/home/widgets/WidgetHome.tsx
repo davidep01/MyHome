@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import ReactGridLayout, { WidthProvider, type Layout, type LayoutItem } from 'react-grid-layout/legacy'
 import 'react-grid-layout/css/styles.css'
-import { Plus, Check, Pencil, X, Maximize2, GripVertical } from 'lucide-react'
+import { Plus, Check, Pencil, X, Maximize2, GripVertical, RotateCcw } from 'lucide-react'
 import { useDashboardConfig, useUpdateConfig } from '../../../hooks/useDashboardConfig'
 import { useUIStore } from '../../../store/ui'
 import { useIsDesktop } from '../../../hooks/useIsDesktop'
@@ -151,6 +151,10 @@ export function WidgetHome() {
     persist(nextWidgets, buildLayout(nextWidgets, positions))
   }
   const persistDraggedLayout = (nextLayout: Layout) => persist(widgets, buildLayout(widgets, positionsFromLayout(nextLayout)))
+  const resetHome = () => {
+    // Clean reset: default widgets + fresh auto-layout (clears any stale positions).
+    update({ home: { widgets: DEFAULT_WIDGETS, positions: positionsFromLayout(buildLayout(DEFAULT_WIDGETS, {})) } })
+  }
 
   return (
     <div className="flex h-full flex-col">
@@ -163,6 +167,14 @@ export function WidgetHome() {
           >
             <Plus size={15} /> Aggiungi widget
           </button>
+          {editMode && (
+            <button
+              onClick={() => { if (window.confirm('Ripristinare la home predefinita? I widget attuali verranno sostituiti.')) resetHome() }}
+              className="flex items-center gap-1.5 rounded-full bg-black/[0.06] px-3.5 py-2 text-sm font-medium text-black/60 transition active:scale-95 hover:text-[#1d1d1f]"
+            >
+              <RotateCcw size={14} /> Ripristina
+            </button>
+          )}
           <button onClick={() => setEditMode(!editMode)} className={cnEdit(editMode)}>
             {editMode ? <><Check size={15} /> Fatto</> : <><Pencil size={14} /> Modifica</>}
           </button>
