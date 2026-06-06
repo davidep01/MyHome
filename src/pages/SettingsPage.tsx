@@ -11,6 +11,7 @@ import {
   useRooms, useCreateRoom, useDeleteRoom, useAddEntity, useRemoveEntity,
 } from '../hooks/useRooms'
 import { useEntityStore } from '../store/entities'
+import { useThemeStore } from '../store/theme'
 import type { AppConfig, DeviceOverride, DoorbellDevice, EntityGroup, EntityType, Room, RoomEntity } from '../api/backend'
 import { iconExists } from '../lib/lucide'
 import { uid } from '../lib/uid'
@@ -55,7 +56,75 @@ function PreferencesSection() {
   const { data: config } = useDashboardConfig()
   if (!config) return <p className="text-sm text-black/40">Caricamento...</p>
 
-  return <PreferencesForm key={`${config.userName}:${config.dashboardName}:${config.weatherCity}:${config.newsFeedUrl}`} config={config} />
+  return (
+    <div className="space-y-5">
+      <PreferencesForm key={`${config.userName}:${config.dashboardName}:${config.weatherCity}:${config.newsFeedUrl}`} config={config} />
+      <ThemeSensorSettings />
+    </div>
+  )
+}
+
+const SENSOR_LABEL: Record<string, string> = {
+  active: 'Attivo',
+  unsupported: 'Non supportato',
+  permission_denied: 'Permesso negato',
+  error: 'Errore',
+  disabled: 'Disattivato',
+}
+
+/** "Sensori tablet" — theme mode + ambient light sensor status. */
+function ThemeSensorSettings() {
+  const themeMode = useThemeStore((s) => s.themeMode)
+  const setThemeMode = useThemeStore((s) => s.setThemeMode)
+  const sensorState = useThemeStore((s) => s.sensorState)
+  const lastLux = useThemeStore((s) => s.lastLux)
+  const source = useThemeStore((s) => s.source)
+
+  const modes: { id: 'auto' | 'light' | 'dark'; label: string }[] = [
+    { id: 'auto', label: 'Auto' }, { id: 'light', label: 'Chiaro' }, { id: 'dark', label: 'Scuro' },
+  ]
+
+  return (
+    <div className="space-y-3 rounded-[14px] border border-black/10 bg-black/[0.03] p-3">
+      <p className="text-sm font-semibold text-[#1d1d1f]">Sensori tablet</p>
+
+      <div className="space-y-1.5">
+        <label className="text-xs font-medium text-black/50">Tema</label>
+        <div className="flex gap-2">
+          {modes.map((m) => (
+            <button
+              key={m.id}
+              onClick={() => setThemeMode(m.id)}
+              className={cn(
+                'flex-1 rounded-[12px] py-2.5 text-sm font-medium transition',
+                themeMode === m.id ? 'bg-[#0066cc] text-white' : 'bg-black/[0.06] text-black/60',
+              )}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
+        <p className="text-[11px] text-black/40">
+          In Auto, su tablet il tema segue la luce ambientale (scuro &lt;20 lux, chiaro &gt;45 lux); su desktop segue il sistema.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-3 gap-2 text-center">
+        <div className="rounded-[10px] bg-white px-2 py-2">
+          <p className="text-[10px] uppercase tracking-wide text-black/35">Sensore</p>
+          <p className="mt-0.5 text-xs font-semibold text-black/70">{SENSOR_LABEL[sensorState] ?? sensorState}</p>
+        </div>
+        <div className="rounded-[10px] bg-white px-2 py-2">
+          <p className="text-[10px] uppercase tracking-wide text-black/35">Lux</p>
+          <p className="mt-0.5 text-xs font-semibold text-black/70 tabular-nums">{lastLux ?? '—'}</p>
+        </div>
+        <div className="rounded-[10px] bg-white px-2 py-2">
+          <p className="text-[10px] uppercase tracking-wide text-black/35">Origine</p>
+          <p className="mt-0.5 text-xs font-semibold text-black/70">{source}</p>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 function PreferencesForm({ config }: { config: NonNullable<ReturnType<typeof useDashboardConfig>['data']> }) {

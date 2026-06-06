@@ -301,6 +301,23 @@ html, body, #root {
 .press-card:active { transform: scale(0.985); }
 
 /* ============================================================================
+   Dark mode — driven by useAutoTheme (ambient light on tablet, prefers-color-scheme,
+   or manual). The light glass surfaces are kept; a soft scrim dims the screen so a
+   wall tablet isn't blinding in a dark room. One fixed overlay, transform/opacity
+   only, frozen under reduced-motion via the global rule.
+   ============================================================================ */
+html.dark { color-scheme: dark; }
+html.dark::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 6, 20, 0.46);
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 80;
+}
+
+/* ============================================================================
    Ambient kiosk animations — always-on, slow, GPU-cheap (transform/opacity only).
    Applied to small inner decorative elements, never to the frosted card
    container (animating a backdrop-filter element re-renders the blur per frame).

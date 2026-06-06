@@ -19,9 +19,10 @@ import { ContextualPanel } from '../contextual/ContextualPanel'
 import { ConnectionOverlay } from '../system/ConnectionOverlay'
 import { DoorbellAlert } from '../system/DoorbellAlert'
 import { LiveActivityBar } from '../live/LiveActivityBar'
-import { useAmbientNightMode } from '../../hooks/useAmbientNightMode'
 import { usePerfMode } from '../../hooks/usePerfMode'
 import { useWakeLock } from '../../hooks/useWakeLock'
+import { useConfigSync } from '../../hooks/useConfigSync'
+import { useAutoTheme } from '../../hooks/useAutoTheme'
 
 // Admin/settings is heavy — load it on demand, not at startup.
 const SettingsPage = lazy(() => import('../../pages/SettingsPage').then((m) => ({ default: m.SettingsPage })))
@@ -30,9 +31,10 @@ export function AppShell() {
   const activeView = useUIStore((s) => s.activeView)
   const selectedEntityId = useUIStore((s) => s.selectedEntityId)
   const setSelectedEntity = useUIStore((s) => s.setSelectedEntity)
-  const night = useAmbientNightMode()
   usePerfMode()
   useWakeLock()
+  useConfigSync()
+  useAutoTheme()
 
   useEffect(() => {
     connectHA().catch(console.error)
@@ -95,15 +97,6 @@ export function AppShell() {
         {selectedEntityId && <ContextualPanel entityId={selectedEntityId} />}
       </GlassSheet>
 
-
-      {/* Night mode dimming scrim (driven by ambient light / clock) */}
-      {night && (
-        <div
-          className="pointer-events-none fixed inset-0 z-[80] transition-opacity duration-700"
-          style={{ background: 'rgba(8,6,20,0.34)', mixBlendMode: 'multiply' }}
-          aria-hidden="true"
-        />
-      )}
 
       {/* HA-down fullscreen overlay (auto-dismisses on reconnect) */}
       <ConnectionOverlay />

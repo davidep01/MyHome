@@ -1,9 +1,36 @@
 import { Hono } from 'hono'
+import { streamSSE } from 'hono/streaming'
 import { db } from '../db/client.js'
 import type { AppConfig } from '../db/types.js'
 import { getHAConfig } from '../lib/ha-config.js'
+import { configEvents, emitConfigChange } from '../lib/configEvents.js'
 
 export const configRouter = new Hono()
+
+// Live config stream — every client subscribes and refetches on a change,
+// so a global dashboard edit on one device propagates to all devices live.
+configRouter.get('/stream', (c) =>
+  streamSSE(c, async (stream) => {
+    let pending = false
+    let closed = false
+    const onChange = () => { pending = true }
+    configEvents.on('change', onChange)
+    stream.onAbort(() => { closed = true })
+
+    await stream.writeSSE({ event: 'ready', data: 'ok' })
+    try {
+      while (!closed) {
+        if (pending) {
+          pending = false
+          await stream.writeSSE({ event: 'config', data: String(Date.now()) })
+        }
+        await stream.sleep(1000) // poll the change flag + act as heartbeat
+      }
+    } finally {
+      configEvents.off('change', onChange)
+    }
+  }),
+)
 
 configRouter.get('/', async (c) => {
   const { config } = await db.read()
@@ -55,5 +82,6 @@ configRouter.put('/', async (c) => {
     if (body.dashboardLayout !== undefined) store.config.dashboardLayout = body.dashboardLayout
   })
   if (!ok) return c.json({ error: 'Configuration could not be saved' }, 500)
+  emitConfigChange() // notify all connected clients to refetch
   return c.json({ ok: true })
 })
