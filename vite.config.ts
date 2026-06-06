@@ -10,6 +10,8 @@ export default defineConfig(({ mode }) => ({
       NODE_ENV: mode === 'production' ? 'production' : 'development',
       DRAGGABLE_DEBUG: false,
     }),
+    // Build version (matches the add-on version) so a stale bundle is visible.
+    __APP_VERSION__: JSON.stringify(process.env.GITHUB_RUN_NUMBER ? `2.2.${process.env.GITHUB_RUN_NUMBER}` : 'dev'),
   },
   resolve: {
     alias: {

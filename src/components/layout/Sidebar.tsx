@@ -108,6 +108,7 @@ export function Sidebar() {
           <Settings2 size={18} />
         </RailButton>
         <NotificationBell />
+        <span className="select-none text-[9px] font-medium tabular-nums text-black/25" title="Versione build">v{__APP_VERSION__}</span>
       </div>
     </nav>
   )

@@ -36,6 +36,10 @@ if (existsSync(DIST)) {
     },
   }))
   app.get('*', (c) => {
+    // Never let the SPA fallback answer an API path with HTML — an unmatched
+    // /api/* route must return a clean 404, not index.html (which would break
+    // EventSource/fetch consumers expecting JSON or text/event-stream).
+    if (c.req.path.startsWith('/api/')) return c.json({ error: 'Not found' }, 404)
     return c.html(`<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=/"></head></html>`)
   })
 }
