@@ -10,8 +10,11 @@ export const configRouter = new Hono()
 // Live config stream — every client subscribes and refetches on a change, so a
 // global dashboard edit on one device propagates to all devices instantly.
 // Event-driven (no polling): a change wakes the waiter and is pushed immediately.
-configRouter.get('/stream', (c) =>
-  streamSSE(c, async (stream) => {
+configRouter.get('/stream', (c) => {
+  // Prevent any intermediary (WebView/proxy) from buffering the event stream.
+  c.header('Cache-Control', 'no-cache, no-transform')
+  c.header('X-Accel-Buffering', 'no')
+  return streamSSE(c, async (stream) => {
     let closed = false
     let dirty = false
     let wake: (() => void) | null = null
@@ -38,8 +41,8 @@ configRouter.get('/stream', (c) =>
     } finally {
       configEvents.off('change', onChange)
     }
-  }),
-)
+  })
+})
 
 configRouter.get('/', async (c) => {
   const { config } = await db.read()

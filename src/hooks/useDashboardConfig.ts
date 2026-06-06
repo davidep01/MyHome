@@ -5,7 +5,14 @@ export function useDashboardConfig() {
   return useQuery({
     queryKey: ['config'],
     queryFn: configApi.get,
-    staleTime: Infinity,
+    // One global dashboard for every device: SSE pushes changes instantly, and
+    // this short polling guarantees convergence even if the SSE stream is
+    // blocked/buffered in some environment (kiosk WebView, proxy…).
+    staleTime: 2000,
+    refetchInterval: 4000,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   })
 }
 
