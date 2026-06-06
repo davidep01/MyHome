@@ -7,24 +7,33 @@ import { configEvents, emitConfigChange } from '../lib/configEvents.js'
 
 export const configRouter = new Hono()
 
-// Live config stream — every client subscribes and refetches on a change,
-// so a global dashboard edit on one device propagates to all devices live.
+// Live config stream — every client subscribes and refetches on a change, so a
+// global dashboard edit on one device propagates to all devices instantly.
+// Event-driven (no polling): a change wakes the waiter and is pushed immediately.
 configRouter.get('/stream', (c) =>
   streamSSE(c, async (stream) => {
-    let pending = false
     let closed = false
-    const onChange = () => { pending = true }
+    let dirty = false
+    let wake: (() => void) | null = null
+    const onChange = () => { dirty = true; wake?.() }
     configEvents.on('change', onChange)
-    stream.onAbort(() => { closed = true })
+    stream.onAbort(() => { closed = true; wake?.() })
 
     await stream.writeSSE({ event: 'ready', data: 'ok' })
     try {
       while (!closed) {
-        if (pending) {
-          pending = false
+        if (dirty) {
+          dirty = false
           await stream.writeSSE({ event: 'config', data: String(Date.now()) })
+          continue
         }
-        await stream.sleep(1000) // poll the change flag + act as heartbeat
+        // Sleep until a change wakes us, with a 25s heartbeat to keep the
+        // connection (and any proxy) alive.
+        await new Promise<void>((resolve) => {
+          const t = setTimeout(resolve, 25_000)
+          wake = () => { clearTimeout(t); wake = null; resolve() }
+        })
+        if (!closed && !dirty) await stream.writeSSE({ event: 'ping', data: '' })
       }
     } finally {
       configEvents.off('change', onChange)
