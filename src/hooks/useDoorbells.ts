@@ -1,5 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect --
-   The active ring is driven by the live entity stream (rising-edge detection). */
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useEntityStore } from '../store/entities'
 import { useDashboardConfig } from './useDashboardConfig'
@@ -23,10 +21,10 @@ interface ActiveRing {
  * doorbell's sound. `event.*` entities ring on any state change (timestamp);
  * other domains ring on entering an active state.
  */
-export function useDoorbells() {
-  const { data: config } = useDashboardConfig()
+export function useDoorbells(deviceOverride?: DoorbellDevice[]) {
+  const { data: config } = useDashboardConfig(deviceOverride === undefined)
   const entities = useEntityStore((s) => s.entities)
-  const devices = useMemo(() => normalizeDoorbells(config), [config])
+  const devices = useMemo(() => deviceOverride ?? normalizeDoorbells(config), [config, deviceOverride])
   const { play } = useSoundNotifications()
   const pushEvent = useDoorbellEvents((s) => s.push)
 

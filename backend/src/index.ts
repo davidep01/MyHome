@@ -2,7 +2,7 @@ import { serve } from '@hono/node-server'
 import { serveStatic } from '@hono/node-server/serve-static'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { networkInterfaces } from 'node:os'
 import { app } from './app.js'
 
@@ -40,7 +40,7 @@ if (existsSync(DIST)) {
     // /api/* route must return a clean 404, not index.html (which would break
     // EventSource/fetch consumers expecting JSON or text/event-stream).
     if (c.req.path.startsWith('/api/')) return c.json({ error: 'Not found' }, 404)
-    return c.html(`<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=/"></head></html>`)
+    return c.html(readFileSync(join(DIST, 'index.html'), 'utf-8'))
   })
 }
 

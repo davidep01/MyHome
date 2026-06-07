@@ -1,7 +1,8 @@
-import { useEffect, lazy, Suspense } from 'react'
+import { useEffect, lazy, Suspense, useState } from 'react'
 import { Sidebar } from './Sidebar'
 import { BottomTabBar } from './BottomTabBar'
 import { TabletDashboard } from '../../pages/TabletDashboard'
+import { BackendHomePage } from '../../pages/BackendHomePage'
 import { AreasPage } from '../../pages/AreasPage'
 import { LightsPage } from '../../pages/LightsPage'
 import { ClimatePage } from '../../pages/ClimatePage'
@@ -12,7 +13,7 @@ import { AutomationsPage } from '../../pages/AutomationsPage'
 import { MediaPage } from '../../pages/MediaPage'
 import { WaterPage } from '../../pages/WaterPage'
 import { SystemPage } from '../../pages/SystemPage'
-import { connectHA, disconnectHA } from '../../api/ha-websocket'
+import { connectHA, connectHAProxy, disconnectHA, disconnectHAProxy } from '../../api/ha-websocket'
 import { useUIStore } from '../../store/ui'
 import { GlassSheet } from '../glass/GlassSheet'
 import { ContextualPanel } from '../contextual/ContextualPanel'
@@ -23,16 +24,56 @@ import { usePerfMode } from '../../hooks/usePerfMode'
 import { useWakeLock } from '../../hooks/useWakeLock'
 import { useConfigSync } from '../../hooks/useConfigSync'
 import { useAutoTheme } from '../../hooks/useAutoTheme'
+import { useIsDesktop } from '../../hooks/useIsDesktop'
+import { useTabletLayout } from '../../hooks/useTabletLayout'
 
 // Admin/settings is heavy — load it on demand, not at startup.
 const SettingsPage = lazy(() => import('../../pages/SettingsPage').then((m) => ({ default: m.SettingsPage })))
 
 export function AppShell() {
+  const path = usePathname()
+  const isDesktop = useIsDesktop()
+  const backendPath = isBackendPath(path)
+  const kioskPath = isKioskPath(path)
+
+  if (backendPath && !isDesktop) return <DesktopOnlyMessage />
+  if (kioskPath || !isDesktop) return <KioskShell />
+  return <DesktopShell />
+}
+
+function usePathname() {
+  const [path, setPath] = useState(() => window.location.pathname)
+  useEffect(() => {
+    const onPop = () => setPath(window.location.pathname)
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [])
+  return path
+}
+
+function isBackendPath(path: string) {
+  return path === '/backend' || path === '/admin' || path.startsWith('/backend/') || path.startsWith('/admin/') || path === '/settings'
+}
+
+function isKioskPath(path: string) {
+  return path === '/kiosk' || path === '/tablet' || path === '/dashboard' || path.startsWith('/kiosk/') || path.startsWith('/tablet/')
+}
+
+function DesktopOnlyMessage() {
+  return (
+    <div className="flex h-full w-full items-center justify-center bg-[#f5f5f7] px-6 text-center">
+      <div className="rounded-[18px] border border-black/10 bg-white/75 px-6 py-5 shadow-sm">
+        <p className="text-lg font-semibold text-[#1d1d1f]">Pannello disponibile solo da desktop.</p>
+      </div>
+    </div>
+  )
+}
+
+function DesktopShell() {
   const activeView = useUIStore((s) => s.activeView)
   const selectedEntityId = useUIStore((s) => s.selectedEntityId)
   const setSelectedEntity = useUIStore((s) => s.setSelectedEntity)
   usePerfMode()
-  useWakeLock()
   useConfigSync()
   useAutoTheme()
 
@@ -54,7 +95,7 @@ export function AppShell() {
     activeView === 'media' ? <MediaPage /> :
     activeView === 'water' ? <WaterPage /> :
     activeView === 'system' ? <SystemPage /> :
-    <TabletDashboard />
+    <BackendHomePage />
 
   return (
     <div className="relative flex h-full w-full overflow-hidden">
@@ -105,4 +146,75 @@ export function AppShell() {
       <DoorbellAlert />
     </div>
   )
+}
+
+function KioskShell() {
+  const selectedEntityId = useUIStore((s) => s.selectedEntityId)
+  const setSelectedEntity = useUIStore((s) => s.setSelectedEntity)
+  const { data: layout } = useTabletLayout('home')
+  usePerfMode()
+  useWakeLock()
+  useAutoTheme()
+  useKioskDocumentMode()
+  useKioskIdleDimming()
+
+  useEffect(() => {
+    connectHAProxy().catch(() => {})
+    return () => disconnectHAProxy()
+  }, [])
+
+  return (
+    <div className="kiosk-root relative h-full w-full overflow-hidden bg-[#f5f5f7]">
+      <TabletDashboard />
+
+      <GlassSheet
+        open={Boolean(selectedEntityId)}
+        onClose={() => setSelectedEntity(null)}
+        side="center"
+        hideHeader
+      >
+        {selectedEntityId && <ContextualPanel entityId={selectedEntityId} />}
+      </GlassSheet>
+
+      <DoorbellAlert kiosk doorbells={layout?.doorbells ?? []} />
+    </div>
+  )
+}
+
+function useKioskDocumentMode() {
+  useEffect(() => {
+    document.documentElement.classList.add('kiosk-mode')
+    const prevent = (event: TouchEvent) => {
+      if (event.touches.length > 1) event.preventDefault()
+    }
+    document.addEventListener('touchmove', prevent, { passive: false })
+    return () => {
+      document.documentElement.classList.remove('kiosk-mode')
+      document.removeEventListener('touchmove', prevent)
+    }
+  }, [])
+}
+
+function useKioskIdleDimming() {
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | null = null
+    const markActive = () => {
+      document.documentElement.classList.remove('kiosk-idle')
+      if (timer) clearTimeout(timer)
+      timer = setTimeout(() => {
+        document.documentElement.classList.add('kiosk-idle')
+      }, 180_000)
+    }
+    markActive()
+    window.addEventListener('pointerdown', markActive)
+    window.addEventListener('pointermove', markActive)
+    window.addEventListener('keydown', markActive)
+    return () => {
+      if (timer) clearTimeout(timer)
+      document.documentElement.classList.remove('kiosk-idle')
+      window.removeEventListener('pointerdown', markActive)
+      window.removeEventListener('pointermove', markActive)
+      window.removeEventListener('keydown', markActive)
+    }
+  }, [])
 }

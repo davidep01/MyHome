@@ -3,8 +3,6 @@ import { useDashboardConfig } from '../../../hooks/useDashboardConfig'
 import { DOMAIN_TYPE } from '../../../hooks/useDiscoveredEntities'
 import { EntityCard } from '../../widgets/WidgetGrid'
 import { GroupCard } from '../../widgets/GroupCard'
-import { SensorStatCard } from '../../widgets/SensorStatCard'
-import { CameraCard } from '../../widgets/CameraCard'
 import { WeatherWidget } from '../../weather/WeatherWidget'
 import { GlassCard } from '../../glass/GlassCard'
 import { QuickStats } from '../QuickStats'
@@ -18,12 +16,16 @@ import { SystemStatusWidget } from './SystemStatusWidget'
 import { QuickInsightWidget } from './QuickInsightWidget'
 import { CalendarWidget } from './CalendarWidget'
 import { AnimatedCard } from '../../anim/AnimatedCard'
-import type { EntityType, HomeWidget, RoomEntity } from '../../../api/backend'
+import type { EntityType, HomeWidget, RoomEntity, TabletDashboardLayout } from '../../../api/backend'
+import { widgetVisualSizeFromHomeSize } from '../../widgets/utils/getWidgetSizeConfig'
+
+type PublicWidgetConfig = Pick<TabletDashboardLayout, 'deviceOverrides' | 'groups' | 'userName'>
 
 /** Build a RoomEntity for a bare entity id, honouring admin overrides. */
-function useRoomEntity(entityId?: string): RoomEntity | null {
+function useRoomEntity(entityId?: string, publicConfig?: PublicWidgetConfig): RoomEntity | null {
   const entities = useEntityStore((s) => s.entities)
-  const { data: config } = useDashboardConfig()
+  const { data: fullConfig } = useDashboardConfig(!publicConfig)
+  const config = publicConfig ?? fullConfig
   if (!entityId) return null
   const e = entities[entityId]
   const ov = config?.deviceOverrides?.[entityId]
@@ -48,12 +50,14 @@ function MissingWidget({ text }: { text: string }) {
   )
 }
 
-export function HomeWidgetView({ widget }: { widget: HomeWidget }) {
-  const { data: config } = useDashboardConfig()
-  const roomEntity = useRoomEntity(widget.entityId)
+export function HomeWidgetView({ widget, publicConfig }: { widget: HomeWidget; publicConfig?: PublicWidgetConfig }) {
+  const { data: fullConfig } = useDashboardConfig(!publicConfig)
+  const config = publicConfig ?? fullConfig
+  const roomEntity = useRoomEntity(widget.entityId, publicConfig)
+  const visualSize = widgetVisualSizeFromHomeSize(widget.size)
 
   switch (widget.type) {
-    case 'clock': return <ClockWidget size={widget.size} />
+    case 'clock': return <ClockWidget size={widget.size} userName={config?.userName} />
     case 'status': return <StatusWidget />
     case 'security': return <SecurityWidget size={widget.size} />
     case 'system': return <SystemStatusWidget />
@@ -70,18 +74,18 @@ export function HomeWidgetView({ widget }: { widget: HomeWidget }) {
       return <AnimatedCard ambient="drift" index={2} ambientColor="rgba(41,151,255,0.12)" noPadding className="h-full"><div className="h-full overflow-hidden p-[14px]"><WeatherWidget /></div></AnimatedCard>
     case 'sensor':
       return roomEntity
-        ? <SensorStatCard entityId={roomEntity.entityId} label={roomEntity.label} className="h-full" />
+        ? <EntityCard entity={roomEntity} size={visualSize} />
         : <MissingWidget text="Sensore non impostato" />
     case 'camera':
       return roomEntity
-        ? <CameraCard entityId={roomEntity.entityId} label={roomEntity.label} className="h-full" />
+        ? <EntityCard entity={roomEntity} size={visualSize} />
         : <MissingWidget text="Camera non impostata" />
     case 'group': {
       const group = config?.groups?.find((g) => g.id === widget.groupId)
       return group ? <GroupCard group={group} className="h-full" /> : <MissingWidget text="Gruppo non impostato" />
     }
     case 'entity':
-      return roomEntity ? <EntityCard entity={roomEntity} /> : <MissingWidget text="Dispositivo non impostato" />
+      return roomEntity ? <EntityCard entity={roomEntity} size={visualSize} /> : <MissingWidget text="Dispositivo non impostato" />
     default:
       return <MissingWidget text="Widget sconosciuto" />
   }

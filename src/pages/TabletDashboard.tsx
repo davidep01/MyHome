@@ -1,10 +1,10 @@
-import { WidgetHome } from '../components/home/widgets/WidgetHome'
+import { KioskWidgetHome } from '../components/home/widgets/KioskWidgetHome'
 
-/** The home is a single iOS-style widget canvas: add/configure/arrange widgets. */
+/** Tablet/kiosk home: operational dashboard; only layout arrangement is editable. */
 export function TabletDashboard() {
   return (
     <div className="h-full overflow-hidden">
-      <WidgetHome />
+      <KioskWidgetHome />
     </div>
   )
 }

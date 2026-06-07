@@ -1,7 +1,10 @@
 import { Hono } from 'hono'
 import { db } from '../db/client.js'
+import { desktopOnly } from '../lib/security.js'
 
 export const roomsRouter = new Hono()
+
+roomsRouter.use('*', desktopOnly)
 
 // GET /api/rooms — all rooms with their entities, sorted
 roomsRouter.get('/', async (c) => {

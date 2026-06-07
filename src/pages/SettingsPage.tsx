@@ -469,7 +469,6 @@ function AdminPanel({ config }: { config: AppConfig }) {
   const [doorbells, setDoorbells] = useState<DoorbellDevice[]>(() => config.doorbells ?? normalizeDoorbells(config))
   const [doorbellDraft, setDoorbellDraft] = useState<DoorbellDevice | null>(null)
   const [groups, setGroups] = useState<EntityGroup[]>(config.groups ?? [])
-  const [advancedMode, setAdvancedMode] = useState<boolean>(config.advancedMode ?? false)
   const forceCelsius = true // Italy: always Celsius
   const { muted, volume, setMuted, setVolume, play } = useSoundNotifications()
 
@@ -525,7 +524,7 @@ function AdminPanel({ config }: { config: AppConfig }) {
       return { ...o, [id]: next }
     })
 
-  const save = () => update({ hiddenEntities: hidden, deviceOverrides: overrides, forceCelsius, advancedMode, doorbells, groups })
+  const save = () => update({ hiddenEntities: hidden, deviceOverrides: overrides, forceCelsius, doorbells, groups })
 
   // Auto-save: persist every change ~700ms after the last edit, so nothing is
   // lost by forgetting the Save button. Skips the initial mount.
@@ -533,10 +532,10 @@ function AdminPanel({ config }: { config: AppConfig }) {
   useEffect(() => {
     if (firstRun.current) { firstRun.current = false; return }
     const t = setTimeout(() => {
-      update({ hiddenEntities: hidden, deviceOverrides: overrides, forceCelsius, advancedMode, doorbells, groups })
+      update({ hiddenEntities: hidden, deviceOverrides: overrides, forceCelsius, doorbells, groups })
     }, 700)
     return () => clearTimeout(t)
-  }, [hidden, overrides, forceCelsius, advancedMode, doorbells, groups]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [hidden, overrides, forceCelsius, doorbells, groups]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!unlocked) {
     return (
@@ -586,17 +585,6 @@ function AdminPanel({ config }: { config: AppConfig }) {
             <Save size={13} /> {isPending ? 'Salvataggio…' : 'Salvataggio automatico'}
           </span>
         )}
-      </div>
-
-      {/* Advanced mode — admin-only preferences; unlocks tablet widget editing. */}
-      <div className="flex items-center justify-between gap-3 rounded-[12px] bg-black/[0.04] px-3 py-2.5">
-        <div className="min-w-0">
-          <p className="text-sm font-medium text-[#1d1d1f]">Modalità avanzata</p>
-          <p className="text-[11px] text-black/45">Abilita la modifica widget anche su tablet. Su mobile stretto resta bloccata.</p>
-        </div>
-        <div className={cn('lg-toggle shrink-0', advancedMode && 'on')} onClick={() => setAdvancedMode((v) => !v)}>
-          <span className="lg-toggle-knob" />
-        </div>
       </div>
 
       {/* Doorbells — multiple devices, each with its own trigger, camera and sound */}

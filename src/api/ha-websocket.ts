@@ -4,6 +4,7 @@ import {
   subscribeEntities,
   callService as haCallService,
   type HassEntities,
+  type HassEntity,
   type Connection,
   type UnsubscribeFunc,
 } from 'home-assistant-js-websocket'
@@ -14,10 +15,13 @@ let connection: Connection | null = null
 let connectionPromise: Promise<Connection> | null = null
 let unsubscribeEntities: UnsubscribeFunc | null = null
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null
+let proxyPollTimer: ReturnType<typeof setInterval> | null = null
 let reconnectAttempt = 0
 let manuallyClosed = false
+let proxyMode = false
 
 const MAX_RECONNECT_DELAY = 30_000
+const PROXY_POLL_MS = 4000
 
 async function getHACredentials() {
   try {
@@ -36,6 +40,8 @@ async function getHACredentials() {
 }
 
 export async function connectHA(): Promise<Connection> {
+  proxyMode = false
+  disconnectHAProxy()
   if (connection) return connection
   if (connectionPromise) return connectionPromise
 
@@ -49,6 +55,33 @@ export async function connectHA(): Promise<Connection> {
   } finally {
     connectionPromise = null
   }
+}
+
+async function pollProxyStates(): Promise<void> {
+  try {
+    const states = await haApi.states() as HassEntity[]
+    const next = states.reduce<HassEntities>((acc, entity) => {
+      acc[entity.entity_id] = entity
+      return acc
+    }, {})
+    useEntityStore.getState().setEntities(next)
+    useEntityStore.getState().setConnectionStatus('connected')
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Home Assistant non raggiungibile'
+    useEntityStore.getState().setConnectionStatus('error', message)
+  }
+}
+
+export async function connectHAProxy(): Promise<void> {
+  proxyMode = true
+  manuallyClosed = false
+  if (connection) disconnectHA()
+  if (proxyPollTimer) return
+  useEntityStore.getState().setConnectionStatus('connecting')
+  await pollProxyStates()
+  proxyPollTimer = setInterval(() => {
+    pollProxyStates().catch(() => {})
+  }, PROXY_POLL_MS)
 }
 
 async function connectOnce(): Promise<Connection> {
@@ -110,6 +143,10 @@ export async function callService(
   service: string,
   serviceData?: Record<string, unknown>,
 ): Promise<void> {
+  if (proxyMode) {
+    await haApi.service(domain, service, serviceData)
+    return
+  }
   try {
     const conn = connection ?? await connectHA()
     await haCallService(conn, domain, service, serviceData)
@@ -135,4 +172,10 @@ export function disconnectHA() {
   connection = null
   connectionPromise = null
   useEntityStore.getState().setConnectionStatus('disconnected')
+}
+
+export function disconnectHAProxy() {
+  if (proxyPollTimer) clearInterval(proxyPollTimer)
+  proxyPollTimer = null
+  if (proxyMode) useEntityStore.getState().setConnectionStatus('disconnected')
 }

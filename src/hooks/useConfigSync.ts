@@ -11,7 +11,7 @@ export function useConfigSync() {
   const qc = useQueryClient()
   useEffect(() => {
     if (typeof EventSource === 'undefined') return
-    const es = new EventSource('/api/config/stream')
+    const es = new EventSource('/api/config/stream?client=desktop')
     es.addEventListener('config', () => {
       qc.invalidateQueries({ queryKey: ['config'] })
     })

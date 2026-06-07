@@ -166,6 +166,25 @@ class JsonStore {
       changed = true
     }
 
+    if (!this.data.config.home?.layoutVersion) {
+      this.data.config.home = {
+        ...(this.data.config.home ?? { widgets: defaultHomeWidgets() }),
+        layoutVersion: 1,
+        updatedAt: new Date().toISOString(),
+        updatedBy: 'migration',
+      }
+      changed = true
+    }
+
+    if (this.data.config.home?.order) {
+      const widgetIds = new Set((this.data.config.home.widgets ?? []).map((widget) => widget.id))
+      const cleanOrder = this.data.config.home.order.filter((id) => widgetIds.has(id))
+      if (cleanOrder.length !== this.data.config.home.order.length) {
+        this.data.config.home.order = cleanOrder
+        changed = true
+      }
+    }
+
     if (!changed) return
     if (this.supabase) {
       await this.persistSupabase()

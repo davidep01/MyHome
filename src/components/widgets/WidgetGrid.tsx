@@ -1,25 +1,9 @@
 import type { CSSProperties, ReactNode } from 'react'
 import type { EntityType, RoomEntity } from '../../api/backend'
 import { tokens } from '../../design/tokens'
-import { GlassCard } from '../glass/GlassCard'
-import { AlarmCard } from './AlarmCard'
-import { CameraCard } from './CameraCard'
-import { ClimateCard } from './ClimateCard'
-import { CoverCard } from './CoverCard'
-import { LightCard } from './LightCard'
-import { LockCard } from './LockCard'
-import { MediaCard } from './MediaCard'
-import { SceneCard } from './SceneCard'
-import { SecurityCard } from './SecurityCard'
-import { SensorStatCard } from './SensorStatCard'
-import { SwitchCard } from './SwitchCard'
-import { VacuumCard } from './VacuumCard'
-import { NumberCard } from './NumberCard'
-import { SelectCard } from './SelectCard'
-import { ButtonCard } from './ButtonCard'
-import { BinarySensorCard } from './BinarySensorCard'
-import { SirenCard } from './SirenCard'
-import { FanCard } from './FanCard'
+import { WidgetCardFactory } from './WidgetCardFactory'
+import { widgetVisualSizeFromSpan } from './utils/getWidgetSizeConfig'
+import type { WidgetVisualSize } from './types'
 
 /** Bento footprint per device type: { c: columns, r: rows } in grid units. */
 const SPAN: Record<EntityType, { c: number; r: number }> = {
@@ -56,46 +40,13 @@ function Tile({ type, children }: { type: EntityType; children: ReactNode }) {
   return <div className="min-w-0" style={style}>{children}</div>
 }
 
-function UnsupportedEntityCard({ entity }: { entity: RoomEntity }) {
-  return (
-    <GlassCard className="flex h-full flex-col justify-center gap-1">
-      <p className="text-sm font-medium text-black/85">{entity.label}</p>
-      <p className="text-xs capitalize text-black/45">{entity.type}</p>
-      <p className="truncate font-mono text-[10px] text-black/30">{entity.entityId}</p>
-    </GlassCard>
-  )
-}
-
-function renderCard(e: RoomEntity): ReactNode {
-  const cls = 'h-full'
-  switch (e.type) {
-    case 'light': return <LightCard entityId={e.entityId} label={e.label} className={cls} />
-    case 'climate': return <ClimateCard entityId={e.entityId} label={e.label} className={cls} />
-    case 'cover': return <CoverCard entityId={e.entityId} label={e.label} className={cls} />
-    case 'scene': return <SceneCard entityId={e.entityId} label={e.label} className={cls} icon={e.icon} />
-    case 'media': return <MediaCard entityId={e.entityId} label={e.label} className={cls} />
-    case 'switch': return <SwitchCard entityId={e.entityId} label={e.label} className={cls} iconName={e.icon} />
-    case 'camera': return <CameraCard entityId={e.entityId} label={e.label} className={cls} />
-    case 'security': return <SecurityCard entityId={e.entityId} label={e.label} className={cls} />
-    case 'vacuum': return <VacuumCard entityId={e.entityId} label={e.label} className={cls} />
-    case 'lock': return <LockCard entityId={e.entityId} label={e.label} className={cls} />
-    case 'alarm': return <AlarmCard entityId={e.entityId} label={e.label} className={cls} />
-    case 'sensor': return <SensorStatCard entityId={e.entityId} label={e.label} className={cls} />
-    case 'number': return <NumberCard entityId={e.entityId} label={e.label} className={cls} />
-    case 'select': return <SelectCard entityId={e.entityId} label={e.label} className={cls} />
-    case 'button': return <ButtonCard entityId={e.entityId} label={e.label} className={cls} />
-    case 'binary_sensor': return <BinarySensorCard entityId={e.entityId} label={e.label} className={cls} />
-    case 'siren': return <SirenCard entityId={e.entityId} label={e.label} className={cls} />
-    case 'fan': return <FanCard entityId={e.entityId} label={e.label} className={cls} />
-    case 'script': return <ButtonCard entityId={e.entityId} label={e.label} className={cls} />
-    case 'automation': return <SwitchCard entityId={e.entityId} label={e.label} className={cls} iconName={e.icon} />
-    default: return <UnsupportedEntityCard entity={e} />
-  }
+function visualSizeForEntity(entity: RoomEntity): WidgetVisualSize {
+  return widgetVisualSizeFromSpan(SPAN[entity.type] ?? { c: 1, r: 1 })
 }
 
 /** Renders the right card for a single entity (reused by the editable grid). */
-export function EntityCard({ entity }: { entity: RoomEntity }) {
-  return <>{renderCard(entity)}</>
+export function EntityCard({ entity, size }: { entity: RoomEntity; size?: WidgetVisualSize }) {
+  return <WidgetCardFactory entity={entity} size={size ?? visualSizeForEntity(entity)} className="h-full" />
 }
 
 /** Default react-grid-layout footprint (cols≈8 units) per type, derived from SPAN. */
@@ -116,7 +67,9 @@ export function WidgetGrid({ entities }: { entities: RoomEntity[] }) {
   return (
     <>
       {entities.map((e) => (
-        <Tile key={e.id} type={e.type}>{renderCard(e)}</Tile>
+        <Tile key={e.id} type={e.type}>
+          <EntityCard entity={e} size={visualSizeForEntity(e)} />
+        </Tile>
       ))}
     </>
   )

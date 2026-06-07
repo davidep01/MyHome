@@ -56,7 +56,7 @@ export function useDoorbell(): DoorbellState {
         }
       }
     }
-  }, [state, isActive, entity?.last_changed])
+  }, [state, isActive, isEventEntity, entity?.last_changed])
 
   useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current) }, [])
 

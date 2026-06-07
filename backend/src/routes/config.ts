@@ -4,8 +4,11 @@ import { db } from '../db/client.js'
 import type { AppConfig } from '../db/types.js'
 import { getHAConfig } from '../lib/ha-config.js'
 import { configEvents, emitConfigChange } from '../lib/configEvents.js'
+import { desktopOnly } from '../lib/security.js'
 
 export const configRouter = new Hono()
+
+configRouter.use('*', desktopOnly)
 
 // Live config stream — every client subscribes and refetches on a change, so a
 // global dashboard edit on one device propagates to all devices instantly.

@@ -26,13 +26,12 @@ export function QuickInsightWidget() {
 
   const [i, setI] = useState(0)
   useEffect(() => {
-    setI(0)
     if (insights.length < 2) return
     const id = setInterval(() => setI((x) => (x + 1) % insights.length), 6000)
     return () => clearInterval(id)
   }, [insights.length])
 
-  const text = insights[Math.min(i, insights.length - 1)]
+  const text = insights[i % insights.length]
 
   return (
     <AnimatedCard ambient="sheen" index={6} contentClassName="justify-center gap-2">

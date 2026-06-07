@@ -1,8 +1,11 @@
 import { Hono } from 'hono'
 import { db } from '../db/client.js'
 import type { RoomEntity } from '../db/types.js'
+import { desktopOnly } from '../lib/security.js'
 
 export const entitiesRouter = new Hono()
+
+entitiesRouter.use('*', desktopOnly)
 
 // GET /api/rooms/:roomId/entities
 entitiesRouter.get('/', async (c) => {

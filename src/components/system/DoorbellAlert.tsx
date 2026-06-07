@@ -7,6 +7,7 @@ import { useDoorbells } from '../../hooks/useDoorbells'
 import { useEntityStore } from '../../store/entities'
 import { CameraStream } from '../widgets/CameraStream'
 import { aiApi } from '../../api/ai'
+import type { DoorbellDevice } from '../../api/backend'
 
 type Recog = { status: 'scanning' | 'done' | 'error'; name?: string }
 type Tone = 'scan' | 'known' | 'unknown' | 'none' | 'error'
@@ -20,8 +21,9 @@ const TONE_COLOR: Record<Tone, string> = {
 }
 
 /** Builds the headline + status pill from the recognition result. */
-function describe(r: Recog | null, known: string[]): { title: string; pill: string; tone: Tone } {
+function describe(r: Recog | null, known: string[], kiosk = false): { title: string; pill: string; tone: Tone } {
   const fallbackTitle = "C'è qualcuno alla porta!"
+  if (kiosk) return { title: fallbackTitle, pill: 'Campanello attivo', tone: 'scan' }
   if (!r || r.status === 'scanning') return { title: fallbackTitle, pill: 'Riconoscimento in corso…', tone: 'scan' }
   if (r.status === 'error') return { title: fallbackTitle, pill: 'Riconoscimento non disponibile', tone: 'error' }
   const raw = (r.name ?? '').trim()
@@ -30,13 +32,13 @@ function describe(r: Recog | null, known: string[]): { title: string; pill: stri
   const isKnown = known.some((k) => k.toLowerCase() === lower)
   return {
     title: `C'è ${raw} alla porta`,
-    pill: isKnown ? `${raw} riconosciuto` : 'Identificato con AI',
+    pill: isKnown ? `${raw} riconosciuto` : 'Riconoscimento completato',
     tone: isKnown ? 'known' : 'unknown',
   }
 }
 
-export function DoorbellAlert() {
-  const { active, dismiss, autoDismissMs } = useDoorbells()
+export function DoorbellAlert({ kiosk = false, doorbells }: { kiosk?: boolean; doorbells?: DoorbellDevice[] }) {
+  const { active, dismiss, autoDismissMs } = useDoorbells(doorbells)
   const entities = useEntityStore((s) => s.entities)
   const ringing = Boolean(active)
   const cameraEntityId = active?.device.cameraEntityId ?? ''
@@ -56,7 +58,7 @@ export function DoorbellAlert() {
 
   // Run Gemini Vision recognition once per ring.
   useEffect(() => {
-    if (!ringing || !hasCamera) { setRecog(null); return }
+    if (kiosk || !ringing || !hasCamera) { setRecog(null); return }
     let cancelled = false
     setRecog({ status: 'scanning' })
     aiApi.recognize(cameraEntityId, personNames)
@@ -65,9 +67,9 @@ export function DoorbellAlert() {
     return () => { cancelled = true }
     // personNames intentionally read at ring time only
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ringing, hasCamera, cameraEntityId, ringAt])
+  }, [ringing, hasCamera, cameraEntityId, ringAt, kiosk])
 
-  const { title, pill, tone } = describe(recog, personNames)
+  const { title, pill, tone } = describe(recog, personNames, kiosk)
   const toneColor = TONE_COLOR[tone]
   const countdownSec = autoDismissMs / 1000
 
@@ -88,7 +90,7 @@ export function DoorbellAlert() {
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[#111]">
               <Video size={40} className="text-white/30" />
               <p className="text-sm text-white/40">Nessuna telecamera associata al campanello</p>
-              <p className="text-xs text-white/25">Configura <code>cameraEntityId</code> in doorbell.ts</p>
+              {!kiosk && <p className="text-xs text-white/25">Configura la videocamera nel pannello desktop.</p>}
             </div>
           )}
 

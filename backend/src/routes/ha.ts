@@ -1,7 +1,37 @@
 import { Hono } from 'hono'
 import { getHABaseUrl, getHAConfig } from '../lib/ha-config.js'
+import { clientContextFromRequest } from '../lib/security.js'
 
 export const haRouter = new Hono()
+
+const TABLET_SERVICE_ALLOWLIST: Record<string, Set<string>> = {
+  homeassistant: new Set(['turn_on', 'turn_off', 'toggle']),
+  light: new Set(['turn_on', 'turn_off', 'toggle']),
+  switch: new Set(['turn_on', 'turn_off', 'toggle']),
+  input_boolean: new Set(['turn_on', 'turn_off', 'toggle']),
+  cover: new Set(['open_cover', 'close_cover', 'stop_cover', 'set_cover_position']),
+  climate: new Set(['turn_on', 'turn_off', 'set_temperature', 'set_hvac_mode', 'set_fan_mode', 'set_swing_mode']),
+  fan: new Set(['turn_on', 'turn_off', 'toggle', 'set_percentage', 'set_preset_mode']),
+  lock: new Set(['lock', 'unlock', 'open']),
+  alarm_control_panel: new Set(['alarm_arm_home', 'alarm_arm_away', 'alarm_arm_night', 'alarm_disarm']),
+  media_player: new Set(['turn_on', 'turn_off', 'media_play', 'media_pause', 'media_play_pause', 'volume_set', 'select_source']),
+  scene: new Set(['turn_on']),
+  script: new Set(['turn_on']),
+  button: new Set(['press']),
+  siren: new Set(['turn_on', 'turn_off', 'toggle']),
+  number: new Set(['set_value']),
+  input_number: new Set(['set_value']),
+  select: new Set(['select_option']),
+  input_select: new Set(['select_option']),
+  vacuum: new Set(['start', 'pause', 'stop', 'return_to_base', 'locate']),
+  remote: new Set(['turn_on', 'turn_off', 'toggle', 'send_command']),
+  valve: new Set(['open_valve', 'close_valve', 'set_valve_position', 'stop_valve']),
+  water_heater: new Set(['turn_on', 'turn_off', 'set_temperature', 'set_operation_mode']),
+}
+
+function tabletCanCallService(domain: string, service: string) {
+  return TABLET_SERVICE_ALLOWLIST[domain]?.has(service) ?? false
+}
 
 async function getAuthHeaders() {
   const { haToken } = await getHAConfig()
@@ -89,6 +119,13 @@ haRouter.get('/states/:entityId', async (c) => {
 haRouter.post('/services/:domain/:service', async (c) => {
   const domain = c.req.param('domain')
   const service = c.req.param('service')
+  const context = clientContextFromRequest(
+    (name) => c.req.header(name) ?? undefined,
+    (name) => c.req.query(name) ?? undefined,
+  )
+  if (context === 'tablet' && !tabletCanCallService(domain, service)) {
+    return c.json({ error: 'Servizio non disponibile dal tablet' }, 403)
+  }
   const body = await c.req.text()
   const res = await proxyHA(`/api/services/${encodeURIComponent(domain)}/${encodeURIComponent(service)}`, {
     method: 'POST',

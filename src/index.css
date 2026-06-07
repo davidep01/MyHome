@@ -139,6 +139,304 @@ html, body, #root {
   }
   .glass-border::before { display: none; }
 }
+
+/* ============================================================================
+   Tablet kiosk mode
+   ============================================================================ */
+html.kiosk-mode,
+html.kiosk-mode body {
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}
+
+.kiosk-root {
+  position: relative;
+  isolation: isolate;
+}
+
+.kiosk-root::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0);
+  transition: background 480ms var(--spring);
+}
+
+html.kiosk-idle .kiosk-root::after {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+html.kiosk-mode.dark .kiosk-root::after {
+  background: rgba(0, 0, 0, 0.10);
+}
+
+html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
+  background: rgba(0, 0, 0, 0.16);
+}
+
+@keyframes kiosk-micro-shift {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  25% { transform: translate3d(1px, 0, 0); }
+  50% { transform: translate3d(1px, 1px, 0); }
+  75% { transform: translate3d(0, 1px, 0); }
+}
+
+.kiosk-burnin-shift {
+  animation: kiosk-micro-shift 540s steps(1, end) infinite;
+  will-change: transform;
+}
+
+.kiosk-layout-editing .react-grid-placeholder {
+  border-radius: 18px;
+  background: rgba(0, 102, 204, 0.16) !important;
+  border: 2px dashed rgba(0, 102, 204, 0.42);
+  opacity: 1 !important;
+}
+
+.kiosk-layout-editing .react-grid-item.react-draggable-dragging {
+  z-index: 60;
+  filter: drop-shadow(0 16px 26px rgba(0, 0, 0, 0.16));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kiosk-burnin-shift { animation: none; }
+}
+
+/* ============================================================================
+   Premium widget card system
+   ============================================================================ */
+:root {
+  --widget-s-width: 150px;
+  --widget-m-width: 300px;
+  --widget-l-width: 460px;
+  --widget-s-height: 104px;
+  --widget-m-height: 136px;
+  --widget-l-height: 186px;
+  --card-radius: 18px;
+  --card-padding-s: 12px;
+  --card-padding-m: 14px;
+  --card-padding-l: 16px;
+  --icon-size-s: 26px;
+  --icon-size-m: 34px;
+  --icon-size-l: 42px;
+  --value-size-s: 28px;
+  --value-size-m: 34px;
+  --value-size-l: 44px;
+  --ring-size-s: 54px;
+  --ring-size-m: 82px;
+  --ring-size-l: 122px;
+}
+
+.widget-card-shell {
+  background:
+    radial-gradient(circle at 20% 0%, rgba(255,255,255,0.96), rgba(255,255,255,0.42) 44%, rgba(255,255,255,0.26)),
+    var(--widget-gradient);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.80) inset,
+    0 16px 34px rgba(20, 24, 30, 0.08),
+    0 0 24px var(--widget-glow);
+  transform: translateZ(0);
+}
+
+.widget-card-gradient-layer {
+  background:
+    radial-gradient(circle at 82% 18%, color-mix(in srgb, var(--widget-accent) 14%, transparent), transparent 34%),
+    linear-gradient(145deg, rgba(255,255,255,0.32), transparent 46%);
+  opacity: .92;
+}
+
+.widget-card-gloss-layer {
+  background:
+    linear-gradient(116deg, rgba(255,255,255,0.72) 0%, rgba(255,255,255,0.20) 17%, transparent 42%),
+    linear-gradient(300deg, transparent 64%, rgba(255,255,255,0.24) 100%);
+  mix-blend-mode: screen;
+  opacity: .58;
+}
+
+.widget-card-state-glow {
+  background: radial-gradient(circle at 84% 22%, var(--widget-glow), transparent 42%);
+  opacity: .9;
+}
+
+.widget-card-shell:focus-visible {
+  outline: 3px solid rgba(0,102,204,0.36);
+  outline-offset: 2px;
+}
+
+.widget-card-shell[data-widget-size="S"] {
+  gap: 8px;
+}
+
+.widget-card-shell[data-widget-size="L"] .widget-card-gloss-layer {
+  opacity: .72;
+}
+
+.widget-card-icon {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.62);
+}
+
+.widget-card-icon-active {
+  filter: saturate(1.12);
+}
+
+.widget-card-muted {
+  filter: saturate(.7);
+  opacity: .64;
+}
+
+.widget-card-dragging {
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.82) inset,
+    0 22px 42px rgba(20, 24, 30, 0.18),
+    0 0 28px var(--widget-glow);
+}
+
+.widget-card-toggle {
+  background: rgba(0,0,0,0.13);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.12);
+}
+.widget-card-toggle.on {
+  background: var(--toggle-color);
+}
+.widget-card-toggle.on > span {
+  transform: translateX(22px);
+}
+
+.widget-card-slider {
+  min-height: 48px;
+}
+
+.widget-ring,
+.widget-dial {
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.5),
+    0 8px 22px rgba(0,0,0,0.08);
+}
+
+@keyframes widget-shimmer {
+  0% { transform: translateX(-80%); opacity: .28; }
+  100% { transform: translateX(140%); opacity: .72; }
+}
+@keyframes widget-soft-glow {
+  0%, 100% { opacity: .45; transform: scale(1); }
+  50% { opacity: .9; transform: scale(1.06); }
+}
+@keyframes widget-pulse {
+  0%, 100% { opacity: .62; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.035); }
+}
+@keyframes widget-breathing {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.035); }
+}
+@keyframes widget-rotate { to { transform: rotate(360deg); } }
+@keyframes widget-ripple {
+  0% { opacity: .5; transform: scale(.8); }
+  100% { opacity: 0; transform: scale(1.6); }
+}
+@keyframes widget-wave {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(3px); }
+}
+@keyframes widget-heat {
+  0%, 100% { transform: translateY(0); filter: saturate(1); }
+  50% { transform: translateY(-2px); filter: saturate(1.14); }
+}
+@keyframes widget-rain {
+  0% { transform: translateY(-8%); opacity: .25; }
+  100% { transform: translateY(8%); opacity: .62; }
+}
+@keyframes widget-slide {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(4px); }
+}
+@keyframes widget-blind {
+  0%, 100% { clip-path: inset(0 0 0 0); }
+  50% { clip-path: inset(0 0 18% 0); }
+}
+@keyframes widget-alarm {
+  0%, 100% { opacity: .22; }
+  50% { opacity: .72; }
+}
+@keyframes widget-flow {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 140% 50%; }
+}
+@keyframes widget-error {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  75% { transform: translateX(2px); }
+}
+@keyframes widget-pop {
+  0% { transform: scale(.96); }
+  60% { transform: scale(1.035); }
+  100% { transform: scale(1); }
+}
+
+.widget-anim-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.widget-anim-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.72), transparent);
+  animation: widget-shimmer 1.8s ease-in-out infinite;
+}
+.widget-anim-softGlow,
+.widget-anim-pulse,
+.widget-anim-breathing,
+.widget-anim-heat,
+.widget-anim-rain,
+.widget-anim-energyFlow,
+.widget-anim-waterWave,
+.widget-anim-alarmPulse {
+  pointer-events: none;
+}
+.widget-anim-softGlow { animation: widget-soft-glow 4s ease-in-out infinite; }
+.widget-anim-pulse,
+.widget-anim-liveBlink { animation: widget-pulse 1.6s ease-in-out infinite; }
+.widget-anim-breathing { animation: widget-breathing 5s ease-in-out infinite; }
+.widget-anim-rotate,
+.widget-anim-fanSpin { animation: widget-rotate 3.2s linear infinite; }
+.widget-anim-ripple::before {
+  content: '';
+  position: absolute;
+  inset: 18%;
+  border-radius: inherit;
+  border: 2px solid var(--widget-accent);
+  animation: widget-ripple 1.8s ease-out infinite;
+}
+.widget-anim-wave,
+.widget-anim-waterWave { animation: widget-wave 3.8s ease-in-out infinite; }
+.widget-anim-snow { animation: widget-wave 5s ease-in-out infinite reverse; }
+.widget-anim-heat { animation: widget-heat 2.8s ease-in-out infinite; }
+.widget-anim-rain { animation: widget-rain 1.8s ease-in-out infinite alternate; }
+.widget-anim-gateSlide { animation: widget-slide 2.4s ease-in-out infinite; }
+.widget-anim-blindMove { animation: widget-blind 2.8s ease-in-out infinite; }
+.widget-anim-alarmPulse { animation: widget-alarm 1s ease-in-out infinite; }
+.widget-anim-energyFlow {
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--widget-accent) 24%, transparent), transparent);
+  background-size: 180% 100%;
+  animation: widget-flow 2.2s linear infinite;
+}
+.widget-anim-sparkle { animation: widget-soft-glow 2.6s ease-in-out infinite; }
+.widget-anim-errorShake { animation: widget-error .26s ease-in-out 2; }
+.widget-anim-successPop,
+.widget-anim-lockSnap { animation: widget-pop .34s cubic-bezier(.34,1.56,.64,1); }
+
+@media (prefers-reduced-motion: reduce) {
+  .widget-card-shell,
+  .widget-card-shell *,
+  .widget-card-motion-layer,
+  .widget-anim-shimmer::after {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
+}
 .glass-border {
   position: relative;
 }

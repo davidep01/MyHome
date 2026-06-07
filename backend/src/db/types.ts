@@ -65,8 +65,18 @@ export interface HomeWidget {
 
 export interface HomeConfig {
   widgets: HomeWidget[]
+  /** presentation order, editable by kiosk/tablet without changing widget config */
+  order?: string[]
   /** grid position per widget id */
   positions?: Record<string, { x: number; y: number; w: number; h: number }>
+  /** optimistic concurrency token for tablet layout saves */
+  layoutVersion?: number
+  /** last successful layout save timestamp */
+  updatedAt?: string
+  /** context that wrote the last layout */
+  updatedBy?: 'desktop' | 'tablet' | 'migration' | 'system'
+  /** backup of the previous valid layout for rollback/recovery */
+  lastValidPositions?: Record<string, { x: number; y: number; w: number; h: number }>
 }
 
 export interface EntityGroup {

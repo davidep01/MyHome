@@ -4,11 +4,12 @@ import { useDashboardConfig } from '../../../hooks/useDashboardConfig'
 import { AnimatedCard } from '../../anim/AnimatedCard'
 import type { WidgetSize } from '../../../api/backend'
 
-export function ClockWidget({ size }: { size: WidgetSize }) {
+export function ClockWidget({ size, userName }: { size: WidgetSize; userName?: string }) {
   const { time, date } = useClock()
   const { greeting } = useTimeOfDay()
-  const { data: config } = useDashboardConfig()
+  const { data: config } = useDashboardConfig(userName === undefined)
   const big = size !== 'sm'
+  const name = userName ?? config?.userName ?? 'Casa'
 
   return (
     <AnimatedCard ambient="sheen" index={0} contentClassName="justify-center">
@@ -19,7 +20,7 @@ export function ClockWidget({ size }: { size: WidgetSize }) {
         {time}
       </div>
       <div className="mt-2 truncate text-sm capitalize text-black/45">{date}</div>
-      {big && <div className="mt-0.5 truncate text-sm font-medium text-black/70">{greeting}, {config?.userName ?? 'Casa'}</div>}
+      {big && <div className="mt-0.5 truncate text-sm font-medium text-black/70">{greeting}, {name}</div>}
     </AnimatedCard>
   )
 }

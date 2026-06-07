@@ -9,7 +9,7 @@ import type { WidgetSize } from '../../../api/backend'
 export function SecurityWidget({ size }: { size: WidgetSize }) {
   const events = useDoorbellEvents((s) => s.events)
   const last = events[0]
-  const recent = Date.now() - (last ? new Date(last.timestamp).getTime() : 0) < 5 * 60_000
+  const recent = Boolean(last)
   const showList = size === 'lg' || size === 'wide'
 
   return (

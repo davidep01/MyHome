@@ -1,7 +1,10 @@
 import { Hono } from 'hono'
 import { getHAConfig } from '../lib/ha-config.js'
+import { desktopOnly } from '../lib/security.js'
 
 export const aiRouter = new Hono()
+
+aiRouter.use('*', desktopOnly)
 
 const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models'
 

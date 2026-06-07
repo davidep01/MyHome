@@ -6,7 +6,6 @@ import { Plus, Check, Pencil, X, Maximize2, GripVertical, RotateCcw } from 'luci
 import { useDashboardConfig, useUpdateConfig } from '../../../hooks/useDashboardConfig'
 import { useUIStore } from '../../../store/ui'
 import { useIsDesktop } from '../../../hooks/useIsDesktop'
-import { useMinWidth } from '../../../hooks/useMinWidth'
 import { HomeWidgetView } from './HomeWidgetView'
 import { WidgetErrorBoundary } from './WidgetErrorBoundary'
 import { WidgetPicker } from './WidgetPicker'
@@ -114,15 +113,14 @@ export function WidgetHome() {
   const { data: config } = useDashboardConfig()
   const { mutate: update } = useUpdateConfig()
   const isDesktop = useIsDesktop()
-  const isTabletViewport = useMinWidth(768)
   const editModeRaw = useUIStore((s) => s.editMode)
   const setEditMode = useUIStore((s) => s.setEditMode)
   const [pickerOpen, setPickerOpen] = useState(false)
 
-  const canEdit = isDesktop || (Boolean(config?.advancedMode) && isTabletViewport)
+  const canEdit = isDesktop
   const editMode = canEdit && editModeRaw
-  const widgets = config?.home?.widgets ?? DEFAULT_WIDGETS
-  const positions = config?.home?.positions ?? {}
+  const widgets = useMemo(() => config?.home?.widgets ?? DEFAULT_WIDGETS, [config?.home?.widgets])
+  const positions = useMemo(() => config?.home?.positions ?? {}, [config?.home?.positions])
   const layout = useMemo(() => buildLayout(widgets, positions), [widgets, positions])
 
   useEffect(() => {
@@ -135,6 +133,10 @@ export function WidgetHome() {
         ...(config?.home ?? {}),
         widgets: nextWidgets,
         positions: positionsFromLayout(nextLayout),
+        order: nextLayout.map((item) => item.i),
+        layoutVersion: (config?.home?.layoutVersion ?? 1) + 1,
+        updatedAt: new Date().toISOString(),
+        updatedBy: 'desktop',
       },
     })
   }
@@ -153,12 +155,21 @@ export function WidgetHome() {
   const persistDraggedLayout = (nextLayout: Layout) => persist(widgets, buildLayout(widgets, positionsFromLayout(nextLayout)))
   const resetHome = () => {
     // Clean reset: default widgets + fresh auto-layout (clears any stale positions).
-    update({ home: { widgets: DEFAULT_WIDGETS, positions: positionsFromLayout(buildLayout(DEFAULT_WIDGETS, {})) } })
+    update({
+      home: {
+        widgets: DEFAULT_WIDGETS,
+        positions: positionsFromLayout(buildLayout(DEFAULT_WIDGETS, {})),
+        order: DEFAULT_WIDGETS.map((widget) => widget.id),
+        layoutVersion: (config?.home?.layoutVersion ?? 1) + 1,
+        updatedAt: new Date().toISOString(),
+        updatedBy: 'desktop',
+      },
+    })
   }
 
   return (
     <div className="flex h-full flex-col">
-      {/* Toolbar — desktop, or tablet+ when advanced mode is enabled */}
+      {/* Toolbar — desktop/backend only */}
       {canEdit && (
         <div className="mb-3 flex shrink-0 items-center justify-end gap-2 px-0.5">
           <button

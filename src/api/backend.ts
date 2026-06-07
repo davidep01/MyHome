@@ -1,11 +1,20 @@
 const BASE = '/api'
 
+function clientContext(): 'desktop' | 'tablet' {
+  if (typeof window === 'undefined') return 'desktop'
+  return window.matchMedia('(pointer: fine)').matches ? 'desktop' : 'tablet'
+}
+
 async function request<T>(
   path: string,
   options?: RequestInit,
 ): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'X-MyHome-Client': clientContext(),
+      ...(options?.headers ?? {}),
+    },
     ...options,
   })
   if (!res.ok) throw new Error(`Backend ${options?.method ?? 'GET'} ${path} → ${res.status}`)
@@ -62,7 +71,12 @@ export interface HomeWidget {
 
 export interface HomeConfig {
   widgets: HomeWidget[]
+  order?: string[]
   positions?: Record<string, { x: number; y: number; w: number; h: number }>
+  layoutVersion?: number
+  updatedAt?: string
+  updatedBy?: 'desktop' | 'tablet' | 'migration' | 'system'
+  lastValidPositions?: Record<string, { x: number; y: number; w: number; h: number }>
 }
 
 export interface DoorbellSettings {
@@ -109,6 +123,55 @@ export const configApi = {
   getCredentials: () => request<Pick<AppConfig, 'haUrl' | 'haToken'>>('/config/ha-credentials'),
   update: (data: Partial<AppConfig>) =>
     request<{ ok: boolean }>('/config', { method: 'PUT', body: JSON.stringify(data) }),
+}
+
+// ── Tablet layout (kiosk-safe, no admin writes) ─────────────────────────────
+
+export interface DashboardPosition {
+  x: number
+  y: number
+  w: number
+  h: number
+}
+
+export interface TabletDashboardLayout {
+  schemaVersion: 1
+  dashboardId: string
+  widgets: HomeWidget[]
+  layout: {
+    cols: number
+    rowHeight: number
+    items: Record<string, DashboardPosition>
+    order: string[]
+  }
+  layoutVersion: number
+  updatedAt: string
+  updatedBy: 'desktop' | 'tablet' | 'migration' | 'system'
+  userName: string
+  dashboardName: string
+  groups: EntityGroup[]
+  doorbells: DoorbellDevice[]
+  deviceOverrides: Record<string, DeviceOverride>
+  source?: 'backend' | 'cache'
+}
+
+export interface TabletLayoutPatch {
+  layoutVersion: number
+  items: Record<string, DashboardPosition>
+  order?: string[]
+}
+
+export const layoutApi = {
+  get: (dashboardId = 'home') =>
+    request<TabletDashboardLayout>(`/layout/${encodeURIComponent(dashboardId)}`, {
+      headers: { 'X-MyHome-Client': 'tablet' },
+    }),
+  update: (dashboardId: string, data: TabletLayoutPatch) =>
+    request<TabletDashboardLayout>(`/layout/${encodeURIComponent(dashboardId)}`, {
+      method: 'PUT',
+      headers: { 'X-MyHome-Client': 'tablet' },
+      body: JSON.stringify(data),
+    }),
 }
 
 // ── Rooms ───────────────────────────────────────────────────────────────────
