@@ -1,13 +1,9 @@
 import { Clock, CloudSun, Gauge, Sparkles, ShieldCheck, ToggleRight, Layers, Activity, Video, Users, Bell, Cpu, Lightbulb, Newspaper, CalendarDays } from 'lucide-react'
 import type { WidgetSize, WidgetType } from '../../../api/backend'
 
-/** Grid footprint (cols=8, rowHeight≈64) for each widget size — iOS-like proportions. */
-export const SIZE_WH: Record<WidgetSize, { w: number; h: number }> = {
-  sm: { w: 2, h: 2 },
-  md: { w: 4, h: 2 },
-  lg: { w: 4, h: 4 },
-  wide: { w: 8, h: 2 },
-}
+// Grid footprint per widget size now lives in the shared layout kernel.
+// Re-exported here for backward-compatible imports.
+export { SIZE_WH } from '../../../lib/homeLayout'
 
 export const SIZE_LABEL: Record<WidgetSize, string> = {
   sm: 'Piccolo', md: 'Medio', lg: 'Grande', wide: 'Largo',

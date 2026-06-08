@@ -1,6 +1,8 @@
 import { Hono } from 'hono'
+import { streamSSE } from 'hono/streaming'
 import { getHABaseUrl, getHAConfig } from '../lib/ha-config.js'
 import { clientContextFromRequest } from '../lib/security.js'
+import { subscribeHaStream } from '../lib/ha-stream.js'
 
 export const haRouter = new Hono()
 
@@ -103,6 +105,43 @@ haRouter.get('/health', async (c) => {
       error: error instanceof Error ? error.message : 'Home Assistant unreachable',
     }, 502)
   }
+})
+
+// Live entity stream (SSE). A single backend poll loop fans out deltas to every
+// client; the HA token stays server-side. Clients fall back to GET /states
+// polling if this stream is unavailable in their environment.
+haRouter.get('/stream', (c) => {
+  c.header('Cache-Control', 'no-cache, no-transform')
+  c.header('X-Accel-Buffering', 'no')
+  return streamSSE(c, async (stream) => {
+    let closed = false
+    const queue: string[] = []
+    let wake: (() => void) | null = null
+
+    const unsubscribe = subscribeHaStream((event) => {
+      queue.push(JSON.stringify(event))
+      wake?.()
+    })
+    stream.onAbort(() => { closed = true; unsubscribe(); wake?.() })
+
+    await stream.writeSSE({ event: 'ready', data: 'ok' })
+    try {
+      while (!closed) {
+        if (queue.length) {
+          await stream.writeSSE({ event: 'states', data: queue.shift()! })
+          continue
+        }
+        // Sleep until the next event, with a 20s heartbeat to keep proxies/WebViews alive.
+        await new Promise<void>((resolve) => {
+          const t = setTimeout(resolve, 20_000)
+          wake = () => { clearTimeout(t); wake = null; resolve() }
+        })
+        if (!closed && queue.length === 0) await stream.writeSSE({ event: 'ping', data: '' })
+      }
+    } finally {
+      unsubscribe()
+    }
+  })
 })
 
 haRouter.get('/states', async () => {

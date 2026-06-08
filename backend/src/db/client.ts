@@ -1,7 +1,8 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs'
 import { join, dirname, basename } from 'node:path'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
-import type { DbStore, HomeWidget } from './types.js'
+import type { DbStore } from './types.js'
+import { defaultHomeWidgets, normalizeHomeConfig } from '../lib/home-layout.js'
 
 const cwd = process.cwd()
 const backendRoot = basename(cwd) === 'backend' ? cwd : join(cwd, 'backend')
@@ -12,18 +13,6 @@ const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 const SUPABASE_TABLE = process.env.MYHOME_SUPABASE_TABLE ?? 'myhome_config'
 const SUPABASE_ROW_ID = process.env.MYHOME_SUPABASE_ROW_ID ?? 'default'
 const FILE_WRITES_ALLOWED = process.env.MYHOME_READ_ONLY !== 'true'
-
-const DEFAULT_HOME_WIDGETS: HomeWidget[] = [
-  { id: 'w-clock', type: 'clock', size: 'md' },
-  { id: 'w-status', type: 'status', size: 'sm' },
-  { id: 'w-weather', type: 'weather', size: 'md' },
-  { id: 'w-stats', type: 'quickStats', size: 'wide' },
-  { id: 'w-scenes', type: 'scenes', size: 'wide' },
-]
-
-function defaultHomeWidgets(): HomeWidget[] {
-  return structuredClone(DEFAULT_HOME_WIDGETS)
-}
 
 const DEFAULT_DB: DbStore = {
   config: {
@@ -157,32 +146,10 @@ class JsonStore {
       changed = true
     }
 
-    const homeWidgets = this.data.config.home?.widgets
-    if (!Array.isArray(homeWidgets) || homeWidgets.length === 0) {
-      this.data.config.home = {
-        ...(this.data.config.home ?? {}),
-        widgets: defaultHomeWidgets(),
-      }
+    const normalizedHome = normalizeHomeConfig(this.data.config.home)
+    if (JSON.stringify(this.data.config.home ?? null) !== JSON.stringify(normalizedHome)) {
+      this.data.config.home = normalizedHome
       changed = true
-    }
-
-    if (!this.data.config.home?.layoutVersion) {
-      this.data.config.home = {
-        ...(this.data.config.home ?? { widgets: defaultHomeWidgets() }),
-        layoutVersion: 1,
-        updatedAt: new Date().toISOString(),
-        updatedBy: 'migration',
-      }
-      changed = true
-    }
-
-    if (this.data.config.home?.order) {
-      const widgetIds = new Set((this.data.config.home.widgets ?? []).map((widget) => widget.id))
-      const cleanOrder = this.data.config.home.order.filter((id) => widgetIds.has(id))
-      if (cleanOrder.length !== this.data.config.home.order.length) {
-        this.data.config.home.order = cleanOrder
-        changed = true
-      }
     }
 
     if (!changed) return

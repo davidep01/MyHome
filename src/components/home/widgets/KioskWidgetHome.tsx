@@ -1,112 +1,18 @@
 import { useMemo, useState } from 'react'
-import ReactGridLayout, { WidthProvider, type Layout, type LayoutItem } from 'react-grid-layout/legacy'
+import type { Layout } from 'react-grid-layout/legacy'
 import 'react-grid-layout/css/styles.css'
 import { Check, GripVertical, Pencil, RotateCcw, Save, WifiOff, X } from 'lucide-react'
-import { HomeWidgetView } from './HomeWidgetView'
-import { WidgetErrorBoundary } from './WidgetErrorBoundary'
-import { SIZE_WH } from './widgetCatalog'
+import { HomeGridCanvas } from './HomeGridCanvas'
+import { buildLayout, orderFromLayout, positionsFromLayout, sameLayout } from '../../../lib/homeLayout'
 import { useTabletLayout, useSaveTabletLayout } from '../../../hooks/useTabletLayout'
 import { useClock } from '../../../hooks/useClock'
 import { useTimeOfDay } from '../../../hooks/useTimeOfDay'
 import { useCurrentWeather } from '../../../hooks/useWeather'
 import { useEntityStore } from '../../../store/entities'
 import { cn } from '../../../lib/utils'
-import type { HomeWidget, TabletDashboardLayout } from '../../../api/backend'
+import type { TabletDashboardLayout } from '../../../api/backend'
 
-const COLS = 8
 const GRID_GAP = [14, 14] as const
-const GRID_PADDING = [0, 0] as const
-const GridLayout = WidthProvider(ReactGridLayout)
-
-type HomePositions = TabletDashboardLayout['layout']['items']
-
-function widgetLayoutItem(widget: HomeWidget, pos?: HomePositions[string]): LayoutItem {
-  const wh = SIZE_WH[widget.size]
-  return {
-    i: widget.id,
-    x: Math.max(0, Math.min(pos?.x ?? 0, COLS - wh.w)),
-    y: Math.max(0, pos?.y ?? 0),
-    w: wh.w,
-    h: wh.h,
-  }
-}
-
-function cellsFor(item: Pick<LayoutItem, 'x' | 'y' | 'w' | 'h'>): string[] {
-  const cells: string[] = []
-  for (let y = item.y; y < item.y + item.h; y += 1) {
-    for (let x = item.x; x < item.x + item.w; x += 1) cells.push(`${x}:${y}`)
-  }
-  return cells
-}
-
-function fits(occupied: Set<string>, item: Pick<LayoutItem, 'x' | 'y' | 'w' | 'h'>): boolean {
-  if (item.x < 0 || item.y < 0 || item.x + item.w > COLS) return false
-  return cellsFor(item).every((cell) => !occupied.has(cell))
-}
-
-function occupy(occupied: Set<string>, item: Pick<LayoutItem, 'x' | 'y' | 'w' | 'h'>): void {
-  cellsFor(item).forEach((cell) => occupied.add(cell))
-}
-
-function firstFreeSlot(occupied: Set<string>, widget: HomeWidget): { x: number; y: number } {
-  const wh = SIZE_WH[widget.size]
-  for (let y = 0; y < 1000; y += 1) {
-    for (let x = 0; x <= COLS - wh.w; x += 1) {
-      const candidate = { x, y, w: wh.w, h: wh.h }
-      if (fits(occupied, candidate)) return { x, y }
-    }
-  }
-  return { x: 0, y: 0 }
-}
-
-function buildLayout(widgets: HomeWidget[], saved: HomePositions = {}): Layout {
-  const occupied = new Set<string>()
-  const layout: LayoutItem[] = []
-  const missing: HomeWidget[] = []
-
-  widgets.forEach((widget) => {
-    const item = widgetLayoutItem(widget, saved[widget.id])
-    if (saved[widget.id] && fits(occupied, item)) {
-      layout.push(item)
-      occupy(occupied, item)
-    } else {
-      missing.push(widget)
-    }
-  })
-
-  missing.forEach((widget) => {
-    const { x, y } = firstFreeSlot(occupied, widget)
-    const item = widgetLayoutItem(widget, { ...SIZE_WH[widget.size], x, y })
-    layout.push(item)
-    occupy(occupied, item)
-  })
-
-  return layout
-}
-
-function positionsFromLayout(layout: Layout, widgets: HomeWidget[]): HomePositions {
-  const widgetById = new Map(widgets.map((widget) => [widget.id, widget]))
-  return layout.reduce<HomePositions>((acc, item) => {
-    const widget = widgetById.get(item.i)
-    if (!widget) return acc
-    const wh = SIZE_WH[widget.size]
-    acc[item.i] = { x: item.x, y: item.y, w: wh.w, h: wh.h }
-    return acc
-  }, {})
-}
-
-function orderFromLayout(layout: Layout): string[] {
-  return [...layout].sort((a, b) => a.y - b.y || a.x - b.x).map((item) => item.i)
-}
-
-function sameLayout(a: Layout, b: Layout): boolean {
-  if (a.length !== b.length) return false
-  const byId = new Map(b.map((item) => [item.i, item]))
-  return a.every((item) => {
-    const other = byId.get(item.i)
-    return other && item.x === other.x && item.y === other.y && item.w === other.w && item.h === other.h
-  })
-}
 
 function KioskHeader({ layout }: { layout: TabletDashboardLayout }) {
   const { time, date } = useClock()
@@ -289,47 +195,32 @@ export function KioskWidgetHome() {
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1">
-          <GridLayout
+          <HomeGridCanvas
             className={cn('relative pb-10', editMode && 'kiosk-layout-editing')}
+            widgets={widgets}
             layout={activeLayout}
-            cols={COLS}
             rowHeight={data.layout.rowHeight}
-            margin={GRID_GAP}
-            containerPadding={GRID_PADDING}
-            compactType={null}
-            preventCollision={false}
-            isBounded
+            gap={GRID_GAP}
+            editMode={editMode}
             isDraggable={editMode}
-            isResizable={false}
             draggableCancel="button, input, select, textarea, a"
+            publicConfig={data}
             onDrag={(_, __, ___, ____, event) => event.stopPropagation()}
             onDragStop={(nextLayout) => setDraft(buildLayout(widgets, positionsFromLayout(nextLayout, widgets)))}
-            useCSSTransforms
-            autoSize
-            measureBeforeMount
-          >
-            {widgets.map((widget) => (
-              <div key={widget.id} className="relative min-w-0">
-                <WidgetErrorBoundary>
-                  <HomeWidgetView widget={widget} publicConfig={data} />
-                </WidgetErrorBoundary>
-
-                {editMode && (
-                  <>
-                    <div className="pointer-events-none absolute inset-0 rounded-[18px] ring-2 ring-[#0066cc]/45" />
-                    <div
-                      className="absolute inset-0 z-10 cursor-grab rounded-[18px] active:cursor-grabbing"
-                      style={{ touchAction: 'none' }}
-                      aria-hidden="true"
-                    />
-                    <div className="pointer-events-none absolute bottom-2 left-1/2 z-20 flex h-8 w-12 -translate-x-1/2 items-center justify-center rounded-full bg-white/95 text-black/45 shadow-lg">
-                      <GripVertical size={18} />
-                    </div>
-                  </>
-                )}
-              </div>
-            ))}
-          </GridLayout>
+            renderOverlay={() => (
+              <>
+                <div className="pointer-events-none absolute inset-0 rounded-[18px] ring-2 ring-[#0066cc]/45" />
+                <div
+                  className="absolute inset-0 z-10 cursor-grab rounded-[18px] active:cursor-grabbing"
+                  style={{ touchAction: 'none' }}
+                  aria-hidden="true"
+                />
+                <div className="pointer-events-none absolute bottom-2 left-1/2 z-20 flex h-8 w-12 -translate-x-1/2 items-center justify-center rounded-full bg-white/95 text-black/45 shadow-lg">
+                  <GripVertical size={18} />
+                </div>
+              </>
+            )}
+          />
         </div>
       </div>
 

@@ -16,9 +16,15 @@ let connectionPromise: Promise<Connection> | null = null
 let unsubscribeEntities: UnsubscribeFunc | null = null
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null
 let proxyPollTimer: ReturnType<typeof setInterval> | null = null
+let eventSource: EventSource | null = null
 let reconnectAttempt = 0
 let manuallyClosed = false
 let proxyMode = false
+
+type HaStreamEvent =
+  | { type: 'snapshot'; entities: HassEntity[] }
+  | { type: 'delta'; changed: HassEntity[]; removed: string[] }
+  | { type: 'error'; message: string }
 
 const MAX_RECONNECT_DELAY = 30_000
 const PROXY_POLL_MS = 4000
@@ -178,4 +184,81 @@ export function disconnectHAProxy() {
   if (proxyPollTimer) clearInterval(proxyPollTimer)
   proxyPollTimer = null
   if (proxyMode) useEntityStore.getState().setConnectionStatus('disconnected')
+}
+
+function applyStreamEvent(event: HaStreamEvent): void {
+  const store = useEntityStore.getState()
+  if (event.type === 'snapshot') {
+    const next: HassEntities = {}
+    for (const entity of event.entities) next[entity.entity_id] = entity
+    store.setEntities(next)
+    store.setConnectionStatus('connected')
+  } else if (event.type === 'delta') {
+    // Merge changed entities; keep everything else (incl. recent optimistic state)
+    // so the UI never flickers back on an unrelated update.
+    const next: HassEntities = { ...store.entities }
+    for (const entity of event.changed) next[entity.entity_id] = entity
+    for (const id of event.removed) delete next[id]
+    store.setEntities(next)
+    store.setConnectionStatus('connected')
+  } else if (event.type === 'error') {
+    store.setConnectionStatus('error', event.message)
+  }
+}
+
+/**
+ * Kiosk-safe live connection: subscribes to the backend SSE entity stream
+ * (HA token stays server-side, real-time deltas). Falls back automatically to
+ * REST polling if EventSource is unsupported, disabled, or the stream never
+ * delivers data (e.g. a buffering WebView). Set localStorage `myhome.haStream`
+ * to `off` to force the poll path.
+ */
+export async function connectHAStream(): Promise<void> {
+  manuallyClosed = false
+  const disabled = typeof localStorage !== 'undefined' && localStorage.getItem('myhome.haStream') === 'off'
+  if (typeof EventSource === 'undefined' || disabled) {
+    await connectHAProxy()
+    return
+  }
+  disconnectHA()
+  if (eventSource) return
+  proxyMode = true // service calls + fallback route through the backend
+  useEntityStore.getState().setConnectionStatus('connecting')
+
+  let gotData = false
+  const es = new EventSource('/api/ha/stream')
+  eventSource = es
+
+  const toPoll = () => {
+    if (eventSource !== es) return
+    es.close()
+    eventSource = null
+    connectHAProxy().catch(() => {})
+  }
+  const fallback = setTimeout(() => { if (!gotData) toPoll() }, 6000)
+
+  es.addEventListener('states', (event) => {
+    gotData = true
+    clearTimeout(fallback)
+    try {
+      applyStreamEvent(JSON.parse((event as MessageEvent).data) as HaStreamEvent)
+    } catch {
+      // ignore a malformed frame; the next delta corrects the store
+    }
+  })
+  es.onerror = () => {
+    if (!gotData) {
+      clearTimeout(fallback)
+      toPoll()
+    } else {
+      // transient drop — EventSource auto-reconnects; surface as syncing
+      useEntityStore.getState().setConnectionStatus('connecting')
+    }
+  }
+}
+
+export function disconnectHAStream() {
+  manuallyClosed = true
+  if (eventSource) { eventSource.close(); eventSource = null }
+  disconnectHAProxy()
 }

@@ -46,7 +46,8 @@ export function BackendHomePage() {
         ...config.home,
         positions: {},
         order: widgets.map((widget) => widget.id),
-        layoutVersion: layoutVersion + 1,
+        // Send the read version; the backend bumps it and rejects stale writes.
+        layoutVersion: layoutVersion,
         updatedAt: new Date().toISOString(),
         updatedBy: 'desktop',
       },

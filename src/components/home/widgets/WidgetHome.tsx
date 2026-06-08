@@ -1,23 +1,18 @@
 import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
-import ReactGridLayout, { WidthProvider, type Layout, type LayoutItem } from 'react-grid-layout/legacy'
+import type { Layout } from 'react-grid-layout/legacy'
 import 'react-grid-layout/css/styles.css'
 import { Plus, Check, Pencil, X, Maximize2, GripVertical, RotateCcw } from 'lucide-react'
 import { useDashboardConfig, useUpdateConfig } from '../../../hooks/useDashboardConfig'
 import { useUIStore } from '../../../store/ui'
 import { useIsDesktop } from '../../../hooks/useIsDesktop'
-import { HomeWidgetView } from './HomeWidgetView'
-import { WidgetErrorBoundary } from './WidgetErrorBoundary'
 import { WidgetPicker } from './WidgetPicker'
-import { SIZE_WH, WIDGET_META } from './widgetCatalog'
-import type { HomeConfig, HomeWidget } from '../../../api/backend'
+import { HomeGridCanvas } from './HomeGridCanvas'
+import { WIDGET_META } from './widgetCatalog'
+import { HOME_ROW_HEIGHT, buildLayout, positionsFromLayout } from '../../../lib/homeLayout'
+import type { HomeWidget } from '../../../api/backend'
 
-const COLS = 8
-const ROW_HEIGHT = 64
 const GRID_GAP = [12, 12] as const
-const GRID_PADDING = [0, 0] as const
-const GridLayout = WidthProvider(ReactGridLayout)
-type HomePositions = NonNullable<HomeConfig['positions']>
 
 /** A sensible starter home so it's never empty on first use. */
 const DEFAULT_WIDGETS: HomeWidget[] = [
@@ -35,83 +30,14 @@ function nextSize(w: HomeWidget): HomeWidget['size'] {
   return allowed[(i + 1) % allowed.length]
 }
 
-function widgetLayoutItem(widget: HomeWidget, x: number, y: number): LayoutItem {
-  const wh = SIZE_WH[widget.size]
-  return { i: widget.id, x, y, w: wh.w, h: wh.h }
-}
-
-function cellsFor(item: Pick<LayoutItem, 'x' | 'y' | 'w' | 'h'>): string[] {
-  const cells: string[] = []
-  for (let y = item.y; y < item.y + item.h; y += 1) {
-    for (let x = item.x; x < item.x + item.w; x += 1) cells.push(`${x}:${y}`)
-  }
-  return cells
-}
-
-function fits(occupied: Set<string>, item: Pick<LayoutItem, 'x' | 'y' | 'w' | 'h'>): boolean {
-  if (item.x < 0 || item.y < 0 || item.x + item.w > COLS) return false
-  return cellsFor(item).every((cell) => !occupied.has(cell))
-}
-
-function occupy(occupied: Set<string>, item: Pick<LayoutItem, 'x' | 'y' | 'w' | 'h'>): void {
-  cellsFor(item).forEach((cell) => occupied.add(cell))
-}
-
-function firstFreeSlot(occupied: Set<string>, widget: HomeWidget): { x: number; y: number } {
-  const wh = SIZE_WH[widget.size]
-  for (let y = 0; y < 1000; y += 1) {
-    for (let x = 0; x <= COLS - wh.w; x += 1) {
-      const candidate = { x, y, w: wh.w, h: wh.h }
-      if (fits(occupied, candidate)) return { x, y }
-    }
-  }
-  return { x: 0, y: 0 }
-}
-
-function buildLayout(widgets: HomeWidget[], saved: HomePositions = {}): Layout {
-  const occupied = new Set<string>()
-  const layout: LayoutItem[] = []
-  const missing: HomeWidget[] = []
-
-  widgets.forEach((widget) => {
-    const wh = SIZE_WH[widget.size]
-    const pos = saved[widget.id]
-    const x = Math.max(0, Math.min(pos?.x ?? 0, COLS - wh.w))
-    const y = Math.max(0, pos?.y ?? 0)
-    const item = widgetLayoutItem(widget, x, y)
-
-    if (pos && fits(occupied, item)) {
-      layout.push(item)
-      occupy(occupied, item)
-    } else {
-      missing.push(widget)
-    }
-  })
-
-  missing.forEach((widget) => {
-    const { x, y } = firstFreeSlot(occupied, widget)
-    const item = widgetLayoutItem(widget, x, y)
-    layout.push(item)
-    occupy(occupied, item)
-  })
-
-  return layout
-}
-
-function positionsFromLayout(layout: Layout): HomePositions {
-  return layout.reduce<HomePositions>((acc, item) => {
-    acc[item.i] = { x: item.x, y: item.y, w: item.w, h: item.h }
-    return acc
-  }, {})
-}
-
 /**
  * iOS-style widget canvas backed by react-grid-layout. The widget list stores
  * identity/configuration, while `home.positions` stores the user-arranged grid.
+ * Layout maths (packing, serialisation) come from the shared `homeLayout` kernel.
  */
 export function WidgetHome() {
-  const { data: config } = useDashboardConfig()
-  const { mutate: update } = useUpdateConfig()
+  const { data: config, isError, isLoading, refetch } = useDashboardConfig()
+  const { mutate: update, isPending } = useUpdateConfig()
   const isDesktop = useIsDesktop()
   const editModeRaw = useUIStore((s) => s.editMode)
   const setEditMode = useUIStore((s) => s.setEditMode)
@@ -128,13 +54,15 @@ export function WidgetHome() {
   }, [canEdit, editModeRaw, setEditMode])
 
   const persist = (nextWidgets: HomeWidget[], nextLayout = buildLayout(nextWidgets, positions)) => {
+    if (isPending) return
     update({
       home: {
         ...(config?.home ?? {}),
         widgets: nextWidgets,
         positions: positionsFromLayout(nextLayout),
         order: nextLayout.map((item) => item.i),
-        layoutVersion: (config?.home?.layoutVersion ?? 1) + 1,
+        // Send the version we read; the backend bumps + rejects stale writes.
+        layoutVersion: config?.home?.layoutVersion ?? 1,
         updatedAt: new Date().toISOString(),
         updatedBy: 'desktop',
       },
@@ -154,13 +82,14 @@ export function WidgetHome() {
   }
   const persistDraggedLayout = (nextLayout: Layout) => persist(widgets, buildLayout(widgets, positionsFromLayout(nextLayout)))
   const resetHome = () => {
+    if (isPending) return
     // Clean reset: default widgets + fresh auto-layout (clears any stale positions).
     update({
       home: {
         widgets: DEFAULT_WIDGETS,
         positions: positionsFromLayout(buildLayout(DEFAULT_WIDGETS, {})),
         order: DEFAULT_WIDGETS.map((widget) => widget.id),
-        layoutVersion: (config?.home?.layoutVersion ?? 1) + 1,
+        layoutVersion: config?.home?.layoutVersion ?? 1,
         updatedAt: new Date().toISOString(),
         updatedBy: 'desktop',
       },
@@ -174,6 +103,7 @@ export function WidgetHome() {
         <div className="mb-3 flex shrink-0 items-center justify-end gap-2 px-0.5">
           <button
             onClick={() => setPickerOpen(true)}
+            disabled={isPending}
             className="flex items-center gap-1.5 rounded-full bg-black/[0.06] px-3.5 py-2 text-sm font-medium text-[#1d1d1f] transition active:scale-95 hover:bg-black/10"
           >
             <Plus size={15} /> Aggiungi widget
@@ -181,79 +111,100 @@ export function WidgetHome() {
           {editMode && (
             <button
               onClick={() => { if (window.confirm('Ripristinare la home predefinita? I widget attuali verranno sostituiti.')) resetHome() }}
-              className="flex items-center gap-1.5 rounded-full bg-black/[0.06] px-3.5 py-2 text-sm font-medium text-black/60 transition active:scale-95 hover:text-[#1d1d1f]"
+              disabled={isPending}
+              className="flex items-center gap-1.5 rounded-full bg-black/[0.06] px-3.5 py-2 text-sm font-medium text-black/60 transition active:scale-95 hover:text-[#1d1d1f] disabled:opacity-45"
             >
               <RotateCcw size={14} /> Ripristina
             </button>
           )}
-          <button onClick={() => setEditMode(!editMode)} className={cnEdit(editMode)}>
+          <button onClick={() => setEditMode(!editMode)} disabled={isPending} className={cnEdit(editMode)}>
             {editMode ? <><Check size={15} /> Fatto</> : <><Pencil size={14} /> Modifica</>}
           </button>
         </div>
       )}
 
       <div className="min-h-0 flex-1 overflow-y-auto pr-1">
-        <GridLayout
-          className="relative"
-          layout={layout}
-          cols={COLS}
-          rowHeight={ROW_HEIGHT}
-          margin={GRID_GAP}
-          containerPadding={GRID_PADDING}
-          compactType={null}
-          preventCollision={false}
-          isBounded
-          isDraggable={editMode}
-          isResizable={false}
-          draggableCancel=".widget-edit-control, button, input, select, textarea, a"
-          onDragStop={persistDraggedLayout}
-          useCSSTransforms
-          autoSize
-          measureBeforeMount
-        >
-          {widgets.map((w) => (
-            <div key={w.id} className="relative min-w-0">
+        {isError ? (
+          <div className="flex min-h-[280px] flex-col items-center justify-center rounded-[18px] border border-black/8 bg-black/[0.035] px-5 text-center">
+            <p className="text-sm font-semibold text-[#1d1d1f]">Configurazione home non disponibile</p>
+            <button
+              onClick={() => refetch()}
+              className="mt-4 rounded-full bg-[#0066cc] px-4 py-2 text-sm font-semibold text-white transition active:scale-95"
+            >
+              Riprova
+            </button>
+          </div>
+        ) : isLoading && !config ? (
+          <div className="grid grid-cols-4 gap-3">
+            {Array.from({ length: 5 }).map((_, index) => (
+              <div key={index} className="h-32 rounded-[18px] bg-black/[0.05]" />
+            ))}
+          </div>
+        ) : widgets.length === 0 ? (
+          <div className="flex min-h-[280px] flex-col items-center justify-center rounded-[18px] border border-dashed border-black/15 bg-black/[0.025] px-5 text-center">
+            <p className="text-sm font-semibold text-[#1d1d1f]">Home vuota</p>
+            {canEdit && (
+              <button
+                onClick={() => setPickerOpen(true)}
+                disabled={isPending}
+                className="mt-4 flex items-center gap-1.5 rounded-full bg-[#0066cc] px-4 py-2.5 text-sm font-semibold text-white transition active:scale-95 disabled:opacity-45"
+              >
+                <Plus size={15} /> Aggiungi widget
+              </button>
+            )}
+          </div>
+        ) : (
+          <HomeGridCanvas
+            className="relative"
+            widgets={widgets}
+            layout={layout}
+            rowHeight={HOME_ROW_HEIGHT}
+            gap={GRID_GAP}
+            editMode={editMode}
+            isDraggable={editMode && !isPending}
+            draggableCancel=".widget-edit-control, button, input, select, textarea, a"
+            onDragStop={persistDraggedLayout}
+            renderTile={(_w, content) => (
               <motion.div
                 className="h-full w-full"
                 animate={editMode ? { rotate: [-0.5, 0.5, -0.5] } : { rotate: 0 }}
                 transition={editMode ? { repeat: Infinity, duration: 0.34, ease: 'easeInOut' } : { duration: 0.15 }}
                 style={{ transformOrigin: 'center' }}
               >
-                <WidgetErrorBoundary>
-                  <HomeWidgetView widget={w} />
-                </WidgetErrorBoundary>
+                {content}
               </motion.div>
-
-              {editMode && (
-                <>
-                  <div className="pointer-events-none absolute inset-0 rounded-[18px] ring-2 ring-[#0066cc]/40" />
-                  <div
-                    className="widget-drag-surface absolute inset-0 z-10 cursor-grab rounded-[18px] active:cursor-grabbing"
-                    style={{ touchAction: 'none' }}
-                    aria-hidden="true"
-                  />
-                  <div className="pointer-events-none absolute bottom-1.5 left-1/2 z-20 flex h-6 w-10 -translate-x-1/2 items-center justify-center rounded-full bg-white/90 text-black/45 shadow-lg">
-                    <GripVertical size={15} />
-                  </div>
-                  <button
-                    onClick={() => removeWidget(w.id)}
-                    className="widget-edit-control absolute -left-1.5 -top-1.5 z-30 flex h-7 w-7 items-center justify-center rounded-full bg-black text-white shadow-lg active:scale-90"
-                    aria-label="Rimuovi widget"
-                  >
-                    <X size={14} />
-                  </button>
-                  <button
-                    onClick={() => resizeWidget(w.id)}
-                    className="widget-edit-control absolute -right-1.5 -top-1.5 z-30 flex h-7 w-7 items-center justify-center rounded-full bg-[#0066cc] text-white shadow-lg active:scale-90"
-                    aria-label="Ridimensiona"
-                  >
-                    <Maximize2 size={12} />
-                  </button>
-                </>
-              )}
-            </div>
-          ))}
-        </GridLayout>
+            )}
+            renderOverlay={(w) => (
+              <>
+                <div className="pointer-events-none absolute inset-0 rounded-[18px] ring-2 ring-[#0066cc]/40" />
+                <div
+                  className="widget-drag-surface absolute inset-0 z-10 cursor-grab rounded-[18px] active:cursor-grabbing"
+                  style={{ touchAction: 'none' }}
+                  aria-hidden="true"
+                />
+                <div className="pointer-events-none absolute bottom-1.5 left-1/2 z-20 flex h-6 w-10 -translate-x-1/2 items-center justify-center rounded-full bg-white/90 text-black/45 shadow-lg">
+                  <GripVertical size={15} />
+                </div>
+                <button
+                  onClick={() => removeWidget(w.id)}
+                  disabled={isPending}
+                  className="widget-edit-control absolute -left-1.5 -top-1.5 z-30 flex h-7 w-7 items-center justify-center rounded-full bg-black text-white shadow-lg active:scale-90 disabled:opacity-45"
+                  aria-label="Rimuovi widget"
+                >
+                  <X size={14} />
+                </button>
+                <button
+                  onClick={() => resizeWidget(w.id)}
+                  disabled={isPending}
+                  className="widget-edit-control absolute -right-1.5 -top-1.5 z-30 flex h-7 w-7 items-center justify-center rounded-full bg-[#0066cc] text-white shadow-lg active:scale-90 disabled:opacity-45"
+                  aria-label="Ridimensiona"
+                >
+                  <Maximize2 size={12} />
+                </button>
+              </>
+            )}
+          />
+        )}
       </div>
 
       <WidgetPicker open={pickerOpen} onClose={() => setPickerOpen(false)} onAdd={addWidget} />

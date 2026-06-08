@@ -13,7 +13,7 @@ import { AutomationsPage } from '../../pages/AutomationsPage'
 import { MediaPage } from '../../pages/MediaPage'
 import { WaterPage } from '../../pages/WaterPage'
 import { SystemPage } from '../../pages/SystemPage'
-import { connectHA, connectHAProxy, disconnectHA, disconnectHAProxy } from '../../api/ha-websocket'
+import { connectHA, connectHAStream, disconnectHA, disconnectHAStream } from '../../api/ha-websocket'
 import { useUIStore } from '../../store/ui'
 import { GlassSheet } from '../glass/GlassSheet'
 import { ContextualPanel } from '../contextual/ContextualPanel'
@@ -159,8 +159,8 @@ function KioskShell() {
   useKioskIdleDimming()
 
   useEffect(() => {
-    connectHAProxy().catch(() => {})
-    return () => disconnectHAProxy()
+    connectHAStream().catch(() => {})
+    return () => disconnectHAStream()
   }, [])
 
   return (

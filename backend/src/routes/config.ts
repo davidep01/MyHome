@@ -5,6 +5,7 @@ import type { AppConfig } from '../db/types.js'
 import { getHAConfig } from '../lib/ha-config.js'
 import { configEvents, emitConfigChange } from '../lib/configEvents.js'
 import { desktopOnly } from '../lib/security.js'
+import { mergeHomeConfig, normalizeHomeConfig } from '../lib/home-layout.js'
 
 export const configRouter = new Hono()
 
@@ -53,6 +54,7 @@ configRouter.get('/', async (c) => {
   // Never return the HA token in plaintext — mask it
   return c.json({
     ...config,
+    home: normalizeHomeConfig(config.home),
     haUrl: ha.haUrl,
     haToken: ha.haToken ? '***' : '',
     haConfigSource: ha.source,
@@ -73,6 +75,20 @@ configRouter.get('/ha-credentials', async (c) => {
 configRouter.put('/', async (c) => {
   const body = await c.req.json<Partial<AppConfig>>()
   const ha = await getHAConfig()
+
+  // Optimistic concurrency for the home layout. Desktop (this route) and kiosk
+  // (/api/layout) both coordinate through config.home.layoutVersion, so a stale
+  // save from one device can no longer silently clobber the other — it 409s and
+  // the client refetches the current layout. Only enforced when the client sends
+  // a layoutVersion (i.e. a home edit); other config writes are unaffected.
+  if (body.home !== undefined && Number.isInteger(body.home.layoutVersion)) {
+    const { config } = await db.read()
+    const currentVersion = normalizeHomeConfig(config.home).layoutVersion ?? 1
+    if (body.home.layoutVersion !== currentVersion) {
+      return c.json({ error: 'Layout modificato da un altro dispositivo', currentVersion }, 409)
+    }
+  }
+
   const ok = await db.write((store) => {
     if (body.haUrl !== undefined && !ha.locked.haUrl) store.config.haUrl = body.haUrl
     if (body.haToken !== undefined && body.haToken !== '***' && !ha.locked.haToken) store.config.haToken = body.haToken
@@ -89,10 +105,7 @@ configRouter.put('/', async (c) => {
     if (body.doorbells !== undefined) store.config.doorbells = body.doorbells
     if (body.groups !== undefined) store.config.groups = body.groups
     if (body.home !== undefined) {
-      store.config.home = {
-        ...(store.config.home ?? { widgets: [] }),
-        ...body.home,
-      }
+      store.config.home = mergeHomeConfig(store.config.home, body.home, 'desktop')
     }
     if (body.dashboardLayout !== undefined) store.config.dashboardLayout = body.dashboardLayout
   })

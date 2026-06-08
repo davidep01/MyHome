@@ -1,40 +1,18 @@
 import { Hono } from 'hono'
 import { db } from '../db/client.js'
-import type { AppConfig, HomeWidget, WidgetSize } from '../db/types.js'
+import type { HomeWidget } from '../db/types.js'
 import { emitConfigChange } from '../lib/configEvents.js'
+import {
+  HOME_COLS,
+  HOME_DASHBOARD_ID,
+  HOME_SIZE_WH,
+  mergeHomeConfig,
+  normalizeHomePositions,
+  tabletHomeLayout,
+  type HomePosition,
+} from '../lib/home-layout.js'
 
 export const layoutRouter = new Hono()
-
-type Position = { x: number; y: number; w: number; h: number }
-
-const SCHEMA_VERSION = 1
-const DASHBOARD_ID = 'home'
-const COLS = 8
-const ROW_HEIGHT = 64
-const SIZE_WH: Record<WidgetSize, { w: number; h: number }> = {
-  sm: { w: 2, h: 2 },
-  md: { w: 4, h: 2 },
-  lg: { w: 4, h: 4 },
-  wide: { w: 8, h: 2 },
-}
-
-function defaultWidgets(): HomeWidget[] {
-  return [
-    { id: 'w-clock', type: 'clock', size: 'md' },
-    { id: 'w-status', type: 'status', size: 'sm' },
-    { id: 'w-weather', type: 'weather', size: 'md' },
-    { id: 'w-stats', type: 'quickStats', size: 'wide' },
-    { id: 'w-scenes', type: 'scenes', size: 'wide' },
-  ]
-}
-
-function orderedWidgets(widgets: HomeWidget[], order?: string[]): HomeWidget[] {
-  if (!order?.length) return widgets
-  const byId = new Map(widgets.map((widget) => [widget.id, widget]))
-  const ordered = order.map((id) => byId.get(id)).filter(Boolean) as HomeWidget[]
-  const seen = new Set(ordered.map((widget) => widget.id))
-  return [...ordered, ...widgets.filter((widget) => !seen.has(widget.id))]
-}
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
@@ -42,50 +20,6 @@ function isObject(value: unknown): value is Record<string, unknown> {
 
 function int(value: unknown): number | null {
   return Number.isInteger(value) ? value as number : null
-}
-
-function positionFor(widget: HomeWidget, raw?: Position): Position {
-  const wh = SIZE_WH[widget.size]
-  return {
-    x: Math.max(0, Math.min(raw?.x ?? 0, COLS - wh.w)),
-    y: Math.max(0, raw?.y ?? 0),
-    w: wh.w,
-    h: wh.h,
-  }
-}
-
-function normalizedPositions(widgets: HomeWidget[], raw: Record<string, Position> = {}): Record<string, Position> {
-  const result: Record<string, Position> = {}
-  for (const widget of widgets) result[widget.id] = positionFor(widget, raw[widget.id])
-  return result
-}
-
-function publicLayout(config: AppConfig) {
-  const home = config.home ?? { widgets: defaultWidgets() }
-  const widgets = orderedWidgets(home.widgets?.length ? home.widgets : defaultWidgets(), home.order)
-  const positions = normalizedPositions(widgets, home.positions)
-  const order = widgets.map((widget) => widget.id)
-
-  return {
-    schemaVersion: SCHEMA_VERSION as const,
-    dashboardId: DASHBOARD_ID,
-    widgets,
-    layout: {
-      cols: COLS,
-      rowHeight: ROW_HEIGHT,
-      items: positions,
-      order,
-    },
-    layoutVersion: home.layoutVersion ?? 1,
-    updatedAt: home.updatedAt ?? new Date(0).toISOString(),
-    updatedBy: home.updatedBy ?? 'migration',
-    userName: config.userName,
-    dashboardName: config.dashboardName,
-    groups: config.groups ?? [],
-    doorbells: config.doorbells ?? [],
-    deviceOverrides: config.deviceOverrides ?? {},
-    source: 'backend' as const,
-  }
 }
 
 function validatePatch(body: unknown, widgets: HomeWidget[], currentVersion: number) {
@@ -104,7 +38,7 @@ function validatePatch(body: unknown, widgets: HomeWidget[], currentVersion: num
   if (!isObject(body.items)) return { ok: false as const, error: 'items mancante o non valido' }
 
   const widgetById = new Map(widgets.map((widget) => [widget.id, widget]))
-  const nextItems: Record<string, Position> = {}
+  const nextItems: Record<string, HomePosition> = {}
   for (const [id, value] of Object.entries(body.items)) {
     const widget = widgetById.get(id)
     if (!widget) return { ok: false as const, error: `Widget non consentito: ${id}` }
@@ -118,11 +52,11 @@ function validatePatch(body: unknown, widgets: HomeWidget[], currentVersion: num
     const y = int(value.y)
     const w = int(value.w)
     const h = int(value.h)
-    const wh = SIZE_WH[widget.size]
+    const wh = HOME_SIZE_WH[widget.size]
     if (x === null || y === null || w === null || h === null) {
       return { ok: false as const, error: `Coordinate non valide: ${id}` }
     }
-    if (x < 0 || y < 0 || x + wh.w > COLS || w !== wh.w || h !== wh.h) {
+    if (x < 0 || y < 0 || x + wh.w > HOME_COLS || w !== wh.w || h !== wh.h) {
       return { ok: false as const, error: `Dimensione o posizione non consentita: ${id}` }
     }
     nextItems[id] = { x, y, w, h }
@@ -142,46 +76,39 @@ function validatePatch(body: unknown, widgets: HomeWidget[], currentVersion: num
     order = [...body.order, ...widgets.map((widget) => widget.id).filter((id) => !seen.has(id))]
   }
 
-  return { ok: true as const, items: normalizedPositions(widgets, nextItems), order }
+  return { ok: true as const, items: normalizeHomePositions(widgets, nextItems), order }
 }
 
 layoutRouter.get('/:dashboardId', async (c) => {
   const dashboardId = c.req.param('dashboardId')
-  if (dashboardId !== DASHBOARD_ID) return c.json({ error: 'Dashboard non trovata' }, 404)
+  if (dashboardId !== HOME_DASHBOARD_ID) return c.json({ error: 'Dashboard non trovata' }, 404)
   const { config } = await db.read()
-  return c.json(publicLayout(config))
+  return c.json(tabletHomeLayout(config))
 })
 
 layoutRouter.put('/:dashboardId', async (c) => {
   const dashboardId = c.req.param('dashboardId')
-  if (dashboardId !== DASHBOARD_ID) return c.json({ error: 'Dashboard non trovata' }, 404)
+  if (dashboardId !== HOME_DASHBOARD_ID) return c.json({ error: 'Dashboard non trovata' }, 404)
 
   const body = await c.req.json().catch(() => null)
   const { config } = await db.read()
-  const current = publicLayout(config)
+  const current = tabletHomeLayout(config)
   const validation = validatePatch(body, current.widgets, current.layoutVersion)
   if (!validation.ok) {
     const status = validation.conflict ? 409 : 400
     return c.json({ error: validation.error, current }, status)
   }
 
-  const now = new Date().toISOString()
   const ok = await db.write((store) => {
-    const home = store.config.home ?? { widgets: defaultWidgets() }
-    const previous = normalizedPositions(home.widgets, home.positions)
-    store.config.home = {
-      ...home,
+    store.config.home = mergeHomeConfig(store.config.home, {
       positions: validation.items,
-      order: validation.order ?? home.order ?? current.layout.order,
+      order: validation.order ?? current.layout.order,
       layoutVersion: current.layoutVersion + 1,
-      updatedAt: now,
-      updatedBy: 'tablet',
-      lastValidPositions: previous,
-    }
+    }, 'tablet')
   })
   if (!ok) return c.json({ error: 'Layout non salvabile in questo deploy' }, 409)
 
   emitConfigChange()
   const updated = await db.read()
-  return c.json(publicLayout(updated.config))
+  return c.json(tabletHomeLayout(updated.config))
 })

@@ -24,7 +24,16 @@ export function useUpdateConfig() {
     onMutate: async (data) => {
       await qc.cancelQueries({ queryKey: ['config'] })
       const prev = qc.getQueryData<AppConfig>(['config'])
-      qc.setQueryData<AppConfig>(['config'], (old) => old ? { ...old, ...data } : old)
+      qc.setQueryData<AppConfig>(['config'], (old) => {
+        if (!old) return old
+        const next = { ...old, ...data }
+        // Mirror the server's optimistic-concurrency bump so a rapid second home
+        // edit sends a fresh layoutVersion instead of 409-ing against itself.
+        if (data.home && Number.isInteger(data.home.layoutVersion)) {
+          next.home = { ...data.home, layoutVersion: (data.home.layoutVersion ?? 1) + 1 }
+        }
+        return next
+      })
       return { prev }
     },
     onError: (_err, _data, ctx) => {
