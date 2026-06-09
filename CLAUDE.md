@@ -73,9 +73,9 @@ npm run lint             # eslint
 `AppShell` (`src/components/layout/AppShell.tsx`) sceglie la shell dal **pathname**:
 - `/kiosk`, `/tablet`, `/dashboard` **oppure** non-desktop → `KioskShell` (→ `TabletDashboard`).
 - `/backend`, `/admin`, `/settings` su desktop → `DesktopShell`.
-- Dentro `DesktopShell` la pagina attiva è scelta da `useUIStore().activeView` (enum in `src/store/ui.ts`), **non** dall'URL.
+- Dentro `DesktopShell` la vista attiva (`useUIStore().activeView`) è **sincronizzata bidirezionalmente con l'URL** (`useViewRouting` in `AppShell.tsx` + `VIEW_PATHS`/`viewFromPath` in `src/store/ui.ts`): deep-link (`/lights`, `/climate`, …), back/forward e refresh funzionano. Nessun router library (scelta deliberata).
 
-> ⚠️ **Routing ibrido e fragile**: l'URL decide la *shell*, lo stato Zustand decide la *pagina*. Niente deep-link, niente back-button per le viste, niente refresh-safe. Vedi §5 P6.
+> ✅ **Risolto (P6, 2026-06-09):** routing ibrido chiuso con il sync URL↔store di cui sopra. Le viste desktop sono inoltre **lazy** (un chunk per pagina) e `hls.js` è caricato on-demand solo quando parte uno stream.
 
 ### 4.2 Connessione a Home Assistant (`src/api/ha-websocket.ts`)
 Due percorsi distinti:
@@ -176,7 +176,26 @@ Fasi 2–5 + igiene applicate. Verifiche: `npm run build:all` ✅ · `npm run li
 
 **Da verificare sul tablet reale** (non testabile qui senza HA live): lo stream `GET /api/ha/stream` sul kiosk. Default = stream con fallback; per forzare il vecchio poll in diagnostica → `localStorage['myhome.haStream'] = 'off'`. Intervallo poll server-side: env `MYHOME_HA_POLL_MS` (default 1500ms).
 
-**Residui noti (non bloccanti):** routing ibrido (P6); type-error preesistenti in `backend/src/lib/home-layout.ts` / `entities.ts` che `tsup` tollera ma andrebbero stretti; bundle FE singolo >500KB (code-splitting opportuno).
+**Risolti (2026-06-09):**
+- **P6 routing** — sync URL↔`activeView` (`useViewRouting`): deep-link, back/forward e refresh funzionano su desktop. Kiosk invariato.
+- **Type-error backend** — `backend/src` ora passa `tsc --noEmit` pulito (narrowing in `home-layout.ts`, guard `roomId` in `entities.ts`).
+- **Bundle FE** — code-splitting: main chunk 1.65MB → ~680KB (gzip 480→181KB). Viste desktop lazy per pagina; `hls.js` (~509KB) dynamic-import al primo stream; vendor (`react`, `framer-motion`, `react-grid-layout`) in chunk separati cache-abili (`manualChunks` in `vite.config.ts`).
+- **Card widget (kiosk)** — touch target ≥44px via utility `.tap-target` (hit-area estesa senza alterare la grafica) su LightCard/FanCard/VacuumCard/MediaCard e `.widget-card-toggle`; rimossi i `backdrop-filter` annidati in `WidgetCardRing`/`WidgetCardDial`; animazioni `filter`-based convertite a transform/opacity (`widget-breathing`, `widget-heat`, `widget-anim-energyFlow`); animazioni loop congelate in `perf-lite`; `contain: layout style paint` su `.widget-card-shell`; lo slider inline non propaga più click/pointer alla card.
+
+**Risolti (2026-06-10) — admin + polish kiosk:**
+- **Admin onesto** — le "Sezioni operative" di `BackendHomePage` ora navigano alle 4 sezioni reali di `SettingsPage`; sezione deep-linkabile e refresh-safe via `/settings?section=…`.
+- **Backup/Ripristino** — `GET /api/config/export` (download JSON dell'intero `DbStore`) e `POST /api/config/import` (restore con re-normalizzazione del layout via `mergeHomeConfig`, rispetta read-only); UI in `BackendHomePage` (`configApi.exportBackup/importBackup`).
+- **Coreografia d'ingresso** — le card della home entrano con stagger 35ms (`.card-enter` in `index.css`, applicata in `HomeGridCanvas`); transform/opacity only, disattivata in perf-lite/reduced-motion.
+- **Zoom card→pannello** — il `GlassSheet` centrato nasce dal punto di tocco e ci ritorna alla chiusura (cattura `pointerdown` globale, nessun cambio ai call-site); fallback fade+scale in perf-lite.
+- **Feedback fisico sul rollback** — `useActionFeedback` (shake `widget-anim-errorShake` + haptic heavy). *(Correzione 2026-06-10: inizialmente collegato alle card standalone, poi scoperte morte — ora è nel `WidgetCardFactory`, il percorso vivo.)*
+
+**Risolti (2026-06-10) — sistema card unico e completo:**
+- **Eliminato il doppio sistema card.** Le 17 card di dominio standalone (`LightCard`, `SwitchCard`, `FanCard`, …) erano **codice morto a zero importer**: il percorso vivo è `WidgetCardFactory` + `mapEntityToWidgetCard` + `WidgetCardBase`. Cancellate; restano vivi `GroupCard`, `CameraStream`, `WidgetCardBase/Factory/Preview/Grid`.
+- **Stati HA tradotti** — `utils/stateLabel.ts`: mappa italiana completa (aperture, serrature, clima, robot, allarme, presenza, meteo, sole); fallback `snake_case → parole`. Tipografia corretta: `°C` (non "C"), "Luminosità/Velocità/Qualità" accentate, serratura "Aperta/Chiusa".
+- **Nuovi domini pronti** — `humidifier` (toggle + slider umidità target, tono water), `lawn_mower` (famiglia `mower`, start/dock, icona Bot), `air_quality`, `update` (badge warning se disponibile; **escluso dalla discovery** di proposito, è rumore quasi-diagnostico). `valve` ora azionabile (apri/chiudi). Aggiunti a `DOMAIN_TYPE`/`DOMAIN_META` (riusano EntityType affini: niente cambi al backend).
+- **Animazioni sobrie** — sparkle solo su automazioni *attive* (prima loopava anche a riposo); rimossi `successPop`/`lockSnap` persistenti; ogni azione del factory passa da `act()` → rollback + shake + haptic su errore (prima clima/cover/lock/vacuum/media fallivano in silenzio).
+
+**Residui noti (non bloccanti):** migrazione del *desktop* allo stream backend (P4 lato admin) — opzionale; split di `SettingsPage` (1.053 righe) in file per sezione (A2); modalità ambient su idle kiosk (B4).
 
 ---
 
@@ -188,7 +207,8 @@ src/
   components/
     layout/       # AppShell, Sidebar, BottomTabBar, StatusBar, RightPanel  (chrome)
     home/         # home desktop + home/widgets/* (widget home, picker, catalog)
-    widgets/      # CARD ENTITÀ per dominio (Light/Climate/Cover/…)+ utils/* (resolve color/icon/state…)
+    widgets/      # CARD ENTITÀ: WidgetCardFactory (dispatch) + WidgetCardBase (shell/primitive)
+                  # + utils/mapEntityToWidgetCard (design per famiglia) + utils/stateLabel (stati in italiano)
     contextual/   # pannello on-demand (ClimateDetail, LightDetail, MediaDetail, AlarmDetail)
     glass/        # primitive vetro: GlassCard, GlassSheet, RadialDial, DragSlider
     system/       # ConnectionOverlay (HA-down), DoorbellAlert (campanello fullscreen)

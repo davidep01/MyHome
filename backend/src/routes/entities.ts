@@ -21,6 +21,7 @@ entitiesRouter.get('/', async (c) => {
 // POST /api/rooms/:roomId/entities
 entitiesRouter.post('/', async (c) => {
   const roomId = c.req.param('roomId')
+  if (!roomId) return c.json({ error: 'roomId mancante' }, 400)
   const body = await c.req.json<{ entityId: string; label: string; type: RoomEntity['type'] }>()
   const { entities } = await db.read()
   const existing = entities.filter((e) => e.roomId === roomId)

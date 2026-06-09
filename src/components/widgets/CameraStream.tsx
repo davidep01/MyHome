@@ -2,7 +2,7 @@
    `mode` reflects the streaming negotiation lifecycle; transitioning it inside the
    connection effect (and on capability/error/timeout) is the intended behaviour. */
 import { useEffect, useRef, useState } from 'react'
-import Hls from 'hls.js'
+import type Hls from 'hls.js'
 import { Mic, Video } from 'lucide-react'
 import type { Connection } from 'home-assistant-js-websocket'
 import { useHAEntity } from '../../hooks/useHAEntity'
@@ -149,6 +149,8 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
       const video = videoRef.current
       if (!video) return goMjpeg()
       try {
+        // hls.js è pesante (~250KB): caricato solo quando serve davvero uno stream HLS.
+        const { default: Hls } = await import('hls.js')
         const resp = await conn.sendMessagePromise<{ url: string }>({ type: 'camera/stream', entity_id: entityId, format: 'hls' })
         if (cancelled) return
         const src = resp.url.startsWith('http') ? resp.url : toProxiedHlsUrl(resp.url)

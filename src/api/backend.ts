@@ -123,6 +123,9 @@ export const configApi = {
   getCredentials: () => request<Pick<AppConfig, 'haUrl' | 'haToken'>>('/config/ha-credentials'),
   update: (data: Partial<AppConfig>) =>
     request<{ ok: boolean }>('/config', { method: 'PUT', body: JSON.stringify(data) }),
+  exportBackup: () => request<{ version: number; exportedAt: string; store: unknown }>('/config/export'),
+  importBackup: (backup: unknown) =>
+    request<{ ok: boolean }>('/config/import', { method: 'POST', body: JSON.stringify(backup) }),
 }
 
 // ── Tablet layout (kiosk-safe, no admin writes) ─────────────────────────────

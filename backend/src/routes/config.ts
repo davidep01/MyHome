@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { streamSSE } from 'hono/streaming'
 import { db } from '../db/client.js'
-import type { AppConfig } from '../db/types.js'
+import type { AppConfig, DbStore } from '../db/types.js'
 import { getHAConfig } from '../lib/ha-config.js'
 import { configEvents, emitConfigChange } from '../lib/configEvents.js'
 import { desktopOnly } from '../lib/security.js'
@@ -70,6 +70,37 @@ configRouter.get('/', async (c) => {
 configRouter.get('/ha-credentials', async (c) => {
   const { haUrl, haToken } = await getHAConfig()
   return c.json({ haUrl, haToken })
+})
+
+// Full backup of the single-document store (config + rooms + entities).
+// Token included on purpose: a restore must be complete, and this route is
+// desktop-only like /ha-credentials which already returns it in plaintext.
+configRouter.get('/export', async (c) => {
+  const store = await db.read()
+  const stamp = new Date().toISOString().slice(0, 10)
+  c.header('Content-Disposition', `attachment; filename="myhome-backup-${stamp}.json"`)
+  return c.json({ version: 1, exportedAt: new Date().toISOString(), store })
+})
+
+// Restore a backup produced by /export. Replaces the whole document; the home
+// layout is re-normalized so a hand-edited or stale file can't corrupt the grid.
+configRouter.post('/import', async (c) => {
+  const body = await c.req.json<{ version?: number; store?: Partial<DbStore> }>().catch(() => null)
+  const incoming = body?.store
+  if (!incoming || typeof incoming !== 'object' || !incoming.config || typeof incoming.config !== 'object') {
+    return c.json({ error: 'Backup non valido: atteso { store: { config, rooms, entities } }' }, 400)
+  }
+  const ok = await db.write((store) => {
+    store.config = {
+      ...incoming.config as AppConfig,
+      home: mergeHomeConfig(store.config.home, normalizeHomeConfig((incoming.config as AppConfig).home), 'desktop'),
+    }
+    if (Array.isArray(incoming.rooms)) store.rooms = incoming.rooms
+    if (Array.isArray(incoming.entities)) store.entities = incoming.entities
+  })
+  if (!ok) return c.json({ error: 'Configurazione in sola lettura in questo deployment' }, 409)
+  emitConfigChange()
+  return c.json({ ok: true })
 })
 
 configRouter.put('/', async (c) => {

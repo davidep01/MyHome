@@ -18,6 +18,20 @@ export default defineConfig(({ mode }) => ({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        // Vendor stabili in chunk separati: a ogni release il kiosk riscarica
+        // solo il codice app, non react/framer/grid (asset hashati `immutable`).
+        manualChunks(id: string) {
+          if (!id.includes('node_modules')) return
+          if (id.includes('react-grid-layout')) return 'grid'
+          if (id.includes('framer-motion')) return 'motion'
+          if (/node_modules\/(react|react-dom|scheduler)\//.test(id)) return 'react'
+        },
+      },
+    },
+  },
   plugins: [
     react(),
     tailwindcss(),

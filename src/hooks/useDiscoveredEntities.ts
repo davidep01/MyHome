@@ -35,6 +35,11 @@ export const DOMAIN_TYPE: Record<string, EntityType> = {
   weather: 'weather',
   water_heater: 'water_heater',
   valve: 'valve',
+  // Domini HA recenti: riusano EntityType semanticamente affini (footprint e
+  // azioni compatibili); il design per-famiglia vive in mapEntityToWidgetCard.
+  humidifier: 'fan',
+  lawn_mower: 'vacuum',
+  air_quality: 'sensor',
 }
 
 /** Section ordering + Italian labels for each discovered domain. */
@@ -68,6 +73,9 @@ const DOMAIN_META: { domain: string; label: string; order: number; minColumn?: n
   { domain: 'weather', label: 'Meteo', order: 22 },
   { domain: 'water_heater', label: 'Acqua calda', order: 23 },
   { domain: 'valve', label: 'Valvole', order: 24 },
+  { domain: 'humidifier', label: 'Umidificatori', order: 3 },
+  { domain: 'lawn_mower', label: 'Giardino', order: 7 },
+  { domain: 'air_quality', label: 'Qualità aria', order: 19 },
 ]
 
 export interface DiscoveredSection {

@@ -26,6 +26,14 @@ const ADMIN_PIN = '8999'
 
 type Section = 'preferences' | 'rooms' | 'connection' | 'admin'
 
+const SECTION_IDS: Section[] = ['preferences', 'rooms', 'connection', 'admin']
+
+/** Sezione iniziale dal deep-link `/settings?section=…` (refresh-safe). */
+function initialSection(): Section {
+  const requested = new URLSearchParams(window.location.search).get('section')
+  return (SECTION_IDS as string[]).includes(requested ?? '') ? requested as Section : 'preferences'
+}
+
 const ENTITY_TYPES: RoomEntity['type'][] = [
   'light', 'climate', 'cover', 'scene', 'security', 'media', 'switch', 'camera', 'sensor',
 ]
@@ -983,7 +991,13 @@ function AdminPanel({ config }: { config: AppConfig }) {
 // ── Main SettingsPage ────────────────────────────────────────────────────────
 
 export function SettingsPage() {
-  const [section, setSection] = useState<Section>('preferences')
+  const [section, setSectionState] = useState<Section>(initialSection)
+  const setSection = (next: Section) => {
+    setSectionState(next)
+    const url = new URL(window.location.href)
+    url.searchParams.set('section', next)
+    window.history.replaceState(null, '', url)
+  }
 
   const sections: { id: Section; label: string; icon: React.ElementType }[] = [
     { id: 'preferences', label: 'Preferenze', icon: User },

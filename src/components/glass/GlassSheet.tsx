@@ -1,7 +1,19 @@
+import { useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
 import { framerSpring } from '../../design/tokens'
 import { cn } from '../../lib/utils'
+
+// Punto dell'ultimo tocco: il modal centrato "nasce" da lì e ci ritorna alla
+// chiusura (zoom transition alla iOS) senza che i call-site debbano passare rect.
+let lastPointer: { x: number; y: number } | null = null
+if (typeof window !== 'undefined') {
+  window.addEventListener(
+    'pointerdown',
+    (e) => { lastPointer = { x: e.clientX, y: e.clientY } },
+    { capture: true, passive: true },
+  )
+}
 
 interface GlassSheetProps {
   open: boolean
@@ -25,12 +37,28 @@ export function GlassSheet({
 }: GlassSheetProps) {
   const isCenter = side === 'center'
 
+  // Offset del tocco rispetto al centro viewport, catturato all'apertura.
+  // In perf-lite si torna al semplice fade+scale (meno movimento su GPU deboli).
+  const origin = useMemo(() => {
+    if (!isCenter || !open || !lastPointer) return null
+    if (document.documentElement.classList.contains('perf-lite')) return null
+    return {
+      dx: lastPointer.x - window.innerWidth / 2,
+      dy: lastPointer.y - window.innerHeight / 2,
+    }
+  }, [open, isCenter])
+
   const variants =
     side === 'bottom'
       ? { hidden: { y: '100%', opacity: 0 }, visible: { y: 0, opacity: 1 } }
       : side === 'right'
         ? { hidden: { x: '100%', opacity: 0 }, visible: { x: 0, opacity: 1 } }
-        : { hidden: { scale: 0.94, opacity: 0 }, visible: { scale: 1, opacity: 1 } }
+        : origin
+          ? {
+              hidden: { x: origin.dx, y: origin.dy, scale: 0.28, opacity: 0 },
+              visible: { x: 0, y: 0, scale: 1, opacity: 1 },
+            }
+          : { hidden: { scale: 0.94, opacity: 0 }, visible: { scale: 1, opacity: 1 } }
 
   // Viewport-safe sizing: dvh (not vh), clamped widths, safe-area insets.
   const sheetStyle =

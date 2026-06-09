@@ -1,4 +1,4 @@
-import type { ComponentProps, ReactNode } from 'react'
+import type { ComponentProps, CSSProperties, ReactNode } from 'react'
 import type { Layout } from 'react-grid-layout/legacy'
 import 'react-grid-layout/css/styles.css'
 import { MeasuredGridLayout } from './MeasuredGridLayout'
@@ -70,7 +70,7 @@ export function HomeGridCanvas({
       useCSSTransforms
       autoSize
     >
-      {widgets.map((widget) => {
+      {widgets.map((widget, index) => {
         const content = (
           <WidgetErrorBoundary>
             <HomeWidgetView widget={widget} publicConfig={publicConfig} />
@@ -78,7 +78,10 @@ export function HomeGridCanvas({
         )
         return (
           <div key={widget.id} className="relative min-w-0">
-            {renderTile ? renderTile(widget, content) : content}
+            {/* stagger d'ingresso: i tile oltre il 12° entrano insieme (delay cap) */}
+            <div className="card-enter h-full" style={{ '--enter-i': Math.min(index, 12) } as CSSProperties}>
+              {renderTile ? renderTile(widget, content) : content}
+            </div>
             {editMode && renderOverlay?.(widget)}
           </div>
         )

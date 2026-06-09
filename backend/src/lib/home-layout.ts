@@ -112,10 +112,17 @@ function orderedWidgets(widgets: HomeWidget[], order: string[]): HomeWidget[] {
   return order.map((id) => byId.get(id)).filter(Boolean) as HomeWidget[]
 }
 
+function intOrNull(value: unknown): number | null {
+  return typeof value === 'number' && Number.isInteger(value) ? value : null
+}
+
 function rawPosition(value: unknown): HomePosition | null {
   if (!isObject(value)) return null
-  const { x, y, w, h } = value
-  if (!Number.isInteger(x) || !Number.isInteger(y) || !Number.isInteger(w) || !Number.isInteger(h)) return null
+  const x = intOrNull(value.x)
+  const y = intOrNull(value.y)
+  const w = intOrNull(value.w)
+  const h = intOrNull(value.h)
+  if (x === null || y === null || w === null || h === null) return null
   return { x, y, w, h }
 }
 
@@ -259,7 +266,7 @@ export function tabletHomeLayout(config: AppConfig) {
   const home = normalizeHomeConfig(config.home)
 
   return {
-    schemaVersion: HOME_SCHEMA_VERSION as const,
+    schemaVersion: HOME_SCHEMA_VERSION,
     dashboardId: HOME_DASHBOARD_ID,
     widgets: home.widgets,
     layout: {

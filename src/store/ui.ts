@@ -18,6 +18,32 @@ export type AppView =
 /** 'auto' = domain sections (default); 'grid' = user's custom tile layout. */
 export type DashboardView = 'auto' | 'grid'
 
+/** Canonical URL for every desktop view — keeps the SPA deep-linkable e refresh-safe. */
+export const VIEW_PATHS: Record<AppView, string> = {
+  home: '/',
+  areas: '/areas',
+  lights: '/lights',
+  climate: '/climate',
+  security: '/security',
+  energy: '/energy',
+  cameras: '/cameras',
+  automations: '/automations',
+  media: '/media',
+  water: '/water',
+  system: '/system',
+  settings: '/settings',
+}
+
+const PATH_VIEWS = new Map(
+  (Object.entries(VIEW_PATHS) as [AppView, string][]).map(([view, path]) => [path, view]),
+)
+
+export function viewFromPath(pathname: string): AppView {
+  const seg = pathname.split('/').filter(Boolean)[0]
+  if (!seg || seg === 'backend' || seg === 'admin') return 'home'
+  return PATH_VIEWS.get(`/${seg}`) ?? 'home'
+}
+
 interface UIStore {
   activeRoom: string
   activeView: AppView
@@ -39,7 +65,7 @@ interface UIStore {
 
 export const useUIStore = create<UIStore>((set) => ({
   activeRoom: 'all',
-  activeView: 'home',
+  activeView: viewFromPath(window.location.pathname),
   theme: 'dark',
   rightPanelOpen: true,
   selectedEntityId: null,

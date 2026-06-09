@@ -3,18 +3,8 @@ import { Sidebar } from './Sidebar'
 import { BottomTabBar } from './BottomTabBar'
 import { TabletDashboard } from '../../pages/TabletDashboard'
 import { BackendHomePage } from '../../pages/BackendHomePage'
-import { AreasPage } from '../../pages/AreasPage'
-import { LightsPage } from '../../pages/LightsPage'
-import { ClimatePage } from '../../pages/ClimatePage'
-import { SecurityPage } from '../../pages/SecurityPage'
-import { EnergyPage } from '../../pages/EnergyPage'
-import { CamerasPage } from '../../pages/CamerasPage'
-import { AutomationsPage } from '../../pages/AutomationsPage'
-import { MediaPage } from '../../pages/MediaPage'
-import { WaterPage } from '../../pages/WaterPage'
-import { SystemPage } from '../../pages/SystemPage'
 import { connectHA, connectHAStream, disconnectHA, disconnectHAStream } from '../../api/ha-websocket'
-import { useUIStore } from '../../store/ui'
+import { useUIStore, viewFromPath, VIEW_PATHS } from '../../store/ui'
 import { GlassSheet } from '../glass/GlassSheet'
 import { ContextualPanel } from '../contextual/ContextualPanel'
 import { ConnectionOverlay } from '../system/ConnectionOverlay'
@@ -27,8 +17,19 @@ import { useAutoTheme } from '../../hooks/useAutoTheme'
 import { useIsDesktop } from '../../hooks/useIsDesktop'
 import { useTabletLayout } from '../../hooks/useTabletLayout'
 
-// Admin/settings is heavy — load it on demand, not at startup.
+// Le viste desktop sono lazy: il kiosk (percorso primario) carica solo TabletDashboard,
+// il desktop scarica ogni pagina al primo accesso. Home resta eager (è la landing).
 const SettingsPage = lazy(() => import('../../pages/SettingsPage').then((m) => ({ default: m.SettingsPage })))
+const AreasPage = lazy(() => import('../../pages/AreasPage').then((m) => ({ default: m.AreasPage })))
+const LightsPage = lazy(() => import('../../pages/LightsPage').then((m) => ({ default: m.LightsPage })))
+const ClimatePage = lazy(() => import('../../pages/ClimatePage').then((m) => ({ default: m.ClimatePage })))
+const SecurityPage = lazy(() => import('../../pages/SecurityPage').then((m) => ({ default: m.SecurityPage })))
+const EnergyPage = lazy(() => import('../../pages/EnergyPage').then((m) => ({ default: m.EnergyPage })))
+const CamerasPage = lazy(() => import('../../pages/CamerasPage').then((m) => ({ default: m.CamerasPage })))
+const AutomationsPage = lazy(() => import('../../pages/AutomationsPage').then((m) => ({ default: m.AutomationsPage })))
+const MediaPage = lazy(() => import('../../pages/MediaPage').then((m) => ({ default: m.MediaPage })))
+const WaterPage = lazy(() => import('../../pages/WaterPage').then((m) => ({ default: m.WaterPage })))
+const SystemPage = lazy(() => import('../../pages/SystemPage').then((m) => ({ default: m.SystemPage })))
 
 export function AppShell() {
   const path = usePathname()
@@ -38,7 +39,31 @@ export function AppShell() {
 
   if (backendPath && !isDesktop) return <DesktopOnlyMessage />
   if (kioskPath || !isDesktop) return <KioskShell />
-  return <DesktopShell />
+  return <DesktopShell path={path} />
+}
+
+/**
+ * Two-way sync between the URL and the active desktop view:
+ * deep-link/refresh land on the right page, back/forward navigate views,
+ * and nav clicks push a history entry. No router library needed.
+ */
+function useViewRouting(path: string) {
+  const activeView = useUIStore((s) => s.activeView)
+  const setActiveView = useUIStore((s) => s.setActiveView)
+
+  // URL → store (popstate, deep link)
+  useEffect(() => {
+    const view = viewFromPath(path)
+    if (view !== useUIStore.getState().activeView) setActiveView(view)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [path])
+
+  // store → URL (nav clicks); skip when the current path already maps to the view
+  // (e.g. /backend ↔ home) to avoid history loops on back/forward
+  useEffect(() => {
+    if (viewFromPath(window.location.pathname) === activeView) return
+    window.history.pushState(null, '', VIEW_PATHS[activeView])
+  }, [activeView])
 }
 
 function usePathname() {
@@ -69,10 +94,11 @@ function DesktopOnlyMessage() {
   )
 }
 
-function DesktopShell() {
+function DesktopShell({ path }: { path: string }) {
   const activeView = useUIStore((s) => s.activeView)
   const selectedEntityId = useUIStore((s) => s.selectedEntityId)
   const setSelectedEntity = useUIStore((s) => s.setSelectedEntity)
+  useViewRouting(path)
   usePerfMode()
   useConfigSync()
   useAutoTheme()
@@ -82,20 +108,22 @@ function DesktopShell() {
     return () => disconnectHA()
   }, [])
 
-  const page =
-    activeView === 'settings'
-      ? <Suspense fallback={<div className="flex h-full items-center justify-center text-sm text-black/40">Caricamento…</div>}><SettingsPage /></Suspense> :
-    activeView === 'areas' ? <AreasPage /> :
-    activeView === 'lights' ? <LightsPage /> :
-    activeView === 'climate' ? <ClimatePage /> :
-    activeView === 'security' ? <SecurityPage /> :
-    activeView === 'energy' ? <EnergyPage /> :
-    activeView === 'cameras' ? <CamerasPage /> :
-    activeView === 'automations' ? <AutomationsPage /> :
-    activeView === 'media' ? <MediaPage /> :
-    activeView === 'water' ? <WaterPage /> :
-    activeView === 'system' ? <SystemPage /> :
-    <BackendHomePage />
+  const page = (
+    <Suspense fallback={<div className="flex h-full items-center justify-center text-sm text-black/40">Caricamento…</div>}>
+      {activeView === 'settings' ? <SettingsPage /> :
+       activeView === 'areas' ? <AreasPage /> :
+       activeView === 'lights' ? <LightsPage /> :
+       activeView === 'climate' ? <ClimatePage /> :
+       activeView === 'security' ? <SecurityPage /> :
+       activeView === 'energy' ? <EnergyPage /> :
+       activeView === 'cameras' ? <CamerasPage /> :
+       activeView === 'automations' ? <AutomationsPage /> :
+       activeView === 'media' ? <MediaPage /> :
+       activeView === 'water' ? <WaterPage /> :
+       activeView === 'system' ? <SystemPage /> :
+       <BackendHomePage />}
+    </Suspense>
+  )
 
   return (
     <div className="relative flex h-full w-full overflow-hidden">

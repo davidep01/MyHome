@@ -188,6 +188,22 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
   will-change: transform;
 }
 
+/* ----------------------------------------------------------------------------
+   Entrata coreografata della home: le card "si compongono" con uno stagger di
+   35ms (transform/opacity only). `--enter-i` è l'indice del tile. Disattivata
+   su GPU deboli e reduced-motion (la regola globale azzera la durata, `both`
+   salta direttamente allo stato finale).
+   ------------------------------------------------------------------------- */
+@keyframes card-enter {
+  from { opacity: 0; transform: translateY(8px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+.card-enter {
+  animation: card-enter 480ms var(--spring) both;
+  animation-delay: calc(var(--enter-i, 0) * 35ms);
+}
+.perf-lite .card-enter { animation: none; }
+
 .kiosk-layout-editing .react-grid-placeholder {
   border-radius: 18px;
   background: rgba(0, 102, 204, 0.16) !important;
@@ -248,6 +264,9 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
     inset 0 -16px 24px -16px rgba(17,21,28,0.16),     /* glass thickness at the base */
     0 8px 20px -12px rgba(17,21,28,0.20);             /* soft float off the parchment */
   transform: translateZ(0);
+  /* Isolate each card's layout/paint: with dozens of cards in the grid the
+     browser can skip re-layout/repaint of untouched siblings (kiosk GPUs). */
+  contain: layout style paint;
 }
 
 /* Active = functional accent glow + brighter edges (the only glow the design
@@ -338,14 +357,58 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
    the top highlight so the card still reads as glass. */
 .perf-lite .widget-card-lens,
 .perf-lite .widget-card-gloss-layer { opacity: .3; }
+
+/* perf-lite: freeze every LOOPING widget animation (weak GPU = no always-on
+   motion). Brief feedback animations (errorShake, successPop/lockSnap) and the
+   loading shimmer stay — they carry meaning, not decoration. */
+.perf-lite .widget-anim-softGlow,
+.perf-lite .widget-anim-pulse,
+.perf-lite .widget-anim-liveBlink,
+.perf-lite .widget-anim-breathing,
+.perf-lite .widget-anim-rotate,
+.perf-lite .widget-anim-fanSpin,
+.perf-lite .widget-anim-wave,
+.perf-lite .widget-anim-waterWave,
+.perf-lite .widget-anim-snow,
+.perf-lite .widget-anim-heat,
+.perf-lite .widget-anim-rain,
+.perf-lite .widget-anim-gateSlide,
+.perf-lite .widget-anim-blindMove,
+.perf-lite .widget-anim-alarmPulse,
+.perf-lite .widget-anim-sparkle,
+.perf-lite .widget-anim-energyFlow::after,
+.perf-lite .widget-anim-ripple::before { animation: none; }
 @media (prefers-reduced-transparency: reduce) {
   .widget-card-lens,
   .widget-card-gloss-layer { opacity: .32; }
 }
 
+/* ----------------------------------------------------------------------------
+   Touch target ≥ 44×44px (HIG) senza gonfiare la grafica: il pseudo-elemento
+   estende l'area cliccabile attorno a bottoni visivamente più piccoli.
+   ------------------------------------------------------------------------- */
+.tap-target { position: relative; }
+.tap-target::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: max(100%, 44px);
+  height: max(100%, 44px);
+  transform: translate(-50%, -50%);
+  border-radius: inherit;
+}
+
 .widget-card-toggle {
   background: rgba(0,0,0,0.13);
   box-shadow: inset 0 1px 2px rgba(0,0,0,0.12);
+}
+/* tap area ≥44px tall, visual stays 36px (same trick as .lg-toggle) */
+.widget-card-toggle::before {
+  content: '';
+  position: absolute;
+  inset: -5px -4px;
+  border-radius: 999px;
 }
 .widget-card-toggle.on {
   background: var(--toggle-color);
@@ -377,9 +440,10 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
   0%, 100% { opacity: .62; transform: scale(1); }
   50% { opacity: 1; transform: scale(1.035); }
 }
+/* transform/opacity only — animating `filter` repaints every frame on tablet GPUs */
 @keyframes widget-breathing {
-  0%, 100% { filter: brightness(1); }
-  50% { filter: brightness(1.035); }
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.015); }
 }
 @keyframes widget-rotate { to { transform: rotate(360deg); } }
 @keyframes widget-ripple {
@@ -391,8 +455,8 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
   50% { transform: translateY(3px); }
 }
 @keyframes widget-heat {
-  0%, 100% { transform: translateY(0); filter: saturate(1); }
-  50% { transform: translateY(-2px); filter: saturate(1.14); }
+  0%, 100% { transform: translateY(0); opacity: .85; }
+  50% { transform: translateY(-2px); opacity: 1; }
 }
 @keyframes widget-rain {
   0% { transform: translateY(-8%); opacity: .25; }
@@ -468,10 +532,18 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
 .widget-anim-gateSlide { animation: widget-slide 2.4s ease-in-out infinite; }
 .widget-anim-blindMove { animation: widget-blind 2.8s ease-in-out infinite; }
 .widget-anim-alarmPulse { animation: widget-alarm 1s ease-in-out infinite; }
+/* Flow as a translated overlay (compositor-only) instead of animating
+   background-position, which repaints the gradient every frame. */
 .widget-anim-energyFlow {
+  position: relative;
+  overflow: hidden;
+}
+.widget-anim-energyFlow::after {
+  content: '';
+  position: absolute;
+  inset: 0;
   background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--widget-accent) 24%, transparent), transparent);
-  background-size: 180% 100%;
-  animation: widget-flow 2.2s linear infinite;
+  animation: widget-shimmer 2.2s linear infinite;
 }
 .widget-anim-sparkle { animation: widget-soft-glow 2.6s ease-in-out infinite; }
 .widget-anim-errorShake { animation: widget-error .26s ease-in-out 2; }

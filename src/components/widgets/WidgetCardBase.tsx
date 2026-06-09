@@ -250,7 +250,8 @@ export function WidgetCardRing({
           background: `conic-gradient(${color} ${deg}deg, ${trackColor} 0deg)`,
         }}
       />
-      <div className="absolute inset-[5px] rounded-full bg-white/75 backdrop-blur" />
+      {/* niente backdrop-blur annidato: blur dentro la card frosted costa caro sulle GPU dei tablet */}
+      <div className="absolute inset-[5px] rounded-full bg-white/85" />
       <div className="relative z-10 grid place-items-center text-center">
         {children ?? (
           <>
@@ -292,7 +293,7 @@ export function WidgetCardDial({
           background: `conic-gradient(from 220deg, #0ea5e9 0deg, #22c55e 92deg, #f59e0b 188deg, #dc2626 ${Math.max(200, pct * 280)}deg, rgba(0,0,0,0.08) 0deg)`,
         }}
       />
-      <div className="absolute inset-[6px] rounded-full bg-white/78 backdrop-blur" />
+      <div className="absolute inset-[6px] rounded-full bg-white/88" />
       {currentPct !== null && (
         <span
           className="absolute h-2.5 w-2.5 rounded-full bg-[#1d1d1f] shadow"
@@ -328,6 +329,9 @@ export function WidgetCardSlider({
       value={Math.round(value)}
       onChange={(event) => onChange?.(Number(event.target.value))}
       onPointerUp={(event) => onCommit?.(Number((event.currentTarget as HTMLInputElement).value))}
+      // Regolare lo slider non deve aprire il pannello della card né avviare il drag del grid
+      onClick={(event) => event.stopPropagation()}
+      onPointerDown={(event) => event.stopPropagation()}
       className="widget-card-slider h-8 w-full"
       style={{ accentColor: color }}
       aria-label="Regola valore"

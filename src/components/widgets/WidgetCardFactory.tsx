@@ -4,6 +4,8 @@ import { haApi, type RoomEntity } from '../../api/backend'
 import { useHAEntity } from '../../hooks/useHAEntity'
 import { useHAService } from '../../hooks/useHAService'
 import { useHaptic } from '../../hooks/useHaptic'
+import { useActionFeedback } from '../../hooks/useActionFeedback'
+import { cn } from '../../lib/utils'
 import { useEntityStore } from '../../store/entities'
 import { WidgetCardBadge, WidgetCardDial, WidgetCardFooter, WidgetCardHeader, WidgetCardIcon, WidgetCardRing, WidgetCardShell, WidgetCardSlider, WidgetCardToggle, WidgetCardValue, WidgetIconButton } from './WidgetCardBase'
 import { mapEntityToWidgetCard } from './utils/mapEntityToWidgetCard'
@@ -32,6 +34,7 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
   const mapped = useMemo(() => mapEntityToWidgetCard(entity, roomEntity), [entity, roomEntity])
   const { call } = useHAService()
   const { light, medium, heavy } = useHaptic()
+  const { feedbackClass, actionFailed } = useActionFeedback()
   const setOptimisticState = useEntityStore((s) => s.setOptimisticState)
   const patchEntity = useEntityStore((s) => s.patchEntity)
   const cfg = getWidgetSizeConfig(size)
@@ -40,22 +43,27 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
   const unavailable = mapped.isUnavailable
   const on = isOnState(entity?.state)
 
+  /** Ogni azione HA fallita deve vedersi: rollback (se c'è) + shake/haptic. */
+  const act = (action: Promise<unknown>, rollback?: () => void) =>
+    action.catch(() => { rollback?.(); actionFailed() })
+
   const togglePower = () => {
     if (!entity || unavailable) return
     light()
     const next = on ? 'off' : 'on'
     setOptimisticState(roomEntity.entityId, next)
-    call(domain, on ? 'turn_off' : 'turn_on', { entity_id: roomEntity.entityId }).catch(() => {
-      setOptimisticState(roomEntity.entityId, entity.state)
-    })
+    act(
+      call(domain, on ? 'turn_off' : 'turn_on', { entity_id: roomEntity.entityId }),
+      () => setOptimisticState(roomEntity.entityId, entity.state),
+    )
   }
 
   const activate = () => {
     if (unavailable) return
     medium()
-    if (domain === 'scene' || domain === 'script') call(domain, 'turn_on', { entity_id: roomEntity.entityId })
-    else if (domain === 'button' || domain === 'input_button') call(domain, 'press', { entity_id: roomEntity.entityId })
-    else if (domain === 'remote') call('remote', 'toggle', { entity_id: roomEntity.entityId })
+    if (domain === 'scene' || domain === 'script') act(call(domain, 'turn_on', { entity_id: roomEntity.entityId }))
+    else if (domain === 'button' || domain === 'input_button') act(call(domain, 'press', { entity_id: roomEntity.entityId }))
+    else if (domain === 'remote') act(call('remote', 'toggle', { entity_id: roomEntity.entityId }))
   }
 
   const adjustClimate = (delta: number) => {
@@ -68,7 +76,10 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
     const next = Math.min(max, Math.max(min, Number((target + delta * step).toFixed(1))))
     light()
     setOptimisticState(roomEntity.entityId, entity.state, { temperature: next })
-    call('climate', 'set_temperature', { entity_id: roomEntity.entityId, temperature: next })
+    act(
+      call('climate', 'set_temperature', { entity_id: roomEntity.entityId, temperature: next }),
+      () => setOptimisticState(roomEntity.entityId, entity.state, { temperature: target }),
+    )
   }
 
   const climatePower = () => {
@@ -76,13 +87,34 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
     medium()
     const next = entity.state === 'off' ? 'auto' : 'off'
     setOptimisticState(roomEntity.entityId, next)
-    call('climate', 'set_hvac_mode', { entity_id: roomEntity.entityId, hvac_mode: next })
+    act(
+      call('climate', 'set_hvac_mode', { entity_id: roomEntity.entityId, hvac_mode: next }),
+      () => setOptimisticState(roomEntity.entityId, entity.state),
+    )
   }
 
   const cover = (service: 'open_cover' | 'close_cover' | 'stop_cover') => {
     if (unavailable) return
     medium()
-    call('cover', service, { entity_id: roomEntity.entityId })
+    act(call('cover', service, { entity_id: roomEntity.entityId }))
+  }
+
+  const valveAction = (service: 'open_valve' | 'close_valve') => {
+    if (unavailable) return
+    medium()
+    act(call('valve', service, { entity_id: roomEntity.entityId }))
+  }
+
+  const mowerAction = () => {
+    if (unavailable) return
+    medium()
+    const mowing = entity?.state === 'mowing'
+    act(call('lawn_mower', mowing ? 'dock' : 'start_mowing', { entity_id: roomEntity.entityId }))
+  }
+
+  const setTargetHumidity = (value: number) => {
+    setOptimisticState(roomEntity.entityId, 'on', { humidity: Math.round(value) })
+    act(call('humidifier', 'set_humidity', { entity_id: roomEntity.entityId, humidity: Math.round(value) }))
   }
 
   const setBrightness = (value: number) => {
@@ -91,38 +123,38 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
 
   const commitBrightness = (value: number) => {
     setOptimisticState(roomEntity.entityId, 'on', { brightness: Math.round((value / 100) * 255) })
-    call('light', 'turn_on', { entity_id: roomEntity.entityId, brightness_pct: Math.round(value) })
+    act(call('light', 'turn_on', { entity_id: roomEntity.entityId, brightness_pct: Math.round(value) }))
   }
 
   const setFanSpeed = (value: number) => {
     setOptimisticState(roomEntity.entityId, value > 0 ? 'on' : 'off', { percentage: Math.round(value) })
-    call('fan', 'set_percentage', { entity_id: roomEntity.entityId, percentage: Math.round(value) })
+    act(call('fan', 'set_percentage', { entity_id: roomEntity.entityId, percentage: Math.round(value) }))
   }
 
   const lockAction = () => {
     if (unavailable) return
     heavy()
     const unlocked = entity?.state === 'unlocked'
-    call('lock', unlocked ? 'lock' : 'unlock', { entity_id: roomEntity.entityId })
+    act(call('lock', unlocked ? 'lock' : 'unlock', { entity_id: roomEntity.entityId }))
   }
 
   const alarmAction = () => {
     if (unavailable) return
     heavy()
     const state = entity?.state
-    call('alarm_control_panel', state === 'disarmed' ? 'alarm_arm_home' : 'alarm_disarm', { entity_id: roomEntity.entityId })
+    act(call('alarm_control_panel', state === 'disarmed' ? 'alarm_arm_home' : 'alarm_disarm', { entity_id: roomEntity.entityId }))
   }
 
   const vacuumAction = () => {
     if (unavailable) return
     medium()
-    call('vacuum', entity?.state === 'cleaning' ? 'return_to_base' : 'start', { entity_id: roomEntity.entityId })
+    act(call('vacuum', entity?.state === 'cleaning' ? 'return_to_base' : 'start', { entity_id: roomEntity.entityId }))
   }
 
   const mediaAction = () => {
     if (unavailable) return
     medium()
-    call('media_player', entity?.state === 'playing' ? 'media_pause' : 'media_play', { entity_id: roomEntity.entityId })
+    act(call('media_player', entity?.state === 'playing' ? 'media_pause' : 'media_play', { entity_id: roomEntity.entityId }))
   }
 
   const renderCore = () => {
@@ -165,8 +197,8 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
           accentColor={mapped.accentColor}
           size={size}
           trailing={
-            mapped.family === 'light' || mapped.family === 'switch' || mapped.family === 'smartPlug' || mapped.family === 'fan'
-              ? <WidgetCardToggle checked={mapped.isActive} disabled={unavailable} onToggle={mapped.family === 'fan' ? togglePower : togglePower} color={mapped.accentColor} label={`Toggle ${mapped.title}`} />
+            mapped.family === 'light' || mapped.family === 'switch' || mapped.family === 'smartPlug' || mapped.family === 'fan' || mapped.family === 'humidifier'
+              ? <WidgetCardToggle checked={mapped.isActive} disabled={unavailable} onToggle={togglePower} color={mapped.accentColor} label={`Toggle ${mapped.title}`} />
               : <WidgetCardBadge tone={mapped.isUnavailable ? 'neutral' : mapped.status === 'triggered' || mapped.status === 'critical' ? 'critical' : mapped.status === 'warning' ? 'warning' : mapped.isActive ? 'ok' : 'neutral'}>{mapped.subtitle}</WidgetCardBadge>
           }
         />
@@ -241,6 +273,12 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
           </div>
         )}
 
+        {mapped.family === 'humidifier' && mapped.isActive && (
+          <div className="mt-3">
+            <WidgetCardSlider value={pct(mapped.ringValue)} color={mapped.accentColor} onCommit={setTargetHumidity} />
+          </div>
+        )}
+
         <WidgetCardFooter>
           {mapped.family === 'climate' || mapped.family === 'thermostat' ? (
             <div className="flex items-center gap-2">
@@ -260,6 +298,13 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
             <WidgetIconButton onClick={alarmAction} label="Cambia stato sicurezza" disabled={unavailable}><Power size={18} /></WidgetIconButton>
           ) : mapped.family === 'vacuum' ? (
             <WidgetIconButton onClick={vacuumAction} label={entity?.state === 'cleaning' ? 'Rientra alla base' : 'Avvia pulizia'} disabled={unavailable}>{entity?.state === 'cleaning' ? <Home size={18} /> : <Play size={18} />}</WidgetIconButton>
+          ) : mapped.family === 'mower' ? (
+            <WidgetIconButton onClick={mowerAction} label={entity?.state === 'mowing' ? 'Rientra alla base' : 'Avvia taglio'} disabled={unavailable}>{entity?.state === 'mowing' ? <Home size={18} /> : <Play size={18} />}</WidgetIconButton>
+          ) : domain === 'valve' ? (
+            <div className="flex items-center gap-2">
+              <WidgetIconButton onClick={() => valveAction('open_valve')} label="Apri valvola" disabled={unavailable}><ChevronUp size={18} /></WidgetIconButton>
+              <WidgetIconButton onClick={() => valveAction('close_valve')} label="Chiudi valvola" disabled={unavailable}><ChevronDown size={18} /></WidgetIconButton>
+            </div>
           ) : mapped.family === 'media' || mapped.family === 'speaker' || mapped.family === 'tv' ? (
             <div className="flex items-center gap-2">
               <WidgetIconButton onClick={mediaAction} label="Play pausa" disabled={unavailable}>{entity?.state === 'playing' ? <Pause size={18} /> : <Play size={18} />}</WidgetIconButton>
@@ -282,7 +327,7 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
   }
 
   const primaryClick =
-    mapped.family === 'light' || mapped.family === 'switch' || mapped.family === 'smartPlug' || mapped.family === 'fan'
+    mapped.family === 'light' || mapped.family === 'switch' || mapped.family === 'smartPlug' || mapped.family === 'fan' || mapped.family === 'humidifier'
       ? togglePower
       : mapped.family === 'scene' || mapped.family === 'script'
         ? activate
@@ -290,9 +335,11 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
           ? lockAction
           : mapped.family === 'vacuum'
             ? vacuumAction
-            : mapped.family === 'media' || mapped.family === 'speaker' || mapped.family === 'tv'
-              ? mediaAction
-              : undefined
+            : mapped.family === 'mower'
+              ? mowerAction
+              : mapped.family === 'media' || mapped.family === 'speaker' || mapped.family === 'tv'
+                ? mediaAction
+                : undefined
 
   return (
     <WidgetCardShell
@@ -309,7 +356,7 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
       isUnavailable={mapped.isUnavailable}
       isEditing={isEditing}
       isDragging={isDragging}
-      className={className}
+      className={cn(className, feedbackClass)}
       onClick={primaryClick}
     >
       {renderCore()}

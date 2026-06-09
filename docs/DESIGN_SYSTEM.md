@@ -388,3 +388,54 @@ Tutte le azioni verso HA usano **stato ottimistico**: UI aggiornata istantaneame
 | `src/hooks/useAreas.ts` | Planche per area (registry HA) |
 | `src/config/doorbell.ts` | Config campanello → camera |
 | `docs/SMART_FUNCTIONS_ROADMAP.md` | Feature da deployare (Frigate, WebRTC audio, ecc.) |
+
+---
+
+## Matrice famiglie widget (canone implementativo — 2026-06-10)
+
+Il sistema card è **uno solo**: `WidgetCardFactory` (azioni) + `mapEntityToWidgetCard` (design per
+famiglia) + `WidgetCardBase` (shell e primitive) + `utils/stateLabel.ts` (stati in italiano).
+Le vecchie card standalone per dominio sono state eliminate (codice morto).
+
+### Stati universali (valgono per OGNI famiglia, presente e futura)
+- **Loading** → skeleton shimmer · **Unavailable/Unknown** → card desaturata, "Non disponibile" ·
+  **Offline** → idem con WifiOff · **Errore azione** → rollback + shake + haptic heavy
+  (`useActionFeedback`, helper `act()` nel factory) · **Editing** → overlay tratteggiato con grip.
+
+### Famiglie
+
+| Famiglia | Domini HA | Icona | Tono | Primario | Anim. (solo se attiva) | Azioni |
+|---|---|---|---|---|---|---|
+| light | light | Lightbulb | light | luminosità % | softGlow | tap=toggle · slider |
+| switch / smartPlug | switch, input_boolean | Power/PlugZap | ok/energy | ON-OFF / W | energyFlow (plug) | tap=toggle |
+| climate / thermostat | climate, water_heater | Flame/Wind/Thermometer | temperatureTone | target °C | heat/snow/fanSpin | ±temp · power · dial |
+| fan | fan | Fan | cool | velocità % | fanSpin | tap=toggle · slider |
+| humidifier | humidifier | Droplets | water | umidità target % | waterWave | tap=toggle · slider umidità |
+| cover/curtain/gate/garage | cover | Blinds/Home | energy | posizione % | blindMove/gateSlide | apri · stop · chiudi |
+| lock | lock | Lock | securityTone | Aperta/Chiusa | alarmPulse se aperta | press-and-hold (mai toggle) |
+| alarm/smokeGasCo/waterLeak | alarm_control_panel, siren, binary_sensor | Shield(Alert) | ok/critical | OK / ! | alarmPulse se critico | arm/disarm |
+| motion/presence/doorWindow | binary_sensor, person, device_tracker | Activity/UserRound/Home | cool/ok/security | Sì-No / Casa-Fuori / Aperta-Chiusa | ripple se attivo | — |
+| sensori (temp/humidity/airQuality/battery/energy/solar/water/pool/network) | sensor, air_quality | per famiglia | scale dedicate | valore + unità | energyFlow/waterWave | — |
+| weather | weather | CloudSun | light/cool | °C | rain/softGlow | — |
+| camera/doorbell | camera | Camera/Bell | cool | Live | liveBlink | snapshot nel ring |
+| media/speaker/tv | media_player | Music2/Radio/Tv | media | Play/Pausa/Off | pulse se playing | play/pause · volume |
+| vacuum / mower | vacuum, lawn_mower | Bot | ok/critical | batteria % | rotate se al lavoro | start / dock |
+| scene/script/automation/timer | scene, script, automation, timer, button, remote | Sparkles/ListChecks/Timer | media | Vai / ON-OFF | sparkle solo se attiva | esegui/toggle |
+| update | update | CircleArrowUp | warning/ok | versione | — | nessuna (no install da kiosk); fuori dalla discovery |
+| water (valvole) | valve | Droplets | water | stato | — | apri/chiudi valvola |
+| **generic (fallback)** | qualsiasi dominio ignoto | per dominio | neutral | stato tradotto + unità | — | — |
+
+**Regola fallback:** un dominio mai visto non deve mai rompere la dashboard → famiglia `generic`,
+stato tradotto, tono neutro. La discovery resta una **allowlist** (`DOMAIN_TYPE`): i domini rumore
+(sun, zone, tts, update, …) restano fuori di proposito.
+
+### Lingua e tipografia delle card
+- Ogni stato HA passa da `stateLabel()` → italiano. Mai snake_case all'utente.
+- Temperature sempre `°C`; numeri `tabular-nums`; accenti corretti (Luminosità, Velocità, Qualità, Umidità).
+
+### Checklist nuovo dominio
+1. `DOMAIN_TYPE` + `DOMAIN_META` (`useDiscoveredEntities.ts`) riusando un `EntityType` affine.
+2. Famiglia in `WidgetFamily` + caso in `mapEntityToWidgetCard.ts` (tono da `widgetTones`, animazione solo se attiva).
+3. Stati nuovi in `stateLabel.ts`.
+4. Azioni nel factory sempre dentro `act()`; haptic: light=toggle, medium=azione, heavy=sicurezza.
+5. Touch ≥44px, niente hover-only; aggiorna questa matrice.
