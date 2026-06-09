@@ -24,7 +24,7 @@ export function MediaNowPlayingCard() {
   }
 
   return (
-    <GlassCard noPadding className="relative col-span-1 min-h-[184px] overflow-hidden lg:col-span-1 xl:col-span-1">
+    <GlassCard depth noPadding className="relative col-span-1 min-h-[184px] overflow-hidden lg:col-span-1 xl:col-span-1">
       {pictureUrl && (
         <div className="absolute inset-0">
           <img src={pictureUrl} alt="" className="h-full w-full object-cover opacity-30" style={{ filter: 'blur(20px) scale(1.18)' }} />

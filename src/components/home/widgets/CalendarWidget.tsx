@@ -46,7 +46,7 @@ export function CalendarWidget({ size }: { size: WidgetSize }) {
   const next = events[0]
 
   return (
-    <AnimatedCard ambient="drift" ambientColor="rgba(124,58,237,0.12)" index={7} contentClassName="gap-2">
+    <AnimatedCard depth ambient="drift" ambientColor="rgba(124,58,237,0.12)" index={7} contentClassName="gap-2">
       <div className="flex items-center gap-2">
         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black/[0.05] text-[#7c3aed]">
           <CalendarDays size={18} />

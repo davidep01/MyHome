@@ -16,6 +16,7 @@ export function StatusWidget() {
 
   return (
     <AnimatedCard
+      depth
       ambient="drift"
       ambientColor={`${status.color}1f`}
       index={1}

@@ -34,7 +34,7 @@ export function QuickInsightWidget() {
   const text = insights[i % insights.length]
 
   return (
-    <AnimatedCard ambient="sheen" index={6} contentClassName="justify-center gap-2">
+    <AnimatedCard depth ambient="sheen" index={6} contentClassName="justify-center gap-2">
       <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0066cc]/10 text-[#0066cc]">
         <Sparkles size={17} className="amb-float" />
       </div>

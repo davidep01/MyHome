@@ -425,7 +425,9 @@ export function WidgetCardMotionLayer({ preset, active }: { preset?: WidgetAnima
 export function WidgetCardGlossLayer() {
   return (
     <>
+      {/* Liquid-glass depth stack — back → front. See `.widget-card-*` in index.css. */}
       <span className="widget-card-gradient-layer absolute inset-0 z-0" aria-hidden="true" />
+      <span className="widget-card-lens absolute inset-0 z-0" aria-hidden="true" />
       <span className="widget-card-gloss-layer absolute inset-0 z-0" aria-hidden="true" />
       <span className="widget-card-state-glow absolute inset-0 z-0" aria-hidden="true" />
     </>

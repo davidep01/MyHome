@@ -53,6 +53,7 @@ export function GroupCard({ group, className }: { group: EntityGroup; className?
 
   return (
     <GlassCard
+      depth
       interactive={isOnOff}
       onClick={isOnOff ? toggleAll : undefined}
       glow={anyOn && isOnOff ? 'rgba(234,179,8,0.22)' : undefined}

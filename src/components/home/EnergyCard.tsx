@@ -33,7 +33,7 @@ export function EnergyCard() {
     tokens.accent.green
 
   return (
-    <GlassCard glow={watts && watts > 1200 ? tokens.accent.orangeGlow : undefined} className="min-h-[184px]">
+    <GlassCard depth glow={watts && watts > 1200 ? tokens.accent.orangeGlow : undefined} className="min-h-[184px]">
       <div className="flex h-full flex-col">
         <div className="flex items-start justify-between">
           <div className="flex h-10 w-10 items-center justify-center rounded-[14px] bg-black/8">

@@ -21,7 +21,7 @@ export function ClimateSummaryCard() {
   const color = isHeating ? tokens.accent.orange : isCooling ? tokens.accent.blue : tokens.accent.green
 
   return (
-    <GlassCard glow={activeZones.length ? (isHeating ? tokens.accent.orangeGlow : isCooling ? tokens.accent.blueGlow : tokens.accent.greenGlow) : undefined} className="min-h-[184px]">
+    <GlassCard depth glow={activeZones.length ? (isHeating ? tokens.accent.orangeGlow : isCooling ? tokens.accent.blueGlow : tokens.accent.greenGlow) : undefined} className="min-h-[184px]">
       <div className="flex h-full items-center justify-between gap-4">
         <div className="min-w-0">
           <div className="flex h-10 w-10 items-center justify-center rounded-[14px] bg-black/8">

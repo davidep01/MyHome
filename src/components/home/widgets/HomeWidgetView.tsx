@@ -64,14 +64,14 @@ export function HomeWidgetView({ widget, publicConfig }: { widget: HomeWidget; p
     case 'insight': return <QuickInsightWidget />
     case 'calendar': return <CalendarWidget size={widget.size} />
     case 'news':
-      return <GlassCard className="h-full overflow-hidden"><NewsWidget /></GlassCard>
+      return <GlassCard depth className="h-full overflow-hidden"><NewsWidget /></GlassCard>
     case 'people': return <PeopleCard className="h-full" />
     case 'quickStats':
-      return <GlassCard className="flex h-full items-center"><QuickStats /></GlassCard>
+      return <GlassCard depth className="flex h-full items-center"><QuickStats /></GlassCard>
     case 'scenes':
-      return <GlassCard className="flex h-full items-center overflow-hidden"><SceneRow /></GlassCard>
+      return <GlassCard depth className="flex h-full items-center overflow-hidden"><SceneRow /></GlassCard>
     case 'weather':
-      return <AnimatedCard ambient="drift" index={2} ambientColor="rgba(41,151,255,0.12)" noPadding className="h-full"><div className="h-full overflow-hidden p-[14px]"><WeatherWidget /></div></AnimatedCard>
+      return <AnimatedCard depth ambient="drift" index={2} ambientColor="rgba(41,151,255,0.12)" noPadding className="h-full"><div className="h-full overflow-hidden p-[14px]"><WeatherWidget /></div></AnimatedCard>
     case 'sensor':
       return roomEntity
         ? <EntityCard entity={roomEntity} size={visualSize} />

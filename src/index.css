@@ -229,35 +229,66 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
   --ring-size-l: 122px;
 }
 
+/* ----------------------------------------------------------------------------
+   Liquid-glass depth — every card is a translucent slab, not a flat tile.
+   Depth comes from LAYERED LIGHT (inner lens, specular sheen, edge rim, accent
+   refraction + glow), never from heavy decorative drop shadows (design-system
+   rule). All layers are gradients composited over the frosted `.glass` backdrop.
+   Paint order (back → front): family tint → accent refraction → inner lens →
+   specular sheen → accent state glow → content.
+   ------------------------------------------------------------------------- */
 .widget-card-shell {
   background:
-    radial-gradient(circle at 20% 0%, rgba(255,255,255,0.96), rgba(255,255,255,0.42) 44%, rgba(255,255,255,0.26)),
+    /* translucent glass body so the frosted backdrop reads through as glass */
+    linear-gradient(180deg, rgba(255,255,255,0.40) 0%, rgba(255,255,255,0.13) 48%, rgba(255,255,255,0.05) 100%),
     var(--widget-gradient);
   box-shadow:
-    0 1px 0 rgba(255,255,255,0.80) inset,
-    0 16px 34px rgba(20, 24, 30, 0.08),
-    0 0 24px var(--widget-glow);
+    inset 0 1px 0 rgba(255,255,255,0.92),           /* top edge catches the light */
+    inset 0 0 0 0.5px rgba(255,255,255,0.30),         /* hairline inner rim */
+    inset 0 -16px 24px -16px rgba(17,21,28,0.16),     /* glass thickness at the base */
+    0 8px 20px -12px rgba(17,21,28,0.20);             /* soft float off the parchment */
   transform: translateZ(0);
 }
 
+/* Active = functional accent glow + brighter edges (the only glow the design
+   system allows on a card). */
+.widget-card-shell.widget-card-active {
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.96),
+    inset 0 0 0 0.5px rgba(255,255,255,0.38),
+    inset 0 -16px 26px -16px rgba(17,21,28,0.16),
+    0 8px 22px -12px rgba(17,21,28,0.20),
+    0 0 30px var(--widget-glow);
+}
+
+/* L1 — accent refraction: tinted glass, colour pooling from the top-right corner */
 .widget-card-gradient-layer {
   background:
-    radial-gradient(circle at 82% 18%, color-mix(in srgb, var(--widget-accent) 14%, transparent), transparent 34%),
-    linear-gradient(145deg, rgba(255,255,255,0.32), transparent 46%);
-  opacity: .92;
+    radial-gradient(128% 96% at 88% -8%, color-mix(in srgb, var(--widget-accent) 20%, transparent), transparent 48%),
+    linear-gradient(158deg, rgba(255,255,255,0.28), transparent 44%);
+  opacity: .9;
 }
 
+/* L2 — inner lens light: a soft dome of light from above that gives the slab volume */
+.widget-card-lens {
+  background: radial-gradient(140% 80% at 50% -26%, rgba(255,255,255,0.55), rgba(255,255,255,0) 58%);
+  opacity: .72;
+}
+
+/* L3 — specular sheen: a bright highlight raking diagonally across the top-left,
+   plus a faint counter-glint along the bottom-right edge */
 .widget-card-gloss-layer {
   background:
-    linear-gradient(116deg, rgba(255,255,255,0.72) 0%, rgba(255,255,255,0.20) 17%, transparent 42%),
-    linear-gradient(300deg, transparent 64%, rgba(255,255,255,0.24) 100%);
+    linear-gradient(122deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.30) 11%, transparent 32%),
+    linear-gradient(312deg, transparent 72%, rgba(255,255,255,0.16) 100%);
   mix-blend-mode: screen;
-  opacity: .58;
+  opacity: .5;
 }
 
+/* L4 — accent state glow: a pool of the device colour, strengthened when active */
 .widget-card-state-glow {
-  background: radial-gradient(circle at 84% 22%, var(--widget-glow), transparent 42%);
-  opacity: .9;
+  background: radial-gradient(56% 56% at 84% 16%, var(--widget-glow), transparent 52%);
+  opacity: .85;
 }
 
 .widget-card-shell:focus-visible {
@@ -265,20 +296,28 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
   outline-offset: 2px;
 }
 
-.widget-card-shell[data-widget-size="S"] {
-  gap: 8px;
-}
+.widget-card-shell[data-widget-size="S"] { gap: 8px; }
+.widget-card-shell[data-widget-size="S"] .widget-card-lens { opacity: .58; }
 
-.widget-card-shell[data-widget-size="L"] .widget-card-gloss-layer {
-  opacity: .72;
-}
+/* Larger slabs read as thicker glass — a touch more lens + sheen. */
+.widget-card-shell[data-widget-size="L"] .widget-card-lens { opacity: .85; }
+.widget-card-shell[data-widget-size="L"] .widget-card-gloss-layer { opacity: .6; }
 
+.widget-card-shell.widget-card-active .widget-card-state-glow { opacity: 1; }
+.widget-card-shell.widget-card-active .widget-card-gloss-layer { opacity: .62; }
+
+/* The icon sits on its own little glass puck — inset light + a tiny contact shadow.
+   No backdrop-filter here on purpose: a blur nested inside the card's frosted
+   blur is expensive on mid-range tablet GPUs. */
 .widget-card-icon {
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.62);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.72),
+    inset 0 -2px 5px rgba(17,21,28,0.06),
+    0 3px 7px -3px rgba(17,21,28,0.22);
 }
 
 .widget-card-icon-active {
-  filter: saturate(1.12);
+  filter: saturate(1.14);
 }
 
 .widget-card-muted {
@@ -286,11 +325,22 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
   opacity: .64;
 }
 
+/* Dragging lifts the slab further off the surface. */
 .widget-card-dragging {
   box-shadow:
-    0 1px 0 rgba(255,255,255,0.82) inset,
-    0 22px 42px rgba(20, 24, 30, 0.18),
-    0 0 28px var(--widget-glow);
+    inset 0 1px 0 rgba(255,255,255,0.95),
+    inset 0 0 0 0.5px rgba(255,255,255,0.40),
+    0 22px 42px -16px rgba(17,21,28,0.28),
+    0 0 30px var(--widget-glow);
+}
+
+/* Weak GPUs / reduced transparency: thin out the blur-heavy depth layers but keep
+   the top highlight so the card still reads as glass. */
+.perf-lite .widget-card-lens,
+.perf-lite .widget-card-gloss-layer { opacity: .3; }
+@media (prefers-reduced-transparency: reduce) {
+  .widget-card-lens,
+  .widget-card-gloss-layer { opacity: .32; }
 }
 
 .widget-card-toggle {

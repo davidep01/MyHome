@@ -23,7 +23,7 @@ export function SystemStatusWidget() {
   const online = status === 'connected'
 
   return (
-    <AnimatedCard ambient="drift" ambientColor={`${s.color}1f`} index={5} contentClassName="gap-2">
+    <AnimatedCard depth ambient="drift" ambientColor={`${s.color}1f`} index={5} contentClassName="gap-2">
       <div className="flex items-center gap-2">
         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black/[0.05]" style={{ color: s.color }}>
           <Cpu size={18} />

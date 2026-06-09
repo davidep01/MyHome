@@ -19,7 +19,7 @@ export function PeopleCard({ className }: { className?: string }) {
   const home = people.filter((p) => p.state === 'home').length
 
   return (
-    <GlassCard interactive className={cn('flex items-center justify-between gap-3 min-h-[96px]', className)}>
+    <GlassCard depth interactive className={cn('flex items-center justify-between gap-3 min-h-[96px]', className)}>
       <div className="min-w-0">
         <p className="text-sm font-semibold text-black/85">Persone</p>
         <p className="mt-0.5 text-xs text-black/40">

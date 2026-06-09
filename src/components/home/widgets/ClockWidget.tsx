@@ -12,7 +12,7 @@ export function ClockWidget({ size, userName }: { size: WidgetSize; userName?: s
   const name = userName ?? config?.userName ?? 'Casa'
 
   return (
-    <AnimatedCard ambient="sheen" index={0} contentClassName="justify-center">
+    <AnimatedCard depth ambient="sheen" index={0} contentClassName="justify-center">
       <div
         className="font-light leading-none tracking-[-0.03em] text-[#1d1d1f] tabular-nums"
         style={{ fontSize: big ? 'clamp(40px, 7vw, 64px)' : 'clamp(30px, 9vw, 44px)' }}
