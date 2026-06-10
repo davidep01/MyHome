@@ -100,6 +100,8 @@ export interface DoorbellDevice {
   volume?: number
   priority?: DoorbellPriority
   active?: boolean
+  /** Serrature apribili dal modale del campanello (hold 900ms ciascuna). */
+  lockEntityIds?: string[]
 }
 
 export interface EntityGroup {

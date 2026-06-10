@@ -1,12 +1,15 @@
 /* eslint-disable react-hooks/set-state-in-effect --
    The recognition result is driven by the ring lifecycle effect. */
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Bell, X, Video, ScanFace, Check } from 'lucide-react'
+import { Bell, X, Video, ScanFace, Check, LockOpen } from 'lucide-react'
 import { useDoorbells } from '../../hooks/useDoorbells'
 import { useEntityStore } from '../../store/entities'
+import { useHaptic } from '../../hooks/useHaptic'
 import { CameraStream } from '../widgets/CameraStream'
 import { aiApi } from '../../api/ai'
+import { callService } from '../../api/ha-websocket'
+import { cn } from '../../lib/utils'
 import type { DoorbellDevice } from '../../api/backend'
 
 type Recog = { status: 'scanning' | 'done' | 'error'; name?: string }
@@ -169,6 +172,13 @@ export function DoorbellAlert({ kiosk = false, doorbells, vision = true }: { kio
                 {pill}
               </motion.div>
             </AnimatePresence>
+            {(active?.device.lockEntityIds?.length ?? 0) > 0 && (
+              <div className="flex flex-wrap gap-3">
+                {active!.device.lockEntityIds!.map((lockId) => (
+                  <HoldUnlockButton key={lockId} entityId={lockId} />
+                ))}
+              </div>
+            )}
             <div className="flex gap-3">
               <button
                 onClick={dismiss}
@@ -187,5 +197,68 @@ export function DoorbellAlert({ kiosk = false, doorbells, vision = true }: { kio
         </motion.div>
       )}
     </AnimatePresence>
+  )
+}
+
+/**
+ * Apertura serratura dal modale del campanello: MAI un toggle — pressione
+ * prolungata 900ms (canone), con riempimento di progresso e stato live.
+ */
+function HoldUnlockButton({ entityId }: { entityId: string }) {
+  const entity = useEntityStore((s) => s.entities[entityId])
+  const setOptimisticState = useEntityStore((s) => s.setOptimisticState)
+  const { heavy } = useHaptic()
+  const [holding, setHolding] = useState(false)
+  const [failed, setFailed] = useState(false)
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const name = (entity?.attributes?.friendly_name as string | undefined) ?? entityId.split('.')[1]
+  const unlocked = entity?.state === 'unlocked'
+  const unavailable = !entity || entity.state === 'unavailable'
+
+  const start = () => {
+    if (unavailable || unlocked) return
+    setFailed(false)
+    setHolding(true)
+    timer.current = setTimeout(() => {
+      setHolding(false)
+      heavy()
+      setOptimisticState(entityId, 'unlocking')
+      callService('lock', 'unlock', { entity_id: entityId }).catch(() => {
+        setOptimisticState(entityId, entity?.state ?? 'locked')
+        setFailed(true)
+      })
+    }, 900)
+  }
+  const cancel = () => {
+    if (timer.current) clearTimeout(timer.current)
+    timer.current = null
+    setHolding(false)
+  }
+
+  return (
+    <button
+      onPointerDown={start}
+      onPointerUp={cancel}
+      onPointerLeave={cancel}
+      disabled={unavailable || unlocked}
+      className={cn(
+        'relative flex min-h-[52px] flex-1 items-center justify-center gap-2 overflow-hidden rounded-full text-base font-medium backdrop-blur transition',
+        unlocked ? 'bg-[#30d158]/25 text-[#7ee2a8]' : failed ? 'bg-red-500/25 text-red-200' : 'bg-white/15 text-white',
+        holding && 'scale-[0.98]',
+        unavailable && 'opacity-40',
+      )}
+    >
+      {holding && (
+        <span className="absolute inset-y-0 left-0 bg-white/25" style={{ animation: 'lock-hold-fill 900ms linear forwards' }} />
+      )}
+      {unlocked ? <Check size={18} className="relative" /> : <LockOpen size={18} className="relative" />}
+      <span className="relative truncate">
+        {unavailable ? `${name} non disponibile`
+          : unlocked ? `${name} aperta`
+            : failed ? `Riprova — ${name}`
+              : `Tieni premuto: apri ${name}`}
+      </span>
+    </button>
   )
 }

@@ -3,14 +3,26 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useClock } from '../../../hooks/useClock'
 import { useCurrentWeather } from '../../../hooks/useWeather'
 import { useEntityStore } from '../../../store/entities'
+import { useThemeStore } from '../../../store/theme'
+import { cn } from '../../../lib/utils'
 
 const IDLE_MS = 180_000
+
+/** Sensore di prossimità (Generic Sensor API) — presente solo su alcuni WebView. */
+interface ProximitySensorLike {
+  near?: boolean
+  addEventListener: (type: 'reading', listener: () => void) => void
+  start: () => void
+  stop: () => void
+}
 
 /**
  * Strato 4 — Ambient (DOMINICA M7): dopo 3 minuti di idle la dashboard si
  * dissolve in una superficie scura con orologio grande, data e meteo. Drift
- * lentissimo anti-burn-in (transform only). Esce con un tocco, col movimento
- * del sensore di presenza configurato, o se compare un'anomalia danger.
+ * lentissimo anti-burn-in (transform only). Si risveglia con: un tocco, il
+ * sensore di presenza HA configurato, un balzo di luminosità dal sensore
+ * luce del tablet (luce accesa / qualcuno passa), o la prossimità quando il
+ * WebView la espone. Mai sopra un'anomalia danger.
  */
 export function AmbientLayer({
   wakeEntityId,
@@ -53,6 +65,36 @@ export function AmbientLayer({
     })
   }, [wakeEntityId])
 
+  // Sensore luce del tablet: un BALZO di lux (luce accesa, ombra che passa)
+  // sveglia la dashboard. La deriva lenta (alba) resta sotto soglia.
+  useEffect(() => {
+    let prev: number | null = null
+    return useThemeStore.subscribe((s) => {
+      const lux = s.lastLux
+      if (lux == null) return
+      if (prev != null) {
+        const jump = lux - prev
+        if (jump > 12 || (prev >= 1 && lux / prev >= 2.5 && jump > 4)) wakeRef.current()
+      }
+      prev = lux
+    })
+  }, [])
+
+  // Prossimità (se il WebView la espone): qualcuno vicino allo schermo → sveglia.
+  useEffect(() => {
+    const Ctor = (window as { ProximitySensor?: new (opts?: { frequency?: number }) => ProximitySensorLike }).ProximitySensor
+    if (typeof Ctor !== 'function') return
+    let sensor: ProximitySensorLike | null = null
+    try {
+      sensor = new Ctor({ frequency: 2 })
+      sensor.addEventListener('reading', () => { if (sensor?.near) wakeRef.current() })
+      sensor.start()
+    } catch {
+      return // permesso negato o sensore assente: si vive bene lo stesso
+    }
+    return () => { try { sensor?.stop() } catch { /* noop */ } }
+  }, [])
+
   const show = idle && !forceWake
 
   return (
@@ -76,10 +118,13 @@ export function AmbientLayer({
 function AmbientContent() {
   const { time, date } = useClock()
   const { data: weather } = useCurrentWeather()
+  const lastLux = useThemeStore((s) => s.lastLux)
+  // Buio pesto (notte fonda): l'orologio si spegne un altro po'.
+  const dim = lastLux != null && lastLux < 5
 
   return (
     <div className="ambient-drift flex flex-col items-center gap-3 text-center">
-      <span className="text-[112px] font-light leading-none tracking-[-0.02em] text-white/90 tabular-nums">{time}</span>
+      <span className={cn('text-[112px] font-light leading-none tracking-[-0.02em] tabular-nums transition-colors duration-1000', dim ? 'text-white/55' : 'text-white/90')}>{time}</span>
       <span className="text-lg capitalize text-white/40">{date}</span>
       {weather && (
         <span className="mt-2 flex items-center gap-2 text-base text-white/45">

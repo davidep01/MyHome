@@ -193,6 +193,10 @@ function DoorbellsCard() {
     () => Object.values(entities).filter((e) => e.entity_id.startsWith('camera.')),
     [entities],
   )
+  const lockOptions = useMemo(
+    () => Object.values(entities).filter((e) => e.entity_id.startsWith('lock.')),
+    [entities],
+  )
 
   return (
     <GlassCard className="space-y-3">
@@ -296,6 +300,35 @@ function DoorbellsCard() {
                 </select>
               </div>
             </div>
+            {lockOptions.length > 0 && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-black/50">Serrature apribili dal modale ({draft.lockEntityIds?.length ?? 0})</label>
+                <div className="flex flex-wrap gap-2">
+                  {lockOptions.map((e) => {
+                    const checked = draft.lockEntityIds?.includes(e.entity_id) ?? false
+                    return (
+                      <button
+                        key={e.entity_id}
+                        type="button"
+                        onClick={() => setDraft({
+                          ...draft,
+                          lockEntityIds: checked
+                            ? (draft.lockEntityIds ?? []).filter((id) => id !== e.entity_id)
+                            : [...(draft.lockEntityIds ?? []), e.entity_id],
+                        })}
+                        className={cn(
+                          'min-h-[40px] rounded-full px-4 text-sm font-medium transition active:scale-95',
+                          checked ? 'bg-[#0066cc] text-white' : 'bg-black/[0.06] text-black/60',
+                        )}
+                      >
+                        {(e.attributes?.friendly_name as string | undefined) ?? e.entity_id}
+                      </button>
+                    )
+                  })}
+                </div>
+                <p className="text-[11px] text-black/35">Compaiono nel modale del campanello con apertura a pressione prolungata.</p>
+              </div>
+            )}
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-black/50">Volume ({Math.round((draft.volume ?? 1) * 100)}%)</label>
               <input type="range" min={0} max={1} step={0.05} value={draft.volume ?? 1} onChange={(e) => setDraft({ ...draft, volume: Number(e.target.value) })} className="w-full accent-[#0066cc]" />
