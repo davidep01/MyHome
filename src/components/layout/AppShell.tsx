@@ -17,20 +17,11 @@ import { useAutoTheme } from '../../hooks/useAutoTheme'
 import { useIsDesktop } from '../../hooks/useIsDesktop'
 import { useTabletLayout } from '../../hooks/useTabletLayout'
 
-// Le viste desktop sono lazy: il kiosk (percorso primario) carica solo TabletDashboard,
-// il desktop scarica ogni pagina al primo accesso. Home resta eager (è la landing).
-const SettingsPage = lazy(() => import('../../pages/SettingsPage').then((m) => ({ default: m.SettingsPage })))
+// Le viste regia sono lazy: il kiosk (percorso primario) carica solo
+// TabletDashboard; il desktop scarica ogni pagina al primo accesso.
+// Stato resta eager (è la landing).
 const EntitiesPage = lazy(() => import('../../pages/EntitiesPage').then((m) => ({ default: m.EntitiesPage })))
 const FunctionsPage = lazy(() => import('../../pages/FunctionsPage').then((m) => ({ default: m.FunctionsPage })))
-const AreasPage = lazy(() => import('../../pages/AreasPage').then((m) => ({ default: m.AreasPage })))
-const LightsPage = lazy(() => import('../../pages/LightsPage').then((m) => ({ default: m.LightsPage })))
-const ClimatePage = lazy(() => import('../../pages/ClimatePage').then((m) => ({ default: m.ClimatePage })))
-const SecurityPage = lazy(() => import('../../pages/SecurityPage').then((m) => ({ default: m.SecurityPage })))
-const EnergyPage = lazy(() => import('../../pages/EnergyPage').then((m) => ({ default: m.EnergyPage })))
-const CamerasPage = lazy(() => import('../../pages/CamerasPage').then((m) => ({ default: m.CamerasPage })))
-const AutomationsPage = lazy(() => import('../../pages/AutomationsPage').then((m) => ({ default: m.AutomationsPage })))
-const MediaPage = lazy(() => import('../../pages/MediaPage').then((m) => ({ default: m.MediaPage })))
-const WaterPage = lazy(() => import('../../pages/WaterPage').then((m) => ({ default: m.WaterPage })))
 const SystemPage = lazy(() => import('../../pages/SystemPage').then((m) => ({ default: m.SystemPage })))
 
 export function AppShell() {
@@ -113,18 +104,8 @@ function DesktopShell({ path }: { path: string }) {
 
   const page = (
     <Suspense fallback={<div className="flex h-full items-center justify-center text-sm text-black/40">Caricamento…</div>}>
-      {activeView === 'settings' ? <SettingsPage /> :
-       activeView === 'entities' ? <EntitiesPage /> :
+      {activeView === 'entities' ? <EntitiesPage /> :
        activeView === 'functions' ? <FunctionsPage /> :
-       activeView === 'areas' ? <AreasPage /> :
-       activeView === 'lights' ? <LightsPage /> :
-       activeView === 'climate' ? <ClimatePage /> :
-       activeView === 'security' ? <SecurityPage /> :
-       activeView === 'energy' ? <EnergyPage /> :
-       activeView === 'cameras' ? <CamerasPage /> :
-       activeView === 'automations' ? <AutomationsPage /> :
-       activeView === 'media' ? <MediaPage /> :
-       activeView === 'water' ? <WaterPage /> :
        activeView === 'system' ? <SystemPage /> :
        <StatusPage />}
     </Suspense>

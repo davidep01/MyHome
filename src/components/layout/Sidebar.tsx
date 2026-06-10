@@ -1,22 +1,15 @@
 import { motion } from 'framer-motion'
-import { ActivitySquare, Camera, Droplets, Film, Home, LayoutGrid, Boxes, ThermometerSun, ShieldCheck, BarChart3, Lightbulb, Settings2, Zap } from 'lucide-react'
+import { ActivitySquare, Boxes, ExternalLink, Home, LayoutGrid, SlidersHorizontal } from 'lucide-react'
 import { useUIStore, type AppView } from '../../store/ui'
 import { useEntityStore } from '../../store/entities'
 import { NotificationBell } from '../notifications/NotificationCenter'
 import { cn } from '../../lib/utils'
 
+/** La regia ha 4 viste; il controllo della casa è il kiosk (link in basso). */
 const nav: { id: AppView; label: string; Icon: React.ElementType }[] = [
   { id: 'home', label: 'Stato', Icon: LayoutGrid },
   { id: 'entities', label: 'Entità', Icon: Boxes },
-  { id: 'areas', label: 'Aree', Icon: Boxes },
-  { id: 'lights', label: 'Luci', Icon: Lightbulb },
-  { id: 'climate', label: 'Clima', Icon: ThermometerSun },
-  { id: 'security', label: 'Sicurezza', Icon: ShieldCheck },
-  { id: 'energy', label: 'Energia', Icon: BarChart3 },
-  { id: 'cameras', label: 'Telecamere', Icon: Camera },
-  { id: 'automations', label: 'Automazioni', Icon: Zap },
-  { id: 'media', label: 'Media', Icon: Film },
-  { id: 'water', label: 'Acqua', Icon: Droplets },
+  { id: 'functions', label: 'Funzioni', Icon: SlidersHorizontal },
   { id: 'system', label: 'Sistema', Icon: ActivitySquare },
 ]
 
@@ -25,33 +18,21 @@ function RailButton({
   label,
   onClick,
   children,
-  badge,
-  ai,
+  href,
 }: {
   active?: boolean
   label: string
-  onClick: () => void
+  onClick?: () => void
   children: React.ReactNode
-  badge?: number
-  ai?: boolean
+  href?: string
 }) {
-  return (
-    <motion.button
-      type="button"
-      onClick={onClick}
-      whileTap={{ scale: 0.9 }}
-      aria-label={label}
-      className={cn(
-        'group relative flex h-11 w-11 items-center justify-center rounded-[16px] transition-colors',
-        ai
-          ? 'text-white'
-          : active
-            ? 'bg-black/10 text-[#1d1d1f]'
-            : 'text-black/40 hover:bg-black/5 hover:text-[#1d1d1f]',
-      )}
-      style={ai ? { background: 'var(--ai-gradient)' } : undefined}
-    >
-      {active && !ai && (
+  const className = cn(
+    'group relative flex h-11 w-11 items-center justify-center rounded-[16px] transition-colors',
+    active ? 'bg-black/10 text-[#1d1d1f]' : 'text-black/40 hover:bg-black/5 hover:text-[#1d1d1f]',
+  )
+  const inner = (
+    <>
+      {active && (
         <motion.span
           layoutId="rail-active"
           className="absolute inset-0 rounded-[16px] bg-black/10"
@@ -59,11 +40,6 @@ function RailButton({
         />
       )}
       <span className="relative">{children}</span>
-      {badge ? (
-        <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-orange-500 px-1 text-[9px] font-bold text-white">
-          {badge}
-        </span>
-      ) : null}
       {/* Tooltip pill — matches design system rail-tip */}
       <span
         className="pointer-events-none absolute left-[54px] top-1/2 z-50 -translate-y-1/2 scale-95 whitespace-nowrap rounded-lg px-[10px] py-[5px] text-xs font-semibold text-white opacity-0 transition-all group-hover:scale-100 group-hover:opacity-100"
@@ -71,6 +47,19 @@ function RailButton({
       >
         {label}
       </span>
+    </>
+  )
+
+  if (href) {
+    return (
+      <a href={href} target="_blank" rel="noreferrer" aria-label={label} className={className}>
+        {inner}
+      </a>
+    )
+  }
+  return (
+    <motion.button type="button" onClick={onClick} whileTap={{ scale: 0.9 }} aria-label={label} className={className}>
+      {inner}
     </motion.button>
   )
 }
@@ -105,8 +94,8 @@ export function Sidebar() {
       ))}
 
       <div className="mt-auto flex flex-col items-center gap-2">
-        <RailButton label="Impostazioni" onClick={() => setActiveView('settings')} active={activeView === 'settings'}>
-          <Settings2 size={18} />
+        <RailButton label="Apri dashboard" href="/kiosk">
+          <ExternalLink size={18} />
         </RailButton>
         <NotificationBell />
         <span className="select-none text-[9px] font-medium tabular-nums text-black/25" title="Versione build">v{__APP_VERSION__}</span>

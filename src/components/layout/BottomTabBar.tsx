@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { Camera, Home, ShieldCheck, ThermometerSun, Zap } from 'lucide-react'
+import { ActivitySquare, Boxes, LayoutGrid, SlidersHorizontal } from 'lucide-react'
 import { useUIStore } from '../../store/ui'
 import { framerSpringBounce } from '../../design/tokens'
 import { cn } from '../../lib/utils'
@@ -8,11 +8,10 @@ export function BottomTabBar() {
   const activeView = useUIStore((s) => s.activeView)
   const setActiveView = useUIStore((s) => s.setActiveView)
   const tabs = [
-    { id: 'home' as const, label: 'Home', Icon: Home },
-    { id: 'security' as const, label: 'Sicurezza', Icon: ShieldCheck },
-    { id: 'climate' as const, label: 'Clima', Icon: ThermometerSun },
-    { id: 'cameras' as const, label: 'Cam', Icon: Camera },
-    { id: 'energy' as const, label: 'Energia', Icon: Zap },
+    { id: 'home' as const, label: 'Stato', Icon: LayoutGrid },
+    { id: 'entities' as const, label: 'Entità', Icon: Boxes },
+    { id: 'functions' as const, label: 'Funzioni', Icon: SlidersHorizontal },
+    { id: 'system' as const, label: 'Sistema', Icon: ActivitySquare },
   ]
 
   return (

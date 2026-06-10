@@ -17,8 +17,8 @@ export function ConnectionOverlay() {
   const setActiveView = useUIStore((s) => s.setActiveView)
   const [show, setShow] = useState(false)
 
-  // Never block the Settings page — that's where the user fixes the credentials.
-  const down = (status === 'error' || status === 'disconnected') && activeView !== 'settings'
+  // Never block the System page — that's where the user fixes the credentials.
+  const down = (status === 'error' || status === 'disconnected') && activeView !== 'system'
 
   useEffect(() => {
     if (!down) {
@@ -74,7 +74,7 @@ export function ConnectionOverlay() {
               <RotateCw size={15} /> Riprova adesso
             </button>
             <button
-              onClick={() => setActiveView('settings')}
+              onClick={() => setActiveView('system')}
               className="flex items-center gap-2 rounded-full bg-black/8 px-5 py-2.5 text-sm font-medium text-[#1d1d1f] transition hover:bg-black/12 active:scale-95"
             >
               <Settings size={15} /> Configura connessione

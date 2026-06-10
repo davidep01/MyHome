@@ -1,5 +1,4 @@
 import { useHomeStatus } from '../../../hooks/useHomeStatus'
-import { useUIStore } from '../../../store/ui'
 import { AnimatedCard } from '../../anim/AnimatedCard'
 import { LiveDot } from '../../anim/LiveDot'
 
@@ -11,7 +10,6 @@ const TONE_BG: Record<string, string> = {
 
 export function StatusWidget() {
   const status = useHomeStatus()
-  const setActiveView = useUIStore((s) => s.setActiveView)
   const Icon = status.Icon
 
   return (
@@ -20,8 +18,6 @@ export function StatusWidget() {
       ambient="drift"
       ambientColor={`${status.color}1f`}
       index={1}
-      interactive
-      onClick={() => setActiveView('security')}
       contentClassName="justify-center gap-2"
     >
       <div className="flex items-center gap-2">
