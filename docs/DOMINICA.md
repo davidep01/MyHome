@@ -1,7 +1,7 @@
 # DOMINICA — Masterplan v3
 
 > Codename della ristrutturazione di MyHome ("Dominica" = il nome candidato del prodotto; il rename è un token, `dashboardName`, non un refactor).
-> Stato: **in esecuzione** — M0 ✅ (2026-06-10). CLAUDE.md si aggiorna a ogni fase implementata.
+> Stato: **ESEGUITO** — M0–M8 ✅ (2026-06-10). Residui: signaling proxy WebRTC, rimozione definitiva grid legacy post-validazione tablet.
 > Data: 2026-06-10 · Basato su audit del codice reale, non su assunzioni.
 
 ---
@@ -157,14 +157,14 @@ Tipografia: body 17px (mai 16) · pesi 300/400/600 (il 500 non esiste) · ambien
 | Fase | Modulo | Contenuto | Rilasciabile |
 |---|---|---|---|
 | **M0** | Fondazioni | Bridge WS v2 + fallback poll · coalescing store · `useEntity` · resume SSE · cache weather · pulizia `ui.ts` (D5) | ✅ **fatto** (2026-06-10) — chiude D1–D6, D12 parziale; bonus: HLS sul kiosk, fix allowlist humidifier/lawn_mower, token mai più nel browser |
-| **M1** | Kiosk a strati | Header stato · Composer "Adesso" · chip Stanze (da aree HA) · dietro flag, grid legacy come fallback un release | ✔ il cambio di vita |
-| **M2** | Regia: Stato+Sistema | landing salute (`/api/system/status`) · connessione/test · backup · diagnostica vera (D7) · sidebar a 4 voci | ✔ |
-| **M3** | Regia: workbench Entità | tabella unica con filtri dominio/area/stato · rinomina inline · import aree HA 1-click (D8) · bulk · anteprima card live (riusa factory) · gruppi | ✔ |
-| **M4** | Timeline di casa | logbook HA filtrato alle classi significative (campanello, allarme, presenze, anomalie) — sheet dal badge header | ✔ |
-| **M5** | Energia onesta | baseline EWMA + stessa-ora-settimana-scorsa, anomalie ("frigo +30% vs ieri") — capability-gated: senza sensori il modulo non esiste | ✔ |
-| **M6** | Suggerimenti | regole locali oneste: "luci accese + nessuno in casa da 30min → spegni?" · "finestra aperta + riscaldamento → chip warn" · mai auto-esecuzione; write-back automazione HA con conferma (aggancia roadmap AI esistente) | ✔ |
-| **M7** | Presenza + Ambient | wake da sensore HA via Fully Kiosk REST · modalità ambient su idle (orologio 112px, meteo, drift anti-burn-in) · dusk shift | ✔ |
-| **M8** | Demolizioni | via: tile system completo (kernel, canvas, picker, react-grid-layout −81KB, `/api/layout`) · 11 pagine controllo · `SettingsPage` · PIN (D10) · `ha-credentials` (D2) | ✔ −3.500 righe stimate |
+| **M1** | Kiosk a strati | Header stato · Composer "Adesso" · chip Stanze (da aree HA) · dietro flag, grid legacy come fallback un release | ✅ **fatto** (2026-06-10) — composer+isteresi con 13 test |
+| **M2** | Regia: Stato+Sistema | landing salute (`/api/system/status`) · connessione/test · backup · diagnostica vera (D7) · sidebar a 4 voci | ✅ **fatto** (2026-06-10) |
+| **M3** | Regia: workbench Entità | tabella unica con filtri dominio/area/stato · rinomina inline · aree dal registry HA in sola lettura (D8 risolto alla radice) · bulk · anteprima card live · gruppi | ✅ **fatto** (2026-06-10) |
+| **M4** | Timeline + Funzioni | logbook filtrato (`/api/ha/logbook`) + sheet dall'orologio · FunctionsPage (tema, campanelli, suoni, kiosk, integrazioni) | ✅ **fatto** (2026-06-10) |
+| **M5** | Energia onesta | sensore più attivo vs la SUA media 24h, capability-gated (niente somme arbitrarie) | ✅ **fatto** (2026-06-10) — più sobrio del piano: per-sensore, non EWMA |
+| **M6** | Suggerimenti | regole locali oneste con bottone-azione (il tap è la conferma); write-back automazioni → roadmap AI | ✅ **fatto** (2026-06-10) — 6 test |
+| **M7** | Presenza + Ambient | ambient su idle 180s (orologio 112px, drift transform-only) · presence-wake da `kiosk.wakeEntityId` (subscription, non Fully REST) · dusk shift ≤6% | ✅ **fatto** (2026-06-10) |
+| **M8** | Demolizioni | via: 9 pagine controllo · `SettingsPage`+PIN · `WidgetHome`/`WidgetPicker` · `ha-credentials` · AppView a 4. La grid kiosk resta SOLO come fallback lazy dietro flag (con kernel e `/api/layout`, che porta anche doorbells/curation) finché il composer non è validato sul tablet | ✅ **fatto** (2026-06-10) |
 
 ---
 

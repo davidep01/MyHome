@@ -27,11 +27,11 @@ Dashboard domotica personale per **Home Assistant**, estetica **Apple "Liquid Gl
 | Contesto | Dispositivo | Shell | Scopo |
 |---|---|---|---|
 | **Kiosk** | Tablet Android a muro (Fully Kiosk) | `KioskShell` | Controllo quotidiano, sempre acceso, touch |
-| **Desktop / Admin** | Browser desktop | `DesktopShell` | Configurazione, gestione entità, AI, impostazioni |
+| **Desktop / Regia** | Browser desktop | `DesktopShell` | Regia in 4 viste: Stato, Entità, Funzioni, Sistema |
 
 La home si **auto-configura** dallo stream live di HA (entità raggruppate per dominio/area). Zero setup manuale per l'utente finale.
 
-**Funzioni distintive:** campanello → alert video fullscreen, night mode da sensore di luce ambientale, AI (Gemini) grounded sulle entità reali, widget home riordinabili e persistiti, resilienza HA-down con overlay e reconnect.
+**Funzioni distintive:** home kiosk **auto-composta per rilevanza** (composer deterministico + isteresi — niente tile da gestire), ambient mode su idle con presence-wake, timeline di casa, suggerimenti azionabili ("luci accese e casa vuota → Spegni tutte"), campanello → alert video fullscreen, night mode da sensore di luce, AI (Gemini) grounded sulle entità reali, resilienza HA-down con overlay e reconnect. La griglia manuale sopravvive solo come fallback legacy (`localStorage['myhome.home']='grid'`).
 
 ---
 
@@ -71,9 +71,9 @@ npm run lint             # eslint
 
 ### 4.1 Shell e routing
 `AppShell` (`src/components/layout/AppShell.tsx`) sceglie la shell dal **pathname**:
-- `/kiosk`, `/tablet`, `/dashboard` **oppure** non-desktop → `KioskShell` (→ `TabletDashboard`).
-- `/backend`, `/admin`, `/settings` su desktop → `DesktopShell`.
-- Dentro `DesktopShell` la vista attiva (`useUIStore().activeView`) è **sincronizzata bidirezionalmente con l'URL** (`useViewRouting` in `AppShell.tsx` + `VIEW_PATHS`/`viewFromPath` in `src/store/ui.ts`): deep-link (`/lights`, `/climate`, …), back/forward e refresh funzionano. Nessun router library (scelta deliberata).
+- `/kiosk`, `/tablet`, `/dashboard` **oppure** non-desktop → `KioskShell` (→ `TabletDashboard` → `LayeredHome`, o grid legacy via flag).
+- Resto su desktop → `DesktopShell` = **la regia, 4 viste**: Stato (`/`), Entità (`/entities`), Funzioni (`/functions`), Sistema (`/system`); alias legacy `/settings`→Sistema. Il controllo della casa da desktop è il kiosk stesso (`/kiosk`, linkato in sidebar).
+- La vista attiva (`useUIStore().activeView`) è **sincronizzata bidirezionalmente con l'URL** (`useViewRouting` in `AppShell.tsx` + `VIEW_PATHS`/`viewFromPath` in `src/store/ui.ts`): deep-link, back/forward e refresh funzionano. Nessun router library (scelta deliberata).
 
 > ✅ **Risolto (P6, 2026-06-09):** routing ibrido chiuso con il sync URL↔store di cui sopra. Le viste desktop sono inoltre **lazy** (un chunk per pagina) e `hls.js` è caricato on-demand solo quando parte uno stream.
 
@@ -206,7 +206,17 @@ Fasi 2–5 + igiene applicate. Verifiche: `npm run build:all` ✅ · `npm run li
 - **Igiene store UI** — rimossi 4 campi morti (`theme`, `activeRoom`, `dashboardView`, `rightPanelOpen`).
 - Test: 18/18 (kernel layout 10 + codec compresso `subscribe_entities` 8).
 
-**Residui noti (non bloccanti):** split di `SettingsPage` in file per sezione (assorbito da DOMINICA M2–M3); modalità ambient su idle kiosk (DOMINICA M7); WebRTC/talk-back via signaling proxy backend.
+**Risolti (2026-06-10) — DOMINICA M1–M8 (il redesign; piano in `docs/DOMINICA.md`):**
+- **M1 Kiosk a strati** — `LayeredHome`: StatusHeader (ora/presenza/meteo/chip-anomalia) + "Adesso" (card scelte dal **composer** `src/lib/composer.ts`: puro, deterministico, priorità sicurezza>media>clima>robot>luci-per-area, isteresi dwell 45s / max 1 swap/30s / P0 immediato — 13 test) + chip Stanze dalle aree HA + sheet inventario. Quiete = Momenti+meteo+energia. Grid legacy dietro flag, lazy.
+- **M2 Regia Stato+Sistema** — `GET /api/system/status` (latenza HA, modalità bridge, client SSE, storage, chiavi boolean); `StatusPage` landing ("Cosa non va", attività, backup); `SystemPage` con form connessione e diagnostica **vera** via `entity_category` dal registry.
+- **M3 Workbench Entità** — tabella unica con filtri/ricerca/bulk/rinomina inline, dettaglio con **anteprima live della card**, gruppi; aree in sola lettura dal registry HA (mai più entity_id a mano).
+- **M4 Funzioni + Timeline** — `FunctionsPage` (identità, tema/night, campanelli, suoni, kiosk, semaforo integrazioni); `GET /api/ha/logbook` filtrato + `TimelineSheet` ("Oggi a casa", tap sull'orologio).
+- **M5 Energia onesta** — capability-gated, sensore più attivo vs la SUA media 24h; niente somme arbitrarie, niente "ML".
+- **M6 Suggerimenti** — `src/lib/insights.ts` (6 test): regole locali leggibili con bottone-azione (il tap è la conferma); mai auto-esecuzione.
+- **M7 Ambient + presenza** — `AmbientLayer` (idle 180s, orologio 112px su #070709, drift anti-burn-in transform-only, mai sopra un danger), presence-wake da `config.kiosk.wakeEntityId`, `DuskLayer` (velo caldo ≤6% da sun.sun).
+- **M8 Demolizioni** — via le 9 pagine controllo desktop, `SettingsPage` (e il PIN finto), `WidgetHome`/`WidgetPicker`, `EntityCollectionPage`, `HomeHeader`; AppView a 4; sidebar 4+kiosk-link. Main chunk 689→646KB.
+
+**Residui noti (non bloccanti):** WebRTC/talk-back via signaling proxy backend; rimozione definitiva della grid legacy (+ kernel + react-grid-layout + `/api/layout` solo-posizioni) dopo validazione del composer sul tablet reale; AI write-back automazioni (roadmap).
 
 ---
 
@@ -217,7 +227,8 @@ src/
   api/            # client HTTP/WS: backend.ts, ha-websocket.ts, ha-rest.ts, ha-registry.ts, weather, news, ai
   components/
     layout/       # AppShell, Sidebar, BottomTabBar, StatusBar, RightPanel  (chrome)
-    home/         # home desktop + home/widgets/* (widget home, picker, catalog)
+    home/         # LayeredHome (kiosk a strati) + layers/* (StatusHeader, NowSection, RoomsRow,
+                  # EntitySheet, TimelineSheet, EnergyCard, AmbientLayer, DuskLayer) + widgets/* (grid legacy)
     widgets/      # CARD ENTITÀ: WidgetCardFactory (dispatch) + WidgetCardBase (shell/primitive)
                   # + utils/mapEntityToWidgetCard (design per famiglia) + utils/stateLabel (stati in italiano)
     contextual/   # pannello on-demand (ClimateDetail, LightDetail, MediaDetail, AlarmDetail)
@@ -230,7 +241,7 @@ src/
   design/         # tokens.ts (colore/raggio/spring), typography.ts (scala tipografica)
   config/         # rooms.ts, doorbell.ts
   lib/            # utils puri: alarm, climate, rooms, time, units, sound/SoundManager, lucide
-  pages/          # viste desktop: Areas, Lights, Climate, Security, Energy, Cameras, Media, System, Settings, …
+  pages/          # regia desktop: StatusPage, EntitiesPage, FunctionsPage, SystemPage + TabletDashboard (kiosk)
   index.css       # token CSS + glass + griglia + animazioni + dark/kiosk
 backend/src/
   app.ts          # montaggio route Hono
@@ -263,6 +274,10 @@ Il design deve **sparire**: l'interfaccia serve i dispositivi. Vetro chiaro su p
 
 ### Tipografia (fonte: `src/design/typography.ts`)
 Font: `-apple-system, "SF Pro Display/Text", Inter, system-ui`. Body **17px** (mai 16), line-height 1.47, tracking negativo. Pesi **300/400/600** — il **500 non esiste**.
+
+### Griglia — il composer è la home canonica; la griglia widget è legacy
+
+> **DOMINICA (2026-06-10):** la home kiosk si **auto-compone** (`src/lib/composer.ts`); posizioni e taglie non si persistono più. La "home widget grid" qui sotto resta SOLO come fallback legacy dietro flag, finché non viene rimossa del tutto.
 
 ### Griglia — DUE griglie legittime, UN kernel (vedi §5.bis)
 Esistono **due griglie legittime e distinte**; la terza (CSS premium S/M/L) è solo un *trattamento visivo*, non una griglia:
@@ -350,7 +365,7 @@ Backend (config/layout) ──SSE /api/config/stream──▶ useConfigSync ─�
 
 ## 12. Roadmap funzioni smart
 
-Vedi `docs/SMART_FUNCTIONS_ROADMAP.md`: campanello (✅, two-way audio 🔜), riconoscimento volti via Frigate/Double-Take on-prem (🟡), AI write-back automazioni (🔜), dashboard per-area dal registry HA (🟡), presence wake / sensori tablet (🔜), widget utente riordinabili (✅, più tipi 🔜), Web Push per alert in background (🔜).
+Vedi `docs/SMART_FUNCTIONS_ROADMAP.md`: campanello (✅, two-way audio 🔜 via signaling proxy), riconoscimento volti via Frigate/Double-Take on-prem (🟡), AI write-back automazioni (🔜), dashboard per-area dal registry HA (✅ chip Stanze, DOMINICA M1), presence wake (✅ M7), home auto-composta (✅ M1 — sostituisce i widget riordinabili), timeline di casa (✅ M4), suggerimenti azionabili (✅ M6), energia onesta (✅ M5), Web Push per alert in background (🔜).
 
 ---
 

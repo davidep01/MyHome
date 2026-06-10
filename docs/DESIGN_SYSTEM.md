@@ -439,3 +439,27 @@ stato tradotto, tono neutro. La discovery resta una **allowlist** (`DOMAIN_TYPE`
 3. Stati nuovi in `stateLabel.ts`.
 4. Azioni nel factory sempre dentro `act()`; haptic: light=toggle, medium=azione, heavy=sicurezza.
 5. Touch ≥44px, niente hover-only; aggiorna questa matrice.
+
+---
+
+## Home a strati (DOMINICA, 2026-06-10) — canone
+
+La home kiosk **si compone da sola**: nessuna tile da disporre. Quattro strati:
+
+| Strato | Componente | Contenuto | Regole |
+|---|---|---|---|
+| 1 · Stato | `StatusHeader` | ora 56px/300 tabular + saluto, presenza, meteo chip, punto connessione, **chip-anomalia** | sempre presente; chip: danger `#dc2626`/bg red-12, warn `#c2410c`/bg orange-12, info ink-55/bg black-6; azione proposta = bottone bianco inline (il tap è la conferma) |
+| 2 · Adesso | `NowSection` | 3–6 card scelte dal composer (`src/lib/composer.ts`) | griglia 2/3 col, righe 170px, prima card prioritaria = col-span-2 taglia L; ingressi `.card-enter` stagger 35ms; MAI FLIP su elementi col blur |
+| 2b · Quiete | `QuietSection` | meteo esteso (2 col) + EnergyCard (se sensori) + Momenti/SceneRow | compare solo a hero vuoto |
+| 3 · Stanze | `RoomsRow` + `EntitySheet` | chip pill 48px dalle aree HA, badge = attivi; sheet centrato con griglia card 150px, cap 24 + "Mostra tutte" | fallback senza registry: una chip "Tutti i dispositivi" |
+| 4 · Ambient | `AmbientLayer` | idle 180s → superficie `#070709`, orologio 112px/300 tracking −2%, data, meteo; drift ±10px/90s transform-only | esce con tocco / presence-wake / mai sopra un danger; drift spento in reduced-motion e perf-lite |
+
+**Composer**: priorità 0 sicurezza (triggered, serratura aperta di notte, smoke/water) → 1 media playing → 2 clima con `hvac_action` attiva → 3 robot/cover in movimento → 4 luci accese aggregate per area (gruppo sintetico). Isteresi: dwell 45s, max 1 swap/30s, P0 bypassa; tie-break per `entity_id` (composizione identica su ogni schermo). Spiegabilità: `reason` su ogni slot (title).
+
+**Timeline** (`TimelineSheet`): tap sull'orologio → "Oggi a casa" (logbook filtrato: person/alarm/lock/automation + eventi campanello), righe 52px, orari tabular.
+
+**Dusk shift** (`DuskLayer`): velo `#ff9a3c` multiply, opacità 0→6% per elevazione solare 10°→−6°, transizione 2s. Se banda su pannelli scadenti → si elimina senza rimpianti.
+
+**Regia desktop** (4 viste): Stato (salute+problemi+backup), Entità (workbench con anteprima live card), Funzioni (feature card con stato), Sistema (connessione+diagnostica da `entity_category`). Touch target ≥44px ovunque; nessun PIN (gate = `desktopOnly`).
+
+> La "premium widget card" e le card di dominio restano il mattone invariato (vedi matrice famiglie sopra): è cambiato il contenitore, non il mattone. La griglia widget 8col×64px è **legacy**: vive solo dietro `localStorage['myhome.home']='grid'`.
