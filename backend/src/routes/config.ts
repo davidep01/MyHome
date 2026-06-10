@@ -134,6 +134,7 @@ configRouter.put('/', async (c) => {
     }
     if (body.dashboardLayout !== undefined) store.config.dashboardLayout = body.dashboardLayout
     if (body.kiosk !== undefined) store.config.kiosk = body.kiosk
+    if (body.ai !== undefined) store.config.ai = body.ai
   })
   if (!ok) return c.json({ error: 'Configuration could not be saved' }, 500)
   emitConfigChange() // notify all connected clients to refetch

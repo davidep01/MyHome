@@ -67,7 +67,7 @@ export interface WidgetEntityMapping {
   type: EntityType | string
   Icon: ElementType
   title: string
-  subtitle: string
+  subtitle?: string
   status: WidgetCardStatus
   accentColor: string
   gradient: string
@@ -204,33 +204,33 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
     case 'light':
       return {
         family, type, Icon: Lightbulb, title,
-        subtitle: unavailable ? 'Non disponibile' : on ? 'Accesa' : 'Spenta',
+        subtitle: unavailable ? 'Non disponibile' : undefined,
         status: on ? 'on' : 'off',
         accentColor: widgetTones.light.color,
         gradient: widgetTones.light.gradient,
         animationPreset: on ? 'softGlow' : 'none',
         isActive: on,
         isUnavailable: unavailable,
-        primary: `${brightnessPct}`,
-        unit: '%',
-        secondary: on ? 'Luminosità' : 'Off',
-        ringValue: brightnessPct,
+        primary: on ? `${brightnessPct}` : 'Spenta',
+        unit: on ? '%' : undefined,
+        secondary: on ? 'Luminosità' : undefined,
+        ringValue: on ? brightnessPct : undefined,
       }
     case 'smartPlug':
     case 'switch':
       return {
         family, type, Icon: family === 'smartPlug' ? PlugZap : Power, title,
-        subtitle: unavailable ? 'Non disponibile' : on ? 'Acceso' : 'Spento',
+        subtitle: unavailable ? 'Non disponibile' : undefined,
         status: on ? 'on' : 'off',
         accentColor: family === 'smartPlug' ? widgetTones.energy.color : widgetTones.ok.color,
         gradient: family === 'smartPlug' ? widgetTones.energy.gradient : widgetTones.ok.gradient,
         animationPreset: on && family === 'smartPlug' ? 'energyFlow' : 'none',
         isActive: on,
         isUnavailable: unavailable,
-        primary: power !== undefined ? String(Math.round(power)) : on ? 'ON' : 'OFF',
-        unit: power !== undefined ? 'W' : undefined,
-        secondary: family === 'smartPlug' ? 'Presa smart' : 'Interruttore',
-        ringValue: power !== undefined ? Math.min(100, Math.round(power / 25)) : on ? 100 : 0,
+        primary: on && power !== undefined ? String(Math.round(power)) : on ? 'Acceso' : 'Spento',
+        unit: on && power !== undefined ? 'W' : undefined,
+        secondary: on && power !== undefined ? 'Consumo' : undefined,
+        ringValue: on && power !== undefined ? Math.min(100, Math.round(power / 25)) : undefined,
       }
     case 'climate':
     case 'thermostat': {
@@ -259,17 +259,17 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
       const speed = numericState(entity?.attributes?.percentage) ?? (on ? 100 : 0)
       return {
         family, type, Icon: Fan, title,
-        subtitle: unavailable ? 'Non disponibile' : on ? 'Ventilazione' : 'Spento',
+        subtitle: unavailable ? 'Non disponibile' : undefined,
         status: on ? 'fan' : 'off',
         accentColor: widgetTones.cool.color,
         gradient: widgetTones.cool.gradient,
         animationPreset: on ? 'fanSpin' : 'none',
         isActive: on,
         isUnavailable: unavailable,
-        primary: String(Math.round(speed)),
-        unit: '%',
-        secondary: 'Velocità',
-        ringValue: speed,
+        primary: on ? String(Math.round(speed)) : 'Spento',
+        unit: on ? '%' : undefined,
+        secondary: on ? 'Velocità' : undefined,
+        ringValue: on ? speed : undefined,
       }
     }
     case 'cover':
@@ -463,10 +463,10 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
         animationPreset: on ? 'waterWave' : 'none',
         isActive: on,
         isUnavailable: unavailable,
-        primary: targetHumidity !== undefined ? String(Math.round(targetHumidity)) : on ? 'ON' : 'OFF',
-        unit: targetHumidity !== undefined ? '%' : undefined,
-        secondary: currentHumidity !== undefined ? `Attuale ${Math.round(currentHumidity)}%` : 'Umidità',
-        ringValue: currentHumidity ?? targetHumidity ?? 0,
+        primary: on && targetHumidity !== undefined ? String(Math.round(targetHumidity)) : on ? 'Acceso' : 'Spento',
+        unit: on && targetHumidity !== undefined ? '%' : undefined,
+        secondary: on && currentHumidity !== undefined ? `Attuale ${Math.round(currentHumidity)}%` : undefined,
+        ringValue: on ? (currentHumidity ?? targetHumidity ?? 0) : undefined,
       }
     }
     case 'update': {

@@ -1,10 +1,16 @@
 import { Hono } from 'hono'
+import { db } from '../db/client.js'
 import { getHAConfig } from '../lib/ha-config.js'
 import { desktopOnly } from '../lib/security.js'
 
 export const aiRouter = new Hono()
 
-aiRouter.use('*', desktopOnly)
+// Copilot e write-back automazioni restano desktop-only; /health e /recognize
+// devono funzionare dal KIOSK: il campanello suona sul tablet a muro.
+aiRouter.use('/chat', desktopOnly)
+aiRouter.use('/suggest', desktopOnly)
+aiRouter.use('/automation', desktopOnly)
+aiRouter.use('/automation/*', desktopOnly)
 
 const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models'
 
@@ -135,6 +141,10 @@ aiRouter.post('/suggest', async (c) => {
 aiRouter.post('/recognize', async (c) => {
   const body = await c.req.json<{ entityId: string; names?: string[] }>().catch(() => null)
   if (!body?.entityId) return c.json({ error: 'entityId mancante' }, 400)
+  const { config } = await db.read()
+  if (config.ai?.doorbellVision === false) {
+    return c.json({ error: 'Riconoscimento AI disattivato dalle Funzioni' }, 400)
+  }
   const { haUrl, haToken } = await getHAConfig()
   if (!haToken) return c.json({ error: 'HA token mancante' }, 400)
 

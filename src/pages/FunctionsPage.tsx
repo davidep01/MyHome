@@ -205,6 +205,20 @@ function DoorbellsCard() {
           <Plus size={13} /> Nuovo
         </button>
       </div>
+      <div className="flex items-center justify-between gap-3 rounded-[10px] bg-black/[0.035] px-3 py-2.5">
+        <div className="min-w-0">
+          <p className="text-sm text-[#1d1d1f]">Riconoscimento AI (Gemini Vision)</p>
+          <p className="text-[11px] text-black/40">Alla pressione descrive chi c'è alla porta; se l'AI manca o fallisce resta l'avviso generico.</p>
+        </div>
+        <div
+          className={cn('lg-toggle shrink-0', (config?.ai?.doorbellVision !== false) && 'on')}
+          onClick={() => update({ ai: { doorbellVision: config?.ai?.doorbellVision === false } })}
+          role="switch"
+          aria-checked={config?.ai?.doorbellVision !== false}
+        >
+          <span className="lg-toggle-knob" />
+        </div>
+      </div>
       {doorbells.length === 0 ? (
         <p className="text-[12px] text-black/40">Alla pressione: video fullscreen, suono e riconoscimento. Collega un trigger (event/binary_sensor) e una camera.</p>
       ) : (

@@ -1,10 +1,12 @@
 import { X, Flame, Lightbulb, ShieldCheck, Cpu, Tv } from 'lucide-react'
 import { ClimateDetail } from './ClimateDetail'
+import { GenericDetail } from './GenericDetail'
 import { LightDetail } from './LightDetail'
 import { AlarmDetail } from './AlarmDetail'
 import { MediaDetail } from './MediaDetail'
 import { useHAEntity } from '../../hooks/useHAEntity'
 import { useUIStore } from '../../store/ui'
+import { stateLabel } from '../widgets/utils/stateLabel'
 import { tokens } from '../../design/tokens'
 
 const domainMeta: Record<string, { Icon: React.ElementType; color: string }> = {
@@ -31,8 +33,8 @@ export function ContextualPanel({ entityId }: { entityId: string }) {
         </div>
         <div className="min-w-0 flex-1">
           <p className="truncate text-base font-semibold text-black/90">{name}</p>
-          <p className="truncate text-xs capitalize text-black/40">
-            {!entity || entity.state === 'unavailable' ? 'Non disponibile' : entity.state}
+          <p className="truncate text-xs text-black/40">
+            {!entity ? 'Non disponibile' : stateLabel(entity.state)}
           </p>
         </div>
         <button
@@ -57,10 +59,7 @@ export function ContextualPanel({ entityId }: { entityId: string }) {
         ) : domain === 'media_player' ? (
           <MediaDetail entity={entity} />
         ) : (
-          <div className="rounded-[16px] bg-black/5 p-4">
-            <p className="font-mono text-xs text-black/40">{entityId}</p>
-            <p className="mt-2 text-sm text-black/70">Controlli avanzati non ancora disponibili per questo dispositivo.</p>
-          </div>
+          <GenericDetail entity={entity} />
         )}
       </div>
     </div>

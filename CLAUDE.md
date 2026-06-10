@@ -216,6 +216,12 @@ Fasi 2–5 + igiene applicate. Verifiche: `npm run build:all` ✅ · `npm run li
 - **M7 Ambient + presenza** — `AmbientLayer` (idle 180s, orologio 112px su #070709, drift anti-burn-in transform-only, mai sopra un danger), presence-wake da `config.kiosk.wakeEntityId`, `DuskLayer` (velo caldo ≤6% da sun.sun).
 - **M8 Demolizioni** — via le 9 pagine controllo desktop, `SettingsPage` (e il PIN finto), `WidgetHome`/`WidgetPicker`, `EntityCollectionPage`, `HomeHeader`; AppView a 4; sidebar 4+kiosk-link. Main chunk 689→646KB.
 
+**Risolti (2026-06-10, sera) — feedback dal tablet reale:**
+- **Gestione "tile"** — override per entità `DeviceOverride.hero: 'always'|'never'` (workbench → dettaglio → "Nello strato Adesso": Auto/Sempre/Mai); il composer garantisce i pinned (mai sopra la P0) ed esclude i banned anche dai gruppi-luce. La visibilità generale resta nascondi/mostra in Entità.
+- **Gemini Vision campanello: non aveva mai funzionato** — il client AI non mandava `X-MyHome-Client` (403 su desktop) e il kiosk saltava il riconoscimento di proposito. Ora `/api/ai/recognize` + `/health` sono accessibili dal tablet (chat/suggest/automation restano desktop-only), il kiosk esegue il riconoscimento, toggle `config.ai.doorbellVision` in Funzioni→Campanelli (propagato via `/api/layout`), **fallback generico** ("C'è qualcuno alla porta!") quando l'AI è spenta/assente/fallisce.
+- **Controlli universali** — `GenericDetail` nel pannello contestuale: plancia per OGNI dominio (fan/cover/valve/lock con **hold 900ms**/vacuum/mower/humidifier/scene/script/button/select/number/water_heater/siren/camera live) + stato tradotto e attributi; sparito "Controlli avanzati non ancora disponibili".
+- **Grafica card de-ridondata** — il `primary` vive nel ring O nella colonna valore, mai in entrambi; i toggleabili spenti mostrano icona + "Spenta/Spento" una volta sola (niente più anello 0% + "0%" + "Off" arancio + "Spenta"); `secondary` in inchiostro muto, non accento; titolo su 2 righe (`line-clamp-2`).
+
 **Residui noti (non bloccanti):** WebRTC/talk-back via signaling proxy backend; rimozione definitiva della grid legacy (+ kernel + react-grid-layout + `/api/layout` solo-posizioni) dopo validazione del composer sul tablet reale; AI write-back automazioni (roadmap).
 
 ---

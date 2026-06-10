@@ -286,6 +286,7 @@ export function tabletHomeLayout(config: AppConfig) {
     // Curation data the kiosk needs to filter discovery (not secret).
     hiddenEntities: config.hiddenEntities ?? [],
     kiosk: config.kiosk ?? {},
+    ai: { doorbellVision: config.ai?.doorbellVision !== false },
     source: 'backend' as const,
   }
 }

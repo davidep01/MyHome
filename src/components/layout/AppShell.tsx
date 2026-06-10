@@ -190,7 +190,7 @@ function KioskShell() {
         {selectedEntityId && <ContextualPanel entityId={selectedEntityId} />}
       </GlassSheet>
 
-      <DoorbellAlert kiosk doorbells={layout?.doorbells ?? []} />
+      <DoorbellAlert kiosk doorbells={layout?.doorbells ?? []} vision={layout?.ai?.doorbellVision !== false} />
     </div>
   )
 }

@@ -48,6 +48,8 @@ export interface AppConfig {
   dashboardLayout?: DashboardLayout
   /** Kiosk behaviour: presence-wake sensor for the ambient layer. */
   kiosk?: { wakeEntityId?: string }
+  /** AI features: doorbell Gemini Vision on/off (default on when key present). */
+  ai?: { doorbellVision?: boolean }
 }
 
 export type WidgetType =
@@ -121,6 +123,8 @@ export interface DashboardLayout {
 }
 
 export interface DeviceOverride {
+  /** Strato "Adesso": 'always' = sempre in evidenza, 'never' = mai. Vuoto = decide il composer. */
+  hero?: 'always' | 'never'
   label?: string
   /** lucide icon name, e.g. "lightbulb" */
   icon?: string

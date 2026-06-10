@@ -98,6 +98,34 @@ describe('composeHome', () => {
     const out = composeHome(many, { now: DAY, maxHero: 4 })
     expect(out.hero).toHaveLength(4)
   })
+
+  it("override 'never': l'entità non entra mai nell'Adesso (nemmeno nel gruppo luci)", () => {
+    const heroOf = (id: string) => (id === 'light.bagno' ? 'never' as const : undefined)
+    const out = composeHome([
+      e('light.bagno', 'on'),
+      e('media_player.tv', 'playing'),
+    ], { now: DAY, heroOf })
+    expect(out.hero.map((s) => s.key)).toEqual(['media_player.tv'])
+  })
+
+  it("override 'always': l'entità è in evidenza anche da spenta e sopravvive al cap", () => {
+    const heroOf = (id: string) => (id === 'switch.cancello' ? 'always' as const : undefined)
+    const many = Array.from({ length: 8 }, (_, i) => e(`media_player.p${i}`, 'playing'))
+    const out = composeHome([...many, e('switch.cancello', 'off')], { now: DAY, maxHero: 4, heroOf })
+    expect(out.hero.map((s) => s.key)).toContain('switch.cancello')
+    const pinned = out.hero.find((s) => s.key === 'switch.cancello')
+    expect(pinned?.reason).toBe('In evidenza')
+    expect(out.hero).toHaveLength(4)
+  })
+
+  it("'always' non scavalca la priorità 0", () => {
+    const heroOf = (id: string) => (id === 'light.fissa' ? 'always' as const : undefined)
+    const out = composeHome([
+      e('light.fissa', 'on'),
+      e('alarm_control_panel.casa', 'triggered'),
+    ], { now: DAY, heroOf })
+    expect(out.hero[0].key).toBe('alarm_control_panel.casa')
+  })
 })
 
 describe('applyHysteresis', () => {

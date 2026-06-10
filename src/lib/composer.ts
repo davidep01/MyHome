@@ -48,6 +48,8 @@ export interface ComposedHome {
 export interface ComposeOptions {
   /** entity_id → nome area (dal registry HA); undefined = senza area. */
   areaNameOf?: (entityId: string) => string | undefined
+  /** Override utente dal workbench: 'always' = sempre nell'Adesso, 'never' = mai. */
+  heroOf?: (entityId: string) => 'always' | 'never' | undefined
   now: Date
   maxHero?: number
 }
@@ -83,9 +85,10 @@ function bySlotOrder(a: { priority: number; changed: number; key: string }, b: t
 }
 
 export function composeHome(entities: ComposerEntity[], opts: ComposeOptions): ComposedHome {
-  const { areaNameOf, now } = opts
+  const { areaNameOf, heroOf, now } = opts
   const maxHero = opts.maxHero ?? 6
   const night = isNight(now)
+  const heroPref = (id: string) => heroOf?.(id)
 
   const candidates: (HeroSlot & { changed: number })[] = []
   const alerts: AlertChip[] = []
@@ -94,6 +97,9 @@ export function composeHome(entities: ComposerEntity[], opts: ComposeOptions): C
   const unlockedLocks: ComposerEntity[] = []
   const litByArea = new Map<string, ComposerEntity[]>()
   let unavailable = 0
+
+  const banned = new Set<string>()
+  for (const e of entities) if (heroPref(e.entity_id) === 'never') banned.add(e.entity_id)
 
   for (const e of entities) {
     const domain = domainOf(e.entity_id)
@@ -159,7 +165,7 @@ export function composeHome(entities: ComposerEntity[], opts: ComposeOptions): C
         break
       }
       case 'light': {
-        if (e.state === 'on') {
+        if (e.state === 'on' && !banned.has(e.entity_id)) {
           const area = areaNameOf?.(e.entity_id) ?? 'Casa'
           const list = litByArea.get(area) ?? []
           list.push(e)
@@ -215,8 +221,25 @@ export function composeHome(entities: ComposerEntity[], opts: ComposeOptions): C
     alerts.push({ id: 'unavailable', severity: 'info', label: `${unavailable} entità non disponibili`, entityIds: [] })
   }
 
-  const hero = candidates
+  // Pinned: gli 'always' non ancora candidati entrano come "In evidenza".
+  const candidateKeys = new Set(candidates.map((c) => c.key))
+  for (const e of entities) {
+    if (heroPref(e.entity_id) !== 'always' || candidateKeys.has(e.entity_id)) continue
+    if (e.state === 'unavailable' || e.state === 'unknown') continue
+    candidates.push({ key: e.entity_id, entityId: e.entity_id, priority: 4, reason: 'In evidenza', changed: changedMs(e) })
+  }
+
+  const sorted = candidates
+    .filter((c) => !(c.entityId && banned.has(c.entityId)))
     .sort(bySlotOrder)
+  const isPinned = (c: { entityId?: string }) => Boolean(c.entityId && heroPref(c.entityId) === 'always')
+  // P0 sempre davanti; poi i pinned (presenza garantita); poi il resto.
+  const ordered = [
+    ...sorted.filter((c) => c.priority === 0),
+    ...sorted.filter((c) => c.priority !== 0 && isPinned(c)),
+    ...sorted.filter((c) => c.priority !== 0 && !isPinned(c)),
+  ]
+  const hero = ordered
     .slice(0, maxHero)
     .map((c): HeroSlot => ({ key: c.key, priority: c.priority, entityId: c.entityId, group: c.group, reason: c.reason }))
 

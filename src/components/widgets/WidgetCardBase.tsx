@@ -121,7 +121,7 @@ export function WidgetCardHeader({
       <div className="flex min-w-0 items-center gap-2.5">
         {Icon && <WidgetCardIcon Icon={Icon} size={size} accentColor={accentColor} />}
         <div className="min-w-0">
-          <p className={cn('truncate font-semibold leading-tight text-[#1d1d1f]', cfg.titleClass)}>{title}</p>
+          <p className={cn('line-clamp-2 font-semibold leading-tight text-[#1d1d1f]', cfg.titleClass)}>{title}</p>
           {subtitle && <p className="mt-0.5 truncate text-xs font-medium text-black/45">{subtitle}</p>}
         </div>
       </div>
@@ -165,13 +165,11 @@ export function WidgetCardValue({
   unit,
   secondary,
   size = 'M',
-  accentColor = widgetTones.neutral.color,
 }: {
   value: ReactNode
   unit?: string
   secondary?: ReactNode
   size?: WidgetVisualSize
-  accentColor?: string
 }) {
   const cfg = getWidgetSizeConfig(size)
   return (
@@ -180,7 +178,7 @@ export function WidgetCardValue({
         {value}
         {unit && <span className="ml-1 align-baseline text-base font-medium text-black/45">{unit}</span>}
       </div>
-      {secondary && <p className="mt-1 truncate text-xs font-medium" style={{ color: accentColor }}>{secondary}</p>}
+      {secondary && <p className="mt-1 truncate text-xs font-medium text-black/45">{secondary}</p>}
     </div>
   )
 }

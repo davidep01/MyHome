@@ -420,6 +420,25 @@ function EntityDetail({
       )}
 
       <div className="space-y-1.5">
+        <label className="text-xs font-medium text-black/50">Nello strato "Adesso" del kiosk</label>
+        <div className="flex rounded-full bg-black/[0.05] p-1">
+          {([['', 'Auto'], ['always', 'Sempre'], ['never', 'Mai']] as const).map(([v, label]) => (
+            <button
+              key={v}
+              onClick={() => onPatch({ hero: (v || undefined) as 'always' | 'never' | undefined })}
+              className={cn(
+                'min-h-[36px] flex-1 rounded-full text-xs font-semibold transition',
+                (override?.hero ?? '') === v ? 'bg-white text-[#1d1d1f] shadow-sm' : 'text-black/45',
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <p className="text-[11px] text-black/35">Auto = il composer decide per rilevanza. Sempre = card fissa in evidenza. Mai = resta solo nelle stanze.</p>
+      </div>
+
+      <div className="space-y-1.5">
         <label className="text-xs font-medium text-black/50">Nome</label>
         <input
           value={override?.label ?? ''}

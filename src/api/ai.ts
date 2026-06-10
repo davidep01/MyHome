@@ -9,10 +9,15 @@ export interface AITurn {
   text: string
 }
 
+function clientHeader(): 'desktop' | 'tablet' {
+  if (typeof window === 'undefined') return 'desktop'
+  return window.matchMedia('(pointer: fine)').matches ? 'desktop' : 'tablet'
+}
+
 async function postAI(path: string, body: unknown): Promise<string> {
   const res = await fetch(`/api/ai/${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-MyHome-Client': clientHeader() },
     body: JSON.stringify(body),
   })
   const data = (await res.json().catch(() => ({}))) as { text?: string; error?: string }
@@ -25,7 +30,7 @@ export type HAAutomation = Record<string, unknown> & { alias?: string }
 async function postJSON<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(`/api/ai/${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-MyHome-Client': clientHeader() },
     body: JSON.stringify(body),
   })
   const data = (await res.json().catch(() => ({}))) as T & { error?: string }

@@ -59,7 +59,11 @@ export function useComposedHome(cfg?: KioskCurationConfig): ComposedHomeView {
         && deviceOverrides?.[e.entity_id]?.enabled !== false
         && e.attributes?.entity_category !== 'diagnostic')
 
-      const raw = composeHome(visible, { areaNameOf, now: new Date() })
+      const raw = composeHome(visible, {
+        areaNameOf,
+        heroOf: (id) => deviceOverrides?.[id]?.hero,
+        now: new Date(),
+      })
       const { hero, state } = applyHysteresis(memory.current.hero, raw.hero, memory.current.state, Date.now())
       const insights = computeInsights(visible, { areaIdOf, nowMs: Date.now() })
 

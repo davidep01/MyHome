@@ -239,18 +239,22 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
           )}
 
           <div className="min-w-0 flex-1">
-            <WidgetCardValue
-              value={mapped.primary}
-              unit={mapped.unit}
-              secondary={mapped.secondary}
-              size={size}
-              accentColor={mapped.accentColor}
-            />
+            {/* Il primary vive nel ring quando il ring c'è: mai due volte. */}
+            {showRing ? (
+              mapped.secondary && <p className="truncate text-xs font-medium text-black/45">{mapped.secondary}</p>
+            ) : (
+              <WidgetCardValue
+                value={mapped.primary}
+                unit={mapped.unit}
+                secondary={mapped.secondary}
+                size={size}
+              />
+            )}
             {size === 'L' && (
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <div className="rounded-[12px] bg-black/[0.045] px-3 py-2">
                   <p className="text-[10px] font-bold uppercase text-black/35">Stato</p>
-                  <p className="mt-0.5 truncate text-xs font-semibold text-black/65">{mapped.subtitle}</p>
+                  <p className="mt-0.5 truncate text-xs font-semibold text-black/65">{mapped.subtitle ?? `${mapped.primary}${mapped.unit ?? ''}`}</p>
                 </div>
                 <div className="rounded-[12px] bg-black/[0.045] px-3 py-2">
                   <p className="text-[10px] font-bold uppercase text-black/35">Origine</p>

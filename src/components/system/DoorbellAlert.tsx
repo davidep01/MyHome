@@ -21,9 +21,10 @@ const TONE_COLOR: Record<Tone, string> = {
 }
 
 /** Builds the headline + status pill from the recognition result. */
-function describe(r: Recog | null, known: string[], kiosk = false): { title: string; pill: string; tone: Tone } {
+function describe(r: Recog | null, known: string[], vision: boolean): { title: string; pill: string; tone: Tone } {
   const fallbackTitle = "C'è qualcuno alla porta!"
-  if (kiosk) return { title: fallbackTitle, pill: 'Campanello attivo', tone: 'scan' }
+  // Fallback generico: AI spenta o non configurata → solo l'avviso, onesto.
+  if (!vision) return { title: fallbackTitle, pill: 'Campanello attivo', tone: 'scan' }
   if (!r || r.status === 'scanning') return { title: fallbackTitle, pill: 'Riconoscimento in corso…', tone: 'scan' }
   if (r.status === 'error') return { title: fallbackTitle, pill: 'Riconoscimento non disponibile', tone: 'error' }
   const raw = (r.name ?? '').trim()
@@ -37,7 +38,7 @@ function describe(r: Recog | null, known: string[], kiosk = false): { title: str
   }
 }
 
-export function DoorbellAlert({ kiosk = false, doorbells }: { kiosk?: boolean; doorbells?: DoorbellDevice[] }) {
+export function DoorbellAlert({ kiosk = false, doorbells, vision = true }: { kiosk?: boolean; doorbells?: DoorbellDevice[]; vision?: boolean }) {
   const { active, dismiss, autoDismissMs } = useDoorbells(doorbells)
   const entities = useEntityStore((s) => s.entities)
   const ringing = Boolean(active)
@@ -56,9 +57,10 @@ export function DoorbellAlert({ kiosk = false, doorbells }: { kiosk?: boolean; d
     [entities],
   )
 
-  // Run Gemini Vision recognition once per ring.
+  // Run Gemini Vision recognition once per ring — anche (soprattutto) sul kiosk.
+  // Se la chiamata fallisce (chiave assente, AI giù) si degrada al messaggio generico.
   useEffect(() => {
-    if (kiosk || !ringing || !hasCamera) { setRecog(null); return }
+    if (!ringing || !hasCamera || !vision) { setRecog(null); return }
     let cancelled = false
     setRecog({ status: 'scanning' })
     aiApi.recognize(cameraEntityId, personNames)
@@ -67,9 +69,9 @@ export function DoorbellAlert({ kiosk = false, doorbells }: { kiosk?: boolean; d
     return () => { cancelled = true }
     // personNames intentionally read at ring time only
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ringing, hasCamera, cameraEntityId, ringAt, kiosk])
+  }, [ringing, hasCamera, cameraEntityId, ringAt, vision])
 
-  const { title, pill, tone } = describe(recog, personNames, kiosk)
+  const { title, pill, tone } = describe(recog, personNames, vision && hasCamera)
   const toneColor = TONE_COLOR[tone]
   const countdownSec = autoDismissMs / 1000
 

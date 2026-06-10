@@ -85,7 +85,7 @@ export function WidgetCardPreview() {
                   <WidgetCardHeader title={label} subtitle={size === 'S' ? undefined : 'Stato preview'} Icon={Icon} accentColor={tone.color} size={size} trailing={<WidgetCardBadge tone={value > 90 ? 'ok' : 'neutral'}>{size}</WidgetCardBadge>} />
                   <div className="mt-3 flex flex-1 items-center gap-3">
                     {size !== 'S' && <WidgetCardRing value={Math.min(value, 100)} size={size} color={tone.color} />}
-                    <WidgetCardValue value={value} unit={label.includes('Temperature') || label.includes('Climate') ? 'C' : value > 10 ? '%' : undefined} secondary={size === 'L' ? 'active / loading / error / unavailable / edit' : 'active'} size={size} accentColor={tone.color} />
+                    <WidgetCardValue value={value} unit={label.includes('Temperature') || label.includes('Climate') ? 'C' : value > 10 ? '%' : undefined} secondary={size === 'L' ? 'active / loading / error / unavailable / edit' : 'active'} size={size} />
                   </div>
                 </WidgetCardShell>
               ))}
