@@ -16,10 +16,13 @@ export function StatusHeader({
   userName,
   alerts,
   onAlertTap,
+  onClockTap,
 }: {
   userName?: string
   alerts: AlertChip[]
   onAlertTap: (chip: AlertChip) => void
+  /** Tocco sull'orologio → timeline "Oggi a casa". */
+  onClockTap?: () => void
 }) {
   const { time, date } = useClock()
   const { greeting } = useTimeOfDay()
@@ -40,7 +43,7 @@ export function StatusHeader({
   return (
     <header className="shrink-0 space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="min-w-0">
+        <button type="button" onClick={onClockTap} className="min-w-0 text-left transition active:scale-[0.99]" aria-label="Apri la timeline di oggi">
           <div className="flex items-baseline gap-3">
             <span className="text-[56px] font-light leading-none text-[#1d1d1f] tabular-nums">{time}</span>
             <span className="truncate text-base capitalize text-black/45">{date}</span>
@@ -48,7 +51,7 @@ export function StatusHeader({
           <p className="mt-2 truncate text-xl font-semibold text-[#1d1d1f]">
             {greeting}{userName ? `, ${userName}` : ''}
           </p>
-        </div>
+        </button>
 
         <div className="flex items-center gap-2.5">
           {personsHome.length > 0 && (

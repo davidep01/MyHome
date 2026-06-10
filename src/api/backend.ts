@@ -248,6 +248,9 @@ export const haApi = {
   state: (entityId: string) => request<unknown>(`/ha/states/${encodeURIComponent(entityId)}`),
   /** HA registries (areas/devices/entities), proxied over the backend WS. */
   registry: () => request<{ areas: unknown[]; devices: unknown[]; entities: unknown[] }>('/ha/registry'),
+  /** Logbook filtrato alle classi significative (timeline di casa). */
+  logbook: (hours = 24) =>
+    request<{ entity_id: string; name?: string; state?: string; when?: string; message?: string }[]>(`/ha/logbook?hours=${hours}`),
   /** Backend-signed HLS playlist URL for a camera (token stays server-side). */
   cameraHlsUrl: (entityId: string) =>
     request<{ url: string }>(`/ha/camera-hls-url/${encodeURIComponent(entityId)}`),

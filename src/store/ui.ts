@@ -3,6 +3,7 @@ import { create } from 'zustand'
 export type AppView =
   | 'home'
   | 'entities'
+  | 'functions'
   | 'areas'
   | 'lights'
   | 'climate'
@@ -19,6 +20,7 @@ export type AppView =
 export const VIEW_PATHS: Record<AppView, string> = {
   home: '/',
   entities: '/entities',
+  functions: '/functions',
   areas: '/areas',
   lights: '/lights',
   climate: '/climate',

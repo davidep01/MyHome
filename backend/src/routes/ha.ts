@@ -267,6 +267,35 @@ haRouter.get('/media', async (c) => {
   return forwardResponse(res)
 })
 
+// Timeline di casa: logbook HA filtrato server-side alle classi significative
+// (presenze, allarme, serrature, automazioni) — il resto è rumore per il muro.
+const LOGBOOK_DOMAINS = new Set(['person', 'alarm_control_panel', 'lock', 'automation'])
+
+haRouter.get('/logbook', async (c) => {
+  const { haToken } = await getHAConfig()
+  if (!haToken) return c.json({ error: 'Home Assistant token missing' }, 400)
+
+  const hoursParam = Number(c.req.query('hours') ?? '24')
+  const hours = Number.isFinite(hoursParam) ? Math.min(Math.max(hoursParam, 1), 72) : 24
+  const start = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString()
+
+  try {
+    const res = await fetch(`${await getHABaseUrl()}/api/logbook/${start}`, {
+      headers: { Authorization: `Bearer ${haToken}` },
+    })
+    if (!res.ok) return c.json({ error: `Home Assistant logbook returned ${res.status}` }, 502)
+    const body = await res.json() as { entity_id?: string; name?: string; state?: string; when?: string; message?: string }[]
+    const filtered = body
+      .filter((item) => item.entity_id && LOGBOOK_DOMAINS.has(item.entity_id.split('.')[0]))
+      .slice(-200)
+    return c.json(filtered)
+  } catch (error) {
+    return c.json({
+      error: error instanceof Error ? error.message : 'Home Assistant logbook unreachable',
+    }, 502)
+  }
+})
+
 haRouter.get('/history/:entityId', async (c) => {
   const { haToken } = await getHAConfig()
   const entityId = c.req.param('entityId')

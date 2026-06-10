@@ -3,6 +3,7 @@ import { StatusHeader } from './layers/StatusHeader'
 import { NowSection } from './layers/NowSection'
 import { RoomsRow, type RoomTarget } from './layers/RoomsRow'
 import { EntitySheet } from './layers/EntitySheet'
+import { TimelineSheet } from './layers/TimelineSheet'
 import { GlassCard } from '../glass/GlassCard'
 import { AnimatedCard } from '../anim/AnimatedCard'
 import { WeatherWidget } from '../weather/WeatherWidget'
@@ -27,6 +28,7 @@ export function LayeredHome() {
   })
   const setSelectedEntity = useUIStore((s) => s.setSelectedEntity)
   const [sheet, setSheet] = useState<RoomTarget | null>(null)
+  const [timelineOpen, setTimelineOpen] = useState(false)
 
   const openAlert = (chip: AlertChip) => {
     if (chip.entityIds.length === 1) setSelectedEntity(chip.entityIds[0])
@@ -35,7 +37,7 @@ export function LayeredHome() {
 
   return (
     <div className="flex h-full flex-col gap-5 overflow-y-auto p-5 pb-8">
-      <StatusHeader userName={layout?.userName} alerts={composed.alerts} onAlertTap={openAlert} />
+      <StatusHeader userName={layout?.userName} alerts={composed.alerts} onAlertTap={openAlert} onClockTap={() => setTimelineOpen(true)} />
 
       {composed.quiet ? <QuietSection /> : <NowSection hero={composed.hero} overrides={layout?.deviceOverrides} />}
 
@@ -46,6 +48,7 @@ export function LayeredHome() {
       />
 
       <EntitySheet target={sheet} overrides={layout?.deviceOverrides} onClose={() => setSheet(null)} />
+      <TimelineSheet open={timelineOpen} onClose={() => setTimelineOpen(false)} />
     </div>
   )
 }
