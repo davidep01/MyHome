@@ -7,14 +7,18 @@ import {
   type HeroSlot,
   type HysteresisState,
 } from '../lib/composer'
+import { computeInsights, type InsightAction } from '../lib/insights'
 import { useEntityStore } from '../store/entities'
 import { useHAHiddenEntities } from './useHAHiddenEntities'
 import { useAreaIndex } from './useAreaIndex'
 import type { DeviceOverride } from '../api/backend'
 
+/** Chip dell'header: anomalia del composer o suggerimento con azione proposta. */
+export type HomeChip = AlertChip & { action?: InsightAction }
+
 export interface ComposedHomeView {
   hero: HeroSlot[]
-  alerts: AlertChip[]
+  alerts: HomeChip[]
   quiet: boolean
 }
 
@@ -34,7 +38,7 @@ const IDLE: ComposedHomeView = { hero: [], alerts: [], quiet: true }
  */
 export function useComposedHome(cfg?: KioskCurationConfig): ComposedHomeView {
   const haHidden = useHAHiddenEntities()
-  const { areaNameOf } = useAreaIndex()
+  const { areaNameOf, areaIdOf } = useAreaIndex()
   const [view, setView] = useState<ComposedHomeView>(IDLE)
 
   const memory = useRef<{ hero: HeroSlot[]; state: HysteresisState; signature: string }>({
@@ -57,8 +61,9 @@ export function useComposedHome(cfg?: KioskCurationConfig): ComposedHomeView {
 
       const raw = composeHome(visible, { areaNameOf, now: new Date() })
       const { hero, state } = applyHysteresis(memory.current.hero, raw.hero, memory.current.state, Date.now())
+      const insights = computeInsights(visible, { areaIdOf, nowMs: Date.now() })
 
-      const next: ComposedHomeView = { hero, alerts: raw.alerts, quiet: hero.length === 0 }
+      const next: ComposedHomeView = { hero, alerts: [...raw.alerts, ...insights], quiet: hero.length === 0 }
       const signature = JSON.stringify(next)
       const changed = signature !== memory.current.signature
       memory.current = { hero, state, signature }
@@ -68,7 +73,7 @@ export function useComposedHome(cfg?: KioskCurationConfig): ComposedHomeView {
     compute()
     const id = setInterval(compute, TICK_MS)
     return () => clearInterval(id)
-  }, [haHidden, areaNameOf, hiddenEntities, deviceOverrides])
+  }, [haHidden, areaNameOf, areaIdOf, hiddenEntities, deviceOverrides])
 
   return view
 }

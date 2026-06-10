@@ -5,7 +5,7 @@ import { useTimeOfDay } from '../../../hooks/useTimeOfDay'
 import { useCurrentWeather } from '../../../hooks/useWeather'
 import { useEntityStore } from '../../../store/entities'
 import { cn } from '../../../lib/utils'
-import type { AlertChip } from '../../../lib/composer'
+import type { HomeChip } from '../../../hooks/useComposedHome'
 
 /**
  * Strato 1 — Stato di casa. Sempre presente, mai configurato: ora, saluto,
@@ -16,11 +16,14 @@ export function StatusHeader({
   userName,
   alerts,
   onAlertTap,
+  onAlertAction,
   onClockTap,
 }: {
   userName?: string
-  alerts: AlertChip[]
-  onAlertTap: (chip: AlertChip) => void
+  alerts: HomeChip[]
+  onAlertTap: (chip: HomeChip) => void
+  /** Esegue l'azione proposta da un suggerimento (il tap È la conferma). */
+  onAlertAction?: (chip: HomeChip) => void
   /** Tocco sull'orologio → timeline "Oggi a casa". */
   onClockTap?: () => void
 }) {
@@ -76,20 +79,30 @@ export function StatusHeader({
       {alerts.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
           {alerts.map((chip) => (
-            <button
+            <div
               key={chip.id}
-              type="button"
-              onClick={() => onAlertTap(chip)}
               className={cn(
-                'flex min-h-[44px] items-center gap-2 rounded-full px-4 text-sm font-semibold transition active:scale-95',
+                'flex min-h-[44px] items-center gap-2 rounded-full pl-4 text-sm font-semibold transition',
+                chip.action ? 'pr-1.5' : 'pr-4',
                 chip.severity === 'danger' ? 'bg-red-500/12 text-[#dc2626]'
                   : chip.severity === 'warn' ? 'bg-orange-500/12 text-[#c2410c]'
                     : 'bg-black/[0.06] text-black/55',
               )}
             >
-              {chip.severity === 'danger' ? <ShieldAlert size={16} /> : <AlertTriangle size={16} />}
-              {chip.label}
-            </button>
+              <button type="button" onClick={() => onAlertTap(chip)} className="flex items-center gap-2 active:scale-95">
+                {chip.severity === 'danger' ? <ShieldAlert size={16} /> : <AlertTriangle size={16} />}
+                {chip.label}
+              </button>
+              {chip.action && onAlertAction && (
+                <button
+                  type="button"
+                  onClick={() => onAlertAction(chip)}
+                  className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-[#1d1d1f] shadow-sm transition active:scale-95"
+                >
+                  {chip.action.label}
+                </button>
+              )}
+            </div>
           ))}
         </div>
       )}
