@@ -84,7 +84,7 @@ export function DoorbellAlert({ kiosk = false, doorbells }: { kiosk?: boolean; d
         >
           {hasCamera ? (
             <div className="absolute inset-0">
-              <CameraStream entityId={cameraEntityId} fit="cover" muted allowTalkback />
+              <CameraStream entityId={cameraEntityId} fit="cover" muted preferLive />
             </div>
           ) : (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[#111]">

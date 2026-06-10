@@ -66,15 +66,9 @@ configRouter.get('/', async (c) => {
   })
 })
 
-// Separate endpoint to read full token (for internal use / WS connection)
-configRouter.get('/ha-credentials', async (c) => {
-  const { haUrl, haToken } = await getHAConfig()
-  return c.json({ haUrl, haToken })
-})
-
 // Full backup of the single-document store (config + rooms + entities).
 // Token included on purpose: a restore must be complete, and this route is
-// desktop-only like /ha-credentials which already returns it in plaintext.
+// desktop-only.
 configRouter.get('/export', async (c) => {
   const store = await db.read()
   const stamp = new Date().toISOString().slice(0, 10)

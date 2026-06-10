@@ -1,0 +1,287 @@
+import { getHABaseUrl, getHAConfig } from './ha-config.js'
+import { applyCompressedEvent, type CompressedStatesEvent } from './ha-ws-codec.js'
+import type { HaEntityLike } from './ha-stream.js'
+
+/**
+ * Minimal Home Assistant WebSocket client on Node's native WebSocket (≥22).
+ * Zero dependencies: auth handshake, id-correlated commands, subscribe_entities
+ * with compressed-diff parsing (ha-ws-codec.ts), ping heartbeat and
+ * exponential-backoff reconnect.
+ *
+ * The socket lives only while an entity feed is active (or a command is in
+ * flight), so serverless deployments never hold an idle connection.
+ */
+
+// ── Native WebSocket (structural types; no DOM lib in this tsconfig) ────────
+
+interface WsLike {
+  readyState: number
+  send(data: string): void
+  close(code?: number, reason?: string): void
+  addEventListener(type: string, listener: (event: { data?: unknown; code?: number; reason?: string }) => void): void
+}
+
+function nativeWebSocket(): (new (url: string) => WsLike) | null {
+  const ctor = (globalThis as { WebSocket?: new (url: string) => WsLike }).WebSocket
+  return typeof ctor === 'function' ? ctor : null
+}
+
+// ── Client state ─────────────────────────────────────────────────────────────
+
+export type HaWsState = 'idle' | 'connecting' | 'connected'
+
+export interface EntityFeedHandlers {
+  /** First event after (re)subscribe: the complete entity set. */
+  onSnapshot: (entities: HaEntityLike[]) => void
+  onDelta: (changed: HaEntityLike[], removed: string[]) => void
+  /** Socket lost (will keep retrying with backoff while the feed is active). */
+  onDown: (reason: string) => void
+}
+
+const COMMAND_TIMEOUT_MS = 10_000
+const PING_INTERVAL_MS = 30_000
+const PONG_TIMEOUT_MS = 10_000
+const MAX_RETRY_DELAY_MS = 30_000
+
+let socket: WsLike | null = null
+let state: HaWsState = 'idle'
+let msgId = 1
+const pending = new Map<number, { resolve: (value: unknown) => void; reject: (error: Error) => void; timer: ReturnType<typeof setTimeout> }>()
+/** Commands issued before auth completes, flushed on auth_ok. */
+let sendQueue: string[] = []
+
+let feed: EntityFeedHandlers | null = null
+let feedSubId: number | null = null
+let feedPrimed = false
+let entityMap = new Map<string, HaEntityLike>()
+
+let retryAttempt = 0
+let retryTimer: ReturnType<typeof setTimeout> | null = null
+let pingTimer: ReturnType<typeof setInterval> | null = null
+let pongTimer: ReturnType<typeof setTimeout> | null = null
+let manuallyClosed = false
+
+export function getHaWsState(): HaWsState {
+  return state
+}
+
+function nextId(): number {
+  return msgId++
+}
+
+function rawSend(payload: Record<string, unknown>): void {
+  const text = JSON.stringify(payload)
+  if (socket && state === 'connected') socket.send(text)
+  else sendQueue.push(text)
+}
+
+function rejectAllPending(reason: string): void {
+  for (const [, entry] of pending) {
+    clearTimeout(entry.timer)
+    entry.reject(new Error(reason))
+  }
+  pending.clear()
+  sendQueue = []
+}
+
+function startHeartbeat(): void {
+  stopHeartbeat()
+  pingTimer = setInterval(() => {
+    if (!socket || state !== 'connected') return
+    socket.send(JSON.stringify({ id: nextId(), type: 'ping' }))
+    if (pongTimer) clearTimeout(pongTimer)
+    pongTimer = setTimeout(() => {
+      // No pong: the socket is dead even if TCP hasn't noticed. Force-close to
+      // trigger the reconnect path.
+      try { socket?.close() } catch { /* already gone */ }
+    }, PONG_TIMEOUT_MS)
+  }, PING_INTERVAL_MS)
+}
+
+function stopHeartbeat(): void {
+  if (pingTimer) clearInterval(pingTimer)
+  pingTimer = null
+  if (pongTimer) clearTimeout(pongTimer)
+  pongTimer = null
+}
+
+function scheduleRetry(): void {
+  if (manuallyClosed || retryTimer || !feed) return
+  const delay = Math.min(1000 * 2 ** retryAttempt, MAX_RETRY_DELAY_MS)
+  retryAttempt += 1
+  retryTimer = setTimeout(() => {
+    retryTimer = null
+    void connect()
+  }, delay)
+}
+
+function subscribeEntitiesNow(): void {
+  if (!feed) return
+  feedSubId = nextId()
+  feedPrimed = false
+  entityMap = new Map()
+  rawSend({ id: feedSubId, type: 'subscribe_entities' })
+}
+
+function handleMessage(raw: unknown): void {
+  let msg: Record<string, unknown>
+  try {
+    msg = JSON.parse(String(raw)) as Record<string, unknown>
+  } catch {
+    return
+  }
+
+  switch (msg.type) {
+    case 'auth_required': {
+      void (async () => {
+        const { haToken } = await getHAConfig()
+        socket?.send(JSON.stringify({ type: 'auth', access_token: haToken }))
+      })()
+      return
+    }
+    case 'auth_ok': {
+      state = 'connected'
+      retryAttempt = 0
+      startHeartbeat()
+      const queued = sendQueue
+      sendQueue = []
+      for (const text of queued) socket?.send(text)
+      subscribeEntitiesNow()
+      return
+    }
+    case 'auth_invalid': {
+      // Wrong/expired token: keep the slow retry loop alive (the token can be
+      // fixed from the admin UI), but report the feed as down meanwhile.
+      retryAttempt = 5
+      try { socket?.close() } catch { /* noop */ }
+      return
+    }
+    case 'pong': {
+      if (pongTimer) clearTimeout(pongTimer)
+      pongTimer = null
+      return
+    }
+    case 'result': {
+      const id = Number(msg.id)
+      const entry = pending.get(id)
+      if (!entry) return
+      pending.delete(id)
+      clearTimeout(entry.timer)
+      if (msg.success) entry.resolve(msg.result)
+      else {
+        const error = msg.error as { message?: string } | undefined
+        entry.reject(new Error(error?.message ?? 'Home Assistant command failed'))
+      }
+      return
+    }
+    case 'event': {
+      if (Number(msg.id) !== feedSubId || !feed) return
+      const event = msg.event as CompressedStatesEvent
+      const { changed, removed } = applyCompressedEvent(entityMap, event)
+      if (!feedPrimed) {
+        feedPrimed = true
+        feed.onSnapshot([...entityMap.values()])
+      } else if (changed.length || removed.length) {
+        feed.onDelta(changed, removed)
+      }
+      return
+    }
+  }
+}
+
+async function connect(): Promise<void> {
+  if (state !== 'idle') return
+  const Ctor = nativeWebSocket()
+  if (!Ctor) {
+    feed?.onDown('WebSocket non disponibile in questo runtime Node (<22)')
+    return
+  }
+  const { haToken } = await getHAConfig()
+  if (!haToken) {
+    feed?.onDown('Home Assistant token missing')
+    scheduleRetry()
+    return
+  }
+
+  let ws: WsLike
+  try {
+    const base = await getHABaseUrl()
+    ws = new Ctor(`${base.replace(/^http/, 'ws')}/api/websocket`)
+  } catch (error) {
+    feed?.onDown(error instanceof Error ? error.message : 'Home Assistant WS unreachable')
+    scheduleRetry()
+    return
+  }
+
+  socket = ws
+  state = 'connecting'
+  manuallyClosed = false
+
+  ws.addEventListener('message', (event) => {
+    if (socket !== ws) return
+    handleMessage(event.data)
+  })
+  const onGone = (reason: string) => {
+    if (socket !== ws) return
+    socket = null
+    state = 'idle'
+    stopHeartbeat()
+    rejectAllPending(reason)
+    feedSubId = null
+    feedPrimed = false
+    if (!manuallyClosed) {
+      feed?.onDown(reason)
+      scheduleRetry()
+    }
+  }
+  ws.addEventListener('close', (event) => onGone(event.reason || 'Home Assistant WS closed'))
+  ws.addEventListener('error', () => onGone('Home Assistant WS error'))
+}
+
+/**
+ * Sends an id-correlated command (e.g. `config/area_registry/list`,
+ * `camera/stream`) and resolves with its result. Opens the socket on demand.
+ */
+export async function haWsCommand<T>(message: Record<string, unknown>, timeoutMs = COMMAND_TIMEOUT_MS): Promise<T> {
+  await connect()
+  if (state === 'idle') throw new Error('Home Assistant WebSocket unavailable')
+  const id = nextId()
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      pending.delete(id)
+      reject(new Error('Home Assistant command timed out'))
+    }, timeoutMs)
+    pending.set(id, { resolve: resolve as (value: unknown) => void, reject, timer })
+    rawSend({ id, ...message })
+  })
+}
+
+/** Starts (or replaces) the live entity feed. The socket reconnects on its own. */
+export function startEntityFeed(handlers: EntityFeedHandlers): void {
+  feed = handlers
+  if (state === 'connected') subscribeEntitiesNow()
+  else void connect()
+}
+
+/** Stops the feed and closes the socket when nothing else is in flight. */
+export function stopEntityFeed(): void {
+  feed = null
+  feedSubId = null
+  feedPrimed = false
+  entityMap = new Map()
+  if (retryTimer) clearTimeout(retryTimer)
+  retryTimer = null
+  retryAttempt = 0
+  if (pending.size === 0) closeHaWs()
+}
+
+export function closeHaWs(): void {
+  manuallyClosed = true
+  stopHeartbeat()
+  if (retryTimer) clearTimeout(retryTimer)
+  retryTimer = null
+  rejectAllPending('Home Assistant WS closed')
+  try { socket?.close() } catch { /* noop */ }
+  socket = null
+  state = 'idle'
+}

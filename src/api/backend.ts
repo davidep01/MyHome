@@ -120,7 +120,6 @@ export interface DeviceOverride {
 
 export const configApi = {
   get: () => request<AppConfig>('/config'),
-  getCredentials: () => request<Pick<AppConfig, 'haUrl' | 'haToken'>>('/config/ha-credentials'),
   update: (data: Partial<AppConfig>) =>
     request<{ ok: boolean }>('/config', { method: 'PUT', body: JSON.stringify(data) }),
   exportBackup: () => request<{ version: number; exportedAt: string; store: unknown }>('/config/export'),
@@ -245,6 +244,11 @@ export const haApi = {
     request<HAHistoryPoint[]>(`/ha/history/${encodeURIComponent(entityId)}?hours=${hours}`),
   states: () => request<unknown[]>('/ha/states'),
   state: (entityId: string) => request<unknown>(`/ha/states/${encodeURIComponent(entityId)}`),
+  /** HA registries (areas/devices/entities), proxied over the backend WS. */
+  registry: () => request<{ areas: unknown[]; devices: unknown[]; entities: unknown[] }>('/ha/registry'),
+  /** Backend-signed HLS playlist URL for a camera (token stays server-side). */
+  cameraHlsUrl: (entityId: string) =>
+    request<{ url: string }>(`/ha/camera-hls-url/${encodeURIComponent(entityId)}`),
   service: (domain: string, service: string, data?: Record<string, unknown>) =>
     request<unknown[]>(`/ha/services/${encodeURIComponent(domain)}/${encodeURIComponent(service)}`, {
       method: 'POST',

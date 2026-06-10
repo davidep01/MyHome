@@ -9,6 +9,12 @@ interface EntityStore {
   connectionStatus: HAConnectionStatus
   lastError?: string
   setEntities: (entities: HassEntities) => void
+  /**
+   * Merges a coalesced delta batch in ONE store update. Unchanged entities
+   * keep their object reference, so per-entity selectors (useHAEntity) skip
+   * re-rendering everything that didn't move.
+   */
+  applyEntityDelta: (changed: HassEntity[], removed: string[]) => void
   setConnected: (connected: boolean) => void
   setConnectionStatus: (status: HAConnectionStatus, error?: string) => void
   patchEntity: (entityId: string, patch: Partial<HassEntity>) => void
@@ -21,6 +27,13 @@ export const useEntityStore = create<EntityStore>((set, get) => ({
   connected: false,
   connectionStatus: 'idle',
   setEntities: (entities) => set({ entities }),
+  applyEntityDelta: (changed, removed) => set((s) => {
+    if (changed.length === 0 && removed.length === 0) return s
+    const entities: HassEntities = { ...s.entities }
+    for (const entity of changed) entities[entity.entity_id] = entity
+    for (const id of removed) delete entities[id]
+    return { entities }
+  }),
   setConnected: (connected) => set({ connected }),
   setConnectionStatus: (connectionStatus, lastError) => set({
     connectionStatus,

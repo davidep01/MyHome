@@ -3,11 +3,10 @@
    connection effect (and on capability/error/timeout) is the intended behaviour. */
 import { useEffect, useRef, useState } from 'react'
 import type Hls from 'hls.js'
-import { Mic, Video } from 'lucide-react'
-import type { Connection } from 'home-assistant-js-websocket'
+import { Video } from 'lucide-react'
 import { useHAEntity } from '../../hooks/useHAEntity'
 import { useActiveWhenVisible } from '../../hooks/useActiveWhenVisible'
-import { getConnection } from '../../api/ha-websocket'
+import { haApi } from '../../api/backend'
 import { getCameraStreamUrl, getCameraProxyUrl, toProxiedHlsUrl } from '../../api/ha-rest'
 import { cn } from '../../lib/utils'
 
@@ -16,38 +15,31 @@ interface CameraStreamProps {
   fit?: 'cover' | 'contain'
   className?: string
   muted?: boolean
-  allowTalkback?: boolean
+  /**
+   * Skip HLS and start straight from MJPEG: ~live latency for answer-the-door
+   * use (HLS trails by a few seconds). Used by the doorbell alert.
+   */
+  preferLive?: boolean
 }
 
 /**
- * Format-agnostic camera view — mirrors Home Assistant's own player. For every
- * camera it tries, in order, whatever actually works for that source:
- *   1. WebRTC  — modern `camera/webrtc/offer` subscription API (Ring, go2rtc…),
- *                with trickle ICE. This is the ONLY path that works for Ring.
- *   2. HLS     — `camera/stream` (format hls) + hls.js, proxied same-origin.
- *   3. MJPEG   — /camera_proxy_stream.
- *   4. Snapshot— polled stills.
- *   5. Error   — nothing worked.
+ * Format-agnostic camera view. The browser holds no HA socket or token: the
+ * HLS playlist URL is signed by the backend (`/api/ha/camera-hls-url`) and
+ * every stream flows through the same-origin proxy. Chain, in order:
+ *   1. HLS     — backend-signed `camera/stream` + hls.js (skipped by preferLive).
+ *   2. MJPEG   — /camera_proxy_stream.
+ *   3. Snapshot— polled stills.
+ *   4. Error   — nothing worked.
+ * (WebRTC/talk-back went away with the in-browser HA socket; it returns with a
+ * backend signaling proxy — see docs/DOMINICA.md.)
  */
-type Mode = 'connecting' | 'webrtc' | 'hls' | 'mjpeg' | 'snapshot' | 'error' | 'paused'
+type Mode = 'connecting' | 'hls' | 'mjpeg' | 'snapshot' | 'error' | 'paused'
 
-interface WebRtcEvent {
-  type: 'session' | 'answer' | 'candidate' | 'offer' | 'error'
-  session_id?: string
-  answer?: string
-  candidate?: string | RTCIceCandidateInit
-  code?: string
-  message?: string
-}
-
-export function CameraStream({ entityId, fit = 'cover', className, muted = true, allowTalkback = false }: CameraStreamProps) {
+export function CameraStream({ entityId, fit = 'cover', className, muted = true, preferLive = false }: CameraStreamProps) {
   const entity = useHAEntity(entityId)
   const videoRef = useRef<HTMLVideoElement>(null)
-  const audioSenderRef = useRef<RTCRtpSender | null>(null)
-  const micRef = useRef<MediaStream | null>(null)
   const { ref: containerRef, active } = useActiveWhenVisible<HTMLDivElement>()
   const [mode, setMode] = useState<Mode>('connecting')
-  const [talking, setTalking] = useState(false)
   const [snap, setSnap] = useState('')
   const unavailable = !entity || entity.state === 'unavailable'
 
@@ -58,92 +50,10 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
     if (!active) { setMode('paused'); return }
 
     let cancelled = false
-    let pc: RTCPeerConnection | null = null
     let hls: Hls | null = null
-    let unsub: (() => void) | null = null
-    let retryTimer: ReturnType<typeof setTimeout> | null = null
-    let hlsAttempt = 0
     setMode('connecting')
 
-    const conn = getConnection() as Connection | null
-    if (!conn) { setMode('mjpeg'); return }
-
-    // ── 1. WebRTC (modern subscription API) ──
-    const startWebRtc = async () => {
-      let clientConfig: { configuration?: RTCConfiguration }
-      try {
-        clientConfig = await conn.sendMessagePromise({ type: 'camera/webrtc/get_client_config', entity_id: entityId })
-      } catch {
-        return startHls() // camera doesn't support WebRTC → try HLS
-      }
-      if (cancelled) return
-
-      try {
-        pc = new RTCPeerConnection(clientConfig?.configuration ?? { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] })
-        pc.addTransceiver('video', { direction: 'recvonly' })
-        const audioTx = pc.addTransceiver('audio', { direction: allowTalkback ? 'sendrecv' : 'recvonly' })
-        audioSenderRef.current = audioTx.sender
-
-        pc.ontrack = (e) => {
-          if (cancelled) return
-          if (videoRef.current) { videoRef.current.srcObject = e.streams[0]; videoRef.current.play().catch(() => {}) }
-          setMode('webrtc')
-        }
-        pc.oniceconnectionstatechange = () => {
-          if (cancelled || !pc) return
-          if (pc.iceConnectionState === 'failed') retryHls() // give up WebRTC, try HLS
-        }
-
-        // Trickle ICE: buffer local candidates until the session id arrives.
-        let sessionId: string | null = null
-        const pending: RTCIceCandidateInit[] = []
-        const sendCandidate = (cand: RTCIceCandidateInit) => {
-          if (!sessionId) return
-          conn.sendMessagePromise({ type: 'camera/webrtc/candidate', entity_id: entityId, session_id: sessionId, candidate: cand }).catch(() => {})
-        }
-        pc.onicecandidate = (e) => {
-          if (!e.candidate) return
-          const cand = e.candidate.toJSON()
-          if (sessionId) sendCandidate(cand)
-          else pending.push(cand)
-        }
-
-        const offer = await pc.createOffer()
-        await pc.setLocalDescription(offer)
-        if (cancelled) return
-
-        unsub = await conn.subscribeMessage<WebRtcEvent>(
-          (msg) => {
-            if (cancelled || !pc) return
-            if (msg.type === 'session' && msg.session_id) {
-              sessionId = msg.session_id
-              pending.forEach(sendCandidate)
-              pending.length = 0
-            } else if (msg.type === 'answer' && msg.answer) {
-              pc.setRemoteDescription({ type: 'answer', sdp: msg.answer }).catch(() => retryHls())
-            } else if (msg.type === 'candidate' && msg.candidate) {
-              const init = typeof msg.candidate === 'string' ? { candidate: msg.candidate } : msg.candidate
-              pc.addIceCandidate(init).catch(() => {})
-            } else if (msg.type === 'error') {
-              retryHls()
-            }
-          },
-          { type: 'camera/webrtc/offer', entity_id: entityId, offer: offer.sdp },
-        )
-      } catch {
-        startHls()
-      }
-    }
-
-    // ── 2. HLS (with retry) ──
-    const retryHls = () => {
-      if (cancelled) return
-      unsub?.(); unsub = null
-      pc?.close(); pc = null
-      hls?.destroy(); hls = null
-      if (hlsAttempt++ < 4) retryTimer = setTimeout(startHls, 1200)
-      else goMjpeg()
-    }
+    const goMjpeg = () => { if (!cancelled) setMode('mjpeg') }
 
     const startHls = async () => {
       const video = videoRef.current
@@ -151,7 +61,7 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
       try {
         // hls.js è pesante (~250KB): caricato solo quando serve davvero uno stream HLS.
         const { default: Hls } = await import('hls.js')
-        const resp = await conn.sendMessagePromise<{ url: string }>({ type: 'camera/stream', entity_id: entityId, format: 'hls' })
+        const resp = await haApi.cameraHlsUrl(entityId)
         if (cancelled) return
         const src = resp.url.startsWith('http') ? resp.url : toProxiedHlsUrl(resp.url)
         if (Hls.isSupported()) {
@@ -161,7 +71,7 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
           hls.on(Hls.Events.MANIFEST_PARSED, () => { if (!cancelled) { setMode('hls'); video.play().catch(() => {}) } })
           hls.on(Hls.Events.ERROR, (_e, data) => {
             if (!data.fatal || cancelled) return
-            if (data.type === Hls.ErrorTypes.MEDIA_ERROR) { try { hls?.recoverMediaError(); return } catch { /* retry */ } }
+            if (data.type === Hls.ErrorTypes.MEDIA_ERROR) { try { hls?.recoverMediaError(); return } catch { /* fall through */ } }
             goMjpeg()
           })
         } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
@@ -174,22 +84,14 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
       }
     }
 
-    const goMjpeg = () => { if (!cancelled) setMode('mjpeg') }
-
-    startWebRtc()
+    if (preferLive) goMjpeg()
+    else void startHls()
 
     return () => {
       cancelled = true
-      if (retryTimer) clearTimeout(retryTimer)
-      unsub?.()
       hls?.destroy()
-      micRef.current?.getTracks().forEach((t) => t.stop())
-      micRef.current = null
-      audioSenderRef.current = null
-      pc?.getSenders().forEach((s) => s.track?.stop())
-      pc?.close()
     }
-  }, [entityId, allowTalkback, unavailable, active])
+  }, [entityId, preferLive, unavailable, active])
 
   // ── Snapshot polling — only once MJPEG has failed ──
   useEffect(() => {
@@ -200,25 +102,7 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
     return () => clearInterval(id)
   }, [mode, entityId])
 
-  const startTalk = async () => {
-    if (!audioSenderRef.current) return
-    try {
-      const mic = await navigator.mediaDevices.getUserMedia({ audio: true })
-      micRef.current = mic
-      await audioSenderRef.current.replaceTrack(mic.getAudioTracks()[0] ?? null)
-      if (videoRef.current) videoRef.current.muted = false
-      setTalking(true)
-    } catch { /* mic denied */ }
-  }
-  const stopTalk = () => {
-    micRef.current?.getTracks().forEach((t) => t.stop())
-    micRef.current = null
-    audioSenderRef.current?.replaceTrack(null).catch(() => {})
-    setTalking(false)
-  }
-
   const fitClass = fit === 'contain' ? 'object-contain' : 'object-cover'
-  const videoVisible = mode === 'webrtc' || mode === 'hls'
 
   return (
     <div ref={containerRef} className={cn('relative h-full w-full overflow-hidden bg-[#15171c]', className)}>
@@ -227,7 +111,7 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
         autoPlay
         playsInline
         muted={muted}
-        className={cn('absolute inset-0 h-full w-full transition-opacity duration-500', fitClass, videoVisible ? 'opacity-100' : 'opacity-0 pointer-events-none')}
+        className={cn('absolute inset-0 h-full w-full transition-opacity duration-500', fitClass, mode === 'hls' ? 'opacity-100' : 'opacity-0 pointer-events-none')}
       />
 
       {mode === 'mjpeg' && (
@@ -249,21 +133,6 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
           <Video size={32} strokeWidth={1.5} />
           <span className="text-xs">Flusso non disponibile</span>
         </div>
-      )}
-
-      {allowTalkback && mode === 'webrtc' && (
-        <button
-          onPointerDown={startTalk}
-          onPointerUp={stopTalk}
-          onPointerLeave={stopTalk}
-          className={cn(
-            'absolute bottom-3 right-3 z-10 flex h-12 w-12 items-center justify-center rounded-full backdrop-blur transition active:scale-90',
-            talking ? 'bg-[#0066cc] text-white ring-4 ring-[#0066cc]/30' : 'bg-white/20 text-white',
-          )}
-          aria-label="Tieni premuto per parlare"
-        >
-          <Mic size={20} />
-        </button>
       )}
     </div>
   )

@@ -3,7 +3,7 @@ import { Sidebar } from './Sidebar'
 import { BottomTabBar } from './BottomTabBar'
 import { TabletDashboard } from '../../pages/TabletDashboard'
 import { BackendHomePage } from '../../pages/BackendHomePage'
-import { connectHA, connectHAStream, disconnectHA, disconnectHAStream } from '../../api/ha-websocket'
+import { connectHAStream, disconnectHAStream } from '../../api/ha-websocket'
 import { useUIStore, viewFromPath, VIEW_PATHS } from '../../store/ui'
 import { GlassSheet } from '../glass/GlassSheet'
 import { ContextualPanel } from '../contextual/ContextualPanel'
@@ -104,8 +104,9 @@ function DesktopShell({ path }: { path: string }) {
   useAutoTheme()
 
   useEffect(() => {
-    connectHA().catch(console.error)
-    return () => disconnectHA()
+    // Same data path as the kiosk: backend SSE stream (token never in browser).
+    connectHAStream().catch(console.error)
+    return () => disconnectHAStream()
   }, [])
 
   const page = (

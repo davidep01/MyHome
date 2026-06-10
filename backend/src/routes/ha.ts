@@ -3,6 +3,7 @@ import { streamSSE } from 'hono/streaming'
 import { getHABaseUrl, getHAConfig } from '../lib/ha-config.js'
 import { clientContextFromRequest } from '../lib/security.js'
 import { subscribeHaStream } from '../lib/ha-stream.js'
+import { haWsCommand } from '../lib/ha-ws.js'
 
 export const haRouter = new Hono()
 
@@ -29,6 +30,8 @@ const TABLET_SERVICE_ALLOWLIST: Record<string, Set<string>> = {
   remote: new Set(['turn_on', 'turn_off', 'toggle', 'send_command']),
   valve: new Set(['open_valve', 'close_valve', 'set_valve_position', 'stop_valve']),
   water_heater: new Set(['turn_on', 'turn_off', 'set_temperature', 'set_operation_mode']),
+  humidifier: new Set(['turn_on', 'turn_off', 'toggle', 'set_humidity', 'set_mode']),
+  lawn_mower: new Set(['start_mowing', 'pause', 'dock']),
 }
 
 function tabletCanCallService(domain: string, service: string) {
@@ -107,28 +110,33 @@ haRouter.get('/health', async (c) => {
   }
 })
 
-// Live entity stream (SSE). A single backend poll loop fans out deltas to every
-// client; the HA token stays server-side. Clients fall back to GET /states
-// polling if this stream is unavailable in their environment.
+// Live entity stream (SSE). The backend holds ONE feed to HA (WebSocket push,
+// poll as automatic fallback — see ha-stream.ts) and fans out deltas to every
+// client; the HA token stays server-side. Events carry a monotonic id: an
+// EventSource reconnect sends `Last-Event-ID` and resumes from the missed
+// deltas instead of paying a full snapshot.
 haRouter.get('/stream', (c) => {
   c.header('Cache-Control', 'no-cache, no-transform')
   c.header('X-Accel-Buffering', 'no')
+  const lastEventId = Number(c.req.header('Last-Event-ID'))
+  const sinceId = Number.isFinite(lastEventId) ? lastEventId : undefined
   return streamSSE(c, async (stream) => {
     let closed = false
-    const queue: string[] = []
+    const queue: { data: string; id: number }[] = []
     let wake: (() => void) | null = null
 
-    const unsubscribe = subscribeHaStream((event) => {
-      queue.push(JSON.stringify(event))
+    const unsubscribe = subscribeHaStream((event, id) => {
+      queue.push({ data: JSON.stringify(event), id })
       wake?.()
-    })
+    }, sinceId)
     stream.onAbort(() => { closed = true; unsubscribe(); wake?.() })
 
     await stream.writeSSE({ event: 'ready', data: 'ok' })
     try {
       while (!closed) {
-        if (queue.length) {
-          await stream.writeSSE({ event: 'states', data: queue.shift()! })
+        const next = queue.shift()
+        if (next) {
+          await stream.writeSSE({ event: 'states', data: next.data, id: String(next.id) })
           continue
         }
         // Sleep until the next event, with a 20s heartbeat to keep proxies/WebViews alive.
@@ -142,6 +150,54 @@ haRouter.get('/stream', (c) => {
       unsubscribe()
     }
   })
+})
+
+// ── HA registries (areas/devices/entities) — proxied over the backend WS so no
+// client ever needs its own authenticated socket. Cached briefly: the registry
+// changes rarely but is read by every dashboard boot.
+interface RegistryPayload {
+  areas: unknown[]
+  devices: unknown[]
+  entities: unknown[]
+}
+let registryCache: { at: number; data: RegistryPayload } | null = null
+const REGISTRY_TTL_MS = 60_000
+
+haRouter.get('/registry', async (c) => {
+  if (registryCache && Date.now() - registryCache.at < REGISTRY_TTL_MS) {
+    return c.json(registryCache.data)
+  }
+  try {
+    const [areas, devices, entities] = await Promise.all([
+      haWsCommand<unknown[]>({ type: 'config/area_registry/list' }),
+      haWsCommand<unknown[]>({ type: 'config/device_registry/list' }),
+      haWsCommand<unknown[]>({ type: 'config/entity_registry/list' }),
+    ])
+    registryCache = { at: Date.now(), data: { areas, devices, entities } }
+    return c.json(registryCache.data)
+  } catch (error) {
+    return c.json({
+      error: error instanceof Error ? error.message : 'Home Assistant registry unreachable',
+    }, 502)
+  }
+})
+
+// Signed HLS playlist URL for a camera (WS `camera/stream`). The returned path
+// is HA-relative; the client plays it through the same-origin /api/ha/hls proxy.
+haRouter.get('/camera-hls-url/:entityId', async (c) => {
+  const entityId = c.req.param('entityId')
+  try {
+    const result = await haWsCommand<{ url?: string }>(
+      { type: 'camera/stream', entity_id: entityId, format: 'hls' },
+      15_000,
+    )
+    if (!result?.url) return c.json({ error: 'Stream HLS non disponibile' }, 502)
+    return c.json({ url: result.url })
+  } catch (error) {
+    return c.json({
+      error: error instanceof Error ? error.message : 'Stream HLS non disponibile',
+    }, 502)
+  }
 })
 
 haRouter.get('/states', async () => {

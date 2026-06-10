@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { WifiOff, RotateCw, Settings } from 'lucide-react'
 import { useEntityStore } from '../../store/entities'
 import { useUIStore } from '../../store/ui'
-import { connectHA } from '../../api/ha-websocket'
+import { connectHAStream, disconnectHAStream } from '../../api/ha-websocket'
 
 /**
  * Fullscreen "Home Assistant non disponibile" overlay. Appears when the connection
@@ -32,7 +32,10 @@ export function ConnectionOverlay() {
   }, [down])
 
   const retry = () => {
-    connectHA().catch(() => {})
+    // Rebuild the stream from scratch (covers a wedged EventSource or a poll
+    // fallback that should try SSE again).
+    disconnectHAStream()
+    connectHAStream().catch(() => {})
   }
 
   return (

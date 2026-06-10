@@ -45,7 +45,16 @@ function assertConfigured() {
   return key
 }
 
+// Server-side cache: N dashboards must not turn into N OpenWeather calls.
+// 10 minutes matches the provider's own update cadence; errors are not cached.
+const WEATHER_TTL_MS = 10 * 60 * 1000
+const weatherCache = new Map<string, { at: number; body: unknown }>()
+
 async function fetchWeather<T>(path: string, city: string): Promise<T> {
+  const cacheKey = `${path}|${city.toLowerCase()}`
+  const cached = weatherCache.get(cacheKey)
+  if (cached && Date.now() - cached.at < WEATHER_TTL_MS) return cached.body as T
+
   const url = new URL(`${BASE}${path}`)
   url.searchParams.set('q', city)
   url.searchParams.set('appid', assertConfigured())
@@ -57,7 +66,9 @@ async function fetchWeather<T>(path: string, city: string): Promise<T> {
     const message = await res.text()
     throw new Error(`OpenWeather ${res.status}: ${message}`)
   }
-  return res.json() as Promise<T>
+  const body = await res.json() as T
+  weatherCache.set(cacheKey, { at: Date.now(), body })
+  return body
 }
 
 weatherRouter.get('/current', async (c) => {

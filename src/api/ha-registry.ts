@@ -1,4 +1,4 @@
-import { getConnection } from './ha-websocket'
+import { haApi } from './backend'
 
 export interface HAArea {
   area_id: string
@@ -18,15 +18,29 @@ export interface HAEntityReg {
   platform: string | null
 }
 
-async function ws<T>(type: string): Promise<T> {
-  const conn = getConnection()
-  if (!conn) throw new Error('Home Assistant non connesso')
-  return conn.sendMessagePromise<T>({ type })
+interface RegistryPayload {
+  areas: HAArea[]
+  devices: HADevice[]
+  entities: HAEntityReg[]
 }
 
-/** Home Assistant registries (used to auto-build per-area dashboards). */
+// One in-flight request shared by all callers; the backend caches for 60s, so
+// areas()+entities() on the same screen cost a single round trip.
+let inFlight: Promise<RegistryPayload> | null = null
+function fetchRegistry(): Promise<RegistryPayload> {
+  if (!inFlight) {
+    inFlight = (haApi.registry() as Promise<RegistryPayload>)
+      .finally(() => { inFlight = null })
+  }
+  return inFlight
+}
+
+/**
+ * Home Assistant registries, proxied by the backend (`/api/ha/registry`): no
+ * client holds an authenticated HA socket. Works on kiosk and desktop alike.
+ */
 export const haRegistry = {
-  areas: () => ws<HAArea[]>('config/area_registry/list'),
-  devices: () => ws<HADevice[]>('config/device_registry/list'),
-  entities: () => ws<HAEntityReg[]>('config/entity_registry/list'),
+  areas: () => fetchRegistry().then((r) => r.areas),
+  devices: () => fetchRegistry().then((r) => r.devices),
+  entities: () => fetchRegistry().then((r) => r.entities),
 }
