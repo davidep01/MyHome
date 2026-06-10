@@ -283,6 +283,8 @@ export function tabletHomeLayout(config: AppConfig) {
     groups: config.groups ?? [],
     doorbells: config.doorbells ?? [],
     deviceOverrides: config.deviceOverrides ?? {},
+    // Curation data the kiosk needs to filter discovery (not secret).
+    hiddenEntities: config.hiddenEntities ?? [],
     source: 'backend' as const,
   }
 }

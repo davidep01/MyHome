@@ -154,6 +154,8 @@ export interface TabletDashboardLayout {
   groups: EntityGroup[]
   doorbells: DoorbellDevice[]
   deviceOverrides: Record<string, DeviceOverride>
+  /** Curation data the kiosk needs to filter discovery (not secret). */
+  hiddenEntities?: string[]
   source?: 'backend' | 'cache'
 }
 
