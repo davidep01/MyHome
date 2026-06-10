@@ -20,6 +20,7 @@ import { useTabletLayout } from '../../hooks/useTabletLayout'
 // Le viste desktop sono lazy: il kiosk (percorso primario) carica solo TabletDashboard,
 // il desktop scarica ogni pagina al primo accesso. Home resta eager (è la landing).
 const SettingsPage = lazy(() => import('../../pages/SettingsPage').then((m) => ({ default: m.SettingsPage })))
+const EntitiesPage = lazy(() => import('../../pages/EntitiesPage').then((m) => ({ default: m.EntitiesPage })))
 const AreasPage = lazy(() => import('../../pages/AreasPage').then((m) => ({ default: m.AreasPage })))
 const LightsPage = lazy(() => import('../../pages/LightsPage').then((m) => ({ default: m.LightsPage })))
 const ClimatePage = lazy(() => import('../../pages/ClimatePage').then((m) => ({ default: m.ClimatePage })))
@@ -112,6 +113,7 @@ function DesktopShell({ path }: { path: string }) {
   const page = (
     <Suspense fallback={<div className="flex h-full items-center justify-center text-sm text-black/40">Caricamento…</div>}>
       {activeView === 'settings' ? <SettingsPage /> :
+       activeView === 'entities' ? <EntitiesPage /> :
        activeView === 'areas' ? <AreasPage /> :
        activeView === 'lights' ? <LightsPage /> :
        activeView === 'climate' ? <ClimatePage /> :

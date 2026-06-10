@@ -6,7 +6,8 @@ import { NotificationBell } from '../notifications/NotificationCenter'
 import { cn } from '../../lib/utils'
 
 const nav: { id: AppView; label: string; Icon: React.ElementType }[] = [
-  { id: 'home', label: 'Home', Icon: LayoutGrid },
+  { id: 'home', label: 'Stato', Icon: LayoutGrid },
+  { id: 'entities', label: 'Entità', Icon: Boxes },
   { id: 'areas', label: 'Aree', Icon: Boxes },
   { id: 'lights', label: 'Luci', Icon: Lightbulb },
   { id: 'climate', label: 'Clima', Icon: ThermometerSun },

@@ -2,6 +2,7 @@ import { create } from 'zustand'
 
 export type AppView =
   | 'home'
+  | 'entities'
   | 'areas'
   | 'lights'
   | 'climate'
@@ -17,6 +18,7 @@ export type AppView =
 /** Canonical URL for every desktop view — keeps the SPA deep-linkable e refresh-safe. */
 export const VIEW_PATHS: Record<AppView, string> = {
   home: '/',
+  entities: '/entities',
   areas: '/areas',
   lights: '/lights',
   climate: '/climate',
