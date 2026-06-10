@@ -24,6 +24,8 @@ interface GlassSheetProps {
   className?: string
   /** Hide GlassSheet's own header/close — for children that provide their own. */
   hideHeader?: boolean
+  /** Center variant: pannello largo (griglie di card, timeline) invece del dialogo standard. */
+  wide?: boolean
 }
 
 export function GlassSheet({
@@ -34,6 +36,7 @@ export function GlassSheet({
   side = 'bottom',
   className,
   hideHeader = false,
+  wide = false,
 }: GlassSheetProps) {
   const isCenter = side === 'center'
 
@@ -78,7 +81,8 @@ export function GlassSheet({
           }
         : {
             // Centered modal — always fully inside the screen on any device.
-            width: 'min(480px, 92vw)',
+            // Il contenuto NON deve imporre larghezze proprie: decide il pannello.
+            width: wide ? 'min(960px, 94vw)' : 'min(520px, 94vw)',
             maxHeight: 'min(88dvh, 880px)',
             paddingTop: '20px',
             paddingBottom: '20px',
@@ -93,7 +97,7 @@ export function GlassSheet({
 
   const panel = (
     <motion.div
-      className={cn('glass glass-border flex flex-col', positionClass, className)}
+      className={cn('glass glass-border flex min-h-0 flex-col overflow-hidden', positionClass, className)}
       style={sheetStyle}
       variants={variants}
       initial="hidden"
@@ -104,17 +108,22 @@ export function GlassSheet({
     >
       {!hideHeader && (
         <div className="mb-4 flex shrink-0 items-center justify-between pt-1">
-          {title && <span className="text-base font-semibold text-black/90">{title}</span>}
+          {title && <span className="truncate text-base font-semibold text-black/90">{title}</span>}
           <button
             onClick={onClose}
-            className="ml-auto flex h-9 w-9 items-center justify-center rounded-full bg-black/10 text-black/60 transition-colors hover:text-[#1d1d1f]"
+            className="ml-auto flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-black/10 text-black/60 transition-colors hover:text-[#1d1d1f]"
             aria-label="Chiudi"
           >
             <X size={16} />
           </button>
         </div>
       )}
-      <div className={cn('min-h-0 flex-1 overflow-y-auto', side !== 'bottom' && !hideHeader && 'pr-1')}>
+      {/* UNICO contesto di scroll del modal: i figli non devono crearne un altro
+          (niente h-full/overflow-hidden nei contenuti, o lo scroll muore). */}
+      <div
+        className={cn('min-h-0 flex-1 overflow-y-auto overscroll-contain', side !== 'bottom' && !hideHeader && 'pr-1')}
+        style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
+      >
         {children}
       </div>
     </motion.div>

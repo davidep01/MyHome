@@ -70,7 +70,7 @@ export function TimelineSheet({ open, onClose }: { open: boolean; onClose: () =>
 
   return (
     <GlassSheet open={open} onClose={onClose} title="Oggi a casa" side="center">
-      <div className="w-[min(88vw,560px)] space-y-1.5">
+      <div className="w-full space-y-1.5">
         {isLoading && <p className="py-8 text-center text-sm text-black/35">Caricamento…</p>}
         {!isLoading && items.length === 0 && (
           <p className="py-8 text-center text-sm text-black/35">Nessun evento nelle ultime 24 ore.</p>

@@ -33,8 +33,9 @@ export function EntitySheet({
       onClose={() => { setShowAll(false); onClose() }}
       title={target?.title ?? ''}
       side="center"
+      wide
     >
-      <div className="grid w-[min(88vw,920px)] grid-cols-2 gap-3 auto-rows-[150px] sm:grid-cols-3 lg:grid-cols-4">
+      <div className="grid w-full grid-cols-2 gap-3 auto-rows-[150px] sm:grid-cols-3 lg:grid-cols-4">
         {visible.map((entityId, index) => (
           <div key={entityId} className="card-enter h-full min-w-0" style={{ '--enter-i': Math.min(index, 10) } as CSSProperties}>
             <WidgetErrorBoundary>

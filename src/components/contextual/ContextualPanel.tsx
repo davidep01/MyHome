@@ -25,7 +25,7 @@ export function ContextualPanel({ entityId }: { entityId: string }) {
   const name = (entity?.attributes?.friendly_name as string | undefined) ?? entityId
 
   return (
-    <div className="flex h-full flex-col overflow-hidden">
+    <div className="flex flex-col">
       {/* Header */}
       <div className="mb-5 flex items-center gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-full" style={{ background: `${meta.color}22` }}>
@@ -46,8 +46,8 @@ export function ContextualPanel({ entityId }: { entityId: string }) {
         </button>
       </div>
 
-      {/* Body */}
-      <div className="flex-1 overflow-y-auto">
+      {/* Body — lo scroll è dello sheet, qui niente overflow */}
+      <div>
         {!entity ? (
           <p className="py-12 text-center text-sm text-black/40">Entità non disponibile</p>
         ) : domain === 'climate' ? (
