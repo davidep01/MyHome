@@ -1,136 +1,193 @@
-import { useMemo } from 'react'
-import type { ElementType } from 'react'
-import { AlertTriangle, CheckCircle2, Database, HardDrive, Server, WifiOff } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { AlertTriangle, Database, Save, Server, Wrench } from 'lucide-react'
 import { GlassCard } from '../components/glass/GlassCard'
-import { SectionBand } from '../components/home/SectionBand'
+import { useDashboardConfig, useUpdateConfig } from '../hooks/useDashboardConfig'
 import { useEntityStore } from '../store/entities'
+import { haRegistry } from '../api/ha-registry'
+import { systemApi } from '../api/backend'
+import { stateLabel } from '../components/widgets/utils/stateLabel'
 import { timeAgo } from '../lib/time'
 import { cn } from '../lib/utils'
 
-const SYSTEM_KEYWORDS = [
-  'cpu',
-  'processor',
-  'ram',
-  'memory',
-  'memoria',
-  'disk',
-  'disco',
-  'uptime',
-  'backup',
-  'mqtt',
-  'zigbee',
-  'esphome',
-  'frigate',
-  'scrypted',
-  'node-red',
-  'node red',
-  'home assistant',
-  'ha',
-  'update',
-  'aggiornamento',
-]
-
-function label(entity: { entity_id: string; attributes?: Record<string, unknown> }) {
-  return (entity.attributes?.friendly_name as string | undefined) ?? entity.entity_id
-}
-
-function isSystemEntity(entity: { entity_id: string; attributes?: Record<string, unknown> }) {
-  const text = `${entity.entity_id} ${label(entity)} ${entity.attributes?.device_class ?? ''}`.toLowerCase()
-  return SYSTEM_KEYWORDS.some((keyword) => text.includes(keyword))
-}
-
+/**
+ * Regia — Sistema: connessione HA, storage, versione e la diagnostica VERA
+ * (entity_category dal registry, non keyword-grep sui nomi).
+ */
 export function SystemPage() {
+  const { data: status } = useQuery({ queryKey: ['system-status'], queryFn: systemApi.status, refetchInterval: 15_000 })
   const entities = useEntityStore((s) => s.entities)
-  const connectionStatus = useEntityStore((s) => s.connectionStatus)
-  const lastError = useEntityStore((s) => s.lastError)
+  const connected = useEntityStore((s) => s.connectionStatus === 'connected')
 
-  const all = Object.values(entities)
+  const { data: registry } = useQuery({
+    queryKey: ['ha-registry-diagnostics'],
+    enabled: connected,
+    staleTime: 5 * 60 * 1000,
+    queryFn: () => haRegistry.entities(),
+  })
+
+  const diagnostics = useMemo(() => {
+    if (!registry) return []
+    return registry
+      .filter((r) => r.entity_category === 'diagnostic')
+      .map((r) => entities[r.entity_id])
+      .filter((e): e is NonNullable<typeof e> => Boolean(e))
+      .sort((a, b) => a.entity_id.localeCompare(b.entity_id))
+      .slice(0, 30)
+  }, [registry, entities])
+
   const unavailable = useMemo(
-    () => all.filter((entity) => entity.state === 'unavailable' || entity.state === 'unknown').sort((a, b) => label(a).localeCompare(label(b))),
-    [all],
+    () => Object.values(entities)
+      .filter((e) => e.state === 'unavailable')
+      .sort((a, b) => a.entity_id.localeCompare(b.entity_id)),
+    [entities],
   )
-  const diagnostics = useMemo(
-    () => all.filter((entity) => entity.entity_id.startsWith('sensor.') && isSystemEntity(entity)).sort((a, b) => label(a).localeCompare(label(b))).slice(0, 24),
-    [all],
-  )
-
-  const connected = connectionStatus === 'connected'
 
   return (
-    <div className="flex h-full flex-col gap-5 overflow-y-auto pr-1">
+    <div className="flex h-full flex-col gap-4 overflow-y-auto pr-1">
       <div>
         <h1 className="text-2xl font-semibold text-[#1d1d1f] sm:text-3xl">Sistema</h1>
-        <p className="mt-1 text-sm text-black/45">Home Assistant, add-on, diagnostica e disponibilità</p>
+        <p className="mt-1 text-sm text-black/45">Connessione, storage, diagnostica e manutenzione</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <MetricCard Icon={connected ? CheckCircle2 : WifiOff} label="Home Assistant" value={connected ? 'Online' : connectionStatus} tone={connected ? 'ok' : 'warning'} />
-        <MetricCard Icon={Server} label="Entità" value={String(all.length)} tone="neutral" />
-        <MetricCard Icon={AlertTriangle} label="Unavailable" value={String(unavailable.length)} tone={unavailable.length ? 'warning' : 'ok'} />
-        <MetricCard Icon={Database} label="Storage" value="File" tone="neutral" />
-      </div>
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+        <ConnectionCard />
 
-      {lastError && (
-        <GlassCard className="border-red-500/20 bg-red-500/10">
-          <div className="flex items-center gap-3">
-            <AlertTriangle size={18} className="text-red-600" />
-            <div>
-              <p className="text-sm font-semibold text-red-700">Errore connessione</p>
-              <p className="mt-1 text-xs text-red-700/70">{lastError}</p>
-            </div>
+        <GlassCard className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Database size={16} className="text-black/45" />
+            <p className="text-sm font-semibold text-[#1d1d1f]">Storage & versione</p>
           </div>
+          <Row label="Persistenza" value={status ? `${status.storage.mode}${status.storage.writable ? '' : ' — sola lettura'}` : '—'} />
+          <Row label="Bridge dati" value={status ? `${status.stream.mode === 'ws' ? 'WebSocket push' : status.stream.mode === 'poll' ? `poll ${status.stream.pollMs}ms` : 'inattivo'} · WS ${status.stream.wsState}` : '—'} />
+          <Row label="Client connessi" value={String(status?.stream.subscribers ?? 0)} />
+          <Row label="Versione app" value={`v${__APP_VERSION__}`} />
+          <Row label="Chiavi presenti" value={status ? [status.integrations.gemini && 'Gemini', status.integrations.openweather && 'OpenWeather', status.integrations.supabase && 'Supabase'].filter(Boolean).join(' · ') || 'nessuna' : '—'} />
         </GlassCard>
-      )}
+      </div>
 
-      <SectionBand title="Diagnostica" count={diagnostics.length}>
-        {diagnostics.length === 0 ? (
-          <p className="col-span-full py-8 text-center text-sm text-black/40">Nessun sensore diagnostico rilevato</p>
-        ) : (
-          diagnostics.map((entity) => <DiagnosticCard key={entity.entity_id} entity={entity} />)
-        )}
-      </SectionBand>
+      <Section title="Entità non disponibili" count={unavailable.length} emptyText="Tutte le entità rispondono.">
+        {unavailable.slice(0, 36).map((e) => (
+          <DiagRow key={e.entity_id} id={e.entity_id} name={(e.attributes?.friendly_name as string | undefined) ?? e.entity_id} state={stateLabel(e.state)} updated={e.last_updated} warning />
+        ))}
+      </Section>
 
-      <SectionBand title="Entità non disponibili" count={unavailable.length}>
-        {unavailable.length === 0 ? (
-          <p className="col-span-full py-8 text-center text-sm text-black/40">Tutte le entità principali risultano disponibili</p>
-        ) : (
-          unavailable.slice(0, 36).map((entity) => <DiagnosticCard key={entity.entity_id} entity={entity} warning />)
-        )}
-      </SectionBand>
+      <Section title="Diagnostica (dal registry HA)" count={diagnostics.length} emptyText={connected ? 'Nessun sensore diagnostico esposto.' : 'In attesa della connessione…'}>
+        {diagnostics.map((e) => (
+          <DiagRow
+            key={e.entity_id}
+            id={e.entity_id}
+            name={(e.attributes?.friendly_name as string | undefined) ?? e.entity_id}
+            state={`${e.state}${e.attributes?.unit_of_measurement ? ` ${e.attributes.unit_of_measurement}` : ''}`}
+            updated={e.last_updated}
+          />
+        ))}
+      </Section>
     </div>
   )
 }
 
-function MetricCard({ Icon, label, value, tone }: { Icon: ElementType; label: string; value: string; tone: 'ok' | 'warning' | 'neutral' }) {
+function ConnectionCard() {
+  const { data: config } = useDashboardConfig()
+  const { mutate: update, isPending } = useUpdateConfig()
+  const [haUrl, setHaUrl] = useState<string | null>(null)
+  const [haToken, setHaToken] = useState('')
+
+  if (!config) return <GlassCard><p className="text-sm text-black/40">Caricamento…</p></GlassCard>
+
+  const urlLocked = Boolean(config.haConfigLocked?.haUrl)
+  const tokenLocked = Boolean(config.haConfigLocked?.haToken)
+  const url = haUrl ?? config.haUrl
+
   return (
-    <GlassCard className="min-h-[110px]">
-      <div className="flex h-full flex-col justify-between">
-        <div className={cn('flex h-10 w-10 items-center justify-center rounded-full', tone === 'ok' ? 'bg-green-500/12 text-green-700' : tone === 'warning' ? 'bg-orange-500/14 text-orange-700' : 'bg-black/6 text-black/55')}>
-          <Icon size={18} />
+    <GlassCard className="space-y-3">
+      <div className="flex items-center gap-2">
+        <Server size={16} className="text-black/45" />
+        <p className="text-sm font-semibold text-[#1d1d1f]">Connessione Home Assistant</p>
+      </div>
+      {(urlLocked || tokenLocked) && (
+        <p className="rounded-[10px] bg-orange-500/10 px-3 py-2 text-xs text-orange-700">
+          Credenziali impostate da variabili d'ambiente: non modificabili da qui.
+        </p>
+      )}
+      <div className="space-y-1.5">
+        <label className="text-xs font-medium text-black/50">URL</label>
+        <input
+          value={url}
+          onChange={(e) => setHaUrl(e.target.value)}
+          disabled={urlLocked}
+          placeholder="http://homeassistant.local:8123"
+          className="w-full rounded-[12px] bg-black/8 px-3 py-3 font-mono text-sm text-[#1d1d1f] outline-none transition-colors focus:bg-black/12 disabled:opacity-45 min-h-[44px]"
+        />
+      </div>
+      <div className="space-y-1.5">
+        <label className="text-xs font-medium text-black/50">Token (vuoto = non modificare)</label>
+        <input
+          type="password"
+          value={haToken}
+          onChange={(e) => setHaToken(e.target.value)}
+          disabled={tokenLocked}
+          placeholder="••••••••••••"
+          className="w-full rounded-[12px] bg-black/8 px-3 py-3 font-mono text-sm text-[#1d1d1f] outline-none transition-colors focus:bg-black/12 disabled:opacity-45 min-h-[44px]"
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-2 text-center">
+        <div className="rounded-[10px] bg-black/[0.05] px-2 py-2">
+          <p className="text-[10px] uppercase tracking-[0.12em] text-black/30">Origine URL</p>
+          <p className="mt-0.5 text-xs font-semibold text-black/65">{config.haConfigSource?.url ?? 'db'}</p>
         </div>
-        <div>
-          <p className="text-xs text-black/40">{label}</p>
-          <p className="mt-1 truncate text-xl font-semibold text-[#1d1d1f]">{value}</p>
+        <div className="rounded-[10px] bg-black/[0.05] px-2 py-2">
+          <p className="text-[10px] uppercase tracking-[0.12em] text-black/30">Origine token</p>
+          <p className="mt-0.5 text-xs font-semibold text-black/65">{config.haConfigSource?.token ?? 'missing'}</p>
         </div>
       </div>
+      <button
+        onClick={() => update({ haUrl: url, ...(haToken ? { haToken } : {}) })}
+        disabled={isPending || (urlLocked && tokenLocked)}
+        className="flex w-full min-h-[44px] items-center justify-center gap-2 rounded-[14px] bg-[#0066cc] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#0052a3] disabled:opacity-50"
+      >
+        <Save size={14} /> {isPending ? 'Salvataggio…' : 'Salva connessione'}
+      </button>
     </GlassCard>
   )
 }
 
-function DiagnosticCard({ entity, warning = false }: { entity: { entity_id: string; state: string; last_updated?: string; attributes?: Record<string, unknown> }; warning?: boolean }) {
-  const unit = entity.attributes?.unit_of_measurement as string | undefined
+function Row({ label, value }: { label: string; value: string }) {
   return (
-    <GlassCard className={cn('min-h-[112px]', warning && 'bg-orange-500/8')}>
-      <div className="flex items-start gap-3">
-        <div className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-full', warning ? 'bg-orange-500/14 text-orange-700' : 'bg-black/6 text-black/50')}>
-          {warning ? <AlertTriangle size={16} /> : <HardDrive size={16} />}
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-black/85">{label(entity)}</p>
-          <p className="mt-1 truncate text-xs text-black/42">{entity.state}{unit ? ` ${unit}` : ''}</p>
-          <p className="mt-2 truncate font-mono text-[10px] text-black/30">{timeAgo(entity.last_updated)} · {entity.entity_id}</p>
-        </div>
+    <div className="flex items-center justify-between gap-3 rounded-[10px] bg-black/[0.035] px-3 py-2">
+      <span className="text-xs text-black/45">{label}</span>
+      <span className="truncate text-xs font-semibold text-black/70">{value}</span>
+    </div>
+  )
+}
+
+function Section({ title, count, emptyText, children }: { title: string; count: number; emptyText: string; children: React.ReactNode }) {
+  return (
+    <GlassCard className="space-y-2">
+      <div className="flex items-center gap-2">
+        <Wrench size={15} className="text-black/40" />
+        <p className="text-sm font-semibold text-[#1d1d1f]">{title}</p>
+        <span className="rounded-full bg-black/[0.06] px-2 py-0.5 text-xs font-semibold tabular-nums text-black/45">{count}</span>
       </div>
+      {count === 0
+        ? <p className="py-4 text-center text-sm text-black/35">{emptyText}</p>
+        : <div className="grid grid-cols-1 gap-1.5 lg:grid-cols-2">{children}</div>}
     </GlassCard>
+  )
+}
+
+function DiagRow({ id, name, state, updated, warning }: { id: string; name: string; state: string; updated?: string; warning?: boolean }) {
+  return (
+    <div className={cn('flex items-center gap-3 rounded-[10px] px-3 py-2', warning ? 'bg-orange-500/8' : 'bg-black/[0.035]')}>
+      {warning && <AlertTriangle size={14} className="shrink-0 text-orange-600" />}
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm text-[#1d1d1f]">{name}</p>
+        <p className="truncate font-mono text-[10px] text-black/30">{id}</p>
+      </div>
+      <div className="shrink-0 text-right">
+        <p className="text-xs font-semibold text-black/65">{state}</p>
+        <p className="text-[10px] text-black/30">{timeAgo(updated)}</p>
+      </div>
+    </div>
   )
 }

@@ -2,7 +2,7 @@ import { useEffect, lazy, Suspense, useState } from 'react'
 import { Sidebar } from './Sidebar'
 import { BottomTabBar } from './BottomTabBar'
 import { TabletDashboard } from '../../pages/TabletDashboard'
-import { BackendHomePage } from '../../pages/BackendHomePage'
+import { StatusPage } from '../../pages/StatusPage'
 import { connectHAStream, disconnectHAStream } from '../../api/ha-websocket'
 import { useUIStore, viewFromPath, VIEW_PATHS } from '../../store/ui'
 import { GlassSheet } from '../glass/GlassSheet'
@@ -122,7 +122,7 @@ function DesktopShell({ path }: { path: string }) {
        activeView === 'media' ? <MediaPage /> :
        activeView === 'water' ? <WaterPage /> :
        activeView === 'system' ? <SystemPage /> :
-       <BackendHomePage />}
+       <StatusPage />}
     </Suspense>
   )
 

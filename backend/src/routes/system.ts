@@ -1,0 +1,54 @@
+import { Hono } from 'hono'
+import { db } from '../db/client.js'
+import { getHABaseUrl, getHAConfig } from '../lib/ha-config.js'
+import { getStreamStats } from '../lib/ha-stream.js'
+import { desktopOnly } from '../lib/security.js'
+
+/**
+ * Diagnostica per la regia desktop: salute HA (raggiungibilità + latenza),
+ * stato del bridge stream, storage e chiavi integrazione presenti — sempre
+ * come boolean, mai i valori.
+ */
+export const systemRouter = new Hono()
+
+systemRouter.use('*', desktopOnly)
+
+systemRouter.get('/status', async (c) => {
+  const ha = await getHAConfig()
+
+  let haStatus: { reachable: boolean; latencyMs: number | null; message?: string }
+  if (!ha.haToken) {
+    haStatus = { reachable: false, latencyMs: null, message: 'Token Home Assistant mancante' }
+  } else {
+    const t0 = Date.now()
+    try {
+      const res = await fetch(`${await getHABaseUrl()}/api/`, {
+        headers: { Authorization: `Bearer ${ha.haToken}` },
+        signal: AbortSignal.timeout(5000),
+      })
+      haStatus = {
+        reachable: res.ok,
+        latencyMs: Date.now() - t0,
+        message: res.ok ? undefined : `Home Assistant risponde ${res.status}`,
+      }
+    } catch (error) {
+      haStatus = {
+        reachable: false,
+        latencyMs: null,
+        message: error instanceof Error ? error.message : 'Home Assistant non raggiungibile',
+      }
+    }
+  }
+
+  return c.json({
+    ha: { ...haStatus, url: ha.haUrl, source: ha.source, locked: ha.locked },
+    stream: getStreamStats(),
+    storage: { mode: db.mode, writable: db.writable },
+    integrations: {
+      gemini: Boolean(process.env.GEMINI_API_KEY),
+      openweather: Boolean(process.env.OPENWEATHER_API_KEY ?? process.env.VITE_OPENWEATHER_KEY),
+      supabase: Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY),
+    },
+    now: new Date().toISOString(),
+  })
+})

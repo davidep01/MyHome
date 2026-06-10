@@ -10,6 +10,7 @@ import { newsRouter } from './routes/news.js'
 import { haRouter } from './routes/ha.js'
 import { aiRouter } from './routes/ai.js'
 import { layoutRouter } from './routes/layout.js'
+import { systemRouter } from './routes/system.js'
 
 export const app = new Hono()
 
@@ -28,6 +29,7 @@ app.route('/api/weather', weatherRouter)
 app.route('/api/news', newsRouter)
 app.route('/api/ha', haRouter)
 app.route('/api/ai', aiRouter)
+app.route('/api/system', systemRouter)
 
 app.get('/api/health', (c) => c.json({ status: 'ok', ts: Date.now() }))
 

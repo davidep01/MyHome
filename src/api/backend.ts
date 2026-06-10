@@ -260,3 +260,32 @@ export const haApi = {
   cameraStreamUrl: (entityId: string) => `/api/ha/camera-stream/${encodeURIComponent(entityId)}`,
   mediaUrl: (path: string) => `/api/ha/media?path=${encodeURIComponent(path)}`,
 }
+
+// ── System status (regia) ───────────────────────────────────────────────────
+
+export interface SystemStatus {
+  ha: {
+    reachable: boolean
+    latencyMs: number | null
+    message?: string
+    url: string
+    source: { url: 'env' | 'db' | 'default'; token: 'env' | 'db' | 'missing' }
+    locked: { haUrl: boolean; haToken: boolean }
+  }
+  stream: {
+    mode: 'idle' | 'ws' | 'poll'
+    wsState: 'idle' | 'connecting' | 'connected'
+    subscribers: number
+    entities: number
+    pollMs: number
+    lastEventId: number
+    lastEventAt: string | null
+  }
+  storage: { mode: 'file' | 'supabase' | 'read-only'; writable: boolean }
+  integrations: { gemini: boolean; openweather: boolean; supabase: boolean }
+  now: string
+}
+
+export const systemApi = {
+  status: () => request<SystemStatus>('/system/status'),
+}

@@ -16,6 +16,10 @@ export interface HAEntityReg {
   hidden_by: string | null
   /** Integration that provides the entity (e.g. 'ring', 'ezviz'). */
   platform: string | null
+  /** 'diagnostic' | 'config' | null — vive nel registry, NON negli attributi di stato. */
+  entity_category?: string | null
+  /** Nome assegnato in HA (override del friendly_name dell'integrazione). */
+  name?: string | null
 }
 
 interface RegistryPayload {
