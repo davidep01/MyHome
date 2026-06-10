@@ -783,6 +783,16 @@ html.dark::before {
 * { -webkit-touch-callout: none; }
 a, button, [role="button"] { -webkit-touch-callout: default; }
 
+/* Ambient layer (DOMINICA M7): drift lentissimo anti-burn-in, transform only. */
+@keyframes ambient-drift {
+  0%   { transform: translate(-10px, -6px); }
+  50%  { transform: translate(10px, 6px); }
+  100% { transform: translate(-10px, -6px); }
+}
+.ambient-drift { animation: ambient-drift 90s ease-in-out infinite; will-change: transform; }
+@media (prefers-reduced-motion: reduce) { .ambient-drift { animation: none; } }
+.perf-lite .ambient-drift { animation: none; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

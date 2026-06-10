@@ -46,6 +46,8 @@ export interface AppConfig {
   home?: HomeConfig
   /** User's custom tile layout (react-grid-layout positions per entity). */
   dashboardLayout?: DashboardLayout
+  /** Kiosk behaviour: presence-wake sensor for the ambient layer. */
+  kiosk?: { wakeEntityId?: string }
 }
 
 export type WidgetType =

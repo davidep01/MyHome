@@ -52,6 +52,8 @@ export interface AppConfig {
   groups?: EntityGroup[]
   home?: HomeConfig
   dashboardLayout?: DashboardLayout
+  /** Kiosk behaviour: presence-wake sensor for the ambient layer. */
+  kiosk?: { wakeEntityId?: string }
 }
 
 export type WidgetType =
@@ -156,6 +158,7 @@ export interface TabletDashboardLayout {
   deviceOverrides: Record<string, DeviceOverride>
   /** Curation data the kiosk needs to filter discovery (not secret). */
   hiddenEntities?: string[]
+  kiosk?: { wakeEntityId?: string }
   source?: 'backend' | 'cache'
 }
 

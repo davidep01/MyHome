@@ -9,6 +9,8 @@ import { AnimatedCard } from '../anim/AnimatedCard'
 import { WeatherWidget } from '../weather/WeatherWidget'
 import { SceneRow } from '../layout/SceneRow'
 import { EnergyCard } from './layers/EnergyCard'
+import { AmbientLayer } from './layers/AmbientLayer'
+import { DuskLayer } from './layers/DuskLayer'
 import { useComposedHome, type HomeChip } from '../../hooks/useComposedHome'
 import { useTabletLayout } from '../../hooks/useTabletLayout'
 import { useHaptic } from '../../hooks/useHaptic'
@@ -59,6 +61,13 @@ export function LayeredHome() {
 
       <EntitySheet target={sheet} overrides={layout?.deviceOverrides} onClose={() => setSheet(null)} />
       <TimelineSheet open={timelineOpen} onClose={() => setTimelineOpen(false)} />
+
+      {/* Strato 4 + polish: ambient su idle (mai sopra un'anomalia danger) e dusk shift */}
+      <AmbientLayer
+        wakeEntityId={layout?.kiosk?.wakeEntityId}
+        forceWake={composed.alerts.some((a) => a.severity === 'danger')}
+      />
+      <DuskLayer />
     </div>
   )
 }

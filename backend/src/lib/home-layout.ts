@@ -285,6 +285,7 @@ export function tabletHomeLayout(config: AppConfig) {
     deviceOverrides: config.deviceOverrides ?? {},
     // Curation data the kiosk needs to filter discovery (not secret).
     hiddenEntities: config.hiddenEntities ?? [],
+    kiosk: config.kiosk ?? {},
     source: 'backend' as const,
   }
 }

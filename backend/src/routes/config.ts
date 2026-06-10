@@ -133,6 +133,7 @@ configRouter.put('/', async (c) => {
       store.config.home = mergeHomeConfig(store.config.home, body.home, 'desktop')
     }
     if (body.dashboardLayout !== undefined) store.config.dashboardLayout = body.dashboardLayout
+    if (body.kiosk !== undefined) store.config.kiosk = body.kiosk
   })
   if (!ok) return c.json({ error: 'Configuration could not be saved' }, 500)
   emitConfigChange() // notify all connected clients to refetch

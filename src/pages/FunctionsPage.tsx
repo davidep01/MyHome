@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
-  Bell, Cloud, Newspaper, Pencil, Plus, Save, Sparkles, SunMoon, Trash2, Volume2, VolumeX,
+  Bell, Cloud, MonitorSmartphone, Newspaper, Pencil, Plus, Save, Sparkles, SunMoon, Trash2, Volume2, VolumeX,
 } from 'lucide-react'
 import { GlassCard } from '../components/glass/GlassCard'
 import { GlassSheet } from '../components/glass/GlassSheet'
@@ -39,6 +39,7 @@ export function FunctionsPage() {
         <DoorbellsCard />
         <div className="flex flex-col gap-4">
           <SoundsCard />
+          <KioskCard />
           <IntegrationsCard gemini={status?.integrations.gemini} openweather={status?.integrations.openweather} />
         </div>
       </div>
@@ -312,6 +313,51 @@ function SoundsCard() {
         </button>
         <input type="range" min={0} max={1} step={0.05} value={volume} disabled={muted} onChange={(e) => setVolume(Number(e.target.value))} className="min-w-0 flex-1 accent-[#0066cc]" />
         <button onClick={() => play('dingdong', { cooldownMs: 0 })} className="shrink-0 rounded-full bg-black/8 px-3 py-2 text-xs font-medium text-black/60 active:scale-95">Prova</button>
+      </div>
+    </GlassCard>
+  )
+}
+
+// ── Kiosk: ambient & presence wake ───────────────────────────────────────────
+
+const PRESENCE_CLASSES = new Set(['motion', 'occupancy', 'presence'])
+
+function KioskCard() {
+  const { data: config } = useDashboardConfig()
+  const { mutate: update, isPending } = useUpdateConfig()
+  const entities = useEntityStore((s) => s.entities)
+
+  const sensors = useMemo(
+    () => Object.values(entities)
+      .filter((e) => e.entity_id.startsWith('binary_sensor.') && PRESENCE_CLASSES.has(String(e.attributes?.device_class ?? '')))
+      .sort((a, b) => a.entity_id.localeCompare(b.entity_id)),
+    [entities],
+  )
+
+  const current = config?.kiosk?.wakeEntityId ?? ''
+
+  return (
+    <GlassCard className="space-y-3">
+      <FeatureHeader Icon={MonitorSmartphone} title="Kiosk" badge={current ? 'Risveglio attivo' : 'Solo tocco'} tone={current ? 'ok' : 'neutral'} />
+      <p className="text-[12px] text-black/40">
+        Dopo 3 minuti di inattività il tablet passa alla modalità ambient (orologio, meteo, drift anti-burn-in).
+        Con un sensore di presenza la dashboard si risveglia da sola quando qualcuno passa.
+      </p>
+      <div className="space-y-1.5">
+        <label className="text-xs font-medium text-black/50">Sensore di presenza per il risveglio</label>
+        <select
+          value={current}
+          disabled={isPending}
+          onChange={(e) => update({ kiosk: { wakeEntityId: e.target.value || undefined } })}
+          className="w-full min-h-[44px] rounded-[12px] bg-black/8 px-3 py-3 text-sm text-[#1d1d1f] outline-none focus:bg-black/12"
+        >
+          <option value="">— nessuno (solo tocco) —</option>
+          {sensors.map((e) => (
+            <option key={e.entity_id} value={e.entity_id}>
+              {(e.attributes?.friendly_name as string | undefined) ?? e.entity_id} · {e.entity_id}
+            </option>
+          ))}
+        </select>
       </div>
     </GlassCard>
   )
