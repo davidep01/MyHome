@@ -12,7 +12,7 @@ import { callService } from '../../api/ha-websocket'
 import { cn } from '../../lib/utils'
 import type { DoorbellDevice } from '../../api/backend'
 
-type Recog = { status: 'scanning' | 'done' | 'error'; name?: string }
+type Recog = { status: 'scanning' | 'done' | 'error'; name?: string; known?: boolean }
 type Tone = 'scan' | 'known' | 'unknown' | 'none' | 'error'
 
 const TONE_COLOR: Record<Tone, string> = {
@@ -21,6 +21,10 @@ const TONE_COLOR: Record<Tone, string> = {
   unknown: '#ff9f0a',
   none: 'rgba(255,255,255,0.7)',
   error: 'rgba(255,255,255,0.55)',
+}
+
+function capitalize(s: string) {
+  return s.charAt(0).toUpperCase() + s.slice(1)
 }
 
 /** Builds the headline + status pill from the recognition result. */
@@ -33,10 +37,13 @@ function describe(r: Recog | null, known: string[], vision: boolean): { title: s
   const raw = (r.name ?? '').trim()
   const lower = raw.toLowerCase()
   if (!raw || lower === 'nessuno' || lower === 'niente') return { title: fallbackTitle, pill: 'Nessuno rilevato', tone: 'none' }
-  const isKnown = known.some((k) => k.toLowerCase() === lower)
+  // `known` arriva dal backend quando il volto matcha una foto di riferimento
+  // (Funzioni → Campanelli → Volti conosciuti) o una persona HA.
+  const isKnown = r.known === true || known.some((k) => k.toLowerCase() === lower)
+  const display = isKnown ? capitalize(raw) : raw
   return {
-    title: `C'è ${raw} alla porta`,
-    pill: isKnown ? `${raw} riconosciuto` : 'Riconoscimento completato',
+    title: `C'è ${display} alla porta`,
+    pill: isKnown ? `${display} riconosciuto` : 'Riconoscimento completato',
     tone: isKnown ? 'known' : 'unknown',
   }
 }
@@ -67,7 +74,7 @@ export function DoorbellAlert({ kiosk = false, doorbells, vision = true }: { kio
     let cancelled = false
     setRecog({ status: 'scanning' })
     aiApi.recognize(cameraEntityId, personNames)
-      .then((r) => { if (!cancelled) setRecog({ status: 'done', name: r.name }) })
+      .then((r) => { if (!cancelled) setRecog({ status: 'done', name: r.name, known: r.known }) })
       .catch(() => { if (!cancelled) setRecog({ status: 'error' }) })
     return () => { cancelled = true }
     // personNames intentionally read at ring time only

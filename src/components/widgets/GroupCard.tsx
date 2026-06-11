@@ -1,6 +1,7 @@
 import { Layers, Play } from 'lucide-react'
 import { GlassCard } from '../glass/GlassCard'
 import { DynamicIcon } from '../DynamicIcon'
+import { AnimLightbulb } from '../icons/animated'
 import { LiveDot } from '../anim/LiveDot'
 import { useEntityStore } from '../../store/entities'
 import { useHAService } from '../../hooks/useHAService'
@@ -59,8 +60,14 @@ export function GroupCard({ group, className }: { group: EntityGroup; className?
       glow={anyOn && isOnOff ? 'rgba(234,179,8,0.22)' : undefined}
       className={cn('flex h-full items-center gap-3 min-h-[104px]', className)}
     >
-      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full" style={{ background: accent }}>
-        <DynamicIcon name={group.icon} fallback={Layers} size={20} className="amb-float" style={{ color: iconColor }} />
+      <div
+        className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-full', anyOn && 'ai-active')}
+        style={{ background: accent }}
+      >
+        {/* Gruppi luce senza icona custom: lampadina animata (raggi accesi). */}
+        {!group.icon && type === 'light'
+          ? <AnimLightbulb size={20} style={{ color: iconColor }} />
+          : <DynamicIcon name={group.icon} fallback={Layers} size={20} className="amb-float" style={{ color: iconColor }} />}
       </div>
 
       <div className="min-w-0 flex-1">

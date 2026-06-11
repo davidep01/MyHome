@@ -56,6 +56,8 @@ export function WidgetCardShell({
         }
       } : undefined}
       className={cn(
+        // Il preset NON va sulla shell: ruoterebbe/lampeggerebbe l'intera card
+        // (es. fanSpin). Vive solo nel motion-layer e nelle parti delle icone.
         'widget-card-shell glass glass-border relative flex h-full min-w-0 flex-col overflow-hidden rounded-[18px]',
         cfg.paddingClass,
         interactive && 'cursor-pointer select-none',
@@ -63,7 +65,6 @@ export function WidgetCardShell({
         isUnavailable && 'widget-card-muted',
         isOffline && 'widget-card-muted',
         isDragging && 'widget-card-dragging',
-        presetClass(animationPreset),
         className,
       )}
       style={{
@@ -106,6 +107,7 @@ export function WidgetCardHeader({
   Icon,
   accentColor = widgetTones.neutral.color,
   size = 'M',
+  active = false,
   trailing,
 }: {
   title: string
@@ -113,13 +115,15 @@ export function WidgetCardHeader({
   Icon?: ElementType
   accentColor?: string
   size?: WidgetVisualSize
+  /** Attiva le parti animate dell'icona (vedi src/components/icons/animated.tsx). */
+  active?: boolean
   trailing?: ReactNode
 }) {
   const cfg = getWidgetSizeConfig(size)
   return (
     <div className="flex min-w-0 items-start justify-between gap-2">
       <div className="flex min-w-0 items-center gap-2.5">
-        {Icon && <WidgetCardIcon Icon={Icon} size={size} accentColor={accentColor} />}
+        {Icon && <WidgetCardIcon Icon={Icon} size={size} accentColor={accentColor} active={active} />}
         <div className="min-w-0">
           <p className={cn('line-clamp-2 font-semibold leading-tight text-[#1d1d1f]', cfg.titleClass)}>{title}</p>
           {subtitle && <p className="mt-0.5 truncate text-xs font-medium text-black/45">{subtitle}</p>}
@@ -135,19 +139,19 @@ export function WidgetCardIcon({
   size = 'M',
   accentColor = widgetTones.neutral.color,
   active = false,
-  animationPreset,
 }: {
   Icon: ElementType
   size?: WidgetVisualSize
   accentColor?: string
   active?: boolean
-  animationPreset?: WidgetAnimationPreset
 }) {
   const cfg = getWidgetSizeConfig(size)
   const box = size === 'S' ? 40 : size === 'M' ? 44 : 52
   return (
     <span
-      className={cn('widget-card-icon flex shrink-0 items-center justify-center rounded-full', active && 'widget-card-icon-active', presetClass(animationPreset))}
+      // `widget-card-icon-active` è anche il contesto che accende le parti
+      // animate delle icone SVG (.ai-part) — niente preset sul puck.
+      className={cn('widget-card-icon flex shrink-0 items-center justify-center rounded-full', active && 'widget-card-icon-active')}
       style={{
         width: box,
         height: box,

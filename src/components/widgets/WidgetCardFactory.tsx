@@ -172,7 +172,7 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
       return (
         <>
           <div className="flex items-start justify-between gap-2">
-            <WidgetCardIcon Icon={mapped.Icon} size={size} accentColor={mapped.accentColor} active={mapped.isActive} animationPreset={mapped.isActive ? mapped.animationPreset : 'none'} />
+            <WidgetCardIcon Icon={mapped.Icon} size={size} accentColor={mapped.accentColor} active={mapped.isActive} />
             {mapped.status === 'warning' || mapped.status === 'critical' || mapped.status === 'triggered' || unavailable
               ? <WidgetCardBadge tone={mapped.status === 'critical' || mapped.status === 'triggered' ? 'critical' : 'warning'}>{unavailable ? 'N/D' : '!'}</WidgetCardBadge>
               : null}
@@ -196,6 +196,7 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
           Icon={mapped.Icon}
           accentColor={mapped.accentColor}
           size={size}
+          active={mapped.isActive}
           trailing={
             mapped.family === 'light' || mapped.family === 'switch' || mapped.family === 'smartPlug' || mapped.family === 'fan' || mapped.family === 'humidifier'
               ? <WidgetCardToggle checked={mapped.isActive} disabled={unavailable} onToggle={togglePower} color={mapped.accentColor} label={`Toggle ${mapped.title}`} />
@@ -235,7 +236,7 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
               )}
             </WidgetCardRing>
           ) : (
-            <WidgetCardIcon Icon={mapped.Icon} size={size} accentColor={mapped.accentColor} active={mapped.isActive} animationPreset={mapped.animationPreset} />
+            <WidgetCardIcon Icon={mapped.Icon} size={size} accentColor={mapped.accentColor} active={mapped.isActive} />
           )}
 
           <div className="min-w-0 flex-1">

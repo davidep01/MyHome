@@ -46,10 +46,18 @@ export interface AppConfig {
   home?: HomeConfig
   /** User's custom tile layout (react-grid-layout positions per entity). */
   dashboardLayout?: DashboardLayout
-  /** Kiosk behaviour: presence-wake sensor for the ambient layer. */
-  kiosk?: { wakeEntityId?: string }
-  /** AI features: doorbell Gemini Vision on/off (default on when key present). */
-  ai?: { doorbellVision?: boolean }
+  /** Kiosk behaviour: presence-wake sensor + home a strati o griglia drag&drop. */
+  kiosk?: { wakeEntityId?: string; homeMode?: 'composer' | 'grid' }
+  /** AI features: doorbell Gemini Vision on/off (default on when key present) + volti di riferimento. */
+  ai?: { doorbellVision?: boolean; faces?: KnownFace[] }
+}
+
+/** Volto di riferimento per Gemini Vision (Funzioni → Campanelli → Volti conosciuti). */
+export interface KnownFace {
+  id: string
+  name: string
+  /** 1–3 foto frontali come data URL JPEG, ridotte lato client (~512px). */
+  images: string[]
 }
 
 export type WidgetType =

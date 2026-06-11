@@ -159,21 +159,49 @@ aiRouter.post('/recognize', async (c) => {
     return c.json({ error: 'Snapshot non raggiungibile' }, 502)
   }
 
+  // Volti di riferimento caricati in Funzioni → Campanelli → "Volti conosciuti":
+  // Gemini confronta il volto alla porta con queste foto e risponde col nome esatto.
+  const faces = (config.ai?.faces ?? []).filter((f) => f.name?.trim() && f.images?.length)
+  const refParts: GeminiPart[] = []
+  for (const face of faces.slice(0, 8)) {
+    for (const img of face.images.slice(0, 3)) {
+      const m = /^data:(image\/[a-z.+-]+);base64,([A-Za-z0-9+/=]+)$/.exec(img)
+      if (!m) continue
+      refParts.push({ text: `Foto di riferimento di "${face.name.trim()}":` })
+      refParts.push({ inline_data: { mime_type: m[1], data: m[2] } })
+    }
+  }
+
   const names = (body.names ?? []).filter(Boolean)
-  const known = names.length ? `Persone note della famiglia: ${names.join(', ')}.\n` : ''
-  const prompt = `Questa è l'immagine di un videocitofono/campanello. Identifica CHI o COSA c'è alla porta.
-${known}Rispondi con UNA sola etichetta brevissima in italiano, senza punteggiatura:
-- il nome esatto se riconosci una persona nota della famiglia;
+  const knownLine = names.length ? `Altre persone note della famiglia: ${names.join(', ')}.\n` : ''
+  const refLine = refParts.length
+    ? 'Prima trovi le foto di riferimento delle persone conosciute, poi l\'immagine del videocitofono: confronta i volti con attenzione.\n'
+    : ''
+  const prompt = `${refLine}L'ULTIMA immagine è quella di un videocitofono/campanello. Identifica CHI o COSA c'è alla porta.
+${knownLine}Rispondi con UNA sola etichetta brevissima in italiano, senza punteggiatura:
+- il nome ESATTO della persona di riferimento se il volto corrisponde a una delle foto;
 - altrimenti una descrizione breve di chi/cosa vedi (es. "un corriere", "una persona sconosciuta", "un gatto", "un pacco");
 - "nessuno" se non c'è nessuno e niente di rilevante.
 Solo l'etichetta.`
 
   const result = await geminiGenerate(
-    [{ role: 'user', parts: [{ text: prompt }, { inline_data: { mime_type: 'image/jpeg', data: b64 } }] }],
+    [{
+      role: 'user',
+      parts: [
+        { text: prompt },
+        ...refParts,
+        { text: 'Immagine del videocitofono:' },
+        { inline_data: { mime_type: 'image/jpeg', data: b64 } },
+      ],
+    }],
     { generationConfig: { temperature: 0, maxOutputTokens: 32 } },
   )
   if (!result.ok) return c.json({ error: result.error }, result.status as 400 | 502)
-  return c.json({ name: result.text.trim().replace(/[."\n\r]/g, '').trim() })
+  const label = result.text.trim().replace(/[."\n\r]/g, '').trim()
+  const lower = label.toLowerCase()
+  const isKnown = faces.some((f) => f.name.trim().toLowerCase() === lower)
+    || names.some((n) => n.toLowerCase() === lower)
+  return c.json({ name: label, known: isKnown })
 })
 
 // POST /api/ai/automation — generate a valid HA automation config (JSON) for preview

@@ -4,6 +4,7 @@ import { NowSection } from './layers/NowSection'
 import { RoomsRow, type RoomTarget } from './layers/RoomsRow'
 import { EntitySheet } from './layers/EntitySheet'
 import { TimelineSheet } from './layers/TimelineSheet'
+import { SpacesCatalog } from './layers/SpacesCatalog'
 import { GlassCard } from '../glass/GlassCard'
 import { AnimatedCard } from '../anim/AnimatedCard'
 import { WeatherWidget } from '../weather/WeatherWidget'
@@ -34,6 +35,7 @@ export function LayeredHome() {
   const { medium } = useHaptic()
   const [sheet, setSheet] = useState<RoomTarget | null>(null)
   const [timelineOpen, setTimelineOpen] = useState(false)
+  const [spacesOpen, setSpacesOpen] = useState(false)
 
   const openAlert = (chip: HomeChip) => {
     if (chip.entityIds.length === 1) setSelectedEntity(chip.entityIds[0])
@@ -57,8 +59,18 @@ export function LayeredHome() {
         hiddenEntities={layout?.hiddenEntities}
         overrides={layout?.deviceOverrides}
         onOpen={setSheet}
+        onZoomOut={() => setSpacesOpen(true)}
       />
 
+      {/* Zoom-out: il catalogo Spazi sta SOTTO l'EntitySheet — il tap su una
+          stanza apre lo sheet sopra il catalogo (drill-down, non swap). */}
+      <SpacesCatalog
+        open={spacesOpen}
+        hiddenEntities={layout?.hiddenEntities}
+        overrides={layout?.deviceOverrides}
+        onClose={() => setSpacesOpen(false)}
+        onOpenRoom={setSheet}
+      />
       <EntitySheet target={sheet} overrides={layout?.deviceOverrides} onClose={() => setSheet(null)} />
       <TimelineSheet open={timelineOpen} onClose={() => setTimelineOpen(false)} />
 

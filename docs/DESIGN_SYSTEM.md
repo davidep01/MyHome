@@ -463,3 +463,36 @@ La home kiosk **si compone da sola**: nessuna tile da disporre. Quattro strati:
 **Regia desktop** (4 viste): Stato (salute+problemi+backup), Entità (workbench con anteprima live card), Funzioni (feature card con stato), Sistema (connessione+diagnostica da `entity_category`). Touch target ≥44px ovunque; nessun PIN (gate = `desktopOnly`).
 
 > La "premium widget card" e le card di dominio restano il mattone invariato (vedi matrice famiglie sopra): è cambiato il contenitore, non il mattone. La griglia widget 8col×64px è **legacy**: vive solo dietro `localStorage['myhome.home']='grid'`.
+
+---
+
+## Icone animate + catalogo Spazi (2026-06-11)
+
+### Icone animate (`src/components/icons/animated.tsx`)
+23 icone SVG multi-parte in stile lucide (viewBox 24, stroke 2, cap arrotondati), drop-in al posto delle icone statiche nel mapping delle card. La **parte** giusta si muove, mai l'icona intera:
+
+| Icona | Parte animata | Quando |
+|---|---|---|
+| `AnimFan` | rotore (3 lobi pieni) gira, mozzo fermo | fan on |
+| `AnimLightbulb` | 3 raggi + alone respirano sfalsati | luce accesa |
+| `AnimFlame` | guizzo dalla base (scaleY+rotate) | heating |
+| `AnimSnowflake` | rotazione lentissima (14s) | cooling |
+| `AnimEqualizer` / `AnimTv` | barre che danzano sfalsate | playing |
+| `AnimSpeaker` | woofer che pulsa | playing |
+| `AnimLock` | gancio che si solleva (posa con spring, non loop) + keyhole pulse | sbloccata |
+| `AnimBlinds(Moving)` | stecche che ondeggiano | solo opening/closing |
+| `AnimBot` | occhi che sbattono + corpo che ondeggia | cleaning/mowing |
+| `AnimShield` | eco che si propaga + "!" pulsante | triggered |
+| `AnimRadar` | anelli che si propagano | motion rilevato |
+| `AnimCamera` | iride viva + REC blink | online |
+| `AnimMist` | fili di vapore che salgono | umidificatore on |
+| `AnimZap`/`AnimWind`/`AnimDroplet`/`AnimCloudSun`/`AnimSparkles`/`AnimPower`/`AnimBell` | flicker/flusso/bob/twinkle sobri | attivi |
+
+**Regole.** (1) Attivazione SOLO via contesto CSS: `.widget-card-icon-active` (puck card) o `.ai-active` (wrapper libero) — niente prop drilling; fuori contesto l'icona è una posa statica corretta. (2) `transform-box: fill-box` su ogni `.ai-part` (origini locali). (3) Solo transform/opacity. (4) **Mai loop su sensori passivi** (termometro, droplet-umidità statici di proposito). (5) Tutto spento in `perf-lite` e `prefers-reduced-motion`. CSS nella sezione "Animated icons" di `index.css`.
+
+### Catalogo "Spazi" (`SpacesCatalog`)
+Zoom-out della casa in stile rivista: overlay fullscreen su parchment pieno, titolo 44px/300, sottotitolo riassuntivo, grab-handle con **drag-down elastico** per chiudere. Card stanza (glass, 22px radius, min 164px, enter stagger `.card-enter`): puck 56px con icona-attività animata (o glifo della stanza da `roomGlyph`), badge temperatura, nome 19px/600, fatti vivi max 2 ("3 luci accese · Serratura aperta"), strip 28px delle altre attività in corso. Sezione "Automazioni attive" con sparkle animato solo se scattate da <1h. Il tap su una stanza apre l'EntitySheet SOPRA il catalogo (drill-down). Chip Stanze: stesso linguaggio — glifo→icona attività con pop spring (`ACTIVITY_META`).
+
+### Fix di sistema
+- I preset `widget-anim-*` non vanno MAI sulla shell della card (la ruotavano/lampeggiavano): vivono nel motion-layer e nelle parti delle icone.
+- `.widget-card-motion-layer` dichiara `position:absolute` DOPO i preset: quelli con `position:relative` (energyFlow/ripple/shimmer) lo collassavano a misura zero.

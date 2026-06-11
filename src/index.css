@@ -550,6 +550,17 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
 .widget-anim-successPop,
 .widget-anim-lockSnap { animation: widget-pop .34s cubic-bezier(.34,1.56,.64,1); }
 
+/* Il motion-layer è SEMPRE un overlay assoluto: deve vincere sui preset che
+   impostano position:relative (energyFlow/ripple/shimmer) — altrimenti lo span
+   collassa a misura zero e l'effetto sparisce. Dichiarato DOPO i preset. */
+.widget-card-motion-layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .widget-card-shell,
   .widget-card-shell *,
@@ -559,6 +570,144 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
     transition-duration: 0.01ms !important;
   }
 }
+/* ============================================================================
+   Animated icons (.ai-icon) — icone SVG multi-parte (src/components/icons/
+   animated.tsx). Le parti (.ai-part) si animano SOLO dentro un contesto attivo:
+   `.widget-card-icon-active` (puck delle card) o `.ai-active` (wrapper libero).
+   Tutte le animazioni sono transform/opacity-only; spente in perf-lite e
+   reduced-motion. `transform-box: fill-box` rende l'origine locale alla parte.
+   ============================================================================ */
+.ai-icon .ai-part {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* --- Pose a riposo (icona statica corretta anche fuori dalle card) --- */
+.ai-icon .ai-bulb-glow,
+.ai-icon .ai-ray,
+.ai-icon .ai-shield-echo,
+.ai-icon .ai-alert-mark { opacity: 0; }
+.ai-icon .ai-iris { opacity: .4; }
+.ai-icon .ai-rec { opacity: 0; }
+.ai-icon .ai-sound { opacity: .25; }
+.ai-icon .ai-wisp { opacity: .55; }
+.ai-icon .ai-lock-shackle {
+  transform-origin: 15% 100%;
+  transition: transform 380ms var(--spring);
+}
+
+@keyframes ai-spin { to { transform: rotate(360deg); } }
+@keyframes ai-glow {
+  0%, 100% { opacity: .12; transform: scale(.88); }
+  50% { opacity: .3; transform: scale(1.14); }
+}
+@keyframes ai-ray-blink {
+  0%, 100% { opacity: .3; transform: scale(.9); }
+  50% { opacity: 1; transform: scale(1); }
+}
+@keyframes ai-flicker {
+  0%, 100% { transform: scaleY(1) rotate(0deg); }
+  30% { transform: scaleY(1.05) rotate(-1.4deg); }
+  60% { transform: scaleY(.96) rotate(1.2deg); }
+}
+@keyframes ai-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-1px); }
+}
+@keyframes ai-rise {
+  0% { transform: translateY(1.4px); opacity: .15; }
+  55% { opacity: 1; }
+  100% { transform: translateY(-1.8px); opacity: 0; }
+}
+@keyframes ai-slat-wave {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(1.6px); }
+}
+@keyframes ai-eq-dance {
+  0%, 100% { transform: scaleY(.6); }
+  35% { transform: scaleY(1.4); }
+  70% { transform: scaleY(.85); }
+}
+@keyframes ai-woof {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+}
+@keyframes ai-sway {
+  0%, 100% { transform: translateX(-.6px); }
+  50% { transform: translateX(.6px); }
+}
+@keyframes ai-eye-blink {
+  0%, 88%, 100% { transform: scaleY(1); }
+  93% { transform: scaleY(.12); }
+}
+@keyframes ai-echo {
+  0% { transform: scale(.94); opacity: .45; }
+  100% { transform: scale(1.18); opacity: 0; }
+}
+@keyframes ai-ripple-ring {
+  0% { transform: scale(.5); opacity: .85; }
+  100% { transform: scale(1.2); opacity: 0; }
+}
+@keyframes ai-fade-pulse {
+  0%, 100% { opacity: .55; }
+  50% { opacity: 1; }
+}
+@keyframes ai-rec-blink {
+  0%, 44%, 100% { opacity: 1; }
+  50%, 94% { opacity: .12; }
+}
+@keyframes ai-twinkle-star {
+  0%, 100% { opacity: .25; transform: scale(.7); }
+  50% { opacity: 1; transform: scale(1); }
+}
+@keyframes ai-breath {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+@keyframes ai-flow-drift {
+  0%, 100% { transform: translateX(0); opacity: .55; }
+  50% { transform: translateX(1.2px); opacity: 1; }
+}
+
+/* --- Parti animate nel contesto attivo --- */
+:is(.widget-card-icon-active, .ai-active) .ai-fan-rotor { animation: ai-spin 1.5s linear infinite; }
+:is(.widget-card-icon-active, .ai-active) .ai-bulb-glow { animation: ai-glow 3.2s ease-in-out infinite; }
+:is(.widget-card-icon-active, .ai-active) .ai-ray { animation: ai-ray-blink 3.2s ease-in-out infinite; }
+:is(.widget-card-icon-active, .ai-active) .ai-flame { transform-origin: 50% 100%; animation: ai-flicker 1.2s ease-in-out infinite; }
+:is(.widget-card-icon-active, .ai-active) .ai-snow { animation: ai-spin 14s linear infinite; }
+:is(.widget-card-icon-active, .ai-active) .ai-bob { animation: ai-bob 3.4s ease-in-out infinite; }
+:is(.widget-card-icon-active, .ai-active) .ai-wisp { animation: ai-rise 2.2s ease-in-out infinite; }
+.ai-icon[data-moving] .ai-slat { animation: ai-slat-wave 1.6s ease-in-out infinite; }
+:is(.widget-card-icon-active, .ai-active) .ai-lock-shackle { transform: rotate(-14deg) translateY(-.6px); }
+:is(.widget-card-icon-active, .ai-active) .ai-keyhole { animation: ai-fade-pulse 1.6s ease-in-out infinite; }
+:is(.widget-card-icon-active, .ai-active) .ai-eq { animation: ai-eq-dance 1s ease-in-out infinite; }
+:is(.widget-card-icon-active, .ai-active) .ai-woofer { animation: ai-woof 1.05s ease-in-out infinite; }
+:is(.widget-card-icon-active, .ai-active) .ai-bot-body { animation: ai-sway 2.6s ease-in-out infinite; }
+:is(.widget-card-icon-active, .ai-active) .ai-eye { animation: ai-eye-blink 3.8s ease-in-out infinite; }
+:is(.widget-card-icon-active, .ai-active) .ai-shield-echo { animation: ai-echo 1.6s ease-out infinite; }
+:is(.widget-card-icon-active, .ai-active) .ai-alert-mark { opacity: 1; animation: ai-fade-pulse 1.2s ease-in-out infinite; }
+:is(.widget-card-icon-active, .ai-active) .ai-ring { animation: ai-ripple-ring 1.8s ease-out infinite; }
+:is(.widget-card-icon-active, .ai-active) .ai-iris { opacity: 1; animation: ai-fade-pulse 2.8s ease-in-out infinite; }
+:is(.widget-card-icon-active, .ai-active) .ai-rec { animation: ai-rec-blink 2.4s steps(1) infinite; }
+:is(.widget-card-icon-active, .ai-active) .ai-sound { animation: ai-fade-pulse 3.6s ease-in-out infinite; }
+:is(.widget-card-icon-active, .ai-active) .ai-star-main { animation: ai-breath 3s ease-in-out infinite; }
+:is(.widget-card-icon-active, .ai-active) .ai-twinkle { animation: ai-twinkle-star 2.8s ease-in-out infinite; }
+:is(.widget-card-icon-active, .ai-active) .ai-breath { animation: ai-breath 4s ease-in-out infinite; }
+:is(.widget-card-icon-active, .ai-active) .ai-zap { animation: ai-fade-pulse 2.2s ease-in-out infinite; }
+:is(.widget-card-icon-active, .ai-active) .ai-flow { animation: ai-flow-drift 2.6s ease-in-out infinite; }
+
+/* Sfasamenti: le parti gemelle non battono mai all'unisono. */
+:is(.widget-card-icon-active, .ai-active) .ai-part.ai-d2,
+.ai-icon[data-moving] .ai-slat.ai-d2 { animation-delay: .35s; }
+:is(.widget-card-icon-active, .ai-active) .ai-part.ai-d3,
+.ai-icon[data-moving] .ai-slat.ai-d3 { animation-delay: .7s; }
+:is(.widget-card-icon-active, .ai-active) .ai-eq.ai-d2 { animation-delay: .14s; }
+:is(.widget-card-icon-active, .ai-active) .ai-eq.ai-d3 { animation-delay: .28s; }
+:is(.widget-card-icon-active, .ai-active) .ai-sound.ai-d2 { animation-delay: 1.8s; }
+
+/* GPU deboli: niente loop sulle parti (le pose restano, costano zero). */
+.perf-lite .ai-icon .ai-part { animation: none; }
+
 .glass-border {
   position: relative;
 }

@@ -42,9 +42,9 @@ export const aiApi = {
   chat: (prompt: string, context: AIContextEntity[], history: AITurn[] = []) =>
     postAI('chat', { prompt, context, history }),
   suggest: (context: AIContextEntity[]) => postAI('suggest', { context }),
-  /** Doorbell face recognition: snapshot of `entityId` matched against `names`. */
+  /** Doorbell face recognition: snapshot of `entityId` matched against `names` + reference faces. */
   recognize: (entityId: string, names: string[]) =>
-    postJSON<{ name: string }>('recognize', { entityId, names }),
+    postJSON<{ name: string; known?: boolean }>('recognize', { entityId, names }),
   /** Generate an HA automation config (preview before creating). */
   automation: (prompt: string, context: AIContextEntity[]) =>
     postJSON<{ automation: HAAutomation }>('automation', { prompt, context }),

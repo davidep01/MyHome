@@ -1,10 +1,14 @@
 import type { HassEntity } from 'home-assistant-js-websocket'
 import {
-  Activity, Battery, Bell, Blinds, Bot, Camera, CircleArrowUp, CloudSun,
-  Droplets, Fan, Flame, Gauge, Home, Lightbulb, ListChecks, Lock, Music2,
-  PlugZap, Power, Radio, Shield, ShieldAlert, Siren, Sparkles, Thermometer,
-  Timer, ToggleRight, Tv, UserRound, Wifi, Wind, Zap,
+  Battery, CircleArrowUp, Gauge, Home, ListChecks, Siren,
+  Timer, ToggleRight, UserRound, Wifi,
 } from 'lucide-react'
+import {
+  AnimBell, AnimBlinds, AnimBlindsMoving, AnimBot, AnimCamera, AnimCloudSun,
+  AnimDroplet, AnimEqualizer, AnimFan, AnimFlame, AnimLightbulb, AnimLock,
+  AnimMist, AnimPower, AnimRadar, AnimShield, AnimSnowflake, AnimSparkles,
+  AnimSpeaker, AnimThermometer, AnimTv, AnimWind, AnimZap,
+} from '../../icons/animated'
 import type { ElementType } from 'react'
 import type { EntityType, RoomEntity } from '../../../api/backend'
 import { DOMAIN_TYPE } from '../../../hooks/useDiscoveredEntities'
@@ -203,7 +207,7 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
   switch (family) {
     case 'light':
       return {
-        family, type, Icon: Lightbulb, title,
+        family, type, Icon: AnimLightbulb, title,
         subtitle: unavailable ? 'Non disponibile' : undefined,
         status: on ? 'on' : 'off',
         accentColor: widgetTones.light.color,
@@ -219,7 +223,7 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
     case 'smartPlug':
     case 'switch':
       return {
-        family, type, Icon: family === 'smartPlug' ? PlugZap : Power, title,
+        family, type, Icon: family === 'smartPlug' ? AnimZap : AnimPower, title,
         subtitle: unavailable ? 'Non disponibile' : undefined,
         status: on ? 'on' : 'off',
         accentColor: family === 'smartPlug' ? widgetTones.energy.color : widgetTones.ok.color,
@@ -240,7 +244,7 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
       const mode = stateLabel(rawState)
       const action = String(entity?.attributes?.hvac_action ?? rawState)
       return {
-        family, type, Icon: action === 'cooling' ? Wind : action === 'heating' ? Flame : Thermometer, title,
+        family, type, Icon: action === 'cooling' ? AnimSnowflake : action === 'heating' ? AnimFlame : AnimThermometer, title,
         subtitle: unavailable ? 'Non disponibile' : mode,
         status: action === 'cooling' ? 'cooling' : action === 'heating' ? 'heating' : rawState === 'off' ? 'off' : 'idle',
         accentColor: tone.color,
@@ -258,7 +262,7 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
     case 'fan': {
       const speed = numericState(entity?.attributes?.percentage) ?? (on ? 100 : 0)
       return {
-        family, type, Icon: Fan, title,
+        family, type, Icon: AnimFan, title,
         subtitle: unavailable ? 'Non disponibile' : undefined,
         status: on ? 'fan' : 'off',
         accentColor: widgetTones.cool.color,
@@ -278,7 +282,7 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
     case 'garage': {
       const moving = rawState === 'opening' || rawState === 'closing'
       const pos = position ?? (rawState === 'open' ? 100 : 0)
-      const Icon = family === 'gate' ? Home : family === 'garage' ? Home : Blinds
+      const Icon = family === 'gate' || family === 'garage' ? Home : moving ? AnimBlindsMoving : AnimBlinds
       return {
         family, type, Icon, title,
         subtitle: unavailable ? 'Non disponibile' : stateLabel(rawState),
@@ -298,7 +302,7 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
       const unlocked = rawState === 'unlocked'
       const tone = securityTone(!unlocked && !unavailable, unlocked)
       return {
-        family, type, Icon: Lock, title,
+        family, type, Icon: AnimLock, title,
         subtitle: unavailable ? 'Non disponibile' : unlocked ? 'Sbloccata' : 'Bloccata',
         status: unlocked ? 'unlocked' : 'locked',
         accentColor: tone.color,
@@ -317,7 +321,7 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
       const critical = ['triggered', 'on', 'problem'].includes(rawState)
       const tone = critical ? widgetTones.critical : widgetTones.ok
       return {
-        family, type, Icon: critical ? ShieldAlert : Shield, title,
+        family, type, Icon: AnimShield, title,
         subtitle: unavailable ? 'Non disponibile' : critical ? 'Allarme' : 'Sicuro',
         status: critical ? 'triggered' : rawState.includes('armed') ? 'armed' : 'clear',
         accentColor: tone.color,
@@ -336,7 +340,7 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
       const active = rawState === 'on' || rawState === 'home' || rawState === 'open'
       const tone = family === 'doorWindow' ? securityTone(!active, active) : active ? widgetTones.cool : widgetTones.ok
       return {
-        family, type, Icon: family === 'presence' ? UserRound : family === 'doorWindow' ? Home : Activity, title,
+        family, type, Icon: family === 'presence' ? UserRound : family === 'doorWindow' ? Home : AnimRadar, title,
         subtitle: unavailable ? 'Non disponibile' : active ? family === 'presence' ? 'Presente' : 'Rilevato' : 'Tutto ok',
         status: active ? 'detected' : 'clear',
         accentColor: tone.color,
@@ -369,7 +373,7 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
       const unit = (entity?.attributes?.unit_of_measurement as string | undefined) ?? (family === 'humidity' ? '%' : undefined)
       return {
         family, type,
-        Icon: family === 'battery' ? Battery : family === 'humidity' || family === 'water' || family === 'pool' ? Droplets : family === 'energy' || family === 'solar' ? Zap : family === 'airQuality' ? Wind : family === 'network' ? Wifi : Thermometer,
+        Icon: family === 'battery' ? Battery : family === 'humidity' || family === 'water' || family === 'pool' ? AnimDroplet : family === 'energy' || family === 'solar' ? AnimZap : family === 'airQuality' ? AnimWind : family === 'network' ? Wifi : AnimThermometer,
         title,
         subtitle: unavailable ? 'Non disponibile' : family === 'airQuality' ? 'Qualità aria' : family === 'energy' ? 'Energia' : family === 'battery' ? 'Batteria' : 'Sensore',
         status: family === 'battery' && (battery ?? 100) < 20 ? 'lowBattery' : 'active',
@@ -387,7 +391,7 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
     }
     case 'weather':
       return {
-        family, type, Icon: CloudSun, title,
+        family, type, Icon: AnimCloudSun, title,
         subtitle: stateLabel(rawState),
         status: 'active',
         accentColor: hasAny(rawState, ['rain', 'pouring']) ? widgetTones.cool.color : widgetTones.light.color,
@@ -403,7 +407,7 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
     case 'camera':
     case 'doorbell':
       return {
-        family, type, Icon: family === 'doorbell' ? Bell : Camera, title,
+        family, type, Icon: family === 'doorbell' ? AnimBell : AnimCamera, title,
         subtitle: unavailable ? 'Offline' : 'Live',
         status: unavailable ? 'offline' : 'active',
         accentColor: widgetTones.cool.color,
@@ -420,7 +424,7 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
     case 'tv': {
       const playing = rawState === 'playing'
       return {
-        family, type, Icon: family === 'tv' ? Tv : family === 'speaker' ? Radio : Music2, title,
+        family, type, Icon: family === 'tv' ? AnimTv : family === 'speaker' ? AnimSpeaker : AnimEqualizer, title,
         subtitle: (entity?.attributes?.media_title as string | undefined) ?? stateLabel(rawState),
         status: playing ? 'active' : 'idle',
         accentColor: widgetTones.media.color,
@@ -437,7 +441,7 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
     case 'mower': {
       const working = rawState === 'cleaning' || rawState === 'mowing'
       return {
-        family, type, Icon: Bot, title,
+        family, type, Icon: AnimBot, title,
         subtitle: unavailable ? 'Non disponibile' : stateLabel(rawState),
         status: working ? 'active' : rawState === 'error' ? 'error' : 'idle',
         accentColor: rawState === 'error' ? widgetTones.critical.color : widgetTones.ok.color,
@@ -455,7 +459,7 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
       const targetHumidity = numericState(entity?.attributes?.humidity)
       const currentHumidity = numericState(entity?.attributes?.current_humidity)
       return {
-        family, type, Icon: Droplets, title,
+        family, type, Icon: AnimMist, title,
         subtitle: unavailable ? 'Non disponibile' : on ? stateLabel(String(entity?.attributes?.mode ?? 'on')) : 'Spento',
         status: on ? 'on' : 'off',
         accentColor: widgetTones.water.color,
@@ -491,7 +495,7 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
     case 'automation':
     case 'timer':
       return {
-        family, type, Icon: family === 'timer' ? Timer : family === 'automation' ? ListChecks : Sparkles, title,
+        family, type, Icon: family === 'timer' ? Timer : family === 'automation' ? ListChecks : AnimSparkles, title,
         subtitle: family === 'automation' ? (rawState === 'on' ? 'Attiva' : 'Disattivata') : 'Azione rapida',
         status: rawState === 'on' ? 'active' : 'idle',
         accentColor: widgetTones.media.color,
@@ -508,7 +512,7 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
       return {
         family: hasAny(text, ['news']) ? 'news' : 'generic',
         type,
-        Icon: domain === 'select' || domain === 'input_select' ? ListChecks : domain === 'number' || domain === 'input_number' ? Gauge : domain === 'siren' ? Siren : domain === 'valve' ? Droplets : ToggleRight,
+        Icon: domain === 'select' || domain === 'input_select' ? ListChecks : domain === 'number' || domain === 'input_number' ? Gauge : domain === 'siren' ? Siren : domain === 'valve' ? AnimDroplet : ToggleRight,
         title,
         subtitle: unavailable ? 'Non disponibile' : stateLabel(rawState),
         status: unavailable ? 'unavailable' : 'active',

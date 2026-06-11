@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
-  Bell, Cloud, MonitorSmartphone, Newspaper, Pencil, Plus, Save, Sparkles, SunMoon, Trash2, Volume2, VolumeX,
+  Bell, Cloud, LayoutGrid, MonitorSmartphone, Newspaper, Pencil, Plus, Save, ScanFace, Sparkles, SunMoon, Trash2, Volume2, VolumeX,
 } from 'lucide-react'
 import { GlassCard } from '../components/glass/GlassCard'
 import { GlassSheet } from '../components/glass/GlassSheet'
@@ -9,7 +9,8 @@ import { useDashboardConfig, useUpdateConfig } from '../hooks/useDashboardConfig
 import { useSoundNotifications } from '../hooks/useSoundNotifications'
 import { useThemeStore } from '../store/theme'
 import { useEntityStore } from '../store/entities'
-import { systemApi, type DoorbellDevice } from '../api/backend'
+import { systemApi, type DoorbellDevice, type KnownFace } from '../api/backend'
+import { fileToFaceDataUrl } from '../lib/faceImage'
 import { normalizeDoorbells } from '../lib/doorbell'
 import { uid } from '../lib/uid'
 import type { SoundPreset } from '../lib/sound/SoundManager'
@@ -216,13 +217,14 @@ function DoorbellsCard() {
         </div>
         <div
           className={cn('lg-toggle shrink-0', (config?.ai?.doorbellVision !== false) && 'on')}
-          onClick={() => update({ ai: { doorbellVision: config?.ai?.doorbellVision === false } })}
+          onClick={() => update({ ai: { ...config?.ai, doorbellVision: config?.ai?.doorbellVision === false } })}
           role="switch"
           aria-checked={config?.ai?.doorbellVision !== false}
         >
           <span className="lg-toggle-knob" />
         </div>
       </div>
+      <KnownFacesRow />
       {doorbells.length === 0 ? (
         <p className="text-[12px] text-black/40">Alla pressione: video fullscreen, suono e riconoscimento. Collega un trigger (event/binary_sensor) e una camera.</p>
       ) : (
@@ -347,6 +349,113 @@ function DoorbellsCard() {
   )
 }
 
+/**
+ * Volti conosciuti per Gemini Vision: foto dei familiari (ridotte lato client)
+ * salvate in `config.ai.faces`. Al ring il backend le allega allo snapshot
+ * come riferimento e Gemini risponde col NOME, non solo con una descrizione.
+ * Le foto restano nel backend e non vengono mai proiettate al kiosk.
+ */
+function KnownFacesRow() {
+  const { data: config } = useDashboardConfig()
+  const { mutate: update, isPending } = useUpdateConfig()
+  const [name, setName] = useState('')
+  const [busy, setBusy] = useState(false)
+  const faces = useMemo(() => config?.ai?.faces ?? [], [config])
+  const visionOn = config?.ai?.doorbellVision !== false
+
+  const persist = (next: KnownFace[]) => update({ ai: { ...config?.ai, faces: next } })
+
+  const addPhoto = async (face: KnownFace | null, file: File) => {
+    setBusy(true)
+    try {
+      const dataUrl = await fileToFaceDataUrl(file)
+      if (face) {
+        persist(faces.map((f) => (f.id === face.id ? { ...f, images: [...f.images, dataUrl].slice(-3) } : f)))
+      } else if (name.trim()) {
+        persist([...faces, { id: uid('face'), name: name.trim(), images: [dataUrl] }])
+        setName('')
+      }
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="space-y-2 rounded-[10px] bg-black/[0.035] px-3 py-2.5">
+      <div className="flex items-center gap-3">
+        <ScanFace size={16} className="shrink-0 text-black/45" />
+        <div className="min-w-0 flex-1">
+          <p className="text-sm text-[#1d1d1f]">Volti conosciuti</p>
+          <p className="text-[11px] text-black/40">
+            {visionOn
+              ? 'Carica 1–3 foto frontali per persona: alla suonata Gemini confronta il volto e annuncia chi è, per nome.'
+              : 'Attiva il riconoscimento AI qui sopra per usare i volti.'}
+          </p>
+        </div>
+      </div>
+      {faces.map((f) => (
+        <div key={f.id} className="flex min-h-[48px] items-center gap-2 rounded-[10px] bg-white/70 px-2.5 py-2">
+          <div className="flex shrink-0 -space-x-2.5">
+            {f.images.map((img, i) => (
+              <img key={i} src={img} alt={f.name} className="h-9 w-9 rounded-full border-2 border-white object-cover" />
+            ))}
+          </div>
+          <p className="min-w-0 flex-1 truncate text-sm font-medium text-[#1d1d1f]">{f.name}</p>
+          {f.images.length < 3 && (
+            <FacePhotoButton label="Foto" disabled={busy || isPending} onFile={(file) => addPhoto(f, file)} />
+          )}
+          <button
+            onClick={() => persist(faces.filter((x) => x.id !== f.id))}
+            disabled={isPending}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-500/10 text-red-500"
+            aria-label={`Elimina ${f.name}`}
+          >
+            <Trash2 size={13} />
+          </button>
+        </div>
+      ))}
+      <div className="flex items-center gap-2">
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Nome (es. Davide)"
+          className="min-h-[40px] min-w-0 flex-1 rounded-[10px] bg-black/8 px-3 text-sm text-[#1d1d1f] outline-none focus:bg-black/12"
+        />
+        <FacePhotoButton label="Aggiungi foto" primary disabled={busy || isPending || !name.trim()} onFile={(file) => addPhoto(null, file)} />
+      </div>
+    </div>
+  )
+}
+
+/** Bottone-upload con input file nascosto (una singola immagine). */
+function FacePhotoButton({ label, onFile, disabled, primary }: {
+  label: string
+  onFile: (f: File) => void
+  disabled?: boolean
+  primary?: boolean
+}) {
+  return (
+    <label className={cn(
+      'flex h-9 shrink-0 cursor-pointer items-center gap-1 rounded-full px-3 text-xs font-semibold transition active:scale-95',
+      primary ? 'bg-[#0066cc] text-white' : 'bg-black/[0.06] text-black/60',
+      disabled && 'pointer-events-none opacity-40',
+    )}>
+      <Plus size={13} /> {label}
+      <input
+        type="file"
+        accept="image/*"
+        className="hidden"
+        disabled={disabled}
+        onChange={(e) => {
+          const f = e.target.files?.[0]
+          e.target.value = ''
+          if (f) onFile(f)
+        }}
+      />
+    </label>
+  )
+}
+
 // ── Suoni ────────────────────────────────────────────────────────────────────
 
 function SoundsCard() {
@@ -382,10 +491,36 @@ function KioskCard() {
   )
 
   const current = config?.kiosk?.wakeEntityId ?? ''
+  const homeMode = config?.kiosk?.homeMode ?? 'composer'
+
+  const modes: { id: 'composer' | 'grid'; label: string }[] = [
+    { id: 'composer', label: 'Auto-composta' },
+    { id: 'grid', label: 'Griglia drag & drop' },
+  ]
 
   return (
     <GlassCard className="space-y-3">
       <FeatureHeader Icon={MonitorSmartphone} title="Kiosk" badge={current ? 'Risveglio attivo' : 'Solo tocco'} tone={current ? 'ok' : 'neutral'} />
+      <div className="space-y-1.5">
+        <label className="flex items-center gap-1.5 text-xs font-medium text-black/50"><LayoutGrid size={12} /> Home del tablet</label>
+        <div className="flex gap-2">
+          {modes.map((m) => (
+            <button
+              key={m.id}
+              disabled={isPending}
+              onClick={() => update({ kiosk: { ...config?.kiosk, homeMode: m.id } })}
+              className={cn('min-h-[44px] flex-1 rounded-[12px] text-sm font-medium transition', homeMode === m.id ? 'bg-[#0066cc] text-white' : 'bg-black/[0.06] text-black/60')}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
+        <p className="text-[11px] text-black/40">
+          {homeMode === 'grid'
+            ? 'Sul tablet appare "Modifica disposizione": trascina le card dove vuoi e salva. La modifica arriva live.'
+            : 'Le card si scelgono da sole per rilevanza (composer): niente da disporre.'}
+        </p>
+      </div>
       <p className="text-[12px] text-black/40">
         Dopo 3 minuti di inattività il tablet passa alla modalità ambient (orologio, meteo, drift anti-burn-in).
         Con un sensore di presenza la dashboard si risveglia da sola quando qualcuno passa.
@@ -395,7 +530,7 @@ function KioskCard() {
         <select
           value={current}
           disabled={isPending}
-          onChange={(e) => update({ kiosk: { wakeEntityId: e.target.value || undefined } })}
+          onChange={(e) => update({ kiosk: { ...config?.kiosk, wakeEntityId: e.target.value || undefined } })}
           className="w-full min-h-[44px] rounded-[12px] bg-black/8 px-3 py-3 text-sm text-[#1d1d1f] outline-none focus:bg-black/12"
         >
           <option value="">— nessuno (solo tocco) —</option>
