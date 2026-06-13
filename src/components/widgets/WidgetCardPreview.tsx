@@ -1,59 +1,45 @@
 import {
-  Activity, Battery, Bell, Blinds, CalendarDays, Camera, CloudSun,
-  Droplets, Fan, Gauge, Home, Lightbulb, ListChecks, Lock, Music2, PlugZap,
-  Power, Radio, Shield, Sparkles, Thermometer, Timer, ToggleRight, Tv, UserRound,
-  Waves, Wifi, Wind, Zap,
+  Battery, Blinds, Droplets, Fan, Home, Lightbulb, Lock, Music2,
+  Power, Shield, Sparkles, Thermometer, Tv, UserRound, Zap,
 } from 'lucide-react'
-import { WidgetCardBadge, WidgetCardHeader, WidgetCardRing, WidgetCardShell, WidgetCardValue } from './WidgetCardBase'
+import type { ElementType } from 'react'
+import { WidgetCardIcon, WidgetCardIdentity, WidgetCardShell, WidgetCardToggle } from './WidgetCardBase'
 import { widgetTones } from './utils/getRingColorScale'
 import type { WidgetVisualSize } from './types'
 
-const families = [
-  ['Light', Lightbulb, widgetTones.light, 82],
-  ['Switch', Power, widgetTones.ok, 100],
-  ['SmartPlug', PlugZap, widgetTones.energy, 44],
-  ['Climate', Thermometer, widgetTones.heat, 23],
-  ['Thermostat', Gauge, widgetTones.cool, 21],
-  ['Fan', Fan, widgetTones.cool, 65],
-  ['Cover', Blinds, widgetTones.energy, 48],
-  ['Curtain', Blinds, widgetTones.energy, 64],
-  ['Gate', Home, widgetTones.warning, 100],
-  ['Garage', Home, widgetTones.warning, 100],
-  ['Lock', Lock, widgetTones.ok, 100],
-  ['Alarm', Shield, widgetTones.critical, 100],
-  ['Motion', Activity, widgetTones.cool, 100],
-  ['Presence', UserRound, widgetTones.ok, 100],
-  ['DoorWindow', Home, widgetTones.warning, 100],
-  ['Temperature', Thermometer, widgetTones.cool, 22],
-  ['Humidity', Droplets, widgetTones.water, 58],
-  ['AirQuality', Wind, widgetTones.ok, 42],
-  ['SmokeGasCO', Shield, widgetTones.critical, 100],
-  ['WaterLeak', Waves, widgetTones.water, 100],
-  ['Battery', Battery, widgetTones.ok, 74],
-  ['Weather', CloudSun, widgetTones.light, 24],
-  ['Calendar', CalendarDays, widgetTones.media, 1],
-  ['News', ListChecks, widgetTones.neutral, 3],
-  ['Camera', Camera, widgetTones.cool, 100],
-  ['Doorbell', Bell, widgetTones.cool, 100],
-  ['Energy', Zap, widgetTones.energy, 52],
-  ['Solar', Zap, widgetTones.light, 76],
-  ['Water', Droplets, widgetTones.water, 34],
-  ['Irrigation', Waves, widgetTones.water, 66],
-  ['Pool', Waves, widgetTones.water, 27],
-  ['Vacuum', Gauge, widgetTones.ok, 88],
-  ['MediaPlayer', Music2, widgetTones.media, 72],
-  ['Speaker', Radio, widgetTones.media, 44],
-  ['TV', Tv, widgetTones.media, 100],
-  ['Scene', Sparkles, widgetTones.media, 100],
-  ['Automation', ListChecks, widgetTones.ok, 100],
-  ['Script', Sparkles, widgetTones.media, 100],
-  ['Timer', Timer, widgetTones.warning, 35],
-  ['Reminder', CalendarDays, widgetTones.warning, 1],
-  ['NetworkStatus', Wifi, widgetTones.cool, 100],
-  ['SystemStatus', Activity, widgetTones.ok, 100],
-  ['RoomSummary', Home, widgetTones.ok, 4],
-  ['GenericEntity', ToggleRight, widgetTones.neutral, 50],
-] as const
+/**
+ * Vetrina statica (solo desktop) dell'anatomia card a due zone: icona+controllo
+ * in alto, nome+stato in basso. Copre le famiglie principali e gli stati base.
+ */
+const SAMPLES: {
+  label: string
+  Icon: ElementType
+  tone: { color: string }
+  active: boolean
+  state: string
+  stateAccent?: boolean
+  value?: string
+  unit?: string
+  toggle?: boolean
+}[] = [
+  { label: 'Luce soggiorno', Icon: Lightbulb, tone: widgetTones.light, active: true, state: 'Accesa · 80%', toggle: true },
+  { label: 'Luce studio', Icon: Lightbulb, tone: widgetTones.light, active: false, state: 'Spenta', toggle: true },
+  { label: 'Presa lavatrice', Icon: Zap, tone: widgetTones.energy, active: true, state: 'Acceso · 480 W', toggle: true },
+  { label: 'Termostato', Icon: Thermometer, tone: widgetTones.heat, active: true, state: 'Riscalda · stanza 19,8°', stateAccent: true, value: '21,5', unit: '°' },
+  { label: 'Ventilatore', Icon: Fan, tone: widgetTones.cool, active: true, state: 'Acceso · 65%', toggle: true },
+  { label: 'Tapparella cucina', Icon: Blinds, tone: widgetTones.cool, active: false, state: 'Chiusa' },
+  { label: 'Porta ingresso', Icon: Lock, tone: widgetTones.ok, active: false, state: 'Bloccata' },
+  { label: 'Allarme', Icon: Shield, tone: widgetTones.ok, active: false, state: 'Disinserito' },
+  { label: 'Sensore salotto', Icon: Thermometer, tone: widgetTones.ok, active: false, state: '', value: '21,5', unit: '°' },
+  { label: 'Umidità bagno', Icon: Droplets, tone: widgetTones.water, active: false, state: '', value: '58', unit: '%' },
+  { label: 'Batteria UPS', Icon: Battery, tone: widgetTones.ok, active: false, state: '', value: '74', unit: '%' },
+  { label: 'Davide', Icon: UserRound, tone: widgetTones.ok, active: true, state: 'In casa' },
+  { label: 'TV salotto', Icon: Tv, tone: widgetTones.media, active: true, state: 'In riproduzione' },
+  { label: 'Sonos cucina', Icon: Music2, tone: widgetTones.media, active: false, state: 'In pausa' },
+  { label: 'Scena Serata film', Icon: Sparkles, tone: widgetTones.media, active: false, state: 'Scena' },
+  { label: 'Aspirapolvere', Icon: Home, tone: widgetTones.ok, active: false, state: 'Alla base · 88%' },
+  { label: 'Interruttore giardino', Icon: Power, tone: widgetTones.ok, active: false, state: 'Spento', toggle: true },
+]
 
 const sizes: WidgetVisualSize[] = ['S', 'M', 'L']
 
@@ -62,45 +48,51 @@ export function WidgetCardPreview() {
     <div className="space-y-4">
       <div>
         <p className="text-sm font-semibold text-[#1d1d1f]">Preview card S/M/L</p>
-        <p className="mt-0.5 text-xs text-black/40">Solo desktop: copertura visiva delle famiglie widget e degli stati base.</p>
+        <p className="mt-0.5 text-xs text-black/40">Solo desktop: anatomia a due zone, vetro neutro, colore solo nell'icona e nello stato.</p>
       </div>
 
       <div className="grid gap-4">
-        {families.map(([label, Icon, tone, value]) => (
-          <div key={label} className="grid grid-cols-[120px_minmax(0,1fr)] gap-3 rounded-[14px] border border-black/8 bg-black/[0.025] p-3">
-            <div className="flex items-center text-xs font-bold text-black/45">{label}</div>
+        {SAMPLES.map((s) => (
+          <div key={s.label} className="grid grid-cols-[140px_minmax(0,1fr)] gap-3 rounded-[14px] border border-black/8 bg-black/[0.025] p-3">
+            <div className="flex items-center text-xs font-bold text-black/45">{s.label}</div>
             <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
               {sizes.map((size) => (
                 <WidgetCardShell
-                  key={`${label}-${size}`}
-                  title={label}
-                  type={label}
+                  key={`${s.label}-${size}`}
+                  title={s.label}
+                  type={s.label}
                   size={size}
-                  icon={Icon}
-                  accentColor={tone.color}
-                  gradient={tone.gradient}
-                  isActive={value > 0}
-                  animationPreset={label === 'Fan' ? 'fanSpin' : label === 'Energy' || label === 'Solar' ? 'energyFlow' : value > 90 ? 'pulse' : 'softGlow'}
+                  icon={s.Icon}
+                  accentColor={s.tone.color}
+                  isActive={s.active}
                 >
-                  <WidgetCardHeader title={label} subtitle={size === 'S' ? undefined : 'Stato preview'} Icon={Icon} accentColor={tone.color} size={size} trailing={<WidgetCardBadge tone={value > 90 ? 'ok' : 'neutral'}>{size}</WidgetCardBadge>} />
-                  <div className="mt-3 flex flex-1 items-center gap-3">
-                    {size !== 'S' && <WidgetCardRing value={Math.min(value, 100)} size={size} color={tone.color} />}
-                    <WidgetCardValue value={value} unit={label.includes('Temperature') || label.includes('Climate') ? 'C' : value > 10 ? '%' : undefined} secondary={size === 'L' ? 'active / loading / error / unavailable / edit' : 'active'} size={size} />
+                  <div className="flex items-start justify-between gap-2">
+                    <WidgetCardIcon Icon={s.Icon} size={size} accentColor={s.tone.color} active={s.active} />
+                    {s.toggle && <WidgetCardToggle checked={s.active} onToggle={() => {}} color={s.tone.color} />}
                   </div>
+                  <WidgetCardIdentity
+                    title={s.label}
+                    state={s.state || undefined}
+                    stateColor={s.stateAccent ? s.tone.color : undefined}
+                    value={s.value}
+                    unit={s.unit}
+                    size={size}
+                    active={s.active}
+                  />
                 </WidgetCardShell>
               ))}
             </div>
           </div>
         ))}
-      </div>
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
-        <WidgetCardShell title="Loading" size="M" isLoading />
-        <WidgetCardShell title="Error" size="M" isError />
-        <WidgetCardShell title="Unavailable" size="M" isUnavailable />
-        <WidgetCardShell title="Edit mode" size="M" icon={Sparkles} isEditing accentColor={widgetTones.cool.color}>
-          <WidgetCardHeader title="Edit mode" subtitle="Drag only" Icon={Sparkles} accentColor={widgetTones.cool.color} size="M" />
-        </WidgetCardShell>
+        <div className="grid grid-cols-[140px_minmax(0,1fr)] gap-3 rounded-[14px] border border-black/8 bg-black/[0.025] p-3">
+          <div className="flex items-center text-xs font-bold text-black/45">Stati</div>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+            <WidgetCardShell title="Caricamento" size="M" isLoading />
+            <WidgetCardShell title="Sensore offline" size="M" isUnavailable />
+            <WidgetCardShell title="Errore azione" size="M" isError />
+          </div>
+        </div>
       </div>
     </div>
   )

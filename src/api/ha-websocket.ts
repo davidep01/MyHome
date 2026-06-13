@@ -1,5 +1,6 @@
 import type { HassEntities, HassEntity } from 'home-assistant-js-websocket'
 import { useEntityStore } from '../store/entities'
+import { useDoorbellEvents } from '../store/doorbellEvents'
 import { haApi } from './backend'
 
 /**
@@ -18,6 +19,7 @@ type HaStreamEvent =
   | { type: 'snapshot'; entities: HassEntity[] }
   | { type: 'delta'; changed: HassEntity[]; removed: string[] }
   | { type: 'error'; message: string }
+  | { type: 'doorbell-test'; doorbellId: string }
 
 const PROXY_POLL_MS = 4000
 /** Delta coalescing window: many SSE frames → one store update. */
@@ -73,6 +75,9 @@ function applyStreamEvent(event: HaStreamEvent): void {
     store.setConnectionStatus('connected')
   } else if (event.type === 'error') {
     store.setConnectionStatus('error', event.message)
+  } else if (event.type === 'doorbell-test') {
+    // Prova dal pannello desktop: ogni client connesso suona (tablet incluso).
+    useDoorbellEvents.getState().triggerTest(event.doorbellId)
   }
 }
 

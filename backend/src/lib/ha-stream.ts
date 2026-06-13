@@ -32,6 +32,8 @@ export type HaStreamEvent =
   | { type: 'snapshot'; entities: HaEntityLike[] }
   | { type: 'delta'; changed: HaEntityLike[]; removed: string[] }
   | { type: 'error'; message: string }
+  /** Prova campanello (Funzioni → Campanelli → Prova): suona su TUTTI i client. */
+  | { type: 'doorbell-test'; doorbellId: string }
 
 type Subscriber = (event: HaStreamEvent, id: number) => void
 
@@ -71,6 +73,16 @@ function pushEvent(event: HaStreamEvent): void {
     ring = []
   }
   broadcast(event, eventSeq)
+}
+
+/**
+ * Suonata di prova: viaggia sul canale dati esistente (lo stream HA, l'unico
+ * accessibile anche dal tablet) come evento one-shot — fuori dal ring buffer,
+ * una prova non deve ri-suonare dopo una riconnessione.
+ */
+export function broadcastDoorbellTest(doorbellId: string): void {
+  eventSeq += 1
+  broadcast({ type: 'doorbell-test', doorbellId }, eventSeq)
 }
 
 // ── Poll fallback (the original loop, unchanged in spirit) ──────────────────

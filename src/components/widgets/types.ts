@@ -36,57 +36,14 @@ export type WidgetCardStatus =
   | 'editing'
   | 'dragging'
 
-export type WidgetAnimationPreset =
-  | 'none'
-  | 'softGlow'
-  | 'pulse'
-  | 'breathing'
-  | 'shimmer'
-  | 'rotate'
-  | 'ripple'
-  | 'wave'
-  | 'snow'
-  | 'heat'
-  | 'rain'
-  | 'fanSpin'
-  | 'lockSnap'
-  | 'gateSlide'
-  | 'blindMove'
-  | 'alarmPulse'
-  | 'liveBlink'
-  | 'energyFlow'
-  | 'waterWave'
-  | 'sparkle'
-  | 'errorShake'
-  | 'successPop'
-
-export interface WidgetAction {
-  id: string
-  label: string
-  Icon?: ElementType
-  onClick: () => void
-  disabled?: boolean
-  primary?: boolean
-}
-
 export interface WidgetCardBaseProps {
   id?: string
   type?: string
   size?: WidgetVisualSize
   title: string
-  subtitle?: string
   icon?: ElementType
-  state?: string
   status?: WidgetCardStatus
-  primaryValue?: ReactNode
-  secondaryValue?: ReactNode
-  unit?: string
-  room?: string
-  entityId?: string
-  deviceClass?: string
   accentColor?: string
-  gradient?: string
-  animationPreset?: WidgetAnimationPreset
   isActive?: boolean
   isLoading?: boolean
   isError?: boolean
@@ -94,7 +51,6 @@ export interface WidgetCardBaseProps {
   isOffline?: boolean
   isEditing?: boolean
   isDragging?: boolean
-  actions?: WidgetAction[]
   children?: ReactNode
   className?: string
   onClick?: () => void

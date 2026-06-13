@@ -1,27 +1,30 @@
 import { motion, type HTMLMotionProps } from 'framer-motion'
-import { AlertTriangle, GripVertical, Loader2, WifiOff } from 'lucide-react'
-import type { CSSProperties, ElementType, ReactNode } from 'react'
+import { AlertTriangle, GripVertical, Lock, LockOpen, WifiOff } from 'lucide-react'
+import { useRef, useState } from 'react'
+import type { CSSProperties, ElementType, PointerEvent as ReactPointerEvent, ReactNode } from 'react'
 import { cn } from '../../lib/utils'
 import { getWidgetSizeConfig } from './utils/getWidgetSizeConfig'
 import { widgetTones } from './utils/getRingColorScale'
-import type { WidgetAnimationPreset, WidgetCardBaseProps, WidgetVisualSize } from './types'
+import type { WidgetCardBaseProps, WidgetVisualSize } from './types'
 
-function presetClass(preset?: WidgetAnimationPreset) {
-  if (!preset || preset === 'none') return ''
-  return `widget-anim-${preset}`
-}
-
+/**
+ * Card entità — anatomia HomeKit a due zone:
+ *   [icona]                [controllo]
+ *   …spazio…
+ *   Nome dispositivo
+ *   Stato · dettaglio
+ * Vetro neutro identico per ogni famiglia; attiva = vetro più bianco
+ * (`.widget-card-fill`, solo opacity). Il colore vive nell'icona e nello
+ * stato, mai come lavaggio di fondo. Niente ring, gradienti od ombre esterne.
+ */
 export function WidgetCardShell({
   id,
   type,
   size = 'M',
   title,
-  subtitle,
   icon: Icon,
   status = 'default',
   accentColor = widgetTones.neutral.color,
-  gradient,
-  animationPreset = 'none',
   isActive = false,
   isLoading = false,
   isError = false,
@@ -29,7 +32,6 @@ export function WidgetCardShell({
   isOffline = false,
   isEditing = false,
   isDragging = false,
-  actions,
   children,
   className,
   onClick,
@@ -56,28 +58,20 @@ export function WidgetCardShell({
         }
       } : undefined}
       className={cn(
-        // Il preset NON va sulla shell: ruoterebbe/lampeggerebbe l'intera card
-        // (es. fanSpin). Vive solo nel motion-layer e nelle parti delle icone.
-        'widget-card-shell glass glass-border relative flex h-full min-w-0 flex-col overflow-hidden rounded-[18px]',
+        'widget-card-shell relative flex h-full min-w-0 flex-col overflow-hidden rounded-[18px]',
         cfg.paddingClass,
         interactive && 'cursor-pointer select-none',
         isActive && 'widget-card-active',
-        isUnavailable && 'widget-card-muted',
-        isOffline && 'widget-card-muted',
+        (isUnavailable || isOffline) && 'widget-card-muted',
         isDragging && 'widget-card-dragging',
         className,
       )}
-      style={{
-        minHeight: cfg.minHeight,
-        '--widget-accent': accentColor,
-        '--widget-gradient': gradient ?? 'linear-gradient(135deg, rgba(255,255,255,0.80), rgba(255,255,255,0.44))',
-        '--widget-glow': isActive ? `${accentColor}3b` : 'rgba(0,0,0,0)',
-      } as CSSProperties}
-      whileTap={interactive ? { scale: 0.982 } : undefined}
+      style={{ minHeight: cfg.minHeight, '--widget-accent': accentColor } as CSSProperties}
+      whileTap={interactive ? { scale: 0.97 } : undefined}
       transition={{ type: 'spring', stiffness: 520, damping: 34 }}
     >
-      <WidgetCardMotionLayer preset={animationPreset} active={isActive} />
-      <WidgetCardGlossLayer />
+      {/* Stato attivo = vetro più luminoso: layer bianco che fa solo fade. */}
+      <span className="widget-card-fill absolute inset-0 z-0" aria-hidden="true" />
       <div className="relative z-10 flex h-full min-h-0 flex-col">
         {isLoading ? (
           <WidgetCardSkeleton size={size} />
@@ -88,10 +82,10 @@ export function WidgetCardShell({
         ) : (
           children ?? (
             <>
-              <WidgetCardHeader title={title} subtitle={subtitle} Icon={Icon} accentColor={accentColor} size={size} />
-              <div className="mt-auto">
-                {actions?.length ? <WidgetCardActions actions={actions} /> : null}
+              <div className="flex items-start justify-between gap-2">
+                {Icon && <WidgetCardIcon Icon={Icon} size={size} accentColor={accentColor} active={isActive} />}
               </div>
+              <WidgetCardIdentity title={title} size={size} active={isActive} />
             </>
           )
         )}
@@ -101,39 +95,11 @@ export function WidgetCardShell({
   )
 }
 
-export function WidgetCardHeader({
-  title,
-  subtitle,
-  Icon,
-  accentColor = widgetTones.neutral.color,
-  size = 'M',
-  active = false,
-  trailing,
-}: {
-  title: string
-  subtitle?: ReactNode
-  Icon?: ElementType
-  accentColor?: string
-  size?: WidgetVisualSize
-  /** Attiva le parti animate dell'icona (vedi src/components/icons/animated.tsx). */
-  active?: boolean
-  trailing?: ReactNode
-}) {
-  const cfg = getWidgetSizeConfig(size)
-  return (
-    <div className="flex min-w-0 items-start justify-between gap-2">
-      <div className="flex min-w-0 items-center gap-2.5">
-        {Icon && <WidgetCardIcon Icon={Icon} size={size} accentColor={accentColor} active={active} />}
-        <div className="min-w-0">
-          <p className={cn('line-clamp-2 font-semibold leading-tight text-[#1d1d1f]', cfg.titleClass)}>{title}</p>
-          {subtitle && <p className="mt-0.5 truncate text-xs font-medium text-black/45">{subtitle}</p>}
-        </div>
-      </div>
-      {trailing}
-    </div>
-  )
-}
-
+/**
+ * Il glifo della card: cerchio piatto, colorato SOLO quando il dispositivo è
+ * attivo (come HomeKit). `widget-card-icon-active` accende anche le parti
+ * animate delle icone SVG (.ai-part).
+ */
 export function WidgetCardIcon({
   Icon,
   size = 'M',
@@ -146,17 +112,15 @@ export function WidgetCardIcon({
   active?: boolean
 }) {
   const cfg = getWidgetSizeConfig(size)
-  const box = size === 'S' ? 40 : size === 'M' ? 44 : 52
+  const box = size === 'S' ? 34 : size === 'M' ? 38 : 44
   return (
     <span
-      // `widget-card-icon-active` è anche il contesto che accende le parti
-      // animate delle icone SVG (.ai-part) — niente preset sul puck.
       className={cn('widget-card-icon flex shrink-0 items-center justify-center rounded-full', active && 'widget-card-icon-active')}
       style={{
         width: box,
         height: box,
-        background: `${accentColor}1f`,
-        color: accentColor,
+        background: active ? `color-mix(in srgb, ${accentColor} 15%, transparent)` : 'rgba(0,0,0,0.05)',
+        color: active ? accentColor : 'rgba(29,29,31,0.40)',
       }}
     >
       <Icon size={cfg.icon} />
@@ -164,183 +128,58 @@ export function WidgetCardIcon({
   )
 }
 
-export function WidgetCardValue({
+/** Blocco identità in basso: (valore grande) + nome + riga di stato. */
+export function WidgetCardIdentity({
+  title,
+  state,
+  stateColor,
   value,
   unit,
-  secondary,
   size = 'M',
+  active = false,
+  singleLineTitle = false,
 }: {
-  value: ReactNode
+  title: string
+  state?: string
+  /** Colore della riga di stato quando significativo (riscalda, allarme…). */
+  stateColor?: string
+  value?: string
   unit?: string
-  secondary?: ReactNode
   size?: WidgetVisualSize
+  active?: boolean
+  /** true quando sotto c'è lo slider: il nome non deve rubargli la riga. */
+  singleLineTitle?: boolean
 }) {
   const cfg = getWidgetSizeConfig(size)
   return (
-    <div className="min-w-0">
-      <div className={cn('font-semibold leading-none tracking-normal text-[#1d1d1f] tabular-nums', cfg.valueClass)}>
-        {value}
-        {unit && <span className="ml-1 align-baseline text-base font-medium text-black/45">{unit}</span>}
-      </div>
-      {secondary && <p className="mt-1 truncate text-xs font-medium text-black/45">{secondary}</p>}
-    </div>
-  )
-}
-
-export function WidgetCardBadge({ children, tone = 'neutral' }: { children: ReactNode; tone?: keyof typeof widgetTones }) {
-  const t = widgetTones[tone]
-  return (
-    <span className="inline-flex min-h-6 items-center rounded-full px-2.5 text-[11px] font-bold" style={{ background: t.bg, color: t.color }}>
-      {children}
-    </span>
-  )
-}
-
-export function WidgetCardFooter({ children }: { children: ReactNode }) {
-  return <div className="mt-auto flex min-h-[28px] items-center justify-between gap-2 pt-2">{children}</div>
-}
-
-export function WidgetCardActions({ actions }: { actions: NonNullable<WidgetCardBaseProps['actions']> }) {
-  return (
-    <div className="flex flex-wrap items-center gap-2">
-      {actions.map(({ id, label, Icon, onClick, disabled, primary }) => (
-        <button
-          key={id}
-          type="button"
-          onClick={(event) => { event.stopPropagation(); onClick() }}
-          disabled={disabled}
-          className={cn(
-            'inline-flex min-h-[48px] items-center justify-center gap-1.5 rounded-full px-4 text-sm font-semibold transition active:scale-95 disabled:opacity-40',
-            primary ? 'bg-[#1d1d1f] text-white' : 'bg-black/[0.07] text-black/60',
-          )}
-          aria-label={label}
-        >
-          {Icon && <Icon size={16} />}
-          <span>{label}</span>
-        </button>
-      ))}
-    </div>
-  )
-}
-
-export function WidgetCardRing({
-  value,
-  max = 100,
-  size = 'M',
-  color = widgetTones.neutral.color,
-  trackColor = 'rgba(0,0,0,0.08)',
-  label,
-  children,
-}: {
-  value: number
-  max?: number
-  size?: WidgetVisualSize
-  color?: string
-  trackColor?: string
-  label?: string
-  children?: ReactNode
-}) {
-  const cfg = getWidgetSizeConfig(size)
-  const px = cfg.ring
-  const pct = Math.max(0, Math.min(1, value / max))
-  const deg = pct * 360
-  return (
-    <div className="widget-ring relative grid shrink-0 place-items-center rounded-full" style={{ width: px, height: px }}>
-      <div
-        className="absolute inset-0 rounded-full"
-        style={{
-          background: `conic-gradient(${color} ${deg}deg, ${trackColor} 0deg)`,
-        }}
-      />
-      {/* niente backdrop-blur annidato: blur dentro la card frosted costa caro sulle GPU dei tablet */}
-      <div className="absolute inset-[5px] rounded-full bg-white/85" />
-      <div className="relative z-10 grid place-items-center text-center">
-        {children ?? (
-          <>
-            <span className="text-base font-bold leading-none tabular-nums text-[#1d1d1f]">{Math.round(value)}</span>
-            {label && <span className="mt-0.5 text-[10px] font-semibold text-black/42">{label}</span>}
-          </>
-        )}
-      </div>
-    </div>
-  )
-}
-
-export function WidgetCardDial({
-  value,
-  min = 0,
-  max = 40,
-  current,
-  size = 'M',
-  color = widgetTones.cool.color,
-  children,
-}: {
-  value: number
-  min?: number
-  max?: number
-  current?: number
-  size?: WidgetVisualSize
-  color?: string
-  children?: ReactNode
-}) {
-  const cfg = getWidgetSizeConfig(size)
-  const px = cfg.ring
-  const pct = Math.max(0, Math.min(1, (value - min) / (max - min)))
-  const currentPct = current === undefined ? null : Math.max(0, Math.min(1, (current - min) / (max - min)))
-  return (
-    <div className="widget-dial relative grid shrink-0 place-items-center rounded-full" style={{ width: px, height: px }}>
-      <div
-        className="absolute inset-0 rounded-full"
-        style={{
-          background: `conic-gradient(from 220deg, #0ea5e9 0deg, #22c55e 92deg, #f59e0b 188deg, #dc2626 ${Math.max(200, pct * 280)}deg, rgba(0,0,0,0.08) 0deg)`,
-        }}
-      />
-      <div className="absolute inset-[6px] rounded-full bg-white/88" />
-      {currentPct !== null && (
-        <span
-          className="absolute h-2.5 w-2.5 rounded-full bg-[#1d1d1f] shadow"
-          style={{
-            transform: `rotate(${220 + currentPct * 280}deg) translateY(calc(-${px / 2}px + 5px))`,
-            transformOrigin: '50% 50%',
-          }}
-        />
+    <div className="mt-auto min-w-0 pt-2">
+      {value !== undefined && (
+        <p className={cn('font-semibold leading-none tracking-tight text-[#1d1d1f] tabular-nums', cfg.valueClass)}>
+          {value}
+          {unit && <span className="ml-0.5 align-baseline text-[0.55em] font-semibold text-black/40">{unit}</span>}
+        </p>
       )}
-      <div className="relative z-10 grid place-items-center text-center" style={{ color }}>
-        {children}
-      </div>
+      <p className={cn(
+        'font-semibold leading-snug text-[#1d1d1f]',
+        cfg.titleClass,
+        value !== undefined ? 'mt-1 line-clamp-1 text-black/55' : singleLineTitle ? 'line-clamp-1' : 'line-clamp-2',
+        !active && value === undefined && 'text-[#1d1d1f]/80',
+      )}>
+        {title}
+      </p>
+      {state && (
+        <p
+          className="mt-0.5 truncate text-[13px] font-normal leading-snug"
+          style={{ color: stateColor ?? 'rgba(29,29,31,0.50)' }}
+        >
+          {state}
+        </p>
+      )}
     </div>
   )
 }
 
-export function WidgetCardSlider({
-  value,
-  color = widgetTones.cool.color,
-  onChange,
-  onCommit,
-}: {
-  value: number
-  color?: string
-  onChange?: (value: number) => void
-  onCommit?: (value: number) => void
-}) {
-  return (
-    <input
-      type="range"
-      min={0}
-      max={100}
-      value={Math.round(value)}
-      onChange={(event) => onChange?.(Number(event.target.value))}
-      onPointerUp={(event) => onCommit?.(Number((event.currentTarget as HTMLInputElement).value))}
-      // Regolare lo slider non deve aprire il pannello della card né avviare il drag del grid
-      onClick={(event) => event.stopPropagation()}
-      onPointerDown={(event) => event.stopPropagation()}
-      className="widget-card-slider h-8 w-full"
-      style={{ accentColor: color }}
-      aria-label="Regola valore"
-    />
-  )
-}
-
+/** Interruttore iOS — visivo 32×52, area tocco ≥44 via ::before. */
 export function WidgetCardToggle({
   checked,
   disabled,
@@ -357,27 +196,179 @@ export function WidgetCardToggle({
   return (
     <button
       type="button"
-      className={cn('widget-card-toggle relative h-9 w-[58px] rounded-full transition active:scale-95 disabled:opacity-40', checked ? 'on' : '')}
+      className={cn('widget-card-toggle relative h-8 w-[52px] shrink-0 rounded-full transition active:scale-95 disabled:opacity-40', checked ? 'on' : '')}
       style={{ '--toggle-color': color } as CSSProperties}
       onClick={(event) => { event.stopPropagation(); onToggle() }}
       disabled={disabled}
       aria-label={label}
       aria-pressed={checked}
     >
-      <span className="absolute left-[4px] top-[4px] h-7 w-7 rounded-full bg-white shadow transition-transform" />
+      <span className="absolute left-[3px] top-[3px] h-[26px] w-[26px] rounded-full bg-white shadow-sm transition-transform" />
+    </button>
+  )
+}
+
+/** Bottoncino di controllo rotondo (±, play, ↑■↓): 36px visivi, tocco 44. */
+export function WidgetCardControlButton({
+  children,
+  label,
+  onClick,
+  disabled,
+}: {
+  children: ReactNode
+  label: string
+  onClick: () => void
+  disabled?: boolean
+}) {
+  return (
+    <button
+      type="button"
+      className="widget-card-control tap-target inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-black/55 transition active:scale-90 disabled:opacity-35"
+      onClick={(event) => { event.stopPropagation(); onClick() }}
+      disabled={disabled}
+      aria-label={label}
+    >
+      {children}
+    </button>
+  )
+}
+
+/**
+ * Slider inline custom (niente input range nativo): track 5px, riempimento
+ * accent, knob bianco 26px. Pointer-driven con capture, non propaga alla card.
+ */
+export function WidgetCardSlider({
+  value,
+  color = widgetTones.cool.color,
+  onChange,
+  onCommit,
+  label = 'Regola valore',
+}: {
+  value: number
+  color?: string
+  onChange?: (value: number) => void
+  onCommit?: (value: number) => void
+  label?: string
+}) {
+  const trackRef = useRef<HTMLDivElement>(null)
+  const [drag, setDrag] = useState<number | null>(null)
+  const pct = Math.max(0, Math.min(100, drag ?? value))
+
+  const valueFromPointer = (event: ReactPointerEvent) => {
+    const rect = trackRef.current?.getBoundingClientRect()
+    if (!rect || rect.width === 0) return pct
+    return Math.max(0, Math.min(100, Math.round(((event.clientX - rect.left) / rect.width) * 100)))
+  }
+
+  return (
+    <div
+      ref={trackRef}
+      role="slider"
+      aria-label={label}
+      aria-valuenow={Math.round(pct)}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      className="tap-target relative h-7 w-full touch-none select-none"
+      onClick={(event) => event.stopPropagation()}
+      onPointerDown={(event) => {
+        event.stopPropagation()
+        event.currentTarget.setPointerCapture(event.pointerId)
+        const v = valueFromPointer(event)
+        setDrag(v)
+        onChange?.(v)
+      }}
+      onPointerMove={(event) => {
+        if (drag === null) return
+        const v = valueFromPointer(event)
+        setDrag(v)
+        onChange?.(v)
+      }}
+      onPointerUp={(event) => {
+        if (drag === null) return
+        onCommit?.(valueFromPointer(event))
+        setDrag(null)
+      }}
+      onPointerCancel={() => setDrag(null)}
+    >
+      <span className="absolute inset-x-0 top-1/2 h-[5px] -translate-y-1/2 rounded-full bg-black/10" />
+      <span
+        className="absolute left-0 top-1/2 h-[5px] -translate-y-1/2 rounded-full"
+        style={{ width: `${pct}%`, background: color }}
+      />
+      <span
+        className="widget-card-slider-knob absolute top-1/2"
+        style={{ left: `${pct}%` }}
+      />
+    </div>
+  )
+}
+
+/**
+ * Serrature: MAI un toggle (canone). Da bloccata si apre con pressione
+ * prolungata 900ms — il disco interno si riempie (transform-only) come
+ * conferma di progresso; da sbloccata un tap richiude.
+ */
+export function WidgetCardHoldButton({
+  locked,
+  onUnlock,
+  onLock,
+  disabled,
+  accentColor = widgetTones.warning.color,
+}: {
+  locked: boolean
+  onUnlock: () => void
+  onLock: () => void
+  disabled?: boolean
+  accentColor?: string
+}) {
+  const [holding, setHolding] = useState(false)
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const cancel = () => {
+    if (timer.current) clearTimeout(timer.current)
+    timer.current = null
+    setHolding(false)
+  }
+  const start = (event: ReactPointerEvent) => {
+    event.stopPropagation()
+    if (disabled) return
+    if (!locked) { onLock(); return }
+    setHolding(true)
+    timer.current = setTimeout(() => { cancel(); onUnlock() }, 900)
+  }
+
+  return (
+    <button
+      type="button"
+      className={cn(
+        'widget-card-control tap-target relative inline-flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full text-black/55 transition disabled:opacity-35',
+        holding && 'scale-95',
+      )}
+      onPointerDown={start}
+      onPointerUp={cancel}
+      onPointerLeave={cancel}
+      onClick={(event) => event.stopPropagation()}
+      disabled={disabled}
+      aria-label={locked ? 'Tieni premuto per sbloccare' : 'Blocca'}
+    >
+      {holding && (
+        <span
+          className="widget-card-hold-fill absolute inset-0 rounded-full"
+          style={{ background: `color-mix(in srgb, ${accentColor} 30%, transparent)` }}
+        />
+      )}
+      <span className="relative">{locked ? <LockOpen size={16} /> : <Lock size={16} />}</span>
     </button>
   )
 }
 
 export function WidgetCardSkeleton({ size = 'M' }: { size?: WidgetVisualSize }) {
-  const lines = size === 'S' ? 2 : size === 'M' ? 3 : 4
   return (
-    <div className="flex h-full flex-col gap-3">
-      <div className="h-10 w-10 rounded-full bg-black/[0.06] widget-anim-shimmer" />
-      <div className="mt-auto space-y-2">
-        {Array.from({ length: lines }).map((_, index) => (
-          <div key={index} className={cn('h-3 rounded-full bg-black/[0.06] widget-anim-shimmer', index === 0 ? 'w-2/3' : 'w-full')} />
-        ))}
+    <div className="flex h-full flex-col">
+      <div className="h-9 w-9 rounded-full bg-black/[0.06] widget-anim-shimmer" />
+      <div className="mt-auto space-y-2 pt-2">
+        <div className="h-3.5 w-2/3 rounded-full bg-black/[0.06] widget-anim-shimmer" />
+        {size !== 'S' && <div className="h-3 w-1/2 rounded-full bg-black/[0.05] widget-anim-shimmer" />}
       </div>
     </div>
   )
@@ -386,13 +377,13 @@ export function WidgetCardSkeleton({ size = 'M' }: { size?: WidgetVisualSize }) 
 export function WidgetCardUnavailable({ title, offline = false }: { title: string; offline?: boolean }) {
   const Icon = offline ? WifiOff : AlertTriangle
   return (
-    <div className="flex h-full flex-col justify-between gap-3">
-      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-black/[0.06] text-black/35">
-        <Icon size={20} />
+    <div className="flex h-full flex-col">
+      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-black/[0.05] text-black/30">
+        <Icon size={17} />
       </div>
-      <div>
-        <p className="truncate text-sm font-semibold text-black/65">{title}</p>
-        <p className="mt-1 text-xs font-medium text-black/38">{offline ? 'Offline' : 'Non disponibile'}</p>
+      <div className="mt-auto pt-2">
+        <p className="line-clamp-2 text-[15px] font-semibold leading-snug text-black/55">{title}</p>
+        <p className="mt-0.5 text-[13px] text-black/35">{offline ? 'Offline' : 'Non disponibile'}</p>
       </div>
     </div>
   )
@@ -400,13 +391,13 @@ export function WidgetCardUnavailable({ title, offline = false }: { title: strin
 
 export function WidgetCardError({ title }: { title: string }) {
   return (
-    <div className="flex h-full flex-col justify-between gap-3 widget-anim-errorShake">
-      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-red-500/12 text-red-600">
-        <AlertTriangle size={20} />
+    <div className="flex h-full flex-col widget-anim-errorShake">
+      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-red-500/10 text-red-600">
+        <AlertTriangle size={17} />
       </div>
-      <div>
-        <p className="truncate text-sm font-semibold text-black/75">{title}</p>
-        <p className="mt-1 text-xs font-medium text-red-600">Errore controllato</p>
+      <div className="mt-auto pt-2">
+        <p className="line-clamp-2 text-[15px] font-semibold leading-snug text-black/70">{title}</p>
+        <p className="mt-0.5 text-[13px] text-red-600">Errore controllato</p>
       </div>
     </div>
   )
@@ -421,53 +412,6 @@ export function WidgetCardEditOverlay({ size }: { size: WidgetVisualSize }) {
       </div>
     </div>
   )
-}
-
-export function WidgetCardMotionLayer({ preset, active }: { preset?: WidgetAnimationPreset; active?: boolean }) {
-  if (!active || !preset || preset === 'none') return null
-  return <span className={cn('widget-card-motion-layer absolute inset-0 z-0', presetClass(preset))} aria-hidden="true" />
-}
-
-export function WidgetCardGlossLayer() {
-  return (
-    <>
-      {/* Liquid-glass depth stack — back → front. See `.widget-card-*` in index.css. */}
-      <span className="widget-card-gradient-layer absolute inset-0 z-0" aria-hidden="true" />
-      <span className="widget-card-lens absolute inset-0 z-0" aria-hidden="true" />
-      <span className="widget-card-gloss-layer absolute inset-0 z-0" aria-hidden="true" />
-      <span className="widget-card-state-glow absolute inset-0 z-0" aria-hidden="true" />
-    </>
-  )
-}
-
-export function WidgetIconButton({
-  children,
-  onClick,
-  label,
-  disabled,
-  className,
-}: {
-  children: ReactNode
-  onClick: () => void
-  label: string
-  disabled?: boolean
-  className?: string
-}) {
-  return (
-    <button
-      type="button"
-      className={cn('inline-flex h-12 w-12 items-center justify-center rounded-full bg-black/[0.07] text-black/60 transition active:scale-95 disabled:opacity-40', className)}
-      onClick={(event) => { event.stopPropagation(); onClick() }}
-      disabled={disabled}
-      aria-label={label}
-    >
-      {children}
-    </button>
-  )
-}
-
-export function WidgetCardLoader() {
-  return <Loader2 size={18} className="animate-spin text-black/40" />
 }
 
 export type WidgetCardShellProps = WidgetCardBaseProps & Omit<HTMLMotionProps<'div'>, keyof WidgetCardBaseProps>

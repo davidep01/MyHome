@@ -1,8 +1,8 @@
 import { Hono } from 'hono'
 import { streamSSE } from 'hono/streaming'
 import { getHABaseUrl, getHAConfig } from '../lib/ha-config.js'
-import { clientContextFromRequest } from '../lib/security.js'
-import { subscribeHaStream } from '../lib/ha-stream.js'
+import { clientContextFromRequest, desktopOnly } from '../lib/security.js'
+import { broadcastDoorbellTest, subscribeHaStream } from '../lib/ha-stream.js'
 import { haWsCommand } from '../lib/ha-ws.js'
 
 export const haRouter = new Hono()
@@ -227,6 +227,15 @@ haRouter.post('/services/:domain/:service', async (c) => {
     body: body || '{}',
   })
   return forwardResponse(res)
+})
+
+// Prova campanello dal pannello desktop: rimbalza sullo stream HA, così suona
+// su OGNI client connesso (tablet a muro incluso) senza toccare Home Assistant.
+haRouter.post('/doorbell-test', desktopOnly, async (c) => {
+  const body = await c.req.json<{ doorbellId?: string }>().catch(() => null)
+  if (!body?.doorbellId) return c.json({ error: 'doorbellId mancante' }, 400)
+  broadcastDoorbellTest(body.doorbellId)
+  return c.json({ ok: true })
 })
 
 haRouter.get('/camera-proxy/:entityId', async (c) => {

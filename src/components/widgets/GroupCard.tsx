@@ -49,30 +49,29 @@ export function GroupCard({ group, className }: { group: EntityGroup; className?
     else call('button', 'press', { entity_id: group.entityIds })
   }
 
-  const accent = anyOn ? 'rgba(234,179,8,0.16)' : 'rgba(0,0,0,0.06)'
-  const iconColor = anyOn ? '#b45309' : 'rgba(29,29,31,0.45)'
+  const accent = anyOn ? 'rgba(234,179,8,0.15)' : 'rgba(0,0,0,0.05)'
+  const iconColor = anyOn ? '#b45309' : 'rgba(29,29,31,0.40)'
 
   return (
     <GlassCard
       depth
       interactive={isOnOff}
       onClick={isOnOff ? toggleAll : undefined}
-      glow={anyOn && isOnOff ? 'rgba(234,179,8,0.22)' : undefined}
       className={cn('flex h-full items-center gap-3 min-h-[104px]', className)}
     >
       <div
-        className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-full', anyOn && 'ai-active')}
+        className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-full', anyOn && 'ai-active')}
         style={{ background: accent }}
       >
         {/* Gruppi luce senza icona custom: lampadina animata (raggi accesi). */}
         {!group.icon && type === 'light'
           ? <AnimLightbulb size={20} style={{ color: iconColor }} />
-          : <DynamicIcon name={group.icon} fallback={Layers} size={20} className="amb-float" style={{ color: iconColor }} />}
+          : <DynamicIcon name={group.icon} fallback={Layers} size={20} style={{ color: iconColor }} />}
       </div>
 
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold text-black/90">{group.label}</p>
-        <p className="mt-0.5 flex items-center gap-1.5 text-xs text-black/45">
+        <p className="truncate text-[15px] font-semibold leading-snug text-[#1d1d1f]">{group.label}</p>
+        <p className="mt-0.5 flex items-center gap-1.5 text-[13px] text-black/50">
           {anyOn && isOnOff && <LiveDot color="#eab308" size={7} />}
           {isOnOff ? `${activeCount}/${total} attive` : `${total} dispositivi`}
         </p>

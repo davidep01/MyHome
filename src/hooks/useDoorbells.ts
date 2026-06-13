@@ -32,6 +32,33 @@ export function useDoorbells(deviceOverride?: DoorbellDevice[]) {
   const prevStates = useRef<Record<string, string | undefined>>({})
   const dismissedRef = useRef<string | null>(null)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const testRing = useDoorbellEvents((s) => s.testRing)
+
+  // Suonata di PROVA (Funzioni → Campanelli → Prova): stesso percorso del ring
+  // vero — modale fullscreen, suono, log — così si verifica il tablet a muro
+  // senza scendere a premere il pulsante fisico.
+  useEffect(() => {
+    if (!testRing) return
+    // Anti-replay: un rimontaggio del componente non deve ri-suonare una prova vecchia.
+    if (Date.now() - testRing.at > 10_000) return
+    const device = devices.find((d) => d.id === testRing.doorbellId) ?? devices[0]
+    if (!device) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- il ring è guidato dall'evento SSE, come quello vero
+    setActive({ device, ringAt: Date.now() })
+    pushEvent({
+      id: uid('ev'),
+      doorbellId: device.id,
+      doorbellName: device.name,
+      timestamp: new Date().toISOString(),
+      type: 'press',
+      message: 'Suonata di prova',
+    })
+    play((device.sound as SoundPreset) ?? 'dingdong', { volume: device.volume ?? 1, key: device.id, cooldownMs: 0 })
+    if (timerRef.current) clearTimeout(timerRef.current)
+    timerRef.current = setTimeout(() => setActive(null), AUTO_DISMISS_MS)
+    // devices identity changes on every layout refetch — react only to the ring
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [testRing])
 
   useEffect(() => {
     for (const d of devices) {

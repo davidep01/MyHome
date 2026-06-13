@@ -9,7 +9,7 @@ import { useDashboardConfig, useUpdateConfig } from '../hooks/useDashboardConfig
 import { useSoundNotifications } from '../hooks/useSoundNotifications'
 import { useThemeStore } from '../store/theme'
 import { useEntityStore } from '../store/entities'
-import { systemApi, type DoorbellDevice, type KnownFace } from '../api/backend'
+import { haApi, systemApi, type DoorbellDevice, type KnownFace } from '../api/backend'
 import { fileToFaceDataUrl } from '../lib/faceImage'
 import { normalizeDoorbells } from '../lib/doorbell'
 import { uid } from '../lib/uid'
@@ -236,6 +236,13 @@ function DoorbellsCard() {
                 <p className="truncate text-sm font-medium text-[#1d1d1f]">{d.name || 'Senza nome'}</p>
                 <p className="truncate text-[11px] text-black/40">{d.location ? `${d.location} · ` : ''}{d.entityId || 'nessuna entità'}</p>
               </div>
+              <button
+                onClick={() => haApi.doorbellTest(d.id).catch(() => {})}
+                className="flex h-8 shrink-0 items-center gap-1 rounded-full bg-[#0066cc]/10 px-3 text-xs font-semibold text-[#0066cc] active:scale-95"
+                title="Suona su tutti i dispositivi connessi, tablet incluso"
+              >
+                <Bell size={12} /> Prova
+              </button>
               <button onClick={() => setDraft({ ...d })} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-black/55" aria-label="Modifica">
                 <Pencil size={13} />
               </button>
@@ -302,6 +309,12 @@ function DoorbellsCard() {
                 </select>
               </div>
             </div>
+            {lockOptions.length === 0 && (
+              <p className="rounded-[10px] bg-black/[0.035] px-3 py-2.5 text-[11px] leading-relaxed text-black/45">
+                <span className="font-semibold text-black/60">Serrature:</span> nessuna entità <code>lock.*</code> in Home Assistant.
+                Il bottone "apri porta" nel modale del campanello appare solo quando una serratura smart è integrata in HA.
+              </p>
+            )}
             {lockOptions.length > 0 && (
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-black/50">Serrature apribili dal modale ({draft.lockEntityIds?.length ?? 0})</label>

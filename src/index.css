@@ -246,141 +246,89 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
 }
 
 /* ----------------------------------------------------------------------------
-   Liquid-glass depth — every card is a translucent slab, not a flat tile.
-   Depth comes from LAYERED LIGHT (inner lens, specular sheen, edge rim, accent
-   refraction + glow), never from heavy decorative drop shadows (design-system
-   rule). All layers are gradients composited over the frosted `.glass` backdrop.
-   Paint order (back → front): family tint → accent refraction → inner lens →
-   specular sheen → accent state glow → content.
+   Card entità — vetro NEUTRO, identico per ogni famiglia (canone HomeKit).
+   Spenta = vetro più trasparente; attiva = più bianca e luminosa (il layer
+   `.widget-card-fill` fa solo fade di opacity: compositor-only). Il colore
+   vive nell'icona e nella riga di stato, mai come lavaggio di fondo.
+   Niente gradienti decorativi, niente ombre esterne (regole del design system).
    ------------------------------------------------------------------------- */
 .widget-card-shell {
-  background:
-    /* translucent glass body so the frosted backdrop reads through as glass */
-    linear-gradient(180deg, rgba(255,255,255,0.40) 0%, rgba(255,255,255,0.13) 48%, rgba(255,255,255,0.05) 100%),
-    var(--widget-gradient);
+  background: rgba(255,255,255,0.44);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.92),           /* top edge catches the light */
-    inset 0 0 0 0.5px rgba(255,255,255,0.30),         /* hairline inner rim */
-    inset 0 -16px 24px -16px rgba(17,21,28,0.16),     /* glass thickness at the base */
-    0 8px 20px -12px rgba(17,21,28,0.20);             /* soft float off the parchment */
+    inset 0 1px 0 rgba(255,255,255,0.85),            /* il bordo alto prende la luce */
+    inset 0 0 0 0.5px rgba(0,0,0,0.06);              /* hairline */
   transform: translateZ(0);
   /* Isolate each card's layout/paint: with dozens of cards in the grid the
      browser can skip re-layout/repaint of untouched siblings (kiosk GPUs). */
   contain: layout style paint;
 }
 
-/* Active = functional accent glow + brighter edges (the only glow the design
-   system allows on a card). */
-.widget-card-shell.widget-card-active {
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.96),
-    inset 0 0 0 0.5px rgba(255,255,255,0.38),
-    inset 0 -16px 26px -16px rgba(17,21,28,0.16),
-    0 8px 22px -12px rgba(17,21,28,0.20),
-    0 0 30px var(--widget-glow);
+.widget-card-fill {
+  background: rgba(255,255,255,0.78);
+  opacity: 0;
+  transition: opacity 240ms cubic-bezier(0.32,0.72,0,1);
 }
-
-/* L1 — accent refraction: tinted glass, colour pooling from the top-right corner */
-.widget-card-gradient-layer {
-  background:
-    radial-gradient(128% 96% at 88% -8%, color-mix(in srgb, var(--widget-accent) 20%, transparent), transparent 48%),
-    linear-gradient(158deg, rgba(255,255,255,0.28), transparent 44%);
-  opacity: .9;
-}
-
-/* L2 — inner lens light: a soft dome of light from above that gives the slab volume */
-.widget-card-lens {
-  background: radial-gradient(140% 80% at 50% -26%, rgba(255,255,255,0.55), rgba(255,255,255,0) 58%);
-  opacity: .72;
-}
-
-/* L3 — specular sheen: a bright highlight raking diagonally across the top-left,
-   plus a faint counter-glint along the bottom-right edge */
-.widget-card-gloss-layer {
-  background:
-    linear-gradient(122deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.30) 11%, transparent 32%),
-    linear-gradient(312deg, transparent 72%, rgba(255,255,255,0.16) 100%);
-  mix-blend-mode: screen;
-  opacity: .5;
-}
-
-/* L4 — accent state glow: a pool of the device colour, strengthened when active */
-.widget-card-state-glow {
-  background: radial-gradient(56% 56% at 84% 16%, var(--widget-glow), transparent 52%);
-  opacity: .85;
-}
+.widget-card-shell.widget-card-active .widget-card-fill { opacity: 1; }
 
 .widget-card-shell:focus-visible {
   outline: 3px solid rgba(0,102,204,0.36);
   outline-offset: 2px;
 }
 
-.widget-card-shell[data-widget-size="S"] { gap: 8px; }
-.widget-card-shell[data-widget-size="S"] .widget-card-lens { opacity: .58; }
-
-/* Larger slabs read as thicker glass — a touch more lens + sheen. */
-.widget-card-shell[data-widget-size="L"] .widget-card-lens { opacity: .85; }
-.widget-card-shell[data-widget-size="L"] .widget-card-gloss-layer { opacity: .6; }
-
-.widget-card-shell.widget-card-active .widget-card-state-glow { opacity: 1; }
-.widget-card-shell.widget-card-active .widget-card-gloss-layer { opacity: .62; }
-
-/* The icon sits on its own little glass puck — inset light + a tiny contact shadow.
-   No backdrop-filter here on purpose: a blur nested inside the card's frosted
-   blur is expensive on mid-range tablet GPUs. */
-.widget-card-icon {
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.72),
-    inset 0 -2px 5px rgba(17,21,28,0.06),
-    0 3px 7px -3px rgba(17,21,28,0.22);
-}
-
-.widget-card-icon-active {
-  filter: saturate(1.14);
-}
-
 .widget-card-muted {
   filter: saturate(.7);
-  opacity: .64;
+  opacity: .6;
 }
 
-/* Dragging lifts the slab further off the surface. */
+/* Dragging: l'unica ombra concessa — transitoria e funzionale (la card si
+   solleva dal piano mentre la trascini). */
 .widget-card-dragging {
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.95),
-    inset 0 0 0 0.5px rgba(255,255,255,0.40),
-    0 22px 42px -16px rgba(17,21,28,0.28),
-    0 0 30px var(--widget-glow);
+    inset 0 1px 0 rgba(255,255,255,0.9),
+    inset 0 0 0 0.5px rgba(0,0,0,0.06),
+    0 18px 36px -14px rgba(17,21,28,0.28);
 }
 
-/* Weak GPUs / reduced transparency: thin out the blur-heavy depth layers but keep
-   the top highlight so the card still reads as glass. */
-.perf-lite .widget-card-lens,
-.perf-lite .widget-card-gloss-layer { opacity: .3; }
+/* Bottoncino di controllo (±, play, ↑■↓): pillola di vetro con hairline. */
+.widget-card-control {
+  background: rgba(255,255,255,0.65);
+  box-shadow: inset 0 0 0 0.5px rgba(0,0,0,0.10);
+}
 
-/* perf-lite: freeze every LOOPING widget animation (weak GPU = no always-on
-   motion). Brief feedback animations (errorShake, successPop/lockSnap) and the
-   loading shimmer stay — they carry meaning, not decoration. */
-.perf-lite .widget-anim-softGlow,
-.perf-lite .widget-anim-pulse,
-.perf-lite .widget-anim-liveBlink,
-.perf-lite .widget-anim-breathing,
-.perf-lite .widget-anim-rotate,
-.perf-lite .widget-anim-fanSpin,
-.perf-lite .widget-anim-wave,
-.perf-lite .widget-anim-waterWave,
-.perf-lite .widget-anim-snow,
-.perf-lite .widget-anim-heat,
-.perf-lite .widget-anim-rain,
-.perf-lite .widget-anim-gateSlide,
-.perf-lite .widget-anim-blindMove,
-.perf-lite .widget-anim-alarmPulse,
-.perf-lite .widget-anim-sparkle,
-.perf-lite .widget-anim-energyFlow::after,
-.perf-lite .widget-anim-ripple::before { animation: none; }
+/* Knob dello slider inline: disco bianco con contatto minimo. */
+.widget-card-slider-knob {
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow:
+    inset 0 0 0 0.5px rgba(0,0,0,0.08),
+    0 1px 4px rgba(17,21,28,0.18);
+  transform: translate(-50%, -50%);
+}
+
+/* Riempimento del bottone hold-to-unlock: il disco cresce in 900ms
+   (transform-only) e al completamento parte lo sblocco. */
+@keyframes widget-hold {
+  from { transform: scale(0); }
+  to { transform: scale(1); }
+}
+.widget-card-hold-fill { animation: widget-hold 900ms linear forwards; }
+
+/* perf-lite: il blur per-card è il costo maggiore sulle GPU deboli. */
+.perf-lite .widget-card-shell {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background: rgba(255,255,255,0.78);
+}
 @media (prefers-reduced-transparency: reduce) {
-  .widget-card-lens,
-  .widget-card-gloss-layer { opacity: .32; }
+  .widget-card-shell {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: rgba(255,255,255,0.82);
+  }
 }
 
 /* ----------------------------------------------------------------------------
@@ -399,94 +347,34 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
   border-radius: inherit;
 }
 
+/* Interruttore iOS delle card: visivo 32px, tocco ≥44 via ::before. */
 .widget-card-toggle {
   background: rgba(0,0,0,0.13);
-  box-shadow: inset 0 1px 2px rgba(0,0,0,0.12);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.10);
 }
-/* tap area ≥44px tall, visual stays 36px (same trick as .lg-toggle) */
 .widget-card-toggle::before {
   content: '';
   position: absolute;
-  inset: -5px -4px;
+  inset: -7px -4px;
   border-radius: 999px;
 }
 .widget-card-toggle.on {
   background: var(--toggle-color);
 }
 .widget-card-toggle.on > span {
-  transform: translateX(22px);
+  transform: translateX(20px);
 }
 
-.widget-card-slider {
-  min-height: 48px;
-}
-
-.widget-ring,
-.widget-dial {
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.5),
-    0 8px 22px rgba(0,0,0,0.08);
-}
-
+/* Feedback delle card: shimmer di caricamento + shake sul rollback. Sono le
+   uniche animazioni di card rimaste — la vita la portano le icone animate. */
 @keyframes widget-shimmer {
   0% { transform: translateX(-80%); opacity: .28; }
   100% { transform: translateX(140%); opacity: .72; }
-}
-@keyframes widget-soft-glow {
-  0%, 100% { opacity: .45; transform: scale(1); }
-  50% { opacity: .9; transform: scale(1.06); }
-}
-@keyframes widget-pulse {
-  0%, 100% { opacity: .62; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.035); }
-}
-/* transform/opacity only — animating `filter` repaints every frame on tablet GPUs */
-@keyframes widget-breathing {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.015); }
-}
-@keyframes widget-rotate { to { transform: rotate(360deg); } }
-@keyframes widget-ripple {
-  0% { opacity: .5; transform: scale(.8); }
-  100% { opacity: 0; transform: scale(1.6); }
-}
-@keyframes widget-wave {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(3px); }
-}
-@keyframes widget-heat {
-  0%, 100% { transform: translateY(0); opacity: .85; }
-  50% { transform: translateY(-2px); opacity: 1; }
-}
-@keyframes widget-rain {
-  0% { transform: translateY(-8%); opacity: .25; }
-  100% { transform: translateY(8%); opacity: .62; }
-}
-@keyframes widget-slide {
-  0%, 100% { transform: translateX(0); }
-  50% { transform: translateX(4px); }
-}
-@keyframes widget-blind {
-  0%, 100% { clip-path: inset(0 0 0 0); }
-  50% { clip-path: inset(0 0 18% 0); }
-}
-@keyframes widget-alarm {
-  0%, 100% { opacity: .22; }
-  50% { opacity: .72; }
-}
-@keyframes widget-flow {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 140% 50%; }
 }
 @keyframes widget-error {
   0%, 100% { transform: translateX(0); }
   25% { transform: translateX(-2px); }
   75% { transform: translateX(2px); }
-}
-@keyframes widget-pop {
-  0% { transform: scale(.96); }
-  60% { transform: scale(1.035); }
-  100% { transform: scale(1); }
 }
 
 .widget-anim-shimmer {
@@ -500,71 +388,11 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
   background: linear-gradient(90deg, transparent, rgba(255,255,255,0.72), transparent);
   animation: widget-shimmer 1.8s ease-in-out infinite;
 }
-.widget-anim-softGlow,
-.widget-anim-pulse,
-.widget-anim-breathing,
-.widget-anim-heat,
-.widget-anim-rain,
-.widget-anim-energyFlow,
-.widget-anim-waterWave,
-.widget-anim-alarmPulse {
-  pointer-events: none;
-}
-.widget-anim-softGlow { animation: widget-soft-glow 4s ease-in-out infinite; }
-.widget-anim-pulse,
-.widget-anim-liveBlink { animation: widget-pulse 1.6s ease-in-out infinite; }
-.widget-anim-breathing { animation: widget-breathing 5s ease-in-out infinite; }
-.widget-anim-rotate,
-.widget-anim-fanSpin { animation: widget-rotate 3.2s linear infinite; }
-.widget-anim-ripple::before {
-  content: '';
-  position: absolute;
-  inset: 18%;
-  border-radius: inherit;
-  border: 2px solid var(--widget-accent);
-  animation: widget-ripple 1.8s ease-out infinite;
-}
-.widget-anim-wave,
-.widget-anim-waterWave { animation: widget-wave 3.8s ease-in-out infinite; }
-.widget-anim-snow { animation: widget-wave 5s ease-in-out infinite reverse; }
-.widget-anim-heat { animation: widget-heat 2.8s ease-in-out infinite; }
-.widget-anim-rain { animation: widget-rain 1.8s ease-in-out infinite alternate; }
-.widget-anim-gateSlide { animation: widget-slide 2.4s ease-in-out infinite; }
-.widget-anim-blindMove { animation: widget-blind 2.8s ease-in-out infinite; }
-.widget-anim-alarmPulse { animation: widget-alarm 1s ease-in-out infinite; }
-/* Flow as a translated overlay (compositor-only) instead of animating
-   background-position, which repaints the gradient every frame. */
-.widget-anim-energyFlow {
-  position: relative;
-  overflow: hidden;
-}
-.widget-anim-energyFlow::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--widget-accent) 24%, transparent), transparent);
-  animation: widget-shimmer 2.2s linear infinite;
-}
-.widget-anim-sparkle { animation: widget-soft-glow 2.6s ease-in-out infinite; }
 .widget-anim-errorShake { animation: widget-error .26s ease-in-out 2; }
-.widget-anim-successPop,
-.widget-anim-lockSnap { animation: widget-pop .34s cubic-bezier(.34,1.56,.64,1); }
-
-/* Il motion-layer è SEMPRE un overlay assoluto: deve vincere sui preset che
-   impostano position:relative (energyFlow/ripple/shimmer) — altrimenti lo span
-   collassa a misura zero e l'effetto sparisce. Dichiarato DOPO i preset. */
-.widget-card-motion-layer {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  border-radius: inherit;
-  pointer-events: none;
-}
 
 @media (prefers-reduced-motion: reduce) {
   .widget-card-shell,
   .widget-card-shell *,
-  .widget-card-motion-layer,
   .widget-anim-shimmer::after {
     animation: none !important;
     transition-duration: 0.01ms !important;

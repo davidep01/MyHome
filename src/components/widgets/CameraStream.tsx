@@ -42,6 +42,11 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
   const [mode, setMode] = useState<Mode>('connecting')
   const [snap, setSnap] = useState('')
   const unavailable = !entity || entity.state === 'unavailable'
+  // Il MJPEG di certe camere (Ring) non emette MAI un frame finché lo stream
+  // live non parte: senza onError l'<img> resta nera per sempre. Questi ref
+  // alimentano il watchdog e il fallback dell'handler onError in render.
+  const mjpegLoadedRef = useRef(false)
+  const mjpegFallbackRef = useRef<() => void>(() => {})
 
   useEffect(() => {
     if (unavailable) { setMode('error'); return }
@@ -51,13 +56,14 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
 
     let cancelled = false
     let hls: Hls | null = null
+    let watchdog: ReturnType<typeof setTimeout> | null = null
     setMode('connecting')
 
-    const goMjpeg = () => { if (!cancelled) setMode('mjpeg') }
+    const goSnapshot = () => { if (!cancelled) setMode('snapshot') }
 
-    const startHls = async () => {
+    const startHls = async (onFail: () => void) => {
       const video = videoRef.current
-      if (!video) return goMjpeg()
+      if (!video) return onFail()
       try {
         // hls.js è pesante (~250KB): caricato solo quando serve davvero uno stream HLS.
         const { default: Hls } = await import('hls.js')
@@ -72,23 +78,46 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
           hls.on(Hls.Events.ERROR, (_e, data) => {
             if (!data.fatal || cancelled) return
             if (data.type === Hls.ErrorTypes.MEDIA_ERROR) { try { hls?.recoverMediaError(); return } catch { /* fall through */ } }
-            goMjpeg()
+            onFail()
           })
         } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
           video.src = src
           video.addEventListener('loadedmetadata', () => { if (!cancelled) { setMode('hls'); video.play().catch(() => {}) } }, { once: true })
-          video.addEventListener('error', goMjpeg, { once: true })
-        } else goMjpeg()
+          video.addEventListener('error', onFail, { once: true })
+        } else onFail()
       } catch {
-        goMjpeg() // HLS unsupported by this camera (e.g. Ring) → MJPEG/snapshot
+        onFail() // HLS unsupported by this camera → fallback successivo
       }
     }
 
-    if (preferLive) goMjpeg()
-    else void startHls()
+    const startMjpeg = () => {
+      if (cancelled) return
+      mjpegLoadedRef.current = false
+      setMode('mjpeg')
+      // Watchdog: nessun frame entro 4s (camera che non streama) → prova HLS,
+      // e se anche quello fallisce → snapshot. L'onError dell'<img> usa lo
+      // stesso fallback (via ref), così il percorso è unico.
+      mjpegFallbackRef.current = () => { if (!cancelled) void startHls(goSnapshot) }
+      if (watchdog) clearTimeout(watchdog)
+      watchdog = setTimeout(() => {
+        if (!cancelled && !mjpegLoadedRef.current) mjpegFallbackRef.current()
+      }, 4000)
+    }
+
+    if (preferLive) startMjpeg()
+    else void startHls(() => {
+      // Catena classica: HLS → MJPEG → snapshot (watchdog incluso).
+      startMjpeg()
+      mjpegFallbackRef.current = goSnapshot
+      if (watchdog) clearTimeout(watchdog)
+      watchdog = setTimeout(() => {
+        if (!cancelled && !mjpegLoadedRef.current) goSnapshot()
+      }, 4000)
+    })
 
     return () => {
       cancelled = true
+      if (watchdog) clearTimeout(watchdog)
       hls?.destroy()
     }
   }, [entityId, preferLive, unavailable, active])
@@ -115,7 +144,13 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
       />
 
       {mode === 'mjpeg' && (
-        <img src={getCameraStreamUrl(entityId)} alt="" className={cn('absolute inset-0 h-full w-full', fitClass)} onError={() => setMode('snapshot')} />
+        <img
+          src={getCameraStreamUrl(entityId)}
+          alt=""
+          className={cn('absolute inset-0 h-full w-full', fitClass)}
+          onLoad={() => { mjpegLoadedRef.current = true }}
+          onError={() => mjpegFallbackRef.current()}
+        />
       )}
 
       {mode === 'snapshot' && snap && (

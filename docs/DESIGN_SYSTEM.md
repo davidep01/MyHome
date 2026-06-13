@@ -496,3 +496,35 @@ Zoom-out della casa in stile rivista: overlay fullscreen su parchment pieno, tit
 ### Fix di sistema
 - I preset `widget-anim-*` non vanno MAI sulla shell della card (la ruotavano/lampeggiavano): vivono nel motion-layer e nelle parti delle icone.
 - `.widget-card-motion-layer` dichiara `position:absolute` DOPO i preset: quelli con `position:relative` (energyFlow/ripple/shimmer) lo collassavano a misura zero.
+
+---
+
+## Card entità — anatomia definitiva (2026-06-13)
+
+Il sistema card è stato riscritto contro il look "AI slop" (gradienti generici,
+glitch di layout, ring decorativi). Canone attuale:
+
+```
+┌──────────────────────────────┐
+│ [icona 34-44px]   [controllo]│  ← toggle iOS / ± / ↑■↓ / play / hold-lock
+│        …spazio flessibile…   │
+│ (valore grande, solo misure) │  ← 22/28/36px tabular, solo sensori/clima/meteo
+│ Nome dispositivo             │  ← 13/15/17px·600, 2 righe (1 se slider/valore)
+│ Stato · dettaglio            │  ← 13px·400 inchiostro muto; accent solo se significativo
+│ [slider inline se attiva]    │  ← track 5px + knob bianco 26px, custom
+└──────────────────────────────┘
+```
+
+Regole dure:
+- **Vetro neutro identico per ogni famiglia**: `rgba(255,255,255,0.44)` + blur;
+  attiva = layer `.widget-card-fill` (bianco 0.78) che fa SOLO fade di opacity.
+- Il **colore vive nell'icona** (cerchio piatto: accent 15% + glifo accent da
+  attiva, nero 5% + glifo muto da spenta) e nella riga di stato quando
+  significativo (riscalda/allarme/sbloccata). Mai come lavaggio di fondo.
+- **Niente**: ring/dial, gradienti per famiglia, gloss multilayer, drop shadow
+  (eccetto il drag, transitorio), badge ridondanti, footer di bottoni 48px,
+  viola (l'accento è uno: `#0066cc`; l'ambra è delle lampadine).
+- **Serrature**: anche sulla card lo sblocco è hold 900ms (disco che si riempie,
+  transform-only); il blocco è un tap.
+- Le uniche animazioni di card: shimmer (loading) e errorShake (rollback).
+  Il movimento è delle icone animate (`.widget-card-icon-active`).

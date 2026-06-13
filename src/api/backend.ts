@@ -280,6 +280,9 @@ export const haApi = {
   cameraProxyUrl: (entityId: string) => `/api/ha/camera-proxy/${encodeURIComponent(entityId)}`,
   cameraStreamUrl: (entityId: string) => `/api/ha/camera-stream/${encodeURIComponent(entityId)}`,
   mediaUrl: (path: string) => `/api/ha/media?path=${encodeURIComponent(path)}`,
+  /** Suonata di prova: rimbalza via SSE su tutti i client (tablet incluso). */
+  doorbellTest: (doorbellId: string) =>
+    request<{ ok: boolean }>('/ha/doorbell-test', { method: 'POST', body: JSON.stringify({ doorbellId }) }),
 }
 
 // ── System status (regia) ───────────────────────────────────────────────────

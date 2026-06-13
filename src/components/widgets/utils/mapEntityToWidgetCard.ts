@@ -15,7 +15,7 @@ import { DOMAIN_TYPE } from '../../../hooks/useDiscoveredEntities'
 import { airQualityTone, batteryTone, securityTone, temperatureTone, widgetTones } from './getRingColorScale'
 import { numericState } from './formatWidgetValue'
 import { stateLabel } from './stateLabel'
-import type { WidgetAnimationPreset, WidgetCardStatus } from '../types'
+import type { WidgetCardStatus } from '../types'
 
 export type WidgetFamily =
   | 'light'
@@ -66,23 +66,29 @@ export type WidgetFamily =
   | 'roomSummary'
   | 'generic'
 
+/**
+ * Il contratto della card a due zone: il colore vive in `accentColor`
+ * (icona + stato significativo), lo stato è UNA riga leggibile, il valore
+ * grande esiste solo per le card-misura. Niente gradienti, niente ring.
+ */
 export interface WidgetEntityMapping {
   family: WidgetFamily
   type: EntityType | string
   Icon: ElementType
   title: string
-  subtitle?: string
   status: WidgetCardStatus
   accentColor: string
-  gradient: string
-  animationPreset: WidgetAnimationPreset
   isActive: boolean
   isUnavailable: boolean
-  primary: string
+  /** Riga di stato ("Accesa · 80%", "Riscalda · stanza 19,8°"). */
+  state: string
+  /** true = la riga di stato usa accentColor (caldo/freddo/allarme), non l'inchiostro muto. */
+  stateAccent?: boolean
+  /** Valore grande per le card-misura (sensori, clima, meteo). */
+  value?: string
   unit?: string
-  secondary?: string
-  ringValue?: number
-  ringMax?: number
+  /** 0..100 per lo slider inline (luminosità, velocità, umidità target). */
+  percent?: number
 }
 
 function entityName(entity?: HassEntity | null, fallback?: string) {
@@ -154,6 +160,11 @@ function mediaFamily(entity?: HassEntity | null): WidgetFamily {
   return 'media'
 }
 
+/** Formatta un numero per la riga di stato/valore: una sola cifra decimale. */
+function fmt(n: number): string {
+  return String(Math.round(n * 10) / 10).replace('.', ',')
+}
+
 export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roomEntity: RoomEntity): WidgetEntityMapping {
   const entityId = roomEntity.entityId
   const domain = domainOf(entityId)
@@ -203,77 +214,56 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
   const position = numericState(entity?.attributes?.current_position)
   const brightness = numericState(entity?.attributes?.brightness)
   const brightnessPct = brightness !== undefined ? Math.round((brightness / 255) * 100) : on ? 100 : 0
+  const base = { family, type, title, isUnavailable: unavailable }
 
   switch (family) {
     case 'light':
       return {
-        family, type, Icon: AnimLightbulb, title,
-        subtitle: unavailable ? 'Non disponibile' : undefined,
+        ...base, Icon: AnimLightbulb,
         status: on ? 'on' : 'off',
         accentColor: widgetTones.light.color,
-        gradient: widgetTones.light.gradient,
-        animationPreset: on ? 'softGlow' : 'none',
         isActive: on,
-        isUnavailable: unavailable,
-        primary: on ? `${brightnessPct}` : 'Spenta',
-        unit: on ? '%' : undefined,
-        secondary: on ? 'Luminosità' : undefined,
-        ringValue: on ? brightnessPct : undefined,
+        state: on ? (brightness !== undefined ? `Accesa · ${brightnessPct}%` : 'Accesa') : 'Spenta',
+        percent: on ? brightnessPct : undefined,
       }
     case 'smartPlug':
     case 'switch':
       return {
-        family, type, Icon: family === 'smartPlug' ? AnimZap : AnimPower, title,
-        subtitle: unavailable ? 'Non disponibile' : undefined,
+        ...base, Icon: family === 'smartPlug' ? AnimZap : AnimPower,
         status: on ? 'on' : 'off',
         accentColor: family === 'smartPlug' ? widgetTones.energy.color : widgetTones.ok.color,
-        gradient: family === 'smartPlug' ? widgetTones.energy.gradient : widgetTones.ok.gradient,
-        animationPreset: on && family === 'smartPlug' ? 'energyFlow' : 'none',
         isActive: on,
-        isUnavailable: unavailable,
-        primary: on && power !== undefined ? String(Math.round(power)) : on ? 'Acceso' : 'Spento',
-        unit: on && power !== undefined ? 'W' : undefined,
-        secondary: on && power !== undefined ? 'Consumo' : undefined,
-        ringValue: on && power !== undefined ? Math.min(100, Math.round(power / 25)) : undefined,
+        state: on ? (power !== undefined ? `Acceso · ${Math.round(power)} W` : 'Acceso') : 'Spento',
       }
     case 'climate':
     case 'thermostat': {
       const current = numericState(entity?.attributes?.current_temperature)
       const target = numericState(entity?.attributes?.temperature)
-      const tone = temperatureTone(target ?? current)
-      const mode = stateLabel(rawState)
       const action = String(entity?.attributes?.hvac_action ?? rawState)
+      const acting = action === 'heating' || action === 'cooling'
+      const tone = action === 'heating' ? widgetTones.heat : action === 'cooling' ? widgetTones.cool : temperatureTone(target ?? current)
+      const room = current !== undefined ? `stanza ${fmt(current)}°` : undefined
+      const verb = action === 'heating' ? 'Riscalda' : action === 'cooling' ? 'Raffresca' : rawState === 'off' ? 'Spento' : stateLabel(rawState)
       return {
-        family, type, Icon: action === 'cooling' ? AnimSnowflake : action === 'heating' ? AnimFlame : AnimThermometer, title,
-        subtitle: unavailable ? 'Non disponibile' : mode,
+        ...base, Icon: action === 'cooling' ? AnimSnowflake : action === 'heating' ? AnimFlame : AnimThermometer,
         status: action === 'cooling' ? 'cooling' : action === 'heating' ? 'heating' : rawState === 'off' ? 'off' : 'idle',
         accentColor: tone.color,
-        gradient: tone.gradient,
-        animationPreset: action === 'cooling' ? 'snow' : action === 'heating' ? 'heat' : action === 'fan' ? 'fanSpin' : 'none',
         isActive: rawState !== 'off' && !unavailable,
-        isUnavailable: unavailable,
-        primary: target !== undefined ? target.toFixed(1) : current !== undefined ? current.toFixed(1) : '--',
-        unit: '°C',
-        secondary: current !== undefined ? `Stanza ${current.toFixed(1)}°C` : mode,
-        ringValue: target ?? current ?? 0,
-        ringMax: 35,
+        state: room ? `${verb} · ${room}` : verb,
+        stateAccent: acting,
+        value: target !== undefined ? fmt(target) : current !== undefined ? fmt(current) : '--',
+        unit: '°',
       }
     }
     case 'fan': {
       const speed = numericState(entity?.attributes?.percentage) ?? (on ? 100 : 0)
       return {
-        family, type, Icon: AnimFan, title,
-        subtitle: unavailable ? 'Non disponibile' : undefined,
+        ...base, Icon: AnimFan,
         status: on ? 'fan' : 'off',
         accentColor: widgetTones.cool.color,
-        gradient: widgetTones.cool.gradient,
-        animationPreset: on ? 'fanSpin' : 'none',
         isActive: on,
-        isUnavailable: unavailable,
-        primary: on ? String(Math.round(speed)) : 'Spento',
-        unit: on ? '%' : undefined,
-        secondary: on ? 'Velocità' : undefined,
-        ringValue: on ? speed : undefined,
+        state: on ? `Acceso · ${Math.round(speed)}%` : 'Spento',
+        percent: on ? Math.round(speed) : undefined,
       }
     }
     case 'cover':
@@ -283,36 +273,27 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
       const moving = rawState === 'opening' || rawState === 'closing'
       const pos = position ?? (rawState === 'open' ? 100 : 0)
       const Icon = family === 'gate' || family === 'garage' ? Home : moving ? AnimBlindsMoving : AnimBlinds
+      const open = pos > 0 && !moving
       return {
-        family, type, Icon, title,
-        subtitle: unavailable ? 'Non disponibile' : stateLabel(rawState),
+        ...base, Icon,
         status: rawState === 'closed' ? 'closed' : rawState === 'closing' ? 'closing' : rawState === 'opening' ? 'opening' : 'open',
-        accentColor: widgetTones.energy.color,
-        gradient: widgetTones.energy.gradient,
-        animationPreset: moving ? family === 'cover' || family === 'curtain' ? 'blindMove' : 'gateSlide' : 'none',
-        isActive: pos > 0 || moving,
-        isUnavailable: unavailable,
-        primary: String(Math.round(pos)),
-        unit: '%',
-        secondary: rawState === 'closed' ? 'Chiusa' : rawState === 'open' ? 'Aperta' : 'In movimento',
-        ringValue: pos,
+        accentColor: widgetTones.cool.color,
+        isActive: open || moving,
+        state: moving ? `${stateLabel(rawState)}…`
+          : rawState === 'closed' || pos === 0 ? 'Chiusa'
+          : pos >= 100 ? 'Aperta' : `Aperta · ${Math.round(pos)}%`,
       }
     }
     case 'lock': {
       const unlocked = rawState === 'unlocked'
       const tone = securityTone(!unlocked && !unavailable, unlocked)
       return {
-        family, type, Icon: AnimLock, title,
-        subtitle: unavailable ? 'Non disponibile' : unlocked ? 'Sbloccata' : 'Bloccata',
+        ...base, Icon: AnimLock,
         status: unlocked ? 'unlocked' : 'locked',
         accentColor: tone.color,
-        gradient: tone.gradient,
-        animationPreset: unlocked ? 'alarmPulse' : 'none',
         isActive: unlocked,
-        isUnavailable: unavailable,
-        primary: unlocked ? 'Aperta' : 'Chiusa',
-        secondary: unlocked ? 'Attenzione' : 'Sicura',
-        ringValue: unlocked ? 28 : 100,
+        state: unlocked ? 'Sbloccata' : 'Bloccata',
+        stateAccent: unlocked,
       }
     }
     case 'alarm':
@@ -321,17 +302,12 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
       const critical = ['triggered', 'on', 'problem'].includes(rawState)
       const tone = critical ? widgetTones.critical : widgetTones.ok
       return {
-        family, type, Icon: AnimShield, title,
-        subtitle: unavailable ? 'Non disponibile' : critical ? 'Allarme' : 'Sicuro',
+        ...base, Icon: AnimShield,
         status: critical ? 'triggered' : rawState.includes('armed') ? 'armed' : 'clear',
         accentColor: tone.color,
-        gradient: tone.gradient,
-        animationPreset: critical ? 'alarmPulse' : 'none',
         isActive: critical,
-        isUnavailable: unavailable,
-        primary: critical ? '!' : 'OK',
-        secondary: stateLabel(rawState),
-        ringValue: critical ? 100 : 0,
+        state: critical ? 'Allarme!' : stateLabel(rawState),
+        stateAccent: critical,
       }
     }
     case 'motion':
@@ -340,17 +316,14 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
       const active = rawState === 'on' || rawState === 'home' || rawState === 'open'
       const tone = family === 'doorWindow' ? securityTone(!active, active) : active ? widgetTones.cool : widgetTones.ok
       return {
-        family, type, Icon: family === 'presence' ? UserRound : family === 'doorWindow' ? Home : AnimRadar, title,
-        subtitle: unavailable ? 'Non disponibile' : active ? family === 'presence' ? 'Presente' : 'Rilevato' : 'Tutto ok',
+        ...base, Icon: family === 'presence' ? UserRound : family === 'doorWindow' ? Home : AnimRadar,
         status: active ? 'detected' : 'clear',
         accentColor: tone.color,
-        gradient: tone.gradient,
-        animationPreset: active ? 'ripple' : 'none',
         isActive: active,
-        isUnavailable: unavailable,
-        primary: family === 'doorWindow' ? (active ? 'Aperta' : 'Chiusa') : family === 'presence' ? (active ? 'Casa' : 'Fuori') : active ? 'Sì' : 'No',
-        secondary: family === 'presence' ? stateLabel(rawState) : active ? 'Attivo' : 'Nessun evento',
-        ringValue: active ? 100 : 0,
+        state: family === 'doorWindow' ? (active ? 'Aperta' : 'Chiusa')
+          : family === 'presence' ? (active ? 'In casa' : 'Fuori casa')
+          : active ? 'Movimento rilevato' : 'Nessun movimento',
+        stateAccent: family === 'doorWindow' && active,
       }
     }
     case 'temperature':
@@ -362,9 +335,9 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
     case 'water':
     case 'pool':
     case 'network': {
-      const number = value
+      const number = family === 'battery' ? battery ?? value : value
       const tone =
-        family === 'battery' ? batteryTone(battery ?? number)
+        family === 'battery' ? batteryTone(number)
         : family === 'airQuality' ? airQualityTone(number)
         : family === 'temperature' ? temperatureTone(number)
         : family === 'humidity' || family === 'water' || family === 'pool' ? widgetTones.water
@@ -372,122 +345,85 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
         : widgetTones.energy
       const unit = (entity?.attributes?.unit_of_measurement as string | undefined) ?? (family === 'humidity' ? '%' : undefined)
       return {
-        family, type,
+        ...base,
         Icon: family === 'battery' ? Battery : family === 'humidity' || family === 'water' || family === 'pool' ? AnimDroplet : family === 'energy' || family === 'solar' ? AnimZap : family === 'airQuality' ? AnimWind : family === 'network' ? Wifi : AnimThermometer,
-        title,
-        subtitle: unavailable ? 'Non disponibile' : family === 'airQuality' ? 'Qualità aria' : family === 'energy' ? 'Energia' : family === 'battery' ? 'Batteria' : 'Sensore',
-        status: family === 'battery' && (battery ?? 100) < 20 ? 'lowBattery' : 'active',
+        status: family === 'battery' && (number ?? 100) < 20 ? 'lowBattery' : 'active',
         accentColor: tone.color,
-        gradient: tone.gradient,
-        animationPreset: family === 'energy' || family === 'solar' ? 'energyFlow' : family === 'water' || family === 'pool' ? 'waterWave' : 'none',
-        isActive: !unavailable,
-        isUnavailable: unavailable,
-        primary: number !== undefined ? String(Math.round(number * 10) / 10) : '--',
-        unit,
-        secondary: deviceClass || unit || 'Valore',
-        ringValue: family === 'battery' ? battery ?? number ?? 0 : number ?? 0,
-        ringMax: family === 'airQuality' ? 1800 : family === 'temperature' ? 40 : 100,
+        // I sensori sono passivi: icona quieta, mai "accesa".
+        isActive: false,
+        state: '',
+        value: number !== undefined ? fmt(number) : '--',
+        unit: unit === '°C' ? '°' : unit,
       }
     }
     case 'weather':
       return {
-        family, type, Icon: AnimCloudSun, title,
-        subtitle: stateLabel(rawState),
+        ...base, Icon: AnimCloudSun,
         status: 'active',
         accentColor: hasAny(rawState, ['rain', 'pouring']) ? widgetTones.cool.color : widgetTones.light.color,
-        gradient: hasAny(rawState, ['rain', 'pouring']) ? widgetTones.cool.gradient : widgetTones.light.gradient,
-        animationPreset: hasAny(rawState, ['rain', 'pouring']) ? 'rain' : 'softGlow',
         isActive: !unavailable,
-        isUnavailable: unavailable,
-        primary: String(entity?.attributes?.temperature ?? '--'),
-        unit: '°C',
-        secondary: stateLabel(rawState),
-        ringValue: numericState(entity?.attributes?.humidity) ?? 0,
+        state: stateLabel(rawState),
+        value: entity?.attributes?.temperature !== undefined ? fmt(Number(entity.attributes.temperature)) : '--',
+        unit: '°',
       }
     case 'camera':
     case 'doorbell':
       return {
-        family, type, Icon: family === 'doorbell' ? AnimBell : AnimCamera, title,
-        subtitle: unavailable ? 'Offline' : 'Live',
+        ...base, Icon: family === 'doorbell' ? AnimBell : AnimCamera,
         status: unavailable ? 'offline' : 'active',
         accentColor: widgetTones.cool.color,
-        gradient: widgetTones.cool.gradient,
-        animationPreset: unavailable ? 'none' : 'liveBlink',
         isActive: !unavailable,
-        isUnavailable: unavailable,
-        primary: unavailable ? 'Off' : 'Live',
-        secondary: 'Camera',
-        ringValue: unavailable ? 0 : 100,
+        state: unavailable ? 'Offline' : 'Live',
       }
     case 'media':
     case 'speaker':
     case 'tv': {
       const playing = rawState === 'playing'
+      const mediaTitle = entity?.attributes?.media_title as string | undefined
       return {
-        family, type, Icon: family === 'tv' ? AnimTv : family === 'speaker' ? AnimSpeaker : AnimEqualizer, title,
-        subtitle: (entity?.attributes?.media_title as string | undefined) ?? stateLabel(rawState),
+        ...base, Icon: family === 'tv' ? AnimTv : family === 'speaker' ? AnimSpeaker : AnimEqualizer,
         status: playing ? 'active' : 'idle',
         accentColor: widgetTones.media.color,
-        gradient: widgetTones.media.gradient,
-        animationPreset: playing ? 'pulse' : 'none',
         isActive: playing,
-        isUnavailable: unavailable,
-        primary: playing ? 'Play' : rawState === 'off' ? 'Off' : 'Pausa',
-        secondary: entity?.attributes?.source as string | undefined,
-        ringValue: Math.round(Number(entity?.attributes?.volume_level ?? 0) * 100),
+        state: playing ? (mediaTitle ?? 'In riproduzione')
+          : rawState === 'paused' ? 'In pausa'
+          : rawState === 'off' ? 'Spenta' : stateLabel(rawState),
       }
     }
     case 'vacuum':
     case 'mower': {
       const working = rawState === 'cleaning' || rawState === 'mowing'
+      const batteryNote = battery !== undefined ? ` · ${Math.round(battery)}%` : ''
       return {
-        family, type, Icon: AnimBot, title,
-        subtitle: unavailable ? 'Non disponibile' : stateLabel(rawState),
+        ...base, Icon: AnimBot,
         status: working ? 'active' : rawState === 'error' ? 'error' : 'idle',
         accentColor: rawState === 'error' ? widgetTones.critical.color : widgetTones.ok.color,
-        gradient: rawState === 'error' ? widgetTones.critical.gradient : widgetTones.ok.gradient,
-        animationPreset: working ? 'rotate' : rawState === 'error' ? 'errorShake' : 'none',
         isActive: working,
-        isUnavailable: unavailable,
-        primary: battery !== undefined ? String(Math.round(battery)) : stateLabel(rawState),
-        unit: battery !== undefined ? '%' : undefined,
-        secondary: battery !== undefined ? 'Batteria' : undefined,
-        ringValue: battery ?? (working ? 100 : 0),
+        state: `${stateLabel(rawState)}${batteryNote}`,
+        stateAccent: rawState === 'error',
       }
     }
     case 'humidifier': {
       const targetHumidity = numericState(entity?.attributes?.humidity)
-      const currentHumidity = numericState(entity?.attributes?.current_humidity)
       return {
-        family, type, Icon: AnimMist, title,
-        subtitle: unavailable ? 'Non disponibile' : on ? stateLabel(String(entity?.attributes?.mode ?? 'on')) : 'Spento',
+        ...base, Icon: AnimMist,
         status: on ? 'on' : 'off',
         accentColor: widgetTones.water.color,
-        gradient: widgetTones.water.gradient,
-        animationPreset: on ? 'waterWave' : 'none',
         isActive: on,
-        isUnavailable: unavailable,
-        primary: on && targetHumidity !== undefined ? String(Math.round(targetHumidity)) : on ? 'Acceso' : 'Spento',
-        unit: on && targetHumidity !== undefined ? '%' : undefined,
-        secondary: on && currentHumidity !== undefined ? `Attuale ${Math.round(currentHumidity)}%` : undefined,
-        ringValue: on ? (currentHumidity ?? targetHumidity ?? 0) : undefined,
+        state: on ? (targetHumidity !== undefined ? `Acceso · target ${Math.round(targetHumidity)}%` : 'Acceso') : 'Spento',
+        percent: on && targetHumidity !== undefined ? Math.round(targetHumidity) : undefined,
       }
     }
     case 'update': {
       const updateAvailable = rawState === 'on'
       const tone = updateAvailable ? widgetTones.warning : widgetTones.ok
       return {
-        family, type, Icon: CircleArrowUp, title,
-        subtitle: unavailable ? 'Non disponibile' : updateAvailable ? 'Aggiornamento disponibile' : 'Aggiornato',
+        ...base, Icon: CircleArrowUp,
         status: updateAvailable ? 'warning' : 'active',
         accentColor: tone.color,
-        gradient: tone.gradient,
-        animationPreset: 'none',
         isActive: updateAvailable,
-        isUnavailable: unavailable,
-        primary: (entity?.attributes?.latest_version as string | undefined) ?? (updateAvailable ? 'Nuovo' : 'OK'),
-        secondary: (entity?.attributes?.installed_version as string | undefined) && `Installata ${entity?.attributes?.installed_version}`,
-        ringValue: updateAvailable ? 50 : 100,
+        state: updateAvailable ? 'Aggiornamento disponibile' : 'Aggiornato',
+        stateAccent: updateAvailable,
       }
     }
     case 'scene':
@@ -495,36 +431,29 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
     case 'automation':
     case 'timer':
       return {
-        family, type, Icon: family === 'timer' ? Timer : family === 'automation' ? ListChecks : AnimSparkles, title,
-        subtitle: family === 'automation' ? (rawState === 'on' ? 'Attiva' : 'Disattivata') : 'Azione rapida',
-        status: rawState === 'on' ? 'active' : 'idle',
+        ...base, Icon: family === 'timer' ? Timer : family === 'automation' ? ListChecks : AnimSparkles,
+        status: rawState === 'on' || rawState === 'active' ? 'active' : 'idle',
         accentColor: widgetTones.media.color,
-        gradient: widgetTones.media.gradient,
-        // niente animazione loop su card a riposo: sparkle solo quando attiva
-        animationPreset: rawState === 'on' || rawState === 'active' ? 'sparkle' : 'none',
         isActive: rawState === 'on' || rawState === 'active',
-        isUnavailable: unavailable,
-        primary: family === 'timer' ? stateLabel(rawState) : family === 'automation' ? (rawState === 'on' ? 'ON' : 'OFF') : 'Vai',
-        secondary: family === 'timer' ? 'Timer' : family === 'automation' ? 'Automazione' : family === 'script' ? 'Script' : 'Scena',
-        ringValue: rawState === 'on' ? 100 : 0,
+        state: family === 'timer' ? stateLabel(rawState)
+          : family === 'automation' ? (rawState === 'on' ? 'Attiva' : 'Disattivata')
+          : family === 'script' ? 'Script' : 'Scena',
       }
-    default:
+    default: {
+      const unit = entity?.attributes?.unit_of_measurement as string | undefined
+      const numeric = value !== undefined
       return {
         family: hasAny(text, ['news']) ? 'news' : 'generic',
-        type,
+        type, title,
         Icon: domain === 'select' || domain === 'input_select' ? ListChecks : domain === 'number' || domain === 'input_number' ? Gauge : domain === 'siren' ? Siren : domain === 'valve' ? AnimDroplet : ToggleRight,
-        title,
-        subtitle: unavailable ? 'Non disponibile' : stateLabel(rawState),
         status: unavailable ? 'unavailable' : 'active',
         accentColor: widgetTones.neutral.color,
-        gradient: widgetTones.neutral.gradient,
-        animationPreset: 'none',
-        isActive: !unavailable,
+        isActive: false,
         isUnavailable: unavailable,
-        primary: value !== undefined ? String(value) : stateLabel(rawState),
-        unit: (entity?.attributes?.unit_of_measurement as string | undefined) ?? undefined,
-        secondary: domain.replace(/_/g, ' '),
-        ringValue: value ?? 0,
+        state: numeric ? '' : stateLabel(rawState),
+        value: numeric ? fmt(value) : undefined,
+        unit: numeric ? unit : undefined,
       }
+    }
   }
 }

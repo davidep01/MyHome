@@ -5,9 +5,9 @@ export interface WidgetSizeConfig {
   size: WidgetVisualSize
   minHeight: number
   paddingClass: string
+  /** Dimensione del glifo dentro il puck (34/38/44px). */
   icon: number
   valueClass: string
-  ring: number
   titleClass: string
 }
 
@@ -15,29 +15,26 @@ export const WIDGET_SIZE_CONFIG: Record<WidgetVisualSize, WidgetSizeConfig> = {
   S: {
     size: 'S',
     minHeight: 104,
-    paddingClass: 'p-[12px]',
-    icon: 26,
-    valueClass: 'text-[28px]',
-    ring: 54,
+    paddingClass: 'p-3',
+    icon: 18,
+    valueClass: 'text-[22px]',
     titleClass: 'text-[13px]',
   },
   M: {
     size: 'M',
     minHeight: 136,
-    paddingClass: 'p-[14px]',
-    icon: 34,
-    valueClass: 'text-[34px]',
-    ring: 82,
-    titleClass: 'text-sm',
+    paddingClass: 'p-3.5',
+    icon: 20,
+    valueClass: 'text-[28px]',
+    titleClass: 'text-[15px]',
   },
   L: {
     size: 'L',
     minHeight: 186,
     paddingClass: 'p-4',
-    icon: 42,
-    valueClass: 'text-[44px]',
-    ring: 122,
-    titleClass: 'text-base',
+    icon: 24,
+    valueClass: 'text-[36px]',
+    titleClass: 'text-[17px]',
   },
 }
 

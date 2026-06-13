@@ -1,16 +1,18 @@
-import { ChevronDown, ChevronUp, Home, Pause, Play, Power, Square, X } from 'lucide-react'
+import { ChevronDown, ChevronUp, Home, Minus, Pause, Play, Plus, Shield, Square } from 'lucide-react'
 import { useMemo } from 'react'
-import { haApi, type RoomEntity } from '../../api/backend'
+import type { RoomEntity } from '../../api/backend'
 import { useHAEntity } from '../../hooks/useHAEntity'
 import { useHAService } from '../../hooks/useHAService'
 import { useHaptic } from '../../hooks/useHaptic'
 import { useActionFeedback } from '../../hooks/useActionFeedback'
 import { cn } from '../../lib/utils'
 import { useEntityStore } from '../../store/entities'
-import { WidgetCardBadge, WidgetCardDial, WidgetCardFooter, WidgetCardHeader, WidgetCardIcon, WidgetCardRing, WidgetCardShell, WidgetCardSlider, WidgetCardToggle, WidgetCardValue, WidgetIconButton } from './WidgetCardBase'
+import {
+  WidgetCardControlButton, WidgetCardHoldButton, WidgetCardIcon, WidgetCardIdentity,
+  WidgetCardShell, WidgetCardSlider, WidgetCardToggle,
+} from './WidgetCardBase'
 import { mapEntityToWidgetCard } from './utils/mapEntityToWidgetCard'
-import { numericState, pct } from './utils/formatWidgetValue'
-import { getWidgetSizeConfig } from './utils/getWidgetSizeConfig'
+import { numericState } from './utils/formatWidgetValue'
 import type { WidgetVisualSize } from './types'
 
 interface Props {
@@ -29,6 +31,10 @@ function isOnState(state?: string) {
   return state === 'on' || state === 'open' || state === 'playing' || state === 'cleaning'
 }
 
+const TOGGLE_FAMILIES = new Set(['light', 'switch', 'smartPlug', 'fan', 'humidifier', 'automation'])
+const MEDIA_FAMILIES = new Set(['media', 'speaker', 'tv'])
+const COVER_FAMILIES = new Set(['cover', 'curtain', 'gate', 'garage'])
+
 export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, isEditing, isDragging }: Props) {
   const entity = useHAEntity(roomEntity.entityId)
   const mapped = useMemo(() => mapEntityToWidgetCard(entity, roomEntity), [entity, roomEntity])
@@ -37,7 +43,6 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
   const { feedbackClass, actionFailed } = useActionFeedback()
   const setOptimisticState = useEntityStore((s) => s.setOptimisticState)
   const patchEntity = useEntityStore((s) => s.patchEntity)
-  const cfg = getWidgetSizeConfig(size)
 
   const domain = serviceDomain(roomEntity.entityId)
   const unavailable = mapped.isUnavailable
@@ -82,17 +87,6 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
     )
   }
 
-  const climatePower = () => {
-    if (!entity || unavailable) return
-    medium()
-    const next = entity.state === 'off' ? 'auto' : 'off'
-    setOptimisticState(roomEntity.entityId, next)
-    act(
-      call('climate', 'set_hvac_mode', { entity_id: roomEntity.entityId, hvac_mode: next }),
-      () => setOptimisticState(roomEntity.entityId, entity.state),
-    )
-  }
-
   const cover = (service: 'open_cover' | 'close_cover' | 'stop_cover') => {
     if (unavailable) return
     medium()
@@ -131,11 +125,22 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
     act(call('fan', 'set_percentage', { entity_id: roomEntity.entityId, percentage: Math.round(value) }))
   }
 
-  const lockAction = () => {
-    if (unavailable) return
+  /** Serratura: sblocco SOLO da hold 900ms (canone); il blocco è un tap. */
+  const unlock = () => {
     heavy()
-    const unlocked = entity?.state === 'unlocked'
-    act(call('lock', unlocked ? 'lock' : 'unlock', { entity_id: roomEntity.entityId }))
+    setOptimisticState(roomEntity.entityId, 'unlocking')
+    act(
+      call('lock', 'unlock', { entity_id: roomEntity.entityId }),
+      () => setOptimisticState(roomEntity.entityId, entity?.state ?? 'locked'),
+    )
+  }
+  const lock = () => {
+    medium()
+    setOptimisticState(roomEntity.entityId, 'locking')
+    act(
+      call('lock', 'lock', { entity_id: roomEntity.entityId }),
+      () => setOptimisticState(roomEntity.entityId, entity?.state ?? 'unlocked'),
+    )
   }
 
   const alarmAction = () => {
@@ -157,194 +162,77 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
     act(call('media_player', entity?.state === 'playing' ? 'media_pause' : 'media_play', { entity_id: roomEntity.entityId }))
   }
 
-  const renderCore = () => {
-    const currentTemp = numericState(entity?.attributes?.current_temperature)
-    const targetTemp = numericState(entity?.attributes?.temperature)
-    const brightness = mapped.family === 'light' ? pct(mapped.ringValue) : undefined
-    const volume = mapped.family === 'media' || mapped.family === 'speaker' || mapped.family === 'tv'
-      ? Math.round(Number(entity?.attributes?.volume_level ?? 0) * 100)
-      : undefined
-    const position = mapped.family === 'cover' || mapped.family === 'curtain' || mapped.family === 'gate' || mapped.family === 'garage'
-      ? pct(mapped.ringValue)
-      : undefined
-
-    if (size === 'S') {
+  // ── Controllo in alto a destra, per famiglia ───────────────────────────────
+  const trailing = (() => {
+    if (unavailable || isEditing) return null
+    if (TOGGLE_FAMILIES.has(mapped.family)) {
+      return <WidgetCardToggle checked={mapped.isActive} onToggle={togglePower} color={mapped.accentColor} label={`Accendi o spegni ${mapped.title}`} />
+    }
+    if (size === 'S') return null
+    if (mapped.family === 'climate' || mapped.family === 'thermostat') {
       return (
         <>
-          <div className="flex items-start justify-between gap-2">
-            <WidgetCardIcon Icon={mapped.Icon} size={size} accentColor={mapped.accentColor} active={mapped.isActive} />
-            {mapped.status === 'warning' || mapped.status === 'critical' || mapped.status === 'triggered' || unavailable
-              ? <WidgetCardBadge tone={mapped.status === 'critical' || mapped.status === 'triggered' ? 'critical' : 'warning'}>{unavailable ? 'N/D' : '!'}</WidgetCardBadge>
-              : null}
-          </div>
-          <div className="mt-auto min-w-0">
-            <p className="truncate text-[13px] font-semibold text-[#1d1d1f]">{mapped.title}</p>
-            <p className="mt-0.5 truncate text-xs font-medium text-black/45">{mapped.unit ? `${mapped.primary}${mapped.unit}` : mapped.primary}</p>
-          </div>
+          <WidgetCardControlButton onClick={() => adjustClimate(-1)} label="Diminuisci temperatura"><Minus size={16} /></WidgetCardControlButton>
+          <WidgetCardControlButton onClick={() => adjustClimate(1)} label="Aumenta temperatura"><Plus size={16} /></WidgetCardControlButton>
         </>
       )
     }
+    if (COVER_FAMILIES.has(mapped.family)) {
+      const moving = entity?.state === 'opening' || entity?.state === 'closing'
+      return (
+        <>
+          <WidgetCardControlButton onClick={() => cover('open_cover')} label="Apri"><ChevronUp size={16} /></WidgetCardControlButton>
+          {moving
+            ? <WidgetCardControlButton onClick={() => cover('stop_cover')} label="Ferma"><Square size={13} /></WidgetCardControlButton>
+            : <WidgetCardControlButton onClick={() => cover('close_cover')} label="Chiudi"><ChevronDown size={16} /></WidgetCardControlButton>}
+        </>
+      )
+    }
+    if (domain === 'valve') {
+      return (
+        <>
+          <WidgetCardControlButton onClick={() => valveAction('open_valve')} label="Apri valvola"><ChevronUp size={16} /></WidgetCardControlButton>
+          <WidgetCardControlButton onClick={() => valveAction('close_valve')} label="Chiudi valvola"><ChevronDown size={16} /></WidgetCardControlButton>
+        </>
+      )
+    }
+    if (mapped.family === 'lock') {
+      return <WidgetCardHoldButton locked={entity?.state !== 'unlocked'} onUnlock={unlock} onLock={lock} accentColor={mapped.accentColor} />
+    }
+    if (MEDIA_FAMILIES.has(mapped.family)) {
+      return (
+        <WidgetCardControlButton onClick={mediaAction} label={entity?.state === 'playing' ? 'Pausa' : 'Riproduci'}>
+          {entity?.state === 'playing' ? <Pause size={15} /> : <Play size={15} className="translate-x-px" />}
+        </WidgetCardControlButton>
+      )
+    }
+    if (mapped.family === 'vacuum' || mapped.family === 'mower') {
+      const working = entity?.state === 'cleaning' || entity?.state === 'mowing'
+      const action = mapped.family === 'mower' ? mowerAction : vacuumAction
+      return (
+        <WidgetCardControlButton onClick={action} label={working ? 'Rientra alla base' : 'Avvia'}>
+          {working ? <Home size={15} /> : <Play size={15} className="translate-x-px" />}
+        </WidgetCardControlButton>
+      )
+    }
+    if (mapped.family === 'alarm') {
+      return <WidgetCardControlButton onClick={alarmAction} label="Cambia stato sicurezza"><Shield size={15} /></WidgetCardControlButton>
+    }
+    return null
+  })()
 
-    const showDial = mapped.family === 'climate' || mapped.family === 'thermostat'
-    const showRing = !showDial && mapped.ringValue !== undefined
-
-    return (
-      <>
-        <WidgetCardHeader
-          title={mapped.title}
-          subtitle={mapped.subtitle}
-          Icon={mapped.Icon}
-          accentColor={mapped.accentColor}
-          size={size}
-          active={mapped.isActive}
-          trailing={
-            mapped.family === 'light' || mapped.family === 'switch' || mapped.family === 'smartPlug' || mapped.family === 'fan' || mapped.family === 'humidifier'
-              ? <WidgetCardToggle checked={mapped.isActive} disabled={unavailable} onToggle={togglePower} color={mapped.accentColor} label={`Toggle ${mapped.title}`} />
-              : <WidgetCardBadge tone={mapped.isUnavailable ? 'neutral' : mapped.status === 'triggered' || mapped.status === 'critical' ? 'critical' : mapped.status === 'warning' ? 'warning' : mapped.isActive ? 'ok' : 'neutral'}>{mapped.subtitle}</WidgetCardBadge>
-          }
-        />
-
-        <div className="mt-3 flex min-h-0 flex-1 items-center gap-3">
-          {showDial ? (
-            <WidgetCardDial
-              value={targetTemp ?? currentTemp ?? 0}
-              current={currentTemp}
-              min={7}
-              max={35}
-              size={size}
-              color={mapped.accentColor}
-            >
-              <span className={cfg.valueClass + ' font-semibold leading-none tabular-nums'}>
-                {targetTemp?.toFixed(1) ?? '--'}
-              </span>
-              <span className="text-[10px] font-bold text-black/40">target</span>
-            </WidgetCardDial>
-          ) : showRing ? (
-            <WidgetCardRing value={Math.min(mapped.ringValue ?? 0, mapped.ringMax ?? 100)} max={mapped.ringMax ?? 100} size={size} color={mapped.accentColor} label={mapped.unit}>
-              {mapped.family === 'camera' && !unavailable ? (
-                <img
-                  src={haApi.cameraProxyUrl(roomEntity.entityId)}
-                  alt=""
-                  className="h-full w-full rounded-full object-cover"
-                  loading="lazy"
-                />
-              ) : (
-                <>
-                  <span className="text-base font-bold leading-none tabular-nums text-[#1d1d1f]">{mapped.primary}</span>
-                  {mapped.unit && <span className="text-[10px] font-bold text-black/40">{mapped.unit}</span>}
-                </>
-              )}
-            </WidgetCardRing>
-          ) : (
-            <WidgetCardIcon Icon={mapped.Icon} size={size} accentColor={mapped.accentColor} active={mapped.isActive} />
-          )}
-
-          <div className="min-w-0 flex-1">
-            {/* Il primary vive nel ring quando il ring c'è: mai due volte. */}
-            {showRing ? (
-              mapped.secondary && <p className="truncate text-xs font-medium text-black/45">{mapped.secondary}</p>
-            ) : (
-              <WidgetCardValue
-                value={mapped.primary}
-                unit={mapped.unit}
-                secondary={mapped.secondary}
-                size={size}
-              />
-            )}
-            {size === 'L' && (
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                <div className="rounded-[12px] bg-black/[0.045] px-3 py-2">
-                  <p className="text-[10px] font-bold uppercase text-black/35">Stato</p>
-                  <p className="mt-0.5 truncate text-xs font-semibold text-black/65">{mapped.subtitle ?? `${mapped.primary}${mapped.unit ?? ''}`}</p>
-                </div>
-                <div className="rounded-[12px] bg-black/[0.045] px-3 py-2">
-                  <p className="text-[10px] font-bold uppercase text-black/35">Origine</p>
-                  <p className="mt-0.5 truncate text-xs font-semibold text-black/65">{mapped.family}</p>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {mapped.family === 'light' && brightness !== undefined && mapped.isActive && (
-          <div className="mt-3">
-            <WidgetCardSlider value={brightness} color={mapped.accentColor} onChange={setBrightness} onCommit={commitBrightness} />
-          </div>
-        )}
-
-        {mapped.family === 'fan' && (
-          <div className="mt-3">
-            <WidgetCardSlider value={pct(mapped.ringValue)} color={mapped.accentColor} onCommit={setFanSpeed} />
-          </div>
-        )}
-
-        {mapped.family === 'humidifier' && mapped.isActive && (
-          <div className="mt-3">
-            <WidgetCardSlider value={pct(mapped.ringValue)} color={mapped.accentColor} onCommit={setTargetHumidity} />
-          </div>
-        )}
-
-        <WidgetCardFooter>
-          {mapped.family === 'climate' || mapped.family === 'thermostat' ? (
-            <div className="flex items-center gap-2">
-              <WidgetIconButton onClick={() => adjustClimate(-1)} label="Diminuisci temperatura" disabled={unavailable}><ChevronDown size={18} /></WidgetIconButton>
-              <WidgetIconButton onClick={() => adjustClimate(1)} label="Aumenta temperatura" disabled={unavailable}><ChevronUp size={18} /></WidgetIconButton>
-              <WidgetIconButton onClick={climatePower} label="Accendi o spegni clima" disabled={unavailable}><Power size={18} /></WidgetIconButton>
-            </div>
-          ) : position !== undefined ? (
-            <div className="flex items-center gap-2">
-              <WidgetIconButton onClick={() => cover('open_cover')} label="Apri" disabled={unavailable}><ChevronUp size={18} /></WidgetIconButton>
-              <WidgetIconButton onClick={() => cover('stop_cover')} label="Stop" disabled={unavailable}><Square size={16} /></WidgetIconButton>
-              <WidgetIconButton onClick={() => cover('close_cover')} label="Chiudi" disabled={unavailable}><ChevronDown size={18} /></WidgetIconButton>
-            </div>
-          ) : mapped.family === 'lock' ? (
-            <WidgetIconButton onClick={lockAction} label={entity?.state === 'unlocked' ? 'Blocca' : 'Sblocca'} disabled={unavailable}><Home size={18} /></WidgetIconButton>
-          ) : mapped.family === 'alarm' ? (
-            <WidgetIconButton onClick={alarmAction} label="Cambia stato sicurezza" disabled={unavailable}><Power size={18} /></WidgetIconButton>
-          ) : mapped.family === 'vacuum' ? (
-            <WidgetIconButton onClick={vacuumAction} label={entity?.state === 'cleaning' ? 'Rientra alla base' : 'Avvia pulizia'} disabled={unavailable}>{entity?.state === 'cleaning' ? <Home size={18} /> : <Play size={18} />}</WidgetIconButton>
-          ) : mapped.family === 'mower' ? (
-            <WidgetIconButton onClick={mowerAction} label={entity?.state === 'mowing' ? 'Rientra alla base' : 'Avvia taglio'} disabled={unavailable}>{entity?.state === 'mowing' ? <Home size={18} /> : <Play size={18} />}</WidgetIconButton>
-          ) : domain === 'valve' ? (
-            <div className="flex items-center gap-2">
-              <WidgetIconButton onClick={() => valveAction('open_valve')} label="Apri valvola" disabled={unavailable}><ChevronUp size={18} /></WidgetIconButton>
-              <WidgetIconButton onClick={() => valveAction('close_valve')} label="Chiudi valvola" disabled={unavailable}><ChevronDown size={18} /></WidgetIconButton>
-            </div>
-          ) : mapped.family === 'media' || mapped.family === 'speaker' || mapped.family === 'tv' ? (
-            <div className="flex items-center gap-2">
-              <WidgetIconButton onClick={mediaAction} label="Play pausa" disabled={unavailable}>{entity?.state === 'playing' ? <Pause size={18} /> : <Play size={18} />}</WidgetIconButton>
-              {volume !== undefined && <span className="rounded-full bg-black/[0.06] px-3 py-2 text-xs font-bold text-black/45">{volume}%</span>}
-            </div>
-          ) : mapped.family === 'scene' || mapped.family === 'script' || mapped.family === 'automation' ? (
-            <WidgetIconButton onClick={mapped.family === 'automation' ? togglePower : activate} label="Esegui" disabled={unavailable}>{mapped.family === 'automation' && mapped.isActive ? <X size={18} /> : <Play size={18} />}</WidgetIconButton>
-          ) : mapped.family === 'switch' || mapped.family === 'smartPlug' ? (
-            <WidgetIconButton onClick={togglePower} label="Toggle" disabled={unavailable}><Power size={18} /></WidgetIconButton>
-          ) : null}
-
-          {size === 'L' && entity?.last_updated && (
-            <span className="ml-auto truncate text-[11px] font-medium text-black/35">
-              {new Date(entity.last_updated).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}
-            </span>
-          )}
-        </WidgetCardFooter>
-      </>
-    )
-  }
-
+  // ── Tap sulla card = azione primaria (mai per le serrature) ───────────────
   const primaryClick =
-    mapped.family === 'light' || mapped.family === 'switch' || mapped.family === 'smartPlug' || mapped.family === 'fan' || mapped.family === 'humidifier'
-      ? togglePower
-      : mapped.family === 'scene' || mapped.family === 'script'
-        ? activate
-        : mapped.family === 'lock'
-          ? lockAction
-          : mapped.family === 'vacuum'
-            ? vacuumAction
-            : mapped.family === 'mower'
-              ? mowerAction
-              : mapped.family === 'media' || mapped.family === 'speaker' || mapped.family === 'tv'
-                ? mediaAction
-                : undefined
+    mapped.family === 'lock' ? undefined
+    : TOGGLE_FAMILIES.has(mapped.family) && mapped.family !== 'automation' ? togglePower
+    : mapped.family === 'scene' || mapped.family === 'script' ? activate
+    : mapped.family === 'vacuum' ? vacuumAction
+    : mapped.family === 'mower' ? mowerAction
+    : MEDIA_FAMILIES.has(mapped.family) ? mediaAction
+    : undefined
+
+  const showSlider = size !== 'S' && mapped.percent !== undefined && mapped.isActive
+    && (mapped.family === 'light' || mapped.family === 'fan' || mapped.family === 'humidifier')
 
   return (
     <WidgetCardShell
@@ -355,16 +243,40 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
       icon={mapped.Icon}
       status={mapped.status}
       accentColor={mapped.accentColor}
-      gradient={mapped.gradient}
-      animationPreset={mapped.animationPreset}
       isActive={mapped.isActive}
-      isUnavailable={mapped.isUnavailable}
+      isUnavailable={unavailable}
       isEditing={isEditing}
       isDragging={isDragging}
       className={cn(className, feedbackClass)}
       onClick={primaryClick}
     >
-      {renderCore()}
+      <div className="flex items-start justify-between gap-2">
+        <WidgetCardIcon Icon={mapped.Icon} size={size} accentColor={mapped.accentColor} active={mapped.isActive} />
+        {trailing && <div className="flex shrink-0 items-center gap-1.5">{trailing}</div>}
+      </div>
+
+      <WidgetCardIdentity
+        title={mapped.title}
+        state={size === 'S' && mapped.value !== undefined ? undefined : mapped.state || undefined}
+        stateColor={mapped.stateAccent ? mapped.accentColor : undefined}
+        value={mapped.value}
+        unit={mapped.unit}
+        size={size}
+        active={mapped.isActive}
+        singleLineTitle={showSlider && size === 'M'}
+      />
+
+      {showSlider && (
+        <div className="mt-1.5">
+          <WidgetCardSlider
+            value={mapped.percent ?? 0}
+            color={mapped.accentColor}
+            label={`Regola ${mapped.title}`}
+            onChange={mapped.family === 'light' ? setBrightness : undefined}
+            onCommit={mapped.family === 'light' ? commitBrightness : mapped.family === 'fan' ? setFanSpeed : setTargetHumidity}
+          />
+        </div>
+      )}
     </WidgetCardShell>
   )
 }
