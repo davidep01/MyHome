@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { ActivitySquare, Boxes, LayoutGrid, SlidersHorizontal } from 'lucide-react'
-import { useUIStore } from '../../store/ui'
+import { useUIStore, VIEW_PATHS } from '../../store/ui'
 import { framerSpringBounce } from '../../design/tokens'
 import { cn } from '../../lib/utils'
 
@@ -26,14 +26,20 @@ export function BottomTabBar() {
       {tabs.map(({ id, label, Icon }) => {
         const isActive = activeView === id
         return (
-          <motion.button
+          <motion.a
             key={id}
-            onClick={() => setActiveView(id)}
+            href={VIEW_PATHS[id]}
+            onClick={(event) => {
+              if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+              event.preventDefault()
+              setActiveView(id)
+            }}
             whileTap={{ scale: 0.88 }}
             transition={framerSpringBounce}
             // 44×44px minimum touch target via padding
             className="relative flex flex-col items-center justify-center gap-1 min-w-[44px] min-h-[44px] px-3 py-2 rounded-[14px]"
             style={{ WebkitTapHighlightColor: 'transparent' }}
+            aria-current={isActive ? 'page' : undefined}
           >
             {/* Active pill background */}
             <AnimatePresence>
@@ -60,7 +66,7 @@ export function BottomTabBar() {
             >
               {label}
             </span>
-          </motion.button>
+          </motion.a>
         )
       })}
     </nav>

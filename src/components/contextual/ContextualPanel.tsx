@@ -29,20 +29,21 @@ export function ContextualPanel({ entityId }: { entityId: string }) {
       {/* Header */}
       <div className="mb-5 flex items-center gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-full" style={{ background: `${meta.color}22` }}>
-          <Icon size={18} style={{ color: meta.color }} />
+          <Icon size={18} style={{ color: meta.color }} aria-hidden="true" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-base font-semibold text-black/90">{name}</p>
+          <h2 className="truncate text-base font-semibold text-black/90">{name}</h2>
           <p className="truncate text-xs text-black/40">
             {!entity ? 'Non disponibile' : stateLabel(entity.state)}
           </p>
         </div>
         <button
+          type="button"
           onClick={() => setSelectedEntity(null)}
           className="flex h-9 w-9 items-center justify-center rounded-full bg-black/10 text-black/60 transition hover:text-[#1d1d1f]"
           aria-label="Chiudi"
         >
-          <X size={16} />
+          <X size={16} aria-hidden="true" />
         </button>
       </div>
 

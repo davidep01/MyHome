@@ -1,11 +1,15 @@
 import { Hono } from 'hono'
 import { streamSSE } from 'hono/streaming'
 import { db } from '../db/client.js'
-import type { AppConfig, DbStore } from '../db/types.js'
-import { getHAConfig } from '../lib/ha-config.js'
+import type { DbStore } from '../db/types.js'
+import { getHAConfig, normalizeHAUrl } from '../lib/ha-config.js'
 import { configEvents, emitConfigChange } from '../lib/configEvents.js'
 import { desktopOnly } from '../lib/security.js'
 import { mergeHomeConfig, normalizeHomeConfig } from '../lib/home-layout.js'
+import { validateConfigPatch } from '../lib/config-validation.js'
+import { cleanText, integerInRange, isEntityId, isEntityType, isIconName, isRecord, SIMPLE_ID_PATTERN } from '../lib/validation.js'
+import { invalidateHAConnection } from '../lib/ha-stream.js'
+import { invalidateHARegistryCache } from '../lib/ha-registry-cache.js'
 
 export const configRouter = new Hono()
 
@@ -66,14 +70,20 @@ configRouter.get('/', async (c) => {
   })
 })
 
-// Full backup of the single-document store (config + rooms + entities).
-// Token included on purpose: a restore must be complete, and this route is
-// desktop-only.
+// Portable backup of user-facing configuration. Secrets are deliberately
+// redacted: a downloaded JSON file must never become an HA access credential.
 configRouter.get('/export', async (c) => {
-  const store = await db.read()
+  const current = await db.read()
+  const store: DbStore = {
+    ...current,
+    config: {
+      ...current.config,
+      haToken: current.config.haToken ? '***' : '',
+    },
+  }
   const stamp = new Date().toISOString().slice(0, 10)
   c.header('Content-Disposition', `attachment; filename="myhome-backup-${stamp}.json"`)
-  return c.json({ version: 1, exportedAt: new Date().toISOString(), store })
+  return c.json({ version: 2, exportedAt: new Date().toISOString(), secretsIncluded: false, store })
 })
 
 // Restore a backup produced by /export. Replaces the whole document; the home
@@ -81,16 +91,68 @@ configRouter.get('/export', async (c) => {
 configRouter.post('/import', async (c) => {
   const body = await c.req.json<{ version?: number; store?: Partial<DbStore> }>().catch(() => null)
   const incoming = body?.store
-  if (!incoming || typeof incoming !== 'object' || !incoming.config || typeof incoming.config !== 'object') {
+  if (!body || (body.version !== 1 && body.version !== 2) || !incoming || typeof incoming !== 'object' || !incoming.config || typeof incoming.config !== 'object') {
     return c.json({ error: 'Backup non valido: atteso { store: { config, rooms, entities } }' }, 400)
   }
-  const ok = await db.write((store) => {
-    store.config = {
-      ...incoming.config as AppConfig,
-      home: mergeHomeConfig(store.config.home, normalizeHomeConfig((incoming.config as AppConfig).home), 'desktop'),
+  const configResult = validateConfigPatch(incoming.config)
+  if (!configResult.ok) return c.json({ error: `Backup non valido: ${configResult.error}` }, 400)
+
+  const rooms = incoming.rooms
+  if (!Array.isArray(rooms) || rooms.length > 200) return c.json({ error: 'Elenco stanze del backup non valido' }, 400)
+  const roomIds = new Set<string>()
+  const normalizedRooms: DbStore['rooms'] = []
+  for (const room of rooms) {
+    if (!isRecord(room) || Object.keys(room).some((key) => !['id', 'label', 'icon', 'sortOrder'].includes(key))) {
+      return c.json({ error: 'Elenco stanze del backup non valido' }, 400)
     }
-    if (Array.isArray(incoming.rooms)) store.rooms = incoming.rooms
-    if (Array.isArray(incoming.entities)) store.entities = incoming.entities
+    const label = cleanText(room.label, 80)
+    if (typeof room.id !== 'string' || !SIMPLE_ID_PATTERN.test(room.id) || roomIds.has(room.id)
+      || !label || !isIconName(room.icon) || !integerInRange(room.sortOrder, 0, 10_000)) {
+      return c.json({ error: 'Elenco stanze del backup non valido' }, 400)
+    }
+    roomIds.add(room.id)
+    normalizedRooms.push({ id: room.id, label, icon: room.icon, sortOrder: room.sortOrder })
+  }
+  const entities = incoming.entities
+  if (!Array.isArray(entities) || entities.length > 5_000) return c.json({ error: 'Elenco entità del backup non valido' }, 400)
+  const entityKeys = new Set<string>()
+  const normalizedEntities: DbStore['entities'] = []
+  for (const entity of entities) {
+    if (!isRecord(entity) || Object.keys(entity).some((key) => !['id', 'roomId', 'entityId', 'label', 'type', 'sortOrder', 'favorite'].includes(key))) {
+      return c.json({ error: 'Elenco entità del backup non valido' }, 400)
+    }
+    const label = cleanText(entity.label, 100)
+    if (typeof entity.id !== 'string' || !/^[a-z0-9_.-]{1,255}$/i.test(entity.id) || entityKeys.has(entity.id)
+      || typeof entity.roomId !== 'string' || !roomIds.has(entity.roomId) || !isEntityId(entity.entityId)
+      || !label || !isEntityType(entity.type) || !integerInRange(entity.sortOrder, 0, 10_000)
+      || (entity.favorite !== undefined && typeof entity.favorite !== 'boolean')) {
+      return c.json({ error: 'Elenco entità del backup non valido' }, 400)
+    }
+    entityKeys.add(entity.id)
+    normalizedEntities.push({
+      id: entity.id,
+      roomId: entity.roomId,
+      entityId: entity.entityId,
+      label,
+      type: entity.type,
+      sortOrder: entity.sortOrder,
+      ...(typeof entity.favorite === 'boolean' ? { favorite: entity.favorite } : {}),
+    })
+  }
+
+  const ok = await db.write((store) => {
+    const importedConfig = configResult.value
+    store.config = {
+      ...store.config,
+      ...importedConfig,
+      // Connection credentials are installation-local and never restored from
+      // portable backups, including legacy v1 exports.
+      haUrl: store.config.haUrl,
+      haToken: store.config.haToken,
+      home: mergeHomeConfig(store.config.home, normalizeHomeConfig(importedConfig.home), 'desktop'),
+    }
+    store.rooms = normalizedRooms
+    store.entities = normalizedEntities
   })
   if (!ok) return c.json({ error: 'Configurazione in sola lettura in questo deployment' }, 409)
   emitConfigChange()
@@ -98,25 +160,63 @@ configRouter.post('/import', async (c) => {
 })
 
 configRouter.put('/', async (c) => {
-  const body = await c.req.json<Partial<AppConfig>>()
+  const input = await c.req.json<unknown>().catch(() => null)
+  const validation = validateConfigPatch(input)
+  if (!validation.ok) return c.json({ error: validation.error }, 400)
+  const body = validation.value
+  const requestedLayoutVersion = isRecord(input)
+    && isRecord(input.home)
+    && Number.isSafeInteger(input.home.layoutVersion)
+    ? Number(input.home.layoutVersion)
+    : null
+  if (body.home !== undefined && requestedLayoutVersion === null) {
+    return c.json({ error: 'layoutVersion è obbligatorio quando si modifica la home' }, 400)
+  }
   const ha = await getHAConfig()
+
+  const normalizedHAUrl = body.haUrl === undefined ? undefined : normalizeHAUrl(body.haUrl)
+  if (body.haUrl !== undefined && !normalizedHAUrl) {
+    return c.json({ error: 'Usa un URL Home Assistant valido nella rete locale (http/https).' }, 400)
+  }
+  const safeHAUrl = normalizedHAUrl ?? undefined
+  if (body.haToken !== undefined && (typeof body.haToken !== 'string' || body.haToken.length > 8_192)) {
+    return c.json({ error: 'Token Home Assistant non valido' }, 400)
+  }
 
   // Optimistic concurrency for the home layout. Desktop (this route) and kiosk
   // (/api/layout) both coordinate through config.home.layoutVersion, so a stale
   // save from one device can no longer silently clobber the other — it 409s and
   // the client refetches the current layout. Only enforced when the client sends
   // a layoutVersion (i.e. a home edit); other config writes are unaffected.
-  if (body.home !== undefined && Number.isInteger(body.home.layoutVersion)) {
+  if (body.home !== undefined && requestedLayoutVersion !== null) {
     const { config } = await db.read()
     const currentVersion = normalizeHomeConfig(config.home).layoutVersion ?? 1
-    if (body.home.layoutVersion !== currentVersion) {
+    if (requestedLayoutVersion !== currentVersion) {
       return c.json({ error: 'Layout modificato da un altro dispositivo', currentVersion }, 409)
     }
   }
 
+  let atomicConflictVersion: number | null = null
+  let haConnectionChanged = false
   const ok = await db.write((store) => {
-    if (body.haUrl !== undefined && !ha.locked.haUrl) store.config.haUrl = body.haUrl
-    if (body.haToken !== undefined && body.haToken !== '***' && !ha.locked.haToken) store.config.haToken = body.haToken
+    // Repeat the compare-and-swap inside the serialized DB queue. The early
+    // check above gives fast feedback, while this one prevents two requests
+    // that both observed the same version from being committed in sequence.
+    if (body.home !== undefined && requestedLayoutVersion !== null) {
+      const currentVersion = normalizeHomeConfig(store.config.home).layoutVersion ?? 1
+      if (requestedLayoutVersion !== currentVersion) {
+        atomicConflictVersion = currentVersion
+        return
+      }
+    }
+    if (safeHAUrl !== undefined && !ha.locked.haUrl && store.config.haUrl !== safeHAUrl) {
+      store.config.haUrl = safeHAUrl
+      haConnectionChanged = true
+    }
+    if (body.haToken !== undefined && body.haToken !== '***' && !ha.locked.haToken && store.config.haToken !== body.haToken) {
+      store.config.haToken = body.haToken
+      haConnectionChanged = true
+    }
     if (body.weatherCity !== undefined) store.config.weatherCity = body.weatherCity
     if (body.newsCategory !== undefined) store.config.newsCategory = body.newsCategory
     if (body.newsFeedUrl !== undefined) store.config.newsFeedUrl = body.newsFeedUrl
@@ -136,7 +236,14 @@ configRouter.put('/', async (c) => {
     if (body.kiosk !== undefined) store.config.kiosk = body.kiosk
     if (body.ai !== undefined) store.config.ai = body.ai
   })
-  if (!ok) return c.json({ error: 'Configuration could not be saved' }, 500)
+  if (!ok) return c.json({ error: 'Configurazione in sola lettura in questo deployment' }, 409)
+  if (atomicConflictVersion !== null) {
+    return c.json({ error: 'Layout modificato da un altro dispositivo', currentVersion: atomicConflictVersion }, 409)
+  }
+  if (haConnectionChanged) {
+    invalidateHARegistryCache()
+    invalidateHAConnection()
+  }
   emitConfigChange() // notify all connected clients to refetch
   return c.json({ ok: true })
 })

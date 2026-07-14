@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import type { Layout } from 'react-grid-layout/legacy'
 import 'react-grid-layout/css/styles.css'
 import { Check, GripVertical, Pencil, RotateCcw, Save, WifiOff, X } from 'lucide-react'
@@ -10,7 +11,9 @@ import { useTimeOfDay } from '../../../hooks/useTimeOfDay'
 import { useCurrentWeather } from '../../../hooks/useWeather'
 import { useEntityStore } from '../../../store/entities'
 import { cn } from '../../../lib/utils'
-import type { TabletDashboardLayout } from '../../../api/backend'
+import { WeatherIcon } from '../../weather/WeatherIcon'
+import { authApi, type TabletDashboardLayout } from '../../../api/backend'
+import { NotificationBell } from '../../notifications/NotificationCenter'
 
 const GRID_GAP = [14, 14] as const
 
@@ -38,7 +41,7 @@ function KioskHeader({ layout }: { layout: TabletDashboardLayout }) {
       <div className="flex items-center gap-3">
         {weather && (
           <div className="flex items-center gap-2 rounded-full bg-black/[0.05] px-4 py-2">
-            <img src={`https://openweathermap.org/img/wn/${weather.icon}.png`} alt="" className="h-9 w-9" />
+            <WeatherIcon code={weather.icon} size={27} />
             <span className="text-2xl font-light text-[#1d1d1f]">{weather.temp}°</span>
           </div>
         )}
@@ -51,6 +54,7 @@ function KioskHeader({ layout }: { layout: TabletDashboardLayout }) {
           <span className={cn('h-2.5 w-2.5 rounded-full', online && !cached ? 'bg-green-500' : syncing ? 'bg-orange-400' : 'bg-orange-400')} />
           {online && !cached ? 'Online' : syncing ? 'Sincronizzazione' : 'Offline'}
         </div>
+        <NotificationBell allowDismiss={false} />
       </div>
     </header>
   )
@@ -69,6 +73,12 @@ function LoadingGrid() {
 export function KioskWidgetHome() {
   const { data, isLoading, isError, refetch } = useTabletLayout('home')
   const saveLayout = useSaveTabletLayout('home')
+  const authStatus = useQuery({
+    queryKey: ['auth-status'],
+    queryFn: authApi.status,
+    retry: false,
+    staleTime: 30_000,
+  })
   const [editMode, setEditMode] = useState(false)
   const [draft, setDraft] = useState<Layout | null>(null)
   const [message, setMessage] = useState<string | null>(null)
@@ -77,14 +87,21 @@ export function KioskWidgetHome() {
   const savedLayout = useMemo(() => buildLayout(widgets, data?.layout.items), [widgets, data?.layout.items])
   const activeLayout = draft ?? savedLayout
   const dirty = draft ? !sameLayout(draft, savedLayout) : false
+  const isAdmin = authStatus.data?.authenticated === true && authStatus.data.role === 'admin'
+  const editing = editMode && isAdmin
 
-  const enterEdit = async () => {
+  const beginEdit = () => {
     setMessage(null)
     setDraft(savedLayout)
     setEditMode(true)
     if (document.fullscreenEnabled && !document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(() => {})
+      void document.documentElement.requestFullscreen().catch(() => {})
     }
+  }
+
+  const enterEdit = () => {
+    if (!isAdmin) return
+    beginEdit()
   }
 
   const cancel = () => {
@@ -94,7 +111,7 @@ export function KioskWidgetHome() {
   }
 
   const save = () => {
-    if (!data || !draft) return
+    if (!isAdmin || !data || !draft) return
     setMessage('Salvataggio...')
     saveLayout.mutate({
       layoutVersion: data.layoutVersion,
@@ -150,16 +167,16 @@ export function KioskWidgetHome() {
       <div className="flex min-h-0 flex-1 flex-col">
         <div className="mb-3 flex shrink-0 items-center justify-between gap-3">
           <div className="min-w-0">
-            {editMode ? (
+            {editing ? (
               <p className="truncate text-sm font-medium text-black/50">Stai modificando solo la disposizione</p>
             ) : (
               <p className="truncate text-sm font-medium text-black/35">{data.dashboardName}</p>
             )}
-            {message && <p className="mt-0.5 text-xs font-medium text-black/45">{message}</p>}
+            {message && <p aria-live="polite" className="mt-0.5 text-xs font-medium text-black/45">{message}</p>}
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
-            {editMode ? (
+            {editing ? (
               <>
                 <button
                   onClick={save}
@@ -183,26 +200,27 @@ export function KioskWidgetHome() {
                   <Check size={18} /> Fine
                 </button>
               </>
-            ) : (
+            ) : isAdmin ? (
               <button
+                type="button"
                 onClick={enterEdit}
                 className="flex min-h-[48px] items-center gap-2 rounded-full bg-black/[0.06] px-5 text-base font-semibold text-black/60 transition active:scale-95"
               >
-                <Pencil size={17} /> Modifica disposizione
+                <Pencil size={17} aria-hidden="true" /> Modifica disposizione
               </button>
-            )}
+            ) : null}
           </div>
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1">
           <HomeGridCanvas
-            className={cn('relative pb-10', editMode && 'kiosk-layout-editing')}
+            className={cn('relative pb-10', editing && 'kiosk-layout-editing')}
             widgets={widgets}
             layout={activeLayout}
             rowHeight={data.layout.rowHeight}
             gap={GRID_GAP}
-            editMode={editMode}
-            isDraggable={editMode}
+            editMode={editing}
+            isDraggable={editing}
             draggableCancel="button, input, select, textarea, a"
             publicConfig={data}
             onDrag={(_, __, ___, ____, event) => event.stopPropagation()}
@@ -224,7 +242,7 @@ export function KioskWidgetHome() {
         </div>
       </div>
 
-      {editMode && (
+      {editing && (
         <button
           onClick={() => setDraft(savedLayout)}
           disabled={!dirty || saveLayout.isPending}
@@ -233,6 +251,7 @@ export function KioskWidgetHome() {
           <RotateCcw size={16} /> Ripristina
         </button>
       )}
+
     </div>
   )
 }

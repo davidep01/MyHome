@@ -42,15 +42,12 @@ export const aiApi = {
   chat: (prompt: string, context: AIContextEntity[], history: AITurn[] = []) =>
     postAI('chat', { prompt, context, history }),
   suggest: (context: AIContextEntity[]) => postAI('suggest', { context }),
-  /** Doorbell face recognition: snapshot of `entityId` matched against `names` + reference faces. */
-  recognize: (entityId: string, names: string[]) =>
-    postJSON<{ name: string; known?: boolean }>('recognize', { entityId, names }),
+  /** Doorbell face recognition; the backend authorizes the camera and owns all reference data. */
+  recognize: (entityId: string, doorbellId: string) =>
+    postJSON<{ name: string; known?: boolean }>('recognize', { entityId, doorbellId }),
   /** Generate an HA automation config (preview before creating). */
   automation: (prompt: string, context: AIContextEntity[]) =>
     postJSON<{ automation: HAAutomation }>('automation', { prompt, context }),
-  /** Write a generated automation into Home Assistant. */
-  createAutomation: (automation: HAAutomation) =>
-    postJSON<{ ok: boolean; id: string }>('automation/create', { automation }),
   health: async () => {
     const res = await fetch('/api/ai/health')
     return res.json() as Promise<{ ok: boolean; model: string; configured: boolean }>

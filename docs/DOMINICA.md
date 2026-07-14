@@ -85,7 +85,7 @@ Anti-flicker (stress-testato in §5): **dwell minimo 45s** per card entrata, **m
 ### 2.5 Nuovi endpoint backend (tutto qui)
 
 - `GET /api/ha/registry` — aree+device+entità dal registry HA, proxate (cache 60s). Per il workbench.
-- `GET /api/system/status` — storage mode/writable, HA reachability+latenza, modalità bridge (ws/poll), client SSE connessi, versione, chiavi presenti come **boolean** (gemini/openweather/supabase — mai i valori).
+- `GET /api/system/status` — storage mode/writable, HA reachability+latenza, modalità bridge (ws/poll), client SSE connessi, versione e integrazioni opzionali presenti come **boolean** (Gemini/OpenWeather — mai i valori).
 - `GET /api/weather` → cache server-side 10 minuti (D4).
 - `getStreamStats()` esportata da `ha-stream.ts`.
 - **Deprecati e poi rimossi**: `/api/layout/*`, `/api/config/ha-credentials`.

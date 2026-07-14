@@ -46,9 +46,9 @@ export interface AppConfig {
   home?: HomeConfig
   /** User's custom tile layout (react-grid-layout positions per entity). */
   dashboardLayout?: DashboardLayout
-  /** Kiosk behaviour: presence-wake sensor + home a strati o griglia drag&drop. */
-  kiosk?: { wakeEntityId?: string; homeMode?: 'composer' | 'grid' }
-  /** AI features: doorbell Gemini Vision on/off (default on when key present) + volti di riferimento. */
+  /** Kiosk behaviour: presence wake, adaptive home and local photo screensaver. */
+  kiosk?: KioskSettings
+  /** AI features: doorbell Gemini Vision on/off + massimo 8 volti di riferimento. */
   ai?: { doorbellVision?: boolean; faces?: KnownFace[] }
 }
 
@@ -58,6 +58,20 @@ export interface KnownFace {
   name: string
   /** 1–3 foto frontali come data URL JPEG, ridotte lato client (~512px). */
   images: string[]
+}
+
+export interface KioskSettings {
+  wakeEntityId?: string
+  homeMode?: 'composer' | 'grid'
+  screensaver?: {
+    enabled?: boolean
+    /** Seconds without interaction before ambient mode starts. */
+    idleSeconds?: number
+    /** Seconds each local photo stays on screen. */
+    slideSeconds?: number
+    /** Fully Kiosk screen brightness while ambient mode is visible (0..255). */
+    brightness?: number
+  }
 }
 
 export type WidgetType =

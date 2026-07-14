@@ -22,10 +22,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-.vercel
 
 # Local DB — contains real HA credentials, never commit
 backend/data/db.json
 .env
 .env.*
 !.env.example
+
+# Local visual-test artifacts
+output/

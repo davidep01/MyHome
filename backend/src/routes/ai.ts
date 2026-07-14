@@ -1,7 +1,20 @@
-import { Hono } from 'hono'
+import { Hono, type Context } from 'hono'
 import { db } from '../db/client.js'
 import { getHAConfig } from '../lib/ha-config.js'
+import {
+  FixedWindowRateLimiter,
+  OutboundRequestError,
+  containsControlCharacters,
+  decodeJsonResponse,
+  fetchWithLimits,
+  rateLimitResponse,
+  readJsonBody,
+  stripControlCharacters,
+} from '../lib/request-safety.js'
 import { desktopOnly } from '../lib/security.js'
+import { MAX_KNOWN_FACES } from '../lib/config-validation.js'
+import { validProviderKey } from '../lib/integration-config.js'
+import { recentDoorbellActivityKey } from '../lib/ha-stream.js'
 
 export const aiRouter = new Hono()
 
@@ -13,40 +26,31 @@ aiRouter.use('/automation', desktopOnly)
 aiRouter.use('/automation/*', desktopOnly)
 
 const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models'
+const GEMINI_TIMEOUT_MS = 25_000
+const MAX_GEMINI_RESPONSE_BYTES = 1_000_000
+const MAX_GEMINI_REQUEST_BYTES = 8_000_000
+const MAX_AI_BODY_BYTES = 64_000
+const MAX_SNAPSHOT_BYTES = 4_000_000
+const MAX_REFERENCE_IMAGE_BYTES = 600_000
+const MAX_REFERENCE_BYTES = 3_000_000
+
+const textAiRateLimiter = new FixedWindowRateLimiter(20, 10 * 60 * 1_000)
+const visionAiRateLimiter = new FixedWindowRateLimiter(10, 10 * 60 * 1_000)
+const visionResultCache = new Map<string, { expiresAt: number; result: GeminiResult }>()
+const visionInFlight = new Map<string, Promise<GeminiResult>>()
+const VISION_RING_TTL_MS = 30_000
 
 type GeminiPart = { text: string } | { inline_data: { mime_type: string; data: string } }
 type GeminiContent = { role: 'user' | 'model'; parts: GeminiPart[] }
+type GeminiFailureStatus = 413 | 502 | 503 | 504
+type GeminiResult =
+  | { ok: true; text: string }
+  | { ok: false; status: GeminiFailureStatus; error: string }
 
-/** Low-level Gemini call accepting raw multimodal parts + optional JSON mode. */
-async function geminiGenerate(
-  contents: GeminiContent[],
-  opts?: { system?: string; generationConfig?: Record<string, unknown> },
-) {
-  const { apiKey, model } = getConfig()
-  if (!apiKey) return { ok: false as const, status: 400, error: 'GEMINI_API_KEY mancante nel backend' }
-  const res = await fetch(`${GEMINI_BASE}/${model}:generateContent`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-    body: JSON.stringify({
-      ...(opts?.system ? { systemInstruction: { parts: [{ text: opts.system }] } } : {}),
-      contents,
-      generationConfig: opts?.generationConfig ?? { temperature: 0.4, maxOutputTokens: 1024 },
-    }),
-  })
-  const data = (await res.json().catch(() => ({}))) as Record<string, unknown>
-  if (!res.ok) {
-    const message = (data?.error as { message?: string } | undefined)?.message ?? `Gemini ha risposto ${res.status}`
-    return { ok: false as const, status: res.status, error: message }
-  }
-  const text = (data as { candidates?: { content?: { parts?: { text?: string }[] } }[] })
-    ?.candidates?.[0]?.content?.parts?.map((p) => p.text ?? '').join('') ?? ''
-  return { ok: true as const, text }
-}
-
-function getConfig() {
-  const apiKey = process.env.GEMINI_API_KEY ?? ''
-  const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash'
-  return { apiKey, model }
+interface ChatBody {
+  prompt: string
+  context: { entity_id: string; state: string; name?: string }[]
+  history: { role: 'user' | 'model'; text: string }[]
 }
 
 const SYSTEM_PROMPT = `Sei l'assistente AI di "MyHome", una dashboard domotica Home Assistant.
@@ -56,193 +60,349 @@ Quando suggerisci automazioni, sii concreto (trigger → condizione → azione) 
 fai riferimento alle entità realmente presenti nel contesto fornito.
 Non inventare entità che non esistono.`
 
-interface ChatBody {
-  prompt: string
-  /** Compact snapshot of current Home Assistant entities (id + state). */
-  context?: { entity_id: string; state: string; name?: string }[]
-  /** Prior turns for multi-message conversations. */
-  history?: { role: 'user' | 'model'; text: string }[]
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
-async function callGemini(parts: { role: 'user' | 'model'; text: string }[], systemText: string) {
-  const { apiKey, model } = getConfig()
-  if (!apiKey) {
-    return { ok: false as const, status: 400, error: 'GEMINI_API_KEY mancante nel backend' }
-  }
-
-  const res = await fetch(`${GEMINI_BASE}/${model}:generateContent`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: systemText }] },
-      contents: parts.map((p) => ({ role: p.role, parts: [{ text: p.text }] })),
-      generationConfig: { temperature: 0.6, maxOutputTokens: 1024 },
-    }),
-  })
-
-  const data = (await res.json().catch(() => ({}))) as Record<string, unknown>
-  if (!res.ok) {
-    const message =
-      (data?.error as { message?: string } | undefined)?.message ?? `Gemini ha risposto ${res.status}`
-    return { ok: false as const, status: res.status, error: message }
-  }
-
-  const text =
-    (data as { candidates?: { content?: { parts?: { text?: string }[] } }[] })
-      ?.candidates?.[0]?.content?.parts?.map((p) => p.text ?? '').join('') ?? ''
-  return { ok: true as const, text }
+function inputText(value: unknown, maxLength: number, allowNewlines = true): string | null {
+  if (typeof value !== 'string' || value.length > maxLength) return null
+  if (containsControlCharacters(value, allowNewlines)) return null
+  const normalized = value.trim()
+  return normalized ? normalized : null
 }
 
-function contextToText(context?: ChatBody['context']) {
-  if (!context || context.length === 0) return 'Nessuna entità fornita.'
+function entityId(value: unknown, domain?: string): string | null {
+  const id = inputText(value, 255, false)
+  if (!id || !/^[a-z0-9_]+\.[a-z0-9_]+$/i.test(id)) return null
+  if (domain && !id.toLowerCase().startsWith(`${domain}.`)) return null
+  return id
+}
+
+function parseContext(value: unknown): ChatBody['context'] | null {
+  if (value === undefined) return []
+  if (!Array.isArray(value) || value.length > 120) return null
+  const context: ChatBody['context'] = []
+  for (const entry of value) {
+    if (!isRecord(entry)) return null
+    const id = entityId(entry.entity_id)
+    const state = inputText(entry.state, 256, false)
+    const name = entry.name === undefined ? undefined : inputText(entry.name, 120, false)
+    if (!id || !state || (entry.name !== undefined && !name)) return null
+    context.push({ entity_id: id, state, ...(name ? { name } : {}) })
+  }
   return context
-    .slice(0, 120)
-    .map((e) => `- ${e.entity_id}${e.name ? ` (${e.name})` : ''}: ${e.state}`)
+}
+
+function parseHistory(value: unknown): ChatBody['history'] | null {
+  if (value === undefined) return []
+  if (!Array.isArray(value) || value.length > 16) return null
+  const history: ChatBody['history'] = []
+  let totalCharacters = 0
+  for (const turn of value) {
+    if (!isRecord(turn) || (turn.role !== 'user' && turn.role !== 'model')) return null
+    const text = inputText(turn.text, 4_000)
+    if (!text) return null
+    totalCharacters += text.length
+    if (totalCharacters > 24_000) return null
+    history.push({ role: turn.role, text })
+  }
+  return history
+}
+
+function parseChatBody(value: unknown): ChatBody | null {
+  if (!isRecord(value)) return null
+  const prompt = inputText(value.prompt, 4_000)
+  const context = parseContext(value.context)
+  const history = parseHistory(value.history)
+  return prompt && context && history ? { prompt, context, history } : null
+}
+
+function getConfig() {
+  const apiKey = validProviderKey(process.env.GEMINI_API_KEY, 512) ?? ''
+  const configuredModel = process.env.GEMINI_MODEL?.trim() ?? ''
+  const model = /^[a-zA-Z0-9._-]{1,100}$/.test(configuredModel)
+    ? configuredModel
+    : 'gemini-2.5-flash'
+  return { apiKey, model }
+}
+
+function providerFailure(status: number): GeminiResult {
+  if (status === 429) {
+    return { ok: false, status: 503, error: 'Servizio AI temporaneamente occupato' }
+  }
+  return { ok: false, status: 502, error: 'Servizio AI temporaneamente non disponibile' }
+}
+
+/** Low-level Gemini call with bounded I/O and deliberately generic provider errors. */
+async function geminiGenerate(
+  contents: GeminiContent[],
+  opts?: { system?: string; generationConfig?: Record<string, unknown> },
+): Promise<GeminiResult> {
+  const { apiKey, model } = getConfig()
+  if (!apiKey) return { ok: false, status: 503, error: 'Servizio AI non configurato' }
+  try {
+    const requestBody = JSON.stringify({
+      ...(opts?.system ? { systemInstruction: { parts: [{ text: opts.system }] } } : {}),
+      contents,
+      generationConfig: opts?.generationConfig ?? { temperature: 0.4, maxOutputTokens: 1_024 },
+    })
+    if (Buffer.byteLength(requestBody, 'utf8') > MAX_GEMINI_REQUEST_BYTES) {
+      return { ok: false, status: 413, error: 'Dati AI troppo grandi' }
+    }
+    const { response, bytes } = await fetchWithLimits(
+      `${GEMINI_BASE}/${model}:generateContent`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+        body: requestBody,
+      },
+      { timeoutMs: GEMINI_TIMEOUT_MS, maxBytes: MAX_GEMINI_RESPONSE_BYTES },
+    )
+    if (!response.ok) return providerFailure(response.status)
+    const data = decodeJsonResponse(bytes)
+    if (!isRecord(data) || !Array.isArray(data.candidates)) return providerFailure(502)
+    const candidate = data.candidates[0]
+    if (!isRecord(candidate) || !isRecord(candidate.content) || !Array.isArray(candidate.content.parts)) {
+      return providerFailure(502)
+    }
+    const text = candidate.content.parts
+      .map((part) => isRecord(part) && typeof part.text === 'string' ? part.text : '')
+      .join('')
+      .trim()
+    if (!text) return providerFailure(502)
+    return { ok: true, text }
+  } catch (error) {
+    if (error instanceof OutboundRequestError && error.reason === 'timeout') {
+      return { ok: false, status: 504, error: 'Il servizio AI non ha risposto in tempo' }
+    }
+    return providerFailure(502)
+  }
+}
+
+async function readRouteJson(c: Context, maxBytes = MAX_AI_BODY_BYTES): Promise<unknown | Response> {
+  const result = await readJsonBody(c.req.raw, maxBytes)
+  return result.ok ? result.value : c.json({ error: result.error }, result.status)
+}
+
+function contextToText(context: ChatBody['context']) {
+  if (context.length === 0) return 'Nessuna entità fornita.'
+  return context
+    .map((entry) => `- ${entry.entity_id}${entry.name ? ` (${entry.name})` : ''}: ${entry.state}`)
     .join('\n')
+}
+
+function textRequestLimit(c: Context): Response | null {
+  return rateLimitResponse(c, textAiRateLimiter, 'ai-text')
 }
 
 aiRouter.get('/health', (c) => {
   const { apiKey, model } = getConfig()
+  c.header('Cache-Control', 'no-store')
   return c.json({ ok: Boolean(apiKey), model, configured: Boolean(apiKey) })
 })
 
 // POST /api/ai/chat — natural-language home copilot
 aiRouter.post('/chat', async (c) => {
-  const body = await c.req.json<ChatBody>().catch(() => null)
-  if (!body?.prompt) return c.json({ error: 'prompt mancante' }, 400)
+  const limited = textRequestLimit(c)
+  if (limited) return limited
+  const raw = await readRouteJson(c)
+  if (raw instanceof Response) return raw
+  const body = parseChatBody(raw)
+  if (!body) return c.json({ error: 'Richiesta chat non valida' }, 400)
 
-  const systemText = `${SYSTEM_PROMPT}\n\nStato attuale della casa:\n${contextToText(body.context)}`
-  const parts = [
-    ...(body.history ?? []),
-    { role: 'user' as const, text: body.prompt },
-  ]
-
-  const result = await callGemini(parts, systemText)
-  if (!result.ok) return c.json({ error: result.error }, result.status as 400 | 502)
+  const result = await geminiGenerate(
+    [
+      ...body.history.map((turn) => ({ role: turn.role, parts: [{ text: turn.text }] })),
+      { role: 'user', parts: [{ text: body.prompt }] },
+    ],
+    { system: `${SYSTEM_PROMPT}\n\nStato attuale della casa:\n${contextToText(body.context)}`, generationConfig: { temperature: 0.6, maxOutputTokens: 1_024 } },
+  )
+  if (!result.ok) return c.json({ error: result.error }, result.status)
   return c.json({ text: result.text })
 })
 
 // POST /api/ai/suggest — proactive automation suggestions from current state
 aiRouter.post('/suggest', async (c) => {
-  const body = await c.req.json<{ context?: ChatBody['context'] }>().catch(() => null)
-  const systemText = `${SYSTEM_PROMPT}\n\nStato attuale della casa:\n${contextToText(body?.context)}`
-  const result = await callGemini(
+  const limited = textRequestLimit(c)
+  if (limited) return limited
+  const raw = await readRouteJson(c)
+  if (raw instanceof Response) return raw
+  if (!isRecord(raw)) return c.json({ error: 'Richiesta suggerimenti non valida' }, 400)
+  const context = parseContext(raw.context)
+  if (!context) return c.json({ error: 'Contesto non valido' }, 400)
+
+  const result = await geminiGenerate(
     [{
       role: 'user',
-      text: 'Analizza lo stato della casa e proponi 3 automazioni o azioni proattive utili adesso. Per ciascuna: titolo breve, una frase di motivazione, e le entità coinvolte. Formato elenco puntato.',
+      parts: [{
+        text: 'Analizza lo stato della casa e proponi 3 automazioni o azioni proattive utili adesso. Per ciascuna: titolo breve, una frase di motivazione, e le entità coinvolte. Formato elenco puntato.',
+      }],
     }],
-    systemText,
+    { system: `${SYSTEM_PROMPT}\n\nStato attuale della casa:\n${contextToText(context)}` },
   )
-  if (!result.ok) return c.json({ error: result.error }, result.status as 400 | 502)
+  if (!result.ok) return c.json({ error: result.error }, result.status)
   return c.json({ text: result.text })
 })
 
 // POST /api/ai/recognize — Gemini Vision on a camera snapshot (doorbell face recognition)
 aiRouter.post('/recognize', async (c) => {
-  const body = await c.req.json<{ entityId: string; names?: string[] }>().catch(() => null)
-  if (!body?.entityId) return c.json({ error: 'entityId mancante' }, 400)
+  const limited = rateLimitResponse(c, visionAiRateLimiter, 'ai-vision')
+  if (limited) return limited
+  const raw = await readRouteJson(c, 16_000)
+  if (raw instanceof Response) return raw
+  if (!isRecord(raw)) return c.json({ error: 'Richiesta riconoscimento non valida' }, 400)
+  const cameraEntityId = entityId(raw.entityId, 'camera')
+  const doorbellId = inputText(raw.doorbellId, 80, false)
+  if (!cameraEntityId || !doorbellId || !/^[a-z0-9][a-z0-9_-]{0,79}$/i.test(doorbellId)) {
+    return c.json({ error: 'Dati riconoscimento non validi' }, 400)
+  }
+
   const { config } = await db.read()
-  if (config.ai?.doorbellVision === false) {
+  if (config.ai?.doorbellVision !== true) {
     return c.json({ error: 'Riconoscimento AI disattivato dalle Funzioni' }, 400)
   }
-  const { haUrl, haToken } = await getHAConfig()
-  if (!haToken) return c.json({ error: 'HA token mancante' }, 400)
+  const configuredDoorbells = Array.isArray(config.doorbells) ? config.doorbells : []
+  const configuredDoorbell = configuredDoorbells.length > 0
+    ? configuredDoorbells.find((doorbell) => doorbell.id === doorbellId && doorbell.active !== false)
+    : doorbellId === 'legacy' && config.doorbell?.entityId
+      ? { id: 'legacy', entityId: config.doorbell.entityId, cameraEntityId: config.doorbell.cameraEntityId }
+      : undefined
+  if (!configuredDoorbell || configuredDoorbell.cameraEntityId !== cameraEntityId) {
+    return c.json({ error: 'Videocamera non associata a un campanello attivo' }, 403)
+  }
+  const ringKey = recentDoorbellActivityKey(configuredDoorbell.entityId, VISION_RING_TTL_MS)
+  if (!ringKey) return c.json({ error: 'Nessuna suonata recente verificata' }, 409)
+  const recognitionKey = `${doorbellId}:${cameraEntityId}:${ringKey}`
+  const { haUrl, haToken, valid: haUrlValid } = await getHAConfig()
+  if (!haUrlValid || !haUrl || !haToken) return c.json({ error: 'Home Assistant non configurato' }, 503)
 
-  let b64: string
+  let snapshotData: string
+  let snapshotMime: string
   try {
-    const r = await fetch(`${haUrl.replace(/\/$/, '')}/api/camera_proxy/${encodeURIComponent(body.entityId)}`, {
-      headers: { Authorization: `Bearer ${haToken}` },
-    })
-    if (!r.ok) return c.json({ error: `Snapshot non disponibile (${r.status})` }, 502)
-    b64 = Buffer.from(await r.arrayBuffer()).toString('base64')
-  } catch {
-    return c.json({ error: 'Snapshot non raggiungibile' }, 502)
+    const { response, bytes } = await fetchWithLimits(
+      `${haUrl.replace(/\/$/, '')}/api/camera_proxy/${encodeURIComponent(cameraEntityId)}`,
+      { method: 'GET', headers: { Authorization: `Bearer ${haToken}`, Accept: 'image/jpeg,image/png,image/webp' } },
+      { timeoutMs: 8_000, maxBytes: MAX_SNAPSHOT_BYTES },
+    )
+    if (!response.ok || bytes.byteLength === 0) {
+      return c.json({ error: 'Snapshot non disponibile' }, 502)
+    }
+    const contentType = response.headers.get('content-type')?.split(';', 1)[0].trim().toLowerCase() ?? ''
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(contentType)) {
+      return c.json({ error: 'Formato snapshot non supportato' }, 502)
+    }
+    snapshotMime = contentType
+    snapshotData = Buffer.from(bytes).toString('base64')
+  } catch (error) {
+    const message = error instanceof OutboundRequestError && error.reason === 'timeout'
+      ? 'Lo snapshot non ha risposto in tempo'
+      : 'Snapshot non raggiungibile'
+    return c.json({ error: message }, error instanceof OutboundRequestError && error.reason === 'timeout' ? 504 : 502)
   }
 
-  // Volti di riferimento caricati in Funzioni → Campanelli → "Volti conosciuti":
-  // Gemini confronta il volto alla porta con queste foto e risponde col nome esatto.
-  const faces = (config.ai?.faces ?? []).filter((f) => f.name?.trim() && f.images?.length)
-  const refParts: GeminiPart[] = []
-  for (const face of faces.slice(0, 8)) {
-    for (const img of face.images.slice(0, 3)) {
-      const m = /^data:(image\/[a-z.+-]+);base64,([A-Za-z0-9+/=]+)$/.exec(img)
-      if (!m) continue
-      refParts.push({ text: `Foto di riferimento di "${face.name.trim()}":` })
-      refParts.push({ inline_data: { mime_type: m[1], data: m[2] } })
+  const configuredFaces = Array.isArray(config.ai?.faces) ? config.ai.faces : []
+  const knownNames: string[] = []
+  const referenceParts: GeminiPart[] = []
+  let referenceBytes = 0
+  for (const face of configuredFaces.slice(0, MAX_KNOWN_FACES)) {
+    const name = inputText(face?.name, 80, false)
+    if (!name || !Array.isArray(face?.images)) continue
+    knownNames.push(name)
+    for (const image of face.images.slice(0, 3)) {
+      if (typeof image !== 'string' || image.length > Math.ceil(MAX_REFERENCE_IMAGE_BYTES * 4 / 3) + 64) continue
+      const match = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/]+={0,2})$/.exec(image)
+      if (!match) continue
+      const padding = match[2].endsWith('==') ? 2 : match[2].endsWith('=') ? 1 : 0
+      const byteLength = Math.floor(match[2].length * 3 / 4) - padding
+      if (byteLength <= 0 || byteLength > MAX_REFERENCE_IMAGE_BYTES || referenceBytes + byteLength > MAX_REFERENCE_BYTES) continue
+      referenceBytes += byteLength
+      referenceParts.push({ text: `Foto di riferimento; nome atteso: ${JSON.stringify(name)}` })
+      referenceParts.push({ inline_data: { mime_type: match[1], data: match[2] } })
     }
   }
 
-  const names = (body.names ?? []).filter(Boolean)
-  const knownLine = names.length ? `Altre persone note della famiglia: ${names.join(', ')}.\n` : ''
-  const refLine = refParts.length
-    ? 'Prima trovi le foto di riferimento delle persone conosciute, poi l\'immagine del videocitofono: confronta i volti con attenzione.\n'
+  const allNames = knownNames.filter((name, index, list) =>
+    list.findIndex((candidate) => candidate.toLocaleLowerCase('it') === name.toLocaleLowerCase('it')) === index)
+  const referencesLine = referenceParts.length
+    ? 'Prima trovi foto di riferimento, poi l’immagine del videocitofono: confronta i volti con attenzione.\n'
     : ''
-  const prompt = `${refLine}L'ULTIMA immagine è quella di un videocitofono/campanello. Identifica CHI o COSA c'è alla porta.
-${knownLine}Rispondi con UNA sola etichetta brevissima in italiano, senza punteggiatura:
+  const namesLine = allNames.length ? `Persone note: ${JSON.stringify(allNames)}.\n` : ''
+  const prompt = `${referencesLine}L'ULTIMA immagine è quella di un videocitofono/campanello. Identifica CHI o COSA c'è alla porta.
+${namesLine}Rispondi con UNA sola etichetta brevissima in italiano, senza punteggiatura:
 - il nome ESATTO della persona di riferimento se il volto corrisponde a una delle foto;
 - altrimenti una descrizione breve di chi/cosa vedi (es. "un corriere", "una persona sconosciuta", "un gatto", "un pacco");
 - "nessuno" se non c'è nessuno e niente di rilevante.
 Solo l'etichetta.`
 
-  const result = await geminiGenerate(
-    [{
-      role: 'user',
-      parts: [
-        { text: prompt },
-        ...refParts,
-        { text: 'Immagine del videocitofono:' },
-        { inline_data: { mime_type: 'image/jpeg', data: b64 } },
-      ],
-    }],
-    { generationConfig: { temperature: 0, maxOutputTokens: 32 } },
-  )
-  if (!result.ok) return c.json({ error: result.error }, result.status as 400 | 502)
-  const label = result.text.trim().replace(/[."\n\r]/g, '').trim()
-  const lower = label.toLowerCase()
-  const isKnown = faces.some((f) => f.name.trim().toLowerCase() === lower)
-    || names.some((n) => n.toLowerCase() === lower)
-  return c.json({ name: label, known: isKnown })
+  const now = Date.now()
+  for (const [key, cached] of visionResultCache) if (cached.expiresAt <= now) visionResultCache.delete(key)
+  let result = visionResultCache.get(recognitionKey)?.result
+  if (!result) {
+    let task = visionInFlight.get(recognitionKey)
+    if (!task) {
+      task = geminiGenerate(
+        [{
+          role: 'user',
+          parts: [
+            { text: prompt },
+            ...referenceParts,
+            { text: 'Immagine del videocitofono:' },
+            { inline_data: { mime_type: snapshotMime, data: snapshotData } },
+          ],
+        }],
+        { generationConfig: { temperature: 0, maxOutputTokens: 32 } },
+      ).then((providerResult) => {
+        visionResultCache.set(recognitionKey, { expiresAt: Date.now() + VISION_RING_TTL_MS, result: providerResult })
+        if (visionResultCache.size > 64) visionResultCache.delete(visionResultCache.keys().next().value ?? '')
+        return providerResult
+      }).finally(() => visionInFlight.delete(recognitionKey))
+      visionInFlight.set(recognitionKey, task)
+    }
+    result = await task
+  }
+  if (!result.ok) return c.json({ error: result.error }, result.status)
+  const label = result.text
+    .replace(/[."\n\r]/g, '')
+    .split(/\r?\n/).map(stripControlCharacters).join(' ')
+    .trim()
+    .slice(0, 100) || 'sconosciuto'
+  const lower = label.toLocaleLowerCase('it')
+  const known = allNames.some((name) => name.toLocaleLowerCase('it') === lower)
+  return c.json({ name: label, known })
 })
 
 // POST /api/ai/automation — generate a valid HA automation config (JSON) for preview
 aiRouter.post('/automation', async (c) => {
-  const body = await c.req.json<ChatBody>().catch(() => null)
-  if (!body?.prompt) return c.json({ error: 'prompt mancante' }, 400)
+  const limited = textRequestLimit(c)
+  if (limited) return limited
+  const raw = await readRouteJson(c)
+  if (raw instanceof Response) return raw
+  const body = parseChatBody(raw)
+  if (!body) return c.json({ error: 'Richiesta automazione non valida' }, 400)
   const system = `${SYSTEM_PROMPT}\nGenera UNA automazione Home Assistant valida come JSON puro (niente markdown) con i campi: alias (string), trigger (array), condition (array, può essere vuoto), action (array). Usa SOLO entità realmente presenti.\nStato attuale:\n${contextToText(body.context)}`
   const result = await geminiGenerate(
     [{ role: 'user', parts: [{ text: `Crea un'automazione per: ${body.prompt}` }] }],
-    { system, generationConfig: { temperature: 0.3, maxOutputTokens: 1024, responseMimeType: 'application/json' } },
+    { system, generationConfig: { temperature: 0.3, maxOutputTokens: 1_024, responseMimeType: 'application/json' } },
   )
-  if (!result.ok) return c.json({ error: result.error }, result.status as 400 | 502)
+  if (!result.ok) return c.json({ error: result.error }, result.status)
   try {
-    return c.json({ automation: JSON.parse(result.text) })
+    const automation = JSON.parse(result.text) as unknown
+    if (!validAutomation(automation)) throw new Error('invalid_automation')
+    return c.json({ automation })
   } catch {
-    return c.json({ error: 'Gemini non ha prodotto JSON valido', raw: result.text }, 502)
+    return c.json({ error: 'Il servizio AI non ha prodotto un’automazione valida' }, 502)
   }
 })
 
-// POST /api/ai/automation/create — write the automation into Home Assistant
-aiRouter.post('/automation/create', async (c) => {
-  const body = await c.req.json<{ automation: Record<string, unknown> }>().catch(() => null)
-  if (!body?.automation) return c.json({ error: 'automation mancante' }, 400)
-  const { haUrl, haToken } = await getHAConfig()
-  if (!haToken) return c.json({ error: 'HA token mancante' }, 400)
-  const id = `myhome_${Date.now()}`
-  const base = haUrl.replace(/\/$/, '')
-  try {
-    const r = await fetch(`${base}/api/config/automation/config/${id}`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${haToken}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(body.automation),
-    })
-    if (!r.ok) return c.json({ error: `Home Assistant ha rifiutato l'automazione (${r.status})` }, 502)
-    // Reload so it becomes active immediately
-    await fetch(`${base}/api/services/automation/reload`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${haToken}` },
-    }).catch(() => {})
-    return c.json({ ok: true, id })
-  } catch {
-    return c.json({ error: 'Home Assistant non raggiungibile' }, 502)
+function validAutomation(value: unknown): value is Record<string, unknown> {
+  if (!isRecord(value)) return false
+  const alias = inputText(value.alias, 200, false)
+  if (!alias) return false
+  const trigger = value.trigger
+  const condition = value.condition
+  const action = value.action
+  for (const entries of [trigger, condition, action]) {
+    if (!Array.isArray(entries) || entries.length > 100 || entries.some((entry) => !isRecord(entry))) return false
   }
-})
+  return Array.isArray(trigger) && trigger.length > 0 && Array.isArray(action) && action.length > 0
+}

@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { db } from '../db/client.js'
 import type { HomeWidget } from '../db/types.js'
 import { emitConfigChange } from '../lib/configEvents.js'
+import { adminOnly } from '../lib/security.js'
 import {
   HOME_COLS,
   HOME_DASHBOARD_ID,
@@ -86,7 +87,7 @@ layoutRouter.get('/:dashboardId', async (c) => {
   return c.json(tabletHomeLayout(config))
 })
 
-layoutRouter.put('/:dashboardId', async (c) => {
+layoutRouter.put('/:dashboardId', adminOnly, async (c) => {
   const dashboardId = c.req.param('dashboardId')
   if (dashboardId !== HOME_DASHBOARD_ID) return c.json({ error: 'Dashboard non trovata' }, 404)
 
@@ -99,14 +100,27 @@ layoutRouter.put('/:dashboardId', async (c) => {
     return c.json({ error: validation.error, current }, status)
   }
 
+  let atomicFailure: ReturnType<typeof validatePatch> | null = null
+  let failureCurrent = current
   const ok = await db.write((store) => {
+    const latest = tabletHomeLayout(store.config)
+    const atomicValidation = validatePatch(body, latest.widgets, latest.layoutVersion)
+    if (!atomicValidation.ok) {
+      atomicFailure = atomicValidation
+      failureCurrent = latest
+      return
+    }
     store.config.home = mergeHomeConfig(store.config.home, {
-      positions: validation.items,
-      order: validation.order ?? current.layout.order,
-      layoutVersion: current.layoutVersion + 1,
+      positions: atomicValidation.items,
+      order: atomicValidation.order ?? latest.layout.order,
+      layoutVersion: latest.layoutVersion + 1,
     }, 'tablet')
   })
   if (!ok) return c.json({ error: 'Layout non salvabile in questo deploy' }, 409)
+  if (atomicFailure) {
+    const failure = atomicFailure as Exclude<ReturnType<typeof validatePatch>, { ok: true }>
+    return c.json({ error: failure.error, current: failureCurrent }, 'conflict' in failure && failure.conflict ? 409 : 400)
+  }
 
   emitConfigChange()
   const updated = await db.read()

@@ -100,11 +100,73 @@ html, body, #root {
   color: var(--ink);
   background: var(--canvas-page);
   overflow: hidden;
-  user-select: none;
   touch-action: manipulation;
   font-size: 17px;
   letter-spacing: -0.374px;
   line-height: 1.47;
+}
+
+body {
+  user-select: text;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+a,
+[role="button"],
+[role="switch"],
+[role="slider"] {
+  touch-action: manipulation;
+}
+
+:where(a, button, input, select, textarea, [role="button"], [role="switch"], [role="slider"]):focus-visible {
+  outline: 3px solid rgba(0, 102, 204, 0.42);
+  outline-offset: 3px;
+}
+
+:where(button, input, select, textarea):disabled {
+  cursor: not-allowed;
+}
+
+::selection {
+  color: var(--ink);
+  background: rgba(0, 102, 204, 0.20);
+}
+
+.skip-link {
+  position: fixed;
+  z-index: 120;
+  top: max(8px, env(safe-area-inset-top));
+  left: max(8px, env(safe-area-inset-left));
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  border-radius: var(--radius-pill);
+  color: var(--on-accent);
+  background: var(--action-blue);
+  font-size: 14px;
+  font-weight: 600;
+  transform: translateY(calc(-100% - 20px));
+  transition: transform var(--dur-fast) var(--spring);
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+@media (max-width: 767px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
 }
 
 /* ============================================================================
@@ -152,6 +214,59 @@ html.kiosk-mode body {
 .kiosk-root {
   position: relative;
   isolation: isolate;
+  user-select: none;
+}
+
+/* Mesh ambientale: due soli layer compositi, sopra il canvas e sotto popup/
+   alert. Animiamo esclusivamente transform/opacity, quindi nessun layout e
+   nessun blur ricalcolato a ogni frame anche sui pannelli 90/120 Hz. */
+.kiosk-mesh-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 4;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+  opacity: .34;
+  mix-blend-mode: soft-light;
+}
+.kiosk-mesh-orb {
+  position: absolute;
+  width: 72vmax;
+  height: 72vmax;
+  border-radius: 999px;
+  opacity: .42;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+}
+.kiosk-mesh-orb-a {
+  left: -36vmax;
+  top: -42vmax;
+  background: radial-gradient(circle, rgba(41,151,255,.72) 0%, rgba(124,58,237,.28) 42%, transparent 70%);
+  animation: kiosk-mesh-a 38s ease-in-out infinite alternate;
+}
+.kiosk-mesh-orb-b {
+  right: -40vmax;
+  bottom: -45vmax;
+  background: radial-gradient(circle, rgba(255,159,10,.58) 0%, rgba(255,55,95,.22) 40%, transparent 70%);
+  animation: kiosk-mesh-b 46s ease-in-out infinite alternate;
+}
+.kiosk-mesh-mattina .kiosk-mesh-orb-b { opacity: .58; }
+.kiosk-mesh-sera .kiosk-mesh-orb-a,
+.kiosk-mesh-notte .kiosk-mesh-orb-a { opacity: .52; }
+.kiosk-mesh-notte { opacity: .2; }
+
+@keyframes kiosk-mesh-a {
+  from { transform: translate3d(-3%, -2%, 0) scale(.94); }
+  to { transform: translate3d(16%, 12%, 0) scale(1.08); }
+}
+@keyframes kiosk-mesh-b {
+  from { transform: translate3d(4%, 5%, 0) scale(1.06); }
+  to { transform: translate3d(-15%, -12%, 0) scale(.94); }
+}
+.perf-lite .kiosk-mesh-orb { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .kiosk-mesh-orb { animation: none; }
 }
 
 .kiosk-root::after {
@@ -698,12 +813,11 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
 .press-card:active { transform: scale(0.985); }
 
 /* ============================================================================
-   Dark mode — driven by useAutoTheme (ambient light on tablet, prefers-color-scheme,
-   or manual). The light glass surfaces are kept; a soft scrim dims the screen so a
-   wall tablet isn't blinding in a dark room. One fixed overlay, transform/opacity
-   only, frozen under reduced-motion via the global rule.
+   Night dimming — driven by useAutoTheme (ambient light on tablet,
+   prefers-color-scheme, or manual). MyHome deliberately keeps one coherent light
+   glass palette and adds a soft scrim so a wall tablet is not blinding at night.
+   This is brightness behaviour, not a second partially-themed color system.
    ============================================================================ */
-html.dark { color-scheme: dark; }
 html.dark::before {
   content: '';
   position: fixed;
@@ -769,6 +883,18 @@ a, button, [role="button"] { -webkit-touch-callout: default; }
 .ambient-drift { animation: ambient-drift 90s ease-in-out infinite; will-change: transform; }
 @media (prefers-reduced-motion: reduce) { .ambient-drift { animation: none; } }
 .perf-lite .ambient-drift { animation: none; }
+
+/* Alert ad alta priorità: il bordo respira senza animare layout o blur. */
+@keyframes critical-edge-pulse {
+  0%, 100% { box-shadow: inset 0 0 0 5px rgba(255, 84, 104, .78), 0 0 34px rgba(255, 45, 70, .28); }
+  50% { box-shadow: inset 0 0 0 10px rgba(255, 164, 175, .98), 0 0 70px rgba(255, 45, 70, .52); }
+}
+.critical-screen,
+.critical-edge { animation: critical-edge-pulse 1.15s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .critical-screen,
+  .critical-edge { animation: none; box-shadow: inset 0 0 0 7px rgba(255, 130, 145, .92); }
+}
 
 /* Sblocco serrature: riempimento della pressione prolungata (900ms, transform-free). */
 @keyframes lock-hold-fill { from { width: 0; } to { width: 100%; } }

@@ -1,4 +1,5 @@
-import { Layers, Play } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { ChevronDown, ChevronUp, Home, Layers, LoaderCircle, Play } from 'lucide-react'
 import { GlassCard } from '../glass/GlassCard'
 import { DynamicIcon } from '../DynamicIcon'
 import { AnimLightbulb } from '../icons/animated'
@@ -6,90 +7,158 @@ import { LiveDot } from '../anim/LiveDot'
 import { useEntityStore } from '../../store/entities'
 import { useHAService } from '../../hooks/useHAService'
 import { useHaptic } from '../../hooks/useHaptic'
+import { useActionFeedback } from '../../hooks/useActionFeedback'
 import type { EntityGroup } from '../../api/backend'
 import { cn } from '../../lib/utils'
-
-/** Is a member "active" for its domain (on / open / playing …). */
-function memberActive(entityId: string, state: string | undefined): boolean {
-  if (!state || state === 'unavailable') return false
-  const domain = entityId.split('.')[0]
-  switch (domain) {
-    case 'cover': return state === 'open'
-    case 'media_player': return state === 'playing'
-    case 'lock': return state === 'unlocked'
-    case 'climate': return state !== 'off'
-    default: return state === 'on'
-  }
-}
-
-const ONOFF_TYPES = new Set(['light', 'switch', 'fan', 'cover'])
-const ACTIVATE_TYPES = new Set(['scene', 'button'])
+import {
+  entityDomain,
+  groupCapability,
+  groupMemberActive,
+  homogeneousGroupDomain,
+  optimisticGroupState,
+} from './utils/groupActions'
+import { HoldDangerAction } from '../controls/HoldDangerAction'
 
 export function GroupCard({ group, className }: { group: EntityGroup; className?: string }) {
   const entities = useEntityStore((s) => s.entities)
+  const setOptimisticState = useEntityStore((s) => s.setOptimisticState)
   const { call } = useHAService()
   const { medium } = useHaptic()
+  const { feedbackClass, actionFailed } = useActionFeedback()
+  const [pending, setPending] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const busyRef = useRef(false)
 
-  const members = group.entityIds.map((id) => ({ id, e: entities[id] })).filter((m) => m.e)
-  const activeCount = members.filter((m) => memberActive(m.id, m.e?.state)).length
-  const anyOn = activeCount > 0
+  const members = group.entityIds.flatMap((id) => entities[id] ? [{ id, entity: entities[id] }] : [])
+  const availableMembers = members.filter(({ entity }) => !['unavailable', 'unknown'].includes(entity.state))
+  const activeCount = availableMembers.filter(({ id, entity }) => groupMemberActive(entityDomain(id), entity.state)).length
+  const anyActive = activeCount > 0
   const total = group.entityIds.length
+  const domain = homogeneousGroupDomain(group.entityIds)
+  const capability = groupCapability(domain)
+  const presentationType = group.type ?? domain ?? group.entityIds[0]?.split('.')[0]
 
-  const type = group.type ?? group.entityIds[0]?.split('.')[0]
-  const isOnOff = ONOFF_TYPES.has(type ?? '')
-  const isActivate = ACTIVATE_TYPES.has(type ?? '')
+  const run = () => {
+    if (busyRef.current || !domain || !capability || availableMembers.length === 0) return
+    const turningOn = capability.kind === 'activate' ? true : !anyActive
+    const service = turningOn ? capability.onService : capability.offService
+    if (!service) return
 
-  const toggleAll = () => {
+    const originals = availableMembers.map(({ id, entity }) => ({
+      id,
+      state: entity.state,
+      attributes: entity.attributes,
+    }))
+    const nextState = capability.kind === 'activate' ? undefined : optimisticGroupState(domain, turningOn)
+
+    busyRef.current = true
+    setPending(true)
+    setError(null)
     medium()
-    call('homeassistant', anyOn ? 'turn_off' : 'turn_on', { entity_id: group.entityIds })
-  }
-  const activateAll = () => {
-    medium()
-    if (type === 'scene') call('scene', 'turn_on', { entity_id: group.entityIds })
-    else call('button', 'press', { entity_id: group.entityIds })
+    if (nextState) {
+      for (const { id } of availableMembers) setOptimisticState(id, nextState)
+    }
+
+    void call(domain, service, { entity_id: availableMembers.map(({ id }) => id) })
+      .catch(() => {
+        for (const original of originals) {
+          setOptimisticState(original.id, original.state, original.attributes)
+        }
+        actionFailed()
+        setError('Comando non eseguito · riprova')
+      })
+      .finally(() => {
+        busyRef.current = false
+        setPending(false)
+      })
   }
 
-  const accent = anyOn ? 'rgba(234,179,8,0.15)' : 'rgba(0,0,0,0.05)'
-  const iconColor = anyOn ? '#b45309' : 'rgba(29,29,31,0.40)'
+  const accent = anyActive ? 'rgba(234,179,8,0.15)' : 'rgba(0,0,0,0.05)'
+  const iconColor = anyActive ? '#b45309' : 'rgba(29,29,31,0.40)'
+  const missing = total - availableMembers.length
+  const status = error
+    ?? (pending ? 'Invio comando…'
+      : availableMembers.length === 0 ? 'Nessun dispositivo disponibile'
+        : !domain ? 'Gruppo misto · controllo non disponibile'
+          : !capability ? `${availableMembers.length} dispositivi · solo stato`
+            : capability.kind === 'activate' ? `${availableMembers.length} dispositivi`
+              : `${activeCount} di ${availableMembers.length} attivi${missing > 0 ? ` · ${missing} non disponibili` : ''}`)
+
+  const actionLabel = capability
+    ? capability.kind === 'activate' || !anyActive
+      ? capability.onLabel
+      : capability.offLabel ?? capability.onLabel
+    : ''
 
   return (
     <GlassCard
       depth
-      interactive={isOnOff}
-      onClick={isOnOff ? toggleAll : undefined}
-      className={cn('flex h-full items-center gap-3 min-h-[104px]', className)}
+      className={cn('flex h-full min-h-[104px] flex-col justify-between gap-3', feedbackClass, className)}
+      aria-busy={pending}
     >
-      <div
-        className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-full', anyOn && 'ai-active')}
-        style={{ background: accent }}
-      >
-        {/* Gruppi luce senza icona custom: lampadina animata (raggi accesi). */}
-        {!group.icon && type === 'light'
-          ? <AnimLightbulb size={20} style={{ color: iconColor }} />
-          : <DynamicIcon name={group.icon} fallback={Layers} size={20} style={{ color: iconColor }} />}
+      <div className="flex items-start justify-between gap-3">
+        <div
+          className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-full', anyActive && 'ai-active')}
+          style={{ background: accent }}
+          aria-hidden="true"
+        >
+          {!group.icon && presentationType === 'light'
+            ? <AnimLightbulb size={20} style={{ color: iconColor }} />
+            : <DynamicIcon name={group.icon} fallback={Layers} size={20} style={{ color: iconColor }} />}
+        </div>
+
+        {capability?.kind === 'switch' && !capability.holdToActivate && (
+          <button
+            type="button"
+            role="switch"
+            aria-checked={anyActive}
+            aria-label={`${actionLabel} ${group.label}`}
+            disabled={pending || availableMembers.length === 0}
+            onClick={run}
+            className={cn('lg-toggle shrink-0 border-0 p-0 disabled:cursor-not-allowed disabled:opacity-40', anyActive && 'on')}
+          >
+            <span className="lg-toggle-knob" aria-hidden="true" />
+          </button>
+        )}
+        {capability?.kind === 'switch' && capability.holdToActivate && (
+          <HoldDangerAction
+            active={anyActive}
+            disabled={pending || availableMembers.length === 0}
+            onActivate={run}
+            onDeactivate={run}
+            label={group.label}
+          />
+        )}
+        {(capability?.kind === 'action' || capability?.kind === 'activate') && (
+          <button
+            type="button"
+            onClick={run}
+            disabled={pending || availableMembers.length === 0}
+            className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-full bg-[#0066cc] px-4 text-sm font-semibold text-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+            aria-label={`${actionLabel} ${group.label}`}
+          >
+            {pending
+              ? <LoaderCircle size={14} className="animate-spin" aria-hidden="true" />
+              : capability.kind === 'activate'
+                ? <Play size={14} aria-hidden="true" />
+                : anyActive
+                  ? domain === 'cover' || domain === 'valve' ? <ChevronDown size={14} aria-hidden="true" /> : <Home size={14} aria-hidden="true" />
+                  : domain === 'cover' || domain === 'valve' ? <ChevronUp size={14} aria-hidden="true" /> : <Play size={14} aria-hidden="true" />}
+            {pending ? 'Attendi…' : actionLabel}
+          </button>
+        )}
       </div>
 
-      <div className="min-w-0 flex-1">
+      <div className="mt-auto min-w-0">
         <p className="truncate text-[15px] font-semibold leading-snug text-[#1d1d1f]">{group.label}</p>
-        <p className="mt-0.5 flex items-center gap-1.5 text-[13px] text-black/50">
-          {anyOn && isOnOff && <LiveDot color="#eab308" size={7} />}
-          {isOnOff ? `${activeCount}/${total} attive` : `${total} dispositivi`}
+        <p
+          className={cn('mt-0.5 flex items-center gap-1.5 text-[13px]', error ? 'text-red-700' : 'text-black/50')}
+          role={error ? 'alert' : 'status'}
+        >
+          {anyActive && capability?.kind !== 'activate' && !error && <span aria-hidden="true"><LiveDot color="#eab308" size={7} /></span>}
+          <span className="truncate">{status}</span>
         </p>
       </div>
-
-      {isOnOff && (
-        <div className={cn('lg-toggle shrink-0', anyOn && 'on')} onClick={(e) => { e.stopPropagation(); toggleAll() }}>
-          <span className="lg-toggle-knob" />
-        </div>
-      )}
-      {isActivate && (
-        <button
-          onClick={(e) => { e.stopPropagation(); activateAll() }}
-          className="flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-[#0066cc] px-4 text-sm font-medium text-white active:scale-95"
-        >
-          <Play size={14} /> Attiva
-        </button>
-      )}
     </GlassCard>
   )
 }

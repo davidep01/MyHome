@@ -301,12 +301,13 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
     case 'waterLeak': {
       const critical = ['triggered', 'on', 'problem'].includes(rawState)
       const tone = critical ? widgetTones.critical : widgetTones.ok
+      const siren = domain === 'siren'
       return {
-        ...base, Icon: AnimShield,
+        ...base, Icon: siren ? Siren : AnimShield,
         status: critical ? 'triggered' : rawState.includes('armed') ? 'armed' : 'clear',
         accentColor: tone.color,
         isActive: critical,
-        state: critical ? 'Allarme!' : stateLabel(rawState),
+        state: critical ? (siren ? 'Sirena attiva' : 'Allarme!') : siren ? 'Sirena disattivata' : stateLabel(rawState),
         stateAccent: critical,
       }
     }

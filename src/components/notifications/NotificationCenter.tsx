@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Bell, Wifi, Battery, AlertTriangle, CheckCircle, X } from 'lucide-react'
+import { Bell, Wifi, Battery, AlertTriangle, CheckCircle, ShieldAlert, X } from 'lucide-react'
 import { GlassSheet } from '../glass/GlassSheet'
 import { useNotifications, type HANotification } from '../../hooks/useNotifications'
 import { useHAService } from '../../hooks/useHAService'
@@ -22,6 +22,11 @@ const typeConfig = {
     Icon: Battery,
     color: tokens.accent.yellow,
     label: 'Batteria scarica',
+  },
+  safety: {
+    Icon: ShieldAlert,
+    color: '#dc2626',
+    label: 'Sicurezza',
   },
 }
 
@@ -59,17 +64,19 @@ function NotificationItem({
       </div>
       {onDismiss && (
         <button
+          type="button"
           onClick={onDismiss}
           className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-black/8 text-black/30 hover:text-black/60 transition-colors"
+          aria-label={`Rimuovi notifica: ${notification.title}`}
         >
-          <X size={10} />
+          <X size={10} aria-hidden="true" />
         </button>
       )}
     </motion.div>
   )
 }
 
-export function NotificationBell() {
+export function NotificationBell({ allowDismiss = true }: { allowDismiss?: boolean }) {
   const notifications = useNotifications()
   const { call } = useHAService()
   const [open, setOpen] = useState(false)
@@ -87,16 +94,19 @@ export function NotificationBell() {
   const systemNotifs = notifications.filter((n) => n.type === 'system')
   const offlineNotifs = notifications.filter((n) => n.type === 'offline')
   const batteryNotifs = notifications.filter((n) => n.type === 'battery')
+  const safetyNotifs = notifications.filter((n) => n.type === 'safety')
 
   return (
     <>
       <motion.button
+        type="button"
         className="relative flex h-11 w-11 items-center justify-center rounded-[14px] bg-black/8 hover:bg-black/12 transition-colors"
         onClick={() => setOpen(true)}
         whileTap={{ scale: 0.92 }}
         transition={framerSpring}
+        aria-label={badgeCount ? `Apri notifiche: ${badgeCount} attive` : 'Apri notifiche: nessun avviso'}
       >
-        <Bell size={16} className={cn(hasCritical ? 'text-red-400' : 'text-black/50')} />
+        <Bell size={16} className={cn(hasCritical ? 'text-red-500' : 'text-black/50')} aria-hidden="true" />
         <AnimatePresence>
           {badgeCount > 0 && (
             <motion.span
@@ -128,6 +138,16 @@ export function NotificationBell() {
             </div>
           ) : (
             <>
+              {safetyNotifs.length > 0 && (
+                <section>
+                  <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-red-600">Sicurezza</p>
+                  <div className="space-y-2">
+                    <AnimatePresence>
+                      {safetyNotifs.map((n) => <NotificationItem key={n.id} notification={n} />)}
+                    </AnimatePresence>
+                  </div>
+                </section>
+              )}
               {systemNotifs.length > 0 && (
                 <section>
                   <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider" style={{ color: tokens.accent.blue }}>
@@ -136,7 +156,7 @@ export function NotificationBell() {
                   <div className="space-y-2">
                     <AnimatePresence>
                       {systemNotifs.map((n) => (
-                        <NotificationItem key={n.id} notification={n} onDismiss={() => dismiss(n)} />
+                        <NotificationItem key={n.id} notification={n} onDismiss={allowDismiss ? () => dismiss(n) : undefined} />
                       ))}
                     </AnimatePresence>
                   </div>

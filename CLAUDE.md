@@ -1,7 +1,7 @@
 # CLAUDE.md — MyHome
 
-> Documento sorgente unico (grafico + tecnico) per lo sviluppo e la **ristrutturazione** di MyHome.
-> Versione doc: 2.0 · Allineato a app `2.2.x` · Aggiornato: 2026-06-08 · Lingua: italiano (identificatori in inglese).
+> Documento sorgente unico (grafico + tecnico) per lo sviluppo di MyHome.
+> Versione doc: 2.1 · Allineato a app `2.2.x` · Aggiornato: 2026-07-14 · Lingua: italiano (identificatori in inglese).
 >
 > Questo file ha **precedenza** sulle assunzioni generiche. `docs/DESIGN_SYSTEM.md` resta il riferimento grafico esteso; questo file lo riassume e ne risolve le incongruenze. Quando i due divergono, **vince questo file** e va aggiornato `docs/DESIGN_SYSTEM.md` di conseguenza.
 
@@ -12,11 +12,11 @@
 - **Refactor evolutivo, non rewrite.** Lo stack è sano (vedi §5). Non riscrivere l'app da zero; consolida i layer divergenti.
 - **Prima leggi, poi tocca.** Prima di modificare un'area, leggi i "file chiave" della sezione corrispondente. Non duplicare logica già esistente.
 - **Una sola fonte di verità per ogni cosa.** Token in `src/design/tokens.ts` + `src/index.css`. Griglia home nel modello di `backend/src/lib/home-layout.ts`. Tipi condivisi in `backend/src/db/types.ts`.
-- **Niente segreti nel bundle frontend.** Chiavi (`GEMINI_API_KEY`, `OPENWEATHER_API_KEY`, Supabase service role) **solo** lato backend, senza prefisso `VITE_`.
+- **Niente segreti nel bundle frontend.** Chiavi (`GEMINI_API_KEY`, `OPENWEATHER_API_KEY`) **solo** lato backend, senza prefisso `VITE_`.
 - **Italiano nell'UI**, sempre. Tono conciso.
 - **Ottimismo obbligatorio** per ogni azione verso HA: UI aggiorna subito, rollback se HA fallisce.
 - **Target primario = tablet a muro** (Fully Kiosk, Android). Ogni scelta UX si valuta prima lì: touch ≥ 44×44px, niente hover-only, performance su GPU mid-range.
-- **Verifica prima di dire "fatto".** `npm run build && npm run build:backend` devono passare. Non dichiarare completato senza output di verifica.
+- **Verifica prima di dire "fatto".** `npm run lint`, `npm test`, `npm run build:all` e `npm run --prefix backend typecheck` devono passare. Non dichiarare completato senza output di verifica.
 
 ---
 
@@ -37,11 +37,11 @@ La home si **auto-configura** dallo stream live di HA (entità raggruppate per d
 
 ## 2. Stack tecnologico
 
-**Frontend** — React 19 · Vite 8 · TypeScript 6 · Tailwind 4 (`@tailwindcss/vite`, niente `tailwind.config`, token in `@theme`) · Zustand 5 (stato) · TanStack Query 5 (fetch/cache) · Framer Motion 12 · `home-assistant-js-websocket` · `react-grid-layout` (layout editabile) · `hls.js` (camere) · `lucide-react` (icone) · `vite-plugin-pwa` (attualmente **selfDestroying**, vedi §4.4).
+**Frontend** — React 19 · Vite 8 · TypeScript 6 · Tailwind 4 (`@tailwindcss/vite`, niente `tailwind.config`, token in `@theme`) · Zustand 5 (stato) · TanStack Query 5 (fetch/cache) · Framer Motion 12 · `react-grid-layout` (layout editabile) · `hls.js/light` (camere) · `lucide-react` (icone). `home-assistant-js-websocket` fornisce soltanto i tipi HA usati nel frontend: la connessione autenticata è esclusivamente backend.
 
-**Backend** — Hono 4 su `@hono/node-server` · TypeScript 5 · `tsup` (build) / `tsx` (dev) · `@supabase/supabase-js` (persistenza opzionale) · `rss-parser` (news). Serve **sia** l'API JSON **sia** la SPA buildata.
+**Backend** — Hono 4 su `@hono/node-server` · TypeScript 5 · `tsup` (build) / `tsx` (dev) · persistenza file atomica · `rss-parser` (news). Serve **sia** l'API JSON **sia** la SPA buildata.
 
-**Deploy** — Add-on Home Assistant (immagine Docker `ghcr.io/davidep01/myhome`, persistenza su `/data`) **e** Vercel (`api/index.ts` riusa l'app Hono, persistenza Supabase o read-only).
+**Deploy** — esclusivamente in LAN: add-on Home Assistant (immagine Docker `ghcr.io/davidep01/myhome`, persistenza su `/data`) oppure container Docker standalone. API e SPA condividono sempre la stessa origine.
 
 ---
 
@@ -60,10 +60,12 @@ npm run build:all        # entrambi (usare questo prima di considerare "fatto")
 
 # Qualità
 npm run lint             # eslint
+npm test                 # vitest
+npm --prefix backend run typecheck
 ```
 
-**Proxy dev** (`vite.config.ts`): `/ha` → istanza HA, `/api` → backend `:3001`.
-**Variabili dev** principali: `VITE_HA_URL`, `VITE_BACKEND_URL`. Backend: `HA_URL`/`HA_TOKEN`, `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY`, `OPENWEATHER_API_KEY`, `GEMINI_API_KEY`, `MYHOME_DB_PATH`, `MYHOME_READ_ONLY`, `MYHOME_HA_POLL_MS` (poll fallback, default 1500), `MYHOME_HA_STREAM=poll` (disabilita il bridge WS).
+**Proxy dev** (`vite.config.ts`): soltanto `/api` → backend `:3001`. `VITE_BACKEND_URL` può cambiare questo target in sviluppo, ma non è una credenziale e non viene usato nel container.
+**Variabili backend** principali: `HA_URL`/`HA_TOKEN`, `MYHOME_ADMIN_TOKEN`, `MYHOME_KIOSK_TOKEN`, `MYHOME_AUTH_MODE`, `OPENWEATHER_API_KEY`, `GEMINI_API_KEY`, `MYHOME_DB_PATH`, `MYHOME_READ_ONLY`, `MYHOME_HA_POLL_MS` (poll fallback, default 1500), `MYHOME_HA_STREAM=poll` (forza il fallback). Nessun segreto può usare prefisso `VITE_`.
 
 ---
 
@@ -81,26 +83,28 @@ npm run lint             # eslint
 **Un solo percorso dati per tutti i client (M0/DOMINICA, 2026-06-10).** Il backend tiene **l'unica** connessione autenticata a HA e fa fan-out via SSE:
 - **Bridge backend** (`backend/src/lib/ha-ws.ts` + `ha-stream.ts`): WebSocket nativo Node (zero dipendenze) con `subscribe_entities` (delta push compressi; codec puro testato in `ha-ws-codec.ts`); heartbeat ping 30s, reconnect con backoff; **downgrade automatico al poll** `/api/states` (`MYHOME_HA_POLL_MS`, default 1500ms) quando il WS è giù; `MYHOME_HA_STREAM=poll` forza il solo poll.
 - **Client** (`connectHAStream` — kiosk **e** desktop): SSE `GET /api/ha/stream` con resume `Last-Event-ID` (ring buffer server-side, niente full snapshot su micro-disconnessioni); fallback automatico a `connectHAProxy` (poll REST 4s). `localStorage['myhome.haStream']='off'` forza il poll in diagnostica.
-- **Azioni**: `callService` passa **sempre** dal proxy backend (`/api/ha/services/...`, allowlist per il tablet). Il token **non arriva mai** nel browser; `/api/config/ha-credentials` è stato **rimosso**. Registry HA proxato: `GET /api/ha/registry` (cache 60s, ora disponibile anche sul kiosk). HLS camere firmato dal backend: `GET /api/ha/camera-hls-url/:id` (WebRTC/talk-back rimossi insieme al WS in browser; torneranno con un signaling proxy backend).
+- **Azioni**: `callService` passa **sempre** dal proxy backend (`/api/ha/services/...`, allowlist per il tablet). Il token **non arriva mai** nel browser e non esiste un endpoint che lo esponga. Registry HA proxato: `GET /api/ha/registry` (cache 60s, ora disponibile anche sul kiosk). HLS camere firmato dal backend: `GET /api/ha/camera-hls-url/:id` (WebRTC/talk-back rimossi insieme al WS in browser; torneranno con un signaling proxy backend).
 
 Stato entità in `useEntityStore` (Zustand): i delta sono **coalescenti** (finestra 50ms, un solo set per batch, riferimenti stabili per le entità non toccate → `useHAEntity` non ridisegna ciò che non cambia). Update ottimistici via `setOptimisticState` / `patchEntity`.
 
 ### 4.3 Backend (`backend/src/`)
 Hono con route montate in `app.ts`: `config`, `layout`, `rooms`, `entities`, `weather`, `news`, `ha`, `ai` + `/api/health`. `index.ts` serve la SPA da `dist/` con cache-control studiata per il kiosk (entry-point `no-store`, asset hashati `immutable`), e fa SPA fallback **escludendo** `/api/*`.
 
-**Persistenza** (`backend/src/db/client.ts`): un unico documento `DbStore` (`{ config, rooms, entities }`) con tre modalità auto-rilevate:
-- `supabase` (se `SUPABASE_URL` + service role) → riga unica in tabella `myhome_config`.
-- `file` → `data/db.json` (add-on HA, `/data`).
-- `read-only` → nessuna scrittura (Vercel senza Supabase).
+**Persistenza** (`backend/src/db/client.ts`): un unico documento locale `DbStore` (`{ config, rooms, entities }`) scritto atomicamente in `data/db.json` (add-on HA: `/data/db.json`). Con `MYHOME_READ_ONLY=true` nessuna scrittura è consentita.
 
 Ogni `write` fa read-modify-write dell'intero blob. La route `layout` usa **concorrenza ottimistica** (`layoutVersion`). Config live propagata a tutti i client via **SSE** (`/api/config/stream`, `useConfigSync`).
 
-**Credenziali HA** (`backend/src/lib/ha-config.ts`): precedenza `env` > `db` > default; se da env sono **locked** (non sovrascrivibili da UI). Token mai restituito in chiaro da `/api/config` (mascherato `***`), ma disponibile su `/api/config/ha-credentials`.
+**Credenziali HA** (`backend/src/lib/ha-config.ts`): precedenza `env` > `db` > default; se da env sono **locked** (non sovrascrivibili da UI). Il token è mascherato come `***` in `/api/config` e non esiste alcun endpoint che lo consegni al browser.
 
-### 4.4 Deployment
-- **Add-on HA** — `Dockerfile` (artefatti pre-buildati in CI), `run.sh` legge `/data/options.json` (Supervisor) → env, avvia backend. `ha-addon/config.yaml` versionato (`2.2.x`).
-- **Vercel** — `api/index.ts` esporta l'app Hono; `vercel.json` riscrive `/api/*` → funzione, resto → SPA.
-- **PWA / Service Worker**: attualmente `VitePWA({ selfDestroying: true })` — il SW si **auto-disinstalla**. Il caching SW causava shell stale sul kiosk; ora la freschezza è gestita via header cache-control nel backend.
+**Autenticazione locale** (`backend/src/lib/security.ts`, `routes/auth.ts`): in produzione `MYHOME_AUTH_MODE=required`. Il login scambia il codice admin/kiosk con una sessione firmata in cookie `HttpOnly`, `SameSite=Strict`; il ruolo viene ricavato esclusivamente dalla sessione, mai da header dichiarati dal client. Admin accede a configurazione e regia; kiosk soltanto alle route operative necessarie. `/api/health` e `/api/auth/*` sono pubblici, tutte le altre API richiedono una sessione.
+
+### 4.4 Deployment LAN
+- **Add-on HA** — `Dockerfile` (artefatti pre-buildati in CI), `run.sh` legge `/data/options.json` (Supervisor) e avvia il backend come utente non-root. Se `admin_token`/`kiosk_token` sono vuoti genera codici casuali, li stampa una volta nei log e li persiste in `/data` con permessi `0600`.
+- **Container LAN standalone** — [docker-compose.yml](docker-compose.yml) usa la stessa immagine, pubblica la porta `3001` e persiste `/data` in un volume nominato. URL canonici: `/` per admin e `/kiosk` per il tablet.
+- **Healthcheck** — `GET /api/health` restituisce `200` solo con autenticazione e storage validi; è usato sia dal Docker `HEALTHCHECK` sia dal watchdog del Supervisor.
+- **Backup portatile** — export versione 2 con `secretsIncluded:false`; token HA e chiavi d'installazione non sono inclusi e il restore conserva le credenziali locali.
+- **Release** — il workflow su `main` esegue lint/test/build/audit, pubblica il manifest multi-arch e allinea automaticamente `ha-addon/config.yaml` alla versione `2.2.<run_number>`. Non fare bump manuali concorrenti.
+- **Nessun Service Worker**: Fully Kiosk carica direttamente l'URL LAN. La freschezza è gestita dagli header cache-control del backend, evitando shell obsolete sul tablet.
 
 ---
 
@@ -115,11 +119,11 @@ Ogni `write` fa read-modify-write dell'intero blob. La route `layout` usa **conc
 
 **P1 — Kernel di layout triplicato (DRY rotto sul confine FE/BE).** Lo stesso bin-packing (`buildLayout`/`cellsFor`/`fits`/`occupy`/`firstFreeSlot`) è copiato **tre volte**: [WidgetHome.tsx](src/components/home/widgets/WidgetHome.tsx), [KioskWidgetHome.tsx](src/components/home/widgets/KioskWidgetHome.tsx), [home-layout.ts](backend/src/lib/home-layout.ts). E `SIZE_WH` è duplicato in [widgetCatalog.ts](src/components/home/widgets/widgetCatalog.ts) **e** `home-layout.ts`. Se le copie divergono, il layout si corrompe. Il backend ha già la versione migliore (validazione, normalizzazione, `lastValidPositions`).
 
-**P2 — Doppio percorso di scrittura con clobber di concorrenza.** Il desktop salva la home via `PUT /api/config` (`useUpdateConfig`, **nessun** controllo di versione); il kiosk via `PUT /api/layout/home` (`useSaveTabletLayout`, controllo `layoutVersion` con 409). Entrambi mutano `config.home`: un salvataggio desktop può **sovrascrivere silenziosamente** una disposizione del kiosk (last-writer-wins), e la versione è gestita client-side sul desktop ma server-side sul kiosk. Bug reale, non solo duplicazione.
+**P2 — Concorrenza layout risolta.** Desktop e kiosk coordinano le scritture tramite `layoutVersion`; il confronto viene ripetuto dentro la coda serializzata del database e una scrittura stale riceve `409`, senza clobber silenzioso.
 
-**P3 — Ridondanza di polling sul tablet a muro.** Girano insieme: SSE config (`/api/config/stream`) **+** poll config 4s (`useDashboardConfig`) **+** poll layout 6s (`useTabletLayout`) **+** poll stati HA 4s (`connectHAProxy`). Il re-poll stati a 4s è anche la causa dell'optimistic che "sfarfalla" (sovrascrive lo stato ottimistico locale).
+**P3 — Stream centralizzato risolto.** Gli stati HA arrivano normalmente dal bridge backend via SSE; il polling resta soltanto un fallback automatico quando la connessione WebSocket verso HA non è disponibile.
 
-**P4 — Token HA nel browser + niente realtime sul kiosk = stesso fix.** Il desktop apre il WS a HA con il long-lived token **in browser** (smell di sicurezza); il kiosk evita il token ma per questo è ridotto a REST polling 4s (no realtime). **Una sola soluzione risolve entrambi:** il backend tiene **un** WS autenticato verso HA e fa fan-out degli stati ai client via SSE (l'infra SSE esiste già in `configEvents`). Token mai nel browser, realtime per tutti, via il poll 4s. È **l'unico vero cambio architetturale** che conviene fare.
+**P4 — Token fuori dal browser risolto.** Il backend mantiene l'unica connessione autenticata a HA e distribuisce gli stati a desktop e kiosk via SSE. Registry, media e chiamate ai servizi passano dallo stesso proxy autenticato e validato.
 
 **P5 — Due componenti home quasi gemelli (~350 righe ciascuno).** `WidgetHome` e `KioskWidgetHome` condividono `MeasuredGridLayout`, `HomeWidgetView` e il kernel di packing; differiscono solo per *capability* (desktop: aggiungi/rimuovi/ridimensiona widget; kiosk: solo riordino) e *chrome* (header/toolbar). Vanno collassati in **un** `<HomeGrid>` + due adapter sottili.
 
@@ -142,8 +146,8 @@ Ogni `write` fa read-modify-write dell'intero blob. La route `layout` usa **conc
 │  Variante kiosk = stessa shell con chrome ridotto + wakelock  │
 ├──────────────────────────────────────────────────────────────┤
 │  UN layer dati HA                                             │
-│  Realtime per tutti i client (WS diretto dove possibile,      │
-│  altrimenti bridge SSE/WS dal backend — niente polling 4s)    │
+│  Realtime per tutti i client via bridge SSE/WS backend;       │
+│  polling solo come fallback automatico                         │
 │  useEntityStore resta l'unica fonte di stato entità           │
 ├──────────────────────────────────────────────────────────────┤
 │  UN kernel di layout condiviso                                │
@@ -164,14 +168,14 @@ Ogni `write` fa read-modify-write dell'intero blob. La route `layout` usa **conc
 2. ✅ **Fase 2 — Kernel di layout unico (P1).** [src/lib/homeLayout.ts](src/lib/homeLayout.ts) è l'unica sorgente FE di packing + `SIZE_WH` (allineata al backend); rimosse le due copie in `WidgetHome`/`KioskWidgetHome`; `widgetCatalog` riesporta `SIZE_WH` dal kernel.
 3. ✅ **Fase 3 — Concorrenza condivisa (P2).** Guard `layoutVersion` aggiunto anche a `PUT /api/config` (stesso contatore del layout route → niente clobber, 409 su scrittura stale). L'optimistic update FE allinea la versione per evitare 409 spuri su edit rapidi. *(Endpoint non ancora unificati: scelta deliberata, basso valore per app monoutente.)*
 4. ✅ **Fase 4 — Canvas home condiviso (P5).** [HomeGridCanvas](src/components/home/widgets/HomeGridCanvas.tsx) centralizza il plumbing react-grid-layout + il render del widget; `WidgetHome`/`KioskWidgetHome` mantengono solo toolbar/header/persistenza.
-5. ✅ **Fase 5 — Backend HA stream via SSE (P4, chiude anche P3).** [backend/src/lib/ha-stream.ts](backend/src/lib/ha-stream.ts) tiene **un** poll server-side verso HA e fa fan-out dei *delta* via SSE (`GET /api/ha/stream`); il token resta lato server. Il kiosk usa [connectHAStream](src/api/ha-websocket.ts) con **fallback automatico** al poll REST. `useEntityStore` invariato a valle. *(Implementato come poll-centralizzato+SSE, non WS HA grezzo: più sicuro/verificabile; il desktop resta su WS diretto.)*
-6. ✅/◻ **Fase 6 — README + test + lint (P7).** README reale ✅, test del kernel con vitest ✅ (`npm test`), lint verde ✅. **◻ Rimandato:** routing URL-based (P6) — basso valore/alto rischio per app monoutente; migrazione del *desktop* allo stream (P4 lato admin) — opzionale.
+5. ✅ **Fase 5 — Backend HA stream via SSE (P4, chiude anche P3).** [backend/src/lib/ha-ws.ts](backend/src/lib/ha-ws.ts) mantiene il WebSocket autenticato verso HA; [backend/src/lib/ha-stream.ts](backend/src/lib/ha-stream.ts) distribuisce i delta via SSE (`GET /api/ha/stream`) a kiosk e desktop, con polling server-side come fallback. Il token resta sempre lato server.
+6. ✅ **Fase 6 — README + test + lint (P7).** Documentazione reale, test Vitest, routing URL-based e quality gate CI sono attivi.
 
 > **De-escalato (non toccare):** persistenza a blob singolo, RMW dell'intero documento; niente router pesante.
 
-### Stato implementazione (2026-06-08)
+### Stato implementazione (aggiornato 2026-07-14)
 
-Fasi 2–5 + igiene applicate. Verifiche: `npm run build:all` ✅ · `npm run lint` ✅ · `npm test` ✅ (10/10 sul kernel).
+Fasi 2–6 applicate. La Definition of Done richiede a ogni rilascio lint, suite Vitest completa, build frontend/backend, typecheck backend e audit delle dipendenze runtime.
 
 **Da verificare sul tablet reale** (non testabile qui senza HA live): lo stream `GET /api/ha/stream` sul kiosk. Default = stream con fallback; per forzare il vecchio poll in diagnostica → `localStorage['myhome.haStream'] = 'off'`. Intervallo poll server-side: env `MYHOME_HA_POLL_MS` (default 1500ms).
 
@@ -183,7 +187,7 @@ Fasi 2–5 + igiene applicate. Verifiche: `npm run build:all` ✅ · `npm run li
 
 **Risolti (2026-06-10) — admin + polish kiosk:**
 - **Admin onesto** — le "Sezioni operative" di `BackendHomePage` ora navigano alle 4 sezioni reali di `SettingsPage`; sezione deep-linkabile e refresh-safe via `/settings?section=…`.
-- **Backup/Ripristino** — `GET /api/config/export` (download JSON dell'intero `DbStore`) e `POST /api/config/import` (restore con re-normalizzazione del layout via `mergeHomeConfig`, rispetta read-only); UI in `BackendHomePage` (`configApi.exportBackup/importBackup`).
+- **Backup/Ripristino** — `GET /api/config/export` produce il formato portatile v2 senza segreti; `POST /api/config/import` valida e normalizza il documento, rispetta read-only e conserva le credenziali locali.
 - **Coreografia d'ingresso** — le card della home entrano con stagger 35ms (`.card-enter` in `index.css`, applicata in `HomeGridCanvas`); transform/opacity only, disattivata in perf-lite/reduced-motion.
 - **Zoom card→pannello** — il `GlassSheet` centrato nasce dal punto di tocco e ci ritorna alla chiusura (cattura `pointerdown` globale, nessun cambio ai call-site); fallback fade+scale in perf-lite.
 - **Feedback fisico sul rollback** — `useActionFeedback` (shake `widget-anim-errorShake` + haptic heavy). *(Correzione 2026-06-10: inizialmente collegato alle card standalone, poi scoperte morte — ora è nel `WidgetCardFactory`, il percorso vivo.)*
@@ -218,7 +222,7 @@ Fasi 2–5 + igiene applicate. Verifiche: `npm run build:all` ✅ · `npm run li
 
 **Risolti (2026-06-10, sera) — feedback dal tablet reale:**
 - **Gestione "tile"** — override per entità `DeviceOverride.hero: 'always'|'never'` (workbench → dettaglio → "Nello strato Adesso": Auto/Sempre/Mai); il composer garantisce i pinned (mai sopra la P0) ed esclude i banned anche dai gruppi-luce. La visibilità generale resta nascondi/mostra in Entità.
-- **Gemini Vision campanello: non aveva mai funzionato** — il client AI non mandava `X-MyHome-Client` (403 su desktop) e il kiosk saltava il riconoscimento di proposito. Ora `/api/ai/recognize` + `/health` sono accessibili dal tablet (chat/suggest/automation restano desktop-only), il kiosk esegue il riconoscimento, toggle `config.ai.doorbellVision` in Funzioni→Campanelli (propagato via `/api/layout`), **fallback generico** ("C'è qualcuno alla porta!") quando l'AI è spenta/assente/fallisce.
+- **Gemini Vision campanello** — `/api/ai/recognize` + `/health` sono disponibili al ruolo kiosk; chat/suggest/automation richiedono il ruolo admin. Il kiosk esegue il riconoscimento e usa un messaggio generico quando l'AI è spenta, assente o fallisce.
 - **Controlli universali** — `GenericDetail` nel pannello contestuale: plancia per OGNI dominio (fan/cover/valve/lock con **hold 900ms**/vacuum/mower/humidifier/scene/script/button/select/number/water_heater/siren/camera live) + stato tradotto e attributi; sparito "Controlli avanzati non ancora disponibili".
 - **Grafica card de-ridondata** — il `primary` vive nel ring O nella colonna valore, mai in entrambi; i toggleabili spenti mostrano icona + "Spenta/Spento" una volta sola (niente più anello 0% + "0%" + "Off" arancio + "Spenta"); `secondary` in inchiostro muto, non accento; titolo su 2 righe (`line-clamp-2`).
 
@@ -277,8 +281,7 @@ backend/src/
   index.ts        # server + static SPA + cache-control
   routes/         # config, layout, rooms, entities, weather, news, ha, ai
   lib/            # home-layout.ts (griglia canonica), ha-config.ts, configEvents.ts (SSE), security.ts
-  db/             # client.ts (file/supabase/read-only), types.ts (TIPI CONDIVISI)
-api/index.ts      # entrypoint Vercel (riusa app Hono)
+  db/             # client.ts (file locale/read-only), types.ts (TIPI CONDIVISI)
 docs/             # DESIGN_SYSTEM.md (canon grafico esteso), SMART_FUNCTIONS_ROADMAP.md
 ha-addon/         # config.yaml add-on
 ```
@@ -356,13 +359,12 @@ Tap = azione primaria · Press = `scale(0.985–0.95)` · Long-press = sblocco s
 ## 9. Flusso dati
 
 ```
-Home Assistant ──WS subscribeEntities──▶ useEntityStore ──▶ componenti (selettori)
-       ▲                                      ▲
-       │  callService (ottimistico)           │ setOptimisticState → rollback se errore
-       └───────────────  azioni utente ───────┘
+Home Assistant ──WS autenticato──▶ backend HA bridge ──SSE──▶ useEntityStore ──▶ UI
+       ▲                                  ▲                        │
+       │  proxy servizi allowlisted       │                        │ update ottimistico
+       └──────────── backend API ◀────────┴──── azione utente ◀────┘
 
-Backend (config/layout) ──SSE /api/config/stream──▶ useConfigSync ──▶ refetch (TanStack Query)
-   un edit su un device propaga a TUTTI i client in tempo reale
+Backend (config/layout) ──SSE config──▶ useConfigSync ──▶ refetch (TanStack Query)
 ```
 
 - **Optimistic update**: `setOptimisticState(entityId, state, attrs)` immediato; se `callService` fallisce, lo stato reale di HA riallinea al prossimo evento (o si forza rollback).
@@ -373,11 +375,14 @@ Backend (config/layout) ──SSE /api/config/stream──▶ useConfigSync ─�
 
 ## 10. Sicurezza
 
-- Segreti **solo backend**, senza `VITE_`. Il bundle frontend non deve contenere chiavi.
-- Token HA mascherato (`***`) in `/api/config`. ✅ **Chiuso (M0, 2026-06-10):** il token non viene consegnato al browser su **nessun** percorso — desktop e kiosk passano dal bridge backend (SSE + proxy servizi); `/api/config/ha-credentials` non esiste più (resta solo nell'export/backup, desktop-only).
-- Route admin/config protette da `desktopOnly` (`backend/src/lib/security.ts`); il pannello backend è raggiungibile solo da desktop.
-- Credenziali da env sono **locked** e non sovrascrivibili dall'UI (`ha-config.ts`).
-- CORS backend su `/api/*` limitato ai metodi/headers necessari (`X-MyHome-Client`).
+- **LAN-only con autenticazione obbligatoria**: in produzione manca un servizio sano finché `MYHOME_ADMIN_TOKEN` non è configurato. Admin e kiosk hanno codici e ruoli distinti.
+- Login con rate limit; sessione HMAC firmata in cookie `HttpOnly`, `SameSite=Strict`, `Secure` quando l'origine è HTTPS. Gli header client non conferiscono privilegi.
+- Tutte le API, eccetto `/api/health` e `/api/auth/*`, richiedono la sessione. Config, sistema, entità gestite e operazioni distruttive richiedono il ruolo admin.
+- Segreti **solo backend**, senza prefisso `VITE_`; il token HA non viene mai consegnato al browser ed è mascherato in `/api/config`.
+- I backup portatili hanno `secretsIncluded:false`, redigono il token HA e non ripristinano credenziali legate all'installazione.
+- Le chiamate HA usano una allowlist di domini/servizi e validano entity ID e percorsi media. URL HA e feed sono limitati alle destinazioni previste per evitare proxy arbitrari/SSRF.
+- API e SPA sono same-origin; non viene abilitato CORS permissivo. CSP, `frame-ancestors 'none'`, `X-Content-Type-Options`, limiti body e risposte API `no-store` sono applicati globalmente.
+- Credenziali HA da env sono **locked** e non sovrascrivibili dall'UI (`ha-config.ts`).
 
 ---
 
@@ -389,6 +394,9 @@ Backend (config/layout) ──SSE /api/config/stream──▶ useConfigSync ─�
 - [ ] Azioni HA ottimistiche con rollback verificato.
 - [ ] Nessun hex/raggio hard-coded fuori dai token; nessuna quarta griglia.
 - [ ] Nessun segreto nel bundle frontend.
+- [ ] Login admin e kiosk verificati; un header client forgiato non amplia i permessi.
+- [ ] `GET /api/health` restituisce `200` nel container finale e il volume `/data` sopravvive al restart.
+- [ ] Backup esportato con `secretsIncluded:false`; restore conserva token e URL HA locali.
 - [ ] Animazioni solo `transform`/`opacity`; rispettano reduced-motion / perf-lite.
 - [ ] Se cambia la griglia/widget: aggiornato `home-layout.ts` **e** `docs/DESIGN_SYSTEM.md` **e** questo file.
 

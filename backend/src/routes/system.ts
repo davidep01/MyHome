@@ -3,6 +3,7 @@ import { db } from '../db/client.js'
 import { getHABaseUrl, getHAConfig } from '../lib/ha-config.js'
 import { getStreamStats } from '../lib/ha-stream.js'
 import { desktopOnly } from '../lib/security.js'
+import { configuredIntegrations } from '../lib/integration-config.js'
 
 /**
  * Diagnostica per la regia desktop: salute HA (raggiungibilità + latenza),
@@ -17,7 +18,9 @@ systemRouter.get('/status', async (c) => {
   const ha = await getHAConfig()
 
   let haStatus: { reachable: boolean; latencyMs: number | null; message?: string }
-  if (!ha.haToken) {
+  if (!ha.valid) {
+    haStatus = { reachable: false, latencyMs: null, message: 'URL Home Assistant non valido' }
+  } else if (!ha.haToken) {
     haStatus = { reachable: false, latencyMs: null, message: 'Token Home Assistant mancante' }
   } else {
     const t0 = Date.now()
@@ -44,11 +47,7 @@ systemRouter.get('/status', async (c) => {
     ha: { ...haStatus, url: ha.haUrl, source: ha.source, locked: ha.locked },
     stream: getStreamStats(),
     storage: { mode: db.mode, writable: db.writable },
-    integrations: {
-      gemini: Boolean(process.env.GEMINI_API_KEY),
-      openweather: Boolean(process.env.OPENWEATHER_API_KEY ?? process.env.VITE_OPENWEATHER_KEY),
-      supabase: Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY),
-    },
+    integrations: configuredIntegrations(),
     now: new Date().toISOString(),
   })
 })

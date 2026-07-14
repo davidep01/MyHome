@@ -49,6 +49,8 @@ export interface WidgetCardBaseProps {
   isError?: boolean
   isUnavailable?: boolean
   isOffline?: boolean
+  /** A service command is in flight; keeps the card visible while disabling controls. */
+  isPending?: boolean
   isEditing?: boolean
   isDragging?: boolean
   children?: ReactNode

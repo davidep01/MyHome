@@ -3,7 +3,7 @@ import { useEntityStore } from '../store/entities'
 
 export interface HANotification {
   id: string
-  type: 'system' | 'offline' | 'battery'
+  type: 'system' | 'offline' | 'battery' | 'safety'
   title: string
   message?: string
   entityId: string
@@ -28,6 +28,23 @@ export function useNotifications(): HANotification[] {
           severity: 'info',
         })
         continue
+      }
+
+      const deviceClass = String(entity.attributes?.device_class ?? '')
+      if (
+        entityId.startsWith('binary_sensor.')
+        && entity.state === 'on'
+        && ['smoke', 'gas', 'carbon_monoxide', 'moisture', 'heat', 'safety', 'problem'].includes(deviceClass)
+      ) {
+        const friendlyName = (entity.attributes?.friendly_name as string | undefined) ?? entityId
+        notifications.push({
+          id: `safety-${entityId}`,
+          type: 'safety',
+          title: friendlyName,
+          message: deviceClass === 'moisture' ? 'Possibile perdita d’acqua' : 'Sensore di sicurezza attivo',
+          entityId,
+          severity: 'critical',
+        })
       }
 
       // ── Unavailable entities (skip helpers and hidden) ───────────

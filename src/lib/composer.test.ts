@@ -62,6 +62,26 @@ describe('composeHome', () => {
     expect(out.hero[0].group).toBeUndefined()
   })
 
+  it('nasconde dallo strato Adesso le luci di una stanza senza presenza recente', () => {
+    const areaNameOf = (id: string) => id.includes('salotto') ? 'Salotto' : undefined
+    const inactiveSince = new Date(DAY.getTime() - 5 * 60_000).toISOString()
+    const out = composeHome([
+      e('binary_sensor.salotto_presenza', 'off', { device_class: 'occupancy' }, inactiveSince),
+      e('light.salotto', 'on'),
+      e('media_player.tv', 'playing'),
+    ], { now: DAY, areaNameOf })
+    expect(out.hero.map((slot) => slot.key)).toEqual(['media_player.tv'])
+  })
+
+  it('mantiene la luce contestuale se la stanza è occupata', () => {
+    const areaNameOf = (id: string) => id.includes('salotto') ? 'Salotto' : undefined
+    const out = composeHome([
+      e('binary_sensor.salotto_presenza', 'on', { device_class: 'motion' }),
+      e('light.salotto', 'on'),
+    ], { now: DAY, areaNameOf })
+    expect(out.hero.map((slot) => slot.key)).toEqual(['light.salotto'])
+  })
+
   it('serratura sbloccata: warn di giorno, P0+danger di notte', () => {
     const day = composeHome([e('lock.ingresso', 'unlocked')], { now: DAY })
     expect(day.hero).toEqual([]) // di giorno non occupa l'Adesso

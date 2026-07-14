@@ -1,0 +1,18 @@
+services:
+  myhome:
+    image: ghcr.io/davidep01/myhome:latest
+    container_name: myhome
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      MYHOME_AUTH_MODE: required
+      MYHOME_DB_PATH: /data/db.json
+    ports:
+      - "3001:3001"
+    volumes:
+      - myhome-data:/data
+
+volumes:
+  myhome-data:

@@ -1,5 +1,5 @@
 import { getHABaseUrl, getHAConfig } from './ha-config.js'
-import { getHaWsState, startEntityFeed, stopEntityFeed } from './ha-ws.js'
+import { closeHaWs, getHaWsState, startEntityFeed, stopEntityFeed } from './ha-ws.js'
 
 /**
  * Backend-held Home Assistant state stream.
@@ -37,7 +37,13 @@ export type HaStreamEvent =
 
 type Subscriber = (event: HaStreamEvent, id: number) => void
 
-const POLL_MS = Math.max(500, Number(process.env.MYHOME_HA_POLL_MS ?? 1500))
+function boundedMilliseconds(value: string | undefined, fallback: number, min: number, max: number): number {
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? Math.min(max, Math.max(min, parsed)) : fallback
+}
+
+const POLL_MS = boundedMilliseconds(process.env.MYHOME_HA_POLL_MS, 1_500, 500, 60_000)
+const POLL_TIMEOUT_MS = boundedMilliseconds(process.env.MYHOME_HA_POLL_TIMEOUT_MS, 8_000, 1_000, 30_000)
 const FORCE_POLL = process.env.MYHOME_HA_STREAM === 'poll'
 /** How long we give the WS to come up before starting the poll fallback. */
 const WS_GRACE_MS = 3000
@@ -51,6 +57,8 @@ let feedStarted = false
 let pollTimer: ReturnType<typeof setInterval> | null = null
 let polling = false
 let wsGraceTimer: ReturnType<typeof setTimeout> | null = null
+let connectionGeneration = 0
+let pollAttemptId = 0
 
 let eventSeq = 0
 let lastEventAt: string | null = null
@@ -87,21 +95,36 @@ export function broadcastDoorbellTest(doorbellId: string): void {
 
 // ── Poll fallback (the original loop, unchanged in spirit) ──────────────────
 
+export async function fetchHAStatesWithTimeout(
+  baseUrl: string,
+  token: string,
+  timeoutMs = POLL_TIMEOUT_MS,
+  fetchImpl: typeof fetch = fetch,
+): Promise<HaEntityLike[]> {
+  const res = await fetchImpl(`${baseUrl.replace(/\/$/, '')}/api/states`, {
+    headers: { Authorization: `Bearer ${token}` },
+    signal: AbortSignal.timeout(timeoutMs),
+  })
+  if (!res.ok) throw new Error(`Home Assistant states returned ${res.status}`)
+  const body = await res.json() as unknown
+  if (!Array.isArray(body)) throw new Error('Home Assistant states response invalid')
+  return body as HaEntityLike[]
+}
+
 async function fetchStates(): Promise<HaEntityLike[]> {
   const { haToken } = await getHAConfig()
   if (!haToken) throw new Error('Home Assistant token missing')
-  const res = await fetch(`${await getHABaseUrl()}/api/states`, {
-    headers: { Authorization: `Bearer ${haToken}` },
-  })
-  if (!res.ok) throw new Error(`Home Assistant states returned ${res.status}`)
-  return await res.json() as HaEntityLike[]
+  return fetchHAStatesWithTimeout(await getHABaseUrl(), haToken)
 }
 
 async function poll(): Promise<void> {
   if (polling) return
   polling = true
+  const attemptId = ++pollAttemptId
+  const generation = connectionGeneration
   try {
     const states = await fetchStates()
+    if (generation !== connectionGeneration || attemptId !== pollAttemptId || mode !== 'poll') return
     const next = new Map(states.map((entity) => [entity.entity_id, entity]))
 
     const changed: HaEntityLike[] = []
@@ -117,9 +140,11 @@ async function poll(): Promise<void> {
     snapshot = next
     if (changed.length || removed.length) pushEvent({ type: 'delta', changed, removed })
   } catch (error) {
-    pushEvent({ type: 'error', message: error instanceof Error ? error.message : 'Home Assistant unreachable' })
+    if (generation === connectionGeneration && attemptId === pollAttemptId && mode === 'poll') {
+      pushEvent({ type: 'error', message: error instanceof Error ? error.message : 'Home Assistant unreachable' })
+    }
   } finally {
-    polling = false
+    if (attemptId === pollAttemptId) polling = false
   }
 }
 
@@ -150,6 +175,10 @@ function ensureFeed(): void {
     onSnapshot: (entities) => {
       if (wsGraceTimer) { clearTimeout(wsGraceTimer); wsGraceTimer = null }
       stopPolling()
+      // A REST request may already be in flight. Invalidate its attempt before
+      // publishing the fresher WS snapshot so its late response cannot win.
+      pollAttemptId += 1
+      polling = false
       mode = 'ws'
       snapshot = new Map(entities.map((entity) => [entity.entity_id, entity]))
       pushEvent({ type: 'snapshot', entities })
@@ -175,6 +204,9 @@ function ensureFeed(): void {
 
 function teardownIfIdle(): void {
   if (subscribers.size > 0) return
+  connectionGeneration += 1
+  pollAttemptId += 1
+  polling = false
   stopPolling()
   if (wsGraceTimer) { clearTimeout(wsGraceTimer); wsGraceTimer = null }
   if (feedStarted) {
@@ -184,6 +216,31 @@ function teardownIfIdle(): void {
   mode = 'idle'
   snapshot = new Map()
   ring = []
+}
+
+/**
+ * Drops every value tied to the previous HA URL/token and reconnects the live
+ * feed without disconnecting browser SSE subscribers. In-flight polls are
+ * generation-gated, so a late response from the old house cannot repopulate
+ * the snapshot after this reset.
+ */
+export function invalidateHAConnection(): void {
+  connectionGeneration += 1
+  pollAttemptId += 1
+  stopPolling()
+  polling = false
+  if (wsGraceTimer) { clearTimeout(wsGraceTimer); wsGraceTimer = null }
+  if (feedStarted) stopEntityFeed()
+  closeHaWs()
+  feedStarted = false
+  mode = 'idle'
+  snapshot = new Map()
+  ring = []
+
+  if (subscribers.size > 0) {
+    pushEvent({ type: 'snapshot', entities: [] })
+    ensureFeed()
+  }
 }
 
 /**
@@ -224,4 +281,40 @@ export function getStreamStats() {
     lastEventId: eventSeq,
     lastEventAt,
   }
+}
+
+/** Public artwork may be proxied only after HA itself advertised the exact URL. */
+export function isKnownHAImageSource(source: string): boolean {
+  if (!source || source.length > 2_048) return false
+  for (const entity of snapshot.values()) {
+    if (entity.attributes?.entity_picture === source) return true
+  }
+  return false
+}
+
+const DOORBELL_ACTIVE_STATES = new Set(['on', 'ringing', 'detected', 'pressed'])
+
+/**
+ * Returns a stable key only for a very recent, server-observed doorbell event.
+ * It is the trust token for privacy-sensitive Vision calls: a kiosk session
+ * cannot manufacture it, and every client observing the same ring gets the
+ * same key for provider deduplication.
+ */
+export function recentDoorbellActivityKey(entityId: string, maxAgeMs = 30_000): string | null {
+  const entity = snapshot.get(entityId)
+  if (!entity) return null
+  const eventEntity = entityId.startsWith('event.')
+  if (!eventEntity && !DOORBELL_ACTIVE_STATES.has(entity.state)) return null
+  const timestamps = [entity.last_changed, entity.last_updated]
+    .map((value) => value ? Date.parse(value) : Number.NaN)
+    .filter(Number.isFinite)
+  if (timestamps.length === 0) return null
+  const changedAt = Math.max(...timestamps)
+  const age = Date.now() - changedAt
+  if (age < -5_000 || age > maxAgeMs) return null
+  const contextId = typeof entity.context === 'object' && entity.context !== null
+    ? (entity.context as { id?: unknown }).id
+    : undefined
+  const eventKey = typeof contextId === 'string' && contextId ? contextId : new Date(changedAt).toISOString()
+  return `${entityId}:${eventKey}`
 }

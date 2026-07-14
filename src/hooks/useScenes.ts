@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
 import { useEntityStore } from '../store/entities'
-import { quickScenes } from '../config/rooms'
 
 export interface HomeScene {
   entityId: string
@@ -26,9 +25,8 @@ function styleFor(text: string) {
 
 /**
  * Live scenes straight from Home Assistant (scene.* entities), with an icon and
- * accent inferred from the name. Falls back to the static config only when HA
- * exposes no scenes — so the home never shows dead buttons for scenes you don't
- * actually have.
+ * accent inferred from the name. Only entities confirmed by the live HA state
+ * are rendered, so the home never shows a scene button that cannot run.
  */
 export function useScenes(): HomeScene[] {
   const entities = useEntityStore((s) => s.entities)
@@ -43,6 +41,8 @@ export function useScenes(): HomeScene[] {
         return { entityId: e.entity_id, label, icon: st.icon, color: st.color }
       })
       .sort((a, b) => a.label.localeCompare(b.label))
-    return live.length > 0 ? live : quickScenes
+    // Never render speculative scene buttons: if HA does not expose the entity,
+    // the control would look live but every tap would fail.
+    return live
   }, [entities])
 }

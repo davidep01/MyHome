@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useId, useRef } from 'react'
 import { Sun } from 'lucide-react'
 import { cn } from '../../lib/utils'
 
@@ -12,6 +12,9 @@ interface DragSliderProps {
   variant?: 'amber' | 'blue' | 'default'
   className?: string
   label?: string
+  /** Accessible name when the visible label lives outside this component. */
+  ariaLabel?: string
+  disabled?: boolean
 }
 
 /**
@@ -28,53 +31,73 @@ export function DragSlider({
   variant = 'amber',
   className,
   label,
+  ariaLabel,
+  disabled = false,
 }: DragSliderProps) {
-  const trackRef = useRef<HTMLDivElement>(null)
+  const inputId = useId()
+  const pendingValue = useRef<number | null>(null)
 
   const clamp = (v: number) => Math.min(100, Math.max(0, v))
 
-  const getVal = (clientX: number) => {
-    const el = trackRef.current
-    if (!el) return value
-    const { left, width } = el.getBoundingClientRect()
-    return clamp(Math.round(((clientX - left) / width) * 100))
-  }
-
-  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    e.currentTarget.setPointerCapture(e.pointerId)
-    onChange(getVal(e.clientX))
-  }
-  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (e.buttons === 0 && e.pressure === 0) return
-    onChange(getVal(e.clientX))
-  }
-  const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
-    const v = getVal(e.clientX)
-    onChange(v)
-    onChangeEnd?.(v)
-  }
-
   const pct = clamp(value)
   const isAmber = variant === 'amber'
+  const accessibleName = ariaLabel ?? label ?? (isAmber ? 'Luminosità' : variant === 'blue' ? 'Volume' : 'Valore')
+
+  const updateValue = (next: number) => {
+    const clamped = clamp(next)
+    pendingValue.current = clamped
+    onChange(clamped)
+  }
+
+  const commitPending = () => {
+    if (pendingValue.current === null) return
+    const next = pendingValue.current
+    pendingValue.current = null
+    onChangeEnd?.(next)
+  }
 
   return (
     <div className={cn('space-y-2', className)}>
       {label && (
         <div className="flex justify-between text-sm">
-          <span style={{ color: 'var(--ink-secondary)' }}>{label}</span>
+          <label htmlFor={inputId} style={{ color: 'var(--ink-secondary)' }}>{label}</label>
           <span style={{ fontWeight: 600, color: 'var(--ink)', fontVariantNumeric: 'tabular-nums' }}>{pct}%</span>
         </div>
       )}
 
       {/* Inset groove track */}
       <div
-        ref={trackRef}
-        className="lg-slider"
-        style={{ height: 36, cursor: 'pointer', touchAction: 'none', userSelect: 'none' }}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
+        className={cn(
+          'lg-slider focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[#0066cc]',
+          disabled && 'opacity-40',
+        )}
+        style={{ height: 36, cursor: disabled ? 'not-allowed' : 'pointer', touchAction: 'none', userSelect: 'none' }}
       >
+        {/* A native range owns all pointer and keyboard interaction. It is
+            visually transparent so the Liquid Glass presentation stays intact. */}
+        <input
+          id={inputId}
+          type="range"
+          min={0}
+          max={100}
+          step={1}
+          value={pct}
+          disabled={disabled}
+          aria-label={label ? undefined : accessibleName}
+          aria-valuetext={`${pct}%`}
+          onChange={(event) => updateValue(Number(event.currentTarget.value))}
+          onPointerUp={commitPending}
+          onPointerCancel={commitPending}
+          onKeyUp={(event) => {
+            if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End'].includes(event.key)) {
+              commitPending()
+            }
+          }}
+          onBlur={commitPending}
+          className="absolute inset-0 z-10 m-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
+          style={{ touchAction: 'none' }}
+        />
+
         {/* Coloured fill — amber variant carries a sun icon riding the fill */}
         <div
           className={cn('lg-slider-fill', isAmber && 'amber', !isAmber && 'blue')}

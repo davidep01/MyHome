@@ -1,33 +1,40 @@
 name: "MyHome Dashboard"
-description: "Dashboard domotica personalizzata - MyHome"
+description: "Dashboard privata per Home Assistant, ottimizzata per kiosk e regia desktop"
 version: "2.2.44"
 slug: "myhome_dashboard"
+url: "https://github.com/davidep01/MyHome"
 init: false
-homeassistant: "2023.1.0"
+startup: application
+boot: auto
+stage: stable
+# `io.hass.type=app` is the current post-rename contract introduced with the
+# Home Assistant 2026.2 Apps panel. Do not advertise an untested legacy floor.
+homeassistant: "2026.2.0"
+homeassistant_api: true
 arch:
   - aarch64
-  - armv7
   - amd64
 image: "ghcr.io/davidep01/myhome"
+webui: "http://[HOST]:[PORT:3001]/"
+watchdog: "http://[HOST]:[PORT:3001]/api/health"
 ports:
   3001/tcp: 3001
 ports_description:
   3001/tcp: "MyHome Dashboard (web)"
 map:
-  - data
+  - type: data
+    read_only: false
 options:
-  ha_url: "http://homeassistant.local:8123"
+  ha_url: ""
   ha_token: ""
-  supabase_url: ""
-  supabase_key: ""
+  admin_token: ""
+  kiosk_token: ""
   openweather_key: ""
   gemini_key: ""
-  port: 3001
 schema:
-  ha_url: str
-  ha_token: str
-  supabase_url: str
-  supabase_key: str
-  openweather_key: str
-  gemini_key: str
-  port: int
+  ha_url: str?
+  ha_token: password?
+  admin_token: password
+  kiosk_token: password
+  openweather_key: password
+  gemini_key: password

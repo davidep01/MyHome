@@ -1,6 +1,5 @@
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs'
+import { chmodSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
 import { join, dirname, basename } from 'node:path'
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import type { DbStore } from './types.js'
 import { defaultHomeWidgets, normalizeHomeConfig } from '../lib/home-layout.js'
 
@@ -8,11 +7,15 @@ const cwd = process.cwd()
 const backendRoot = basename(cwd) === 'backend' ? cwd : join(cwd, 'backend')
 const DB_PATH = process.env.MYHOME_DB_PATH ?? join(backendRoot, 'data/db.json')
 const DATA_DIR = dirname(DB_PATH)
-const SUPABASE_URL = process.env.SUPABASE_URL
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
-const SUPABASE_TABLE = process.env.MYHOME_SUPABASE_TABLE ?? 'myhome_config'
-const SUPABASE_ROW_ID = process.env.MYHOME_SUPABASE_ROW_ID ?? 'default'
 const FILE_WRITES_ALLOWED = process.env.MYHOME_READ_ONLY !== 'true'
+
+function isStore(value: unknown): value is DbStore {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false
+  const candidate = value as Partial<DbStore>
+  return Boolean(candidate.config && typeof candidate.config === 'object' && !Array.isArray(candidate.config))
+    && Array.isArray(candidate.rooms)
+    && Array.isArray(candidate.entities)
+}
 
 const DEFAULT_DB: DbStore = {
   config: {
@@ -59,27 +62,33 @@ const DEFAULT_DB: DbStore = {
 
 class JsonStore {
   private data: DbStore
-  private supabase: SupabaseClient | null
-  readonly mode: 'file' | 'supabase' | 'read-only'
+  private writeQueue: Promise<void> = Promise.resolve()
+  private migrated = false
+  readonly mode: 'file' | 'read-only'
   readonly writable: boolean
 
   constructor() {
-    this.supabase = SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY
-      ? createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-          auth: { persistSession: false, autoRefreshToken: false },
-        })
-      : null
-    this.mode = this.supabase ? 'supabase' : FILE_WRITES_ALLOWED ? 'file' : 'read-only'
+    this.mode = FILE_WRITES_ALLOWED ? 'file' : 'read-only'
     this.writable = this.mode !== 'read-only'
 
-    if (this.mode === 'file' && !existsSync(DATA_DIR)) mkdirSync(DATA_DIR, { recursive: true })
+    if (this.mode === 'file' && !existsSync(DATA_DIR)) mkdirSync(DATA_DIR, { recursive: true, mode: 0o700 })
 
-    if (!this.supabase && existsSync(DB_PATH)) {
+    if (existsSync(DB_PATH)) {
       try {
-        this.data = JSON.parse(readFileSync(DB_PATH, 'utf-8')) as DbStore
-      } catch {
+        const parsed = JSON.parse(readFileSync(DB_PATH, 'utf-8')) as unknown
+        if (!isStore(parsed)) throw new Error('Struttura DB non valida')
+        this.data = parsed
+        if (this.mode === 'file') chmodSync(DB_PATH, 0o600)
+      } catch (error) {
         this.data = structuredClone(DEFAULT_DB)
-        this.persistFile()
+        if (this.mode === 'file') {
+          const recoveryPath = `${DB_PATH}.corrupt-${Date.now()}`
+          renameSync(DB_PATH, recoveryPath)
+          this.persistFile()
+          console.error(`⚠️ DB non valido; copia preservata in ${recoveryPath}`, error)
+        } else {
+          console.error('⚠️ DB non valido in modalità sola lettura; uso i valori predefiniti in memoria', error)
+        }
       }
     } else {
       this.data = structuredClone(DEFAULT_DB)
@@ -91,54 +100,43 @@ class JsonStore {
   }
 
   async read(): Promise<DbStore> {
-    if (this.supabase) {
-      const { data, error } = await this.supabase
-        .from(SUPABASE_TABLE)
-        .select('data')
-        .eq('id', SUPABASE_ROW_ID)
-        .maybeSingle<{ data: DbStore }>()
-
-      if (error) throw new Error(`Supabase read failed: ${error.message}`)
-      if (data?.data) {
-        this.data = data.data
-      } else {
-        await this.persistSupabase()
-      }
-    }
+    await this.writeQueue
     await this.migrate()
-    return this.data
+    return structuredClone(this.data)
   }
 
   async write(updater: (store: DbStore) => void): Promise<boolean> {
     if (!this.writable) return false
-    await this.read()
-    updater(this.data)
-    if (this.supabase) {
-      await this.persistSupabase()
-    } else {
-      this.persistFile()
-    }
-    return true
+    let written = false
+    const operation = this.writeQueue.then(async () => {
+      await this.migrate()
+      const previous = this.data
+      const draft = structuredClone(previous)
+      updater(draft)
+      this.data = draft
+      try {
+        this.persistFile()
+        written = true
+      } catch (error) {
+        this.data = previous
+        throw error
+      }
+    })
+    this.writeQueue = operation.catch(() => {})
+    await operation
+    return written
   }
 
   private persistFile(): void {
-    writeFileSync(DB_PATH, JSON.stringify(this.data, null, 2), 'utf-8')
-  }
-
-  private async persistSupabase(): Promise<void> {
-    if (!this.supabase) return
-    const { error } = await this.supabase
-      .from(SUPABASE_TABLE)
-      .upsert({
-        id: SUPABASE_ROW_ID,
-        data: this.data,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: 'id' })
-
-    if (error) throw new Error(`Supabase write failed: ${error.message}`)
+    const tempPath = `${DB_PATH}.${process.pid}.tmp`
+    writeFileSync(tempPath, JSON.stringify(this.data, null, 2), { encoding: 'utf-8', mode: 0o600 })
+    renameSync(tempPath, DB_PATH)
+    chmodSync(DB_PATH, 0o600)
   }
 
   private async migrate(): Promise<void> {
+    if (this.migrated) return
+    this.migrated = true
     let changed = false
 
     if (!this.data.config.newsFeedUrl) {
@@ -152,12 +150,8 @@ class JsonStore {
       changed = true
     }
 
-    if (!changed) return
-    if (this.supabase) {
-      await this.persistSupabase()
-    } else {
-      this.persistFile()
-    }
+    if (!changed || !this.writable) return
+    this.persistFile()
   }
 }
 

@@ -13,6 +13,8 @@ const AUTO_DISMISS_MS = 30_000
 interface ActiveRing {
   device: DoorbellDevice
   ringAt: number
+  /** Tests exercise video/audio only and must never upload camera data. */
+  test?: boolean
 }
 
 /**
@@ -44,7 +46,7 @@ export function useDoorbells(deviceOverride?: DoorbellDevice[]) {
     const device = devices.find((d) => d.id === testRing.doorbellId) ?? devices[0]
     if (!device) return
     // eslint-disable-next-line react-hooks/set-state-in-effect -- il ring è guidato dall'evento SSE, come quello vero
-    setActive({ device, ringAt: Date.now() })
+    setActive({ device, ringAt: Date.now(), test: true })
     pushEvent({
       id: uid('ev'),
       doorbellId: device.id,
@@ -77,7 +79,7 @@ export function useDoorbells(deviceOverride?: DoorbellDevice[]) {
       const key = `${d.id}-${e?.last_changed ?? state}`
       if (dismissedRef.current === key) continue
 
-      setActive({ device: d, ringAt: Date.now() })
+      setActive({ device: d, ringAt: Date.now(), test: false })
       pushEvent({
         id: uid('ev'),
         doorbellId: d.id,

@@ -16,7 +16,7 @@ export function MediaNowPlayingCard() {
   const title = (entity.attributes?.media_title as string | undefined) ?? (entity.attributes?.friendly_name as string | undefined) ?? 'In riproduzione'
   const artist = (entity.attributes?.media_artist ?? entity.attributes?.app_name) as string | undefined
   const pictureRelative = entity.attributes?.entity_picture as string | undefined
-  const pictureUrl = pictureRelative ? haApi.mediaUrl(pictureRelative) : undefined
+  const pictureUrl = pictureRelative ? haApi.imageUrl(pictureRelative, entity.entity_id) : undefined
 
   const toggle = () => {
     light()

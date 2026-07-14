@@ -11,6 +11,8 @@ import { aiApi } from '../../api/ai'
 import { callService } from '../../api/ha-websocket'
 import { cn } from '../../lib/utils'
 import type { DoorbellDevice } from '../../api/backend'
+import { markKioskActivity } from '../../lib/kioskActivity'
+import { shouldRecognizeDoorbell } from '../../lib/doorbellRecognition'
 
 type Recog = { status: 'scanning' | 'done' | 'error'; name?: string; known?: boolean }
 type Tone = 'scan' | 'known' | 'unknown' | 'none' | 'error'
@@ -48,7 +50,7 @@ function describe(r: Recog | null, known: string[], vision: boolean): { title: s
   }
 }
 
-export function DoorbellAlert({ kiosk = false, doorbells, vision = true }: { kiosk?: boolean; doorbells?: DoorbellDevice[]; vision?: boolean }) {
+export function DoorbellAlert({ kiosk = false, doorbells, vision = false }: { kiosk?: boolean; doorbells?: DoorbellDevice[]; vision?: boolean }) {
   const { active, dismiss, autoDismissMs } = useDoorbells(doorbells)
   const entities = useEntityStore((s) => s.entities)
   const ringing = Boolean(active)
@@ -60,6 +62,10 @@ export function DoorbellAlert({ kiosk = false, doorbells, vision = true }: { kio
   const hasCamera = Boolean(camera) && camera?.state !== 'unavailable'
   const [recog, setRecog] = useState<Recog | null>(null)
 
+  useEffect(() => {
+    if (ringing) markKioskActivity()
+  }, [ringing, ringAt])
+
   const personNames = useMemo(
     () => Object.values(entities)
       .filter((e) => e.entity_id.startsWith('person.'))
@@ -67,21 +73,22 @@ export function DoorbellAlert({ kiosk = false, doorbells, vision = true }: { kio
     [entities],
   )
 
-  // Run Gemini Vision recognition once per ring — anche (soprattutto) sul kiosk.
+  const recognitionEnabled = shouldRecognizeDoorbell(ringing, hasCamera, vision, active?.test === true)
+
+  // Run Gemini Vision recognition once per verified real ring. Test rings never
+  // upload snapshots or reference photos.
   // Se la chiamata fallisce (chiave assente, AI giù) si degrada al messaggio generico.
   useEffect(() => {
-    if (!ringing || !hasCamera || !vision) { setRecog(null); return }
+    if (!recognitionEnabled) { setRecog(null); return }
     let cancelled = false
     setRecog({ status: 'scanning' })
-    aiApi.recognize(cameraEntityId, personNames)
+    aiApi.recognize(cameraEntityId, active!.device.id)
       .then((r) => { if (!cancelled) setRecog({ status: 'done', name: r.name, known: r.known }) })
       .catch(() => { if (!cancelled) setRecog({ status: 'error' }) })
     return () => { cancelled = true }
-    // personNames intentionally read at ring time only
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ringing, hasCamera, cameraEntityId, ringAt, vision])
+  }, [recognitionEnabled, cameraEntityId, ringAt, active])
 
-  const { title, pill, tone } = describe(recog, personNames, vision && hasCamera)
+  const { title, pill, tone } = describe(recog, personNames, recognitionEnabled)
   const toneColor = TONE_COLOR[tone]
   const countdownSec = autoDismissMs / 1000
 
@@ -219,15 +226,20 @@ function HoldUnlockButton({ entityId }: { entityId: string }) {
   const [failed, setFailed] = useState(false)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  useEffect(() => () => {
+    if (timer.current) clearTimeout(timer.current)
+  }, [])
+
   const name = (entity?.attributes?.friendly_name as string | undefined) ?? entityId.split('.')[1]
   const unlocked = entity?.state === 'unlocked'
   const unavailable = !entity || entity.state === 'unavailable'
 
   const start = () => {
-    if (unavailable || unlocked) return
+    if (unavailable || unlocked || timer.current) return
     setFailed(false)
     setHolding(true)
     timer.current = setTimeout(() => {
+      timer.current = null
       setHolding(false)
       heavy()
       setOptimisticState(entityId, 'unlocking')
@@ -247,7 +259,19 @@ function HoldUnlockButton({ entityId }: { entityId: string }) {
     <button
       onPointerDown={start}
       onPointerUp={cancel}
+      onPointerCancel={cancel}
       onPointerLeave={cancel}
+      onBlur={cancel}
+      onKeyDown={(event) => {
+        if (event.key !== ' ' && event.key !== 'Enter') return
+        event.preventDefault()
+        if (!event.repeat) start()
+      }}
+      onKeyUp={(event) => {
+        if (event.key !== ' ' && event.key !== 'Enter') return
+        event.preventDefault()
+        cancel()
+      }}
       disabled={unavailable || unlocked}
       className={cn(
         'relative flex min-h-[52px] flex-1 items-center justify-center gap-2 overflow-hidden rounded-full text-base font-medium backdrop-blur transition',

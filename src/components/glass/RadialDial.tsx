@@ -10,6 +10,8 @@ interface RadialDialProps {
   size?: number
   label: string
   sublabel?: string
+  /** Stable accessible name for the interactive dial. */
+  ariaLabel?: string
   /** Live value while turning the wheel (fires per step). Makes the dial interactive. */
   onChange?: (value: number) => void
   /** Final value when the finger lifts — use this to send the command to HA. */
@@ -45,13 +47,16 @@ export function RadialDial({
   size = 104,
   label,
   sublabel,
+  ariaLabel,
   onChange,
   onCommit,
   onTick,
 }: RadialDialProps) {
   const svgRef = useRef<SVGSVGElement>(null)
   const lastValue = useRef(value)
+  const keyboardDirty = useRef(false)
   const interactive = Boolean(onChange || onCommit)
+  const safeStep = step > 0 ? step : 1
 
   const clamped = Math.min(Math.max(value, min), max)
   const pct = (clamped - min) / (max - min || 1)
@@ -76,7 +81,8 @@ export function RadialDial({
     const clampedDeg = Math.min(A1, Math.max(A0, deg))
     const p = (clampedDeg - A0) / SWEEP
     const raw = min + p * (max - min)
-    return Math.min(max, Math.max(min, Math.round(raw / step) * step))
+    const snapped = min + Math.round((raw - min) / safeStep) * safeStep
+    return Math.min(max, Math.max(min, Number(snapped.toFixed(6))))
   }
 
   const handleMove = (clientX: number, clientY: number) => {
@@ -92,7 +98,8 @@ export function RadialDial({
   const onPointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
     if (!interactive) return
     e.currentTarget.setPointerCapture(e.pointerId)
-    lastValue.current = value
+    keyboardDirty.current = false
+    lastValue.current = clamped
     handleMove(e.clientX, e.clientY)
   }
   const onPointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
@@ -101,9 +108,61 @@ export function RadialDial({
   }
   const onPointerUp = (e: React.PointerEvent<SVGSVGElement>) => {
     if (!interactive) return
-    e.currentTarget.releasePointerCapture(e.pointerId)
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId)
     onCommit?.(lastValue.current)
   }
+
+  const onKeyDown = (e: React.KeyboardEvent<SVGSVGElement>) => {
+    if (!interactive) return
+
+    let next: number | undefined
+    let shouldSnap = true
+    const current = lastValue.current
+    switch (e.key) {
+      case 'ArrowRight':
+      case 'ArrowUp':
+        next = current + safeStep
+        break
+      case 'ArrowLeft':
+      case 'ArrowDown':
+        next = current - safeStep
+        break
+      case 'PageUp':
+        next = current + safeStep * 10
+        break
+      case 'PageDown':
+        next = current - safeStep * 10
+        break
+      case 'Home':
+        next = min
+        shouldSnap = false
+        break
+      case 'End':
+        next = max
+        shouldSnap = false
+        break
+      default:
+        return
+    }
+
+    e.preventDefault()
+    const snapped = shouldSnap ? min + Math.round((next - min) / safeStep) * safeStep : next
+    const bounded = Math.min(max, Math.max(min, Number(snapped.toFixed(6))))
+    if (bounded === lastValue.current) return
+
+    lastValue.current = bounded
+    keyboardDirty.current = true
+    onTick?.()
+    onChange?.(bounded)
+  }
+
+  const commitKeyboardValue = () => {
+    if (!keyboardDirty.current) return
+    keyboardDirty.current = false
+    onCommit?.(lastValue.current)
+  }
+
+  const accessibleName = ariaLabel ?? sublabel?.split('·')[0]?.trim() ?? 'Valore'
 
   // Tick marks around the arc (a "wheel" feel).
   const ticks = Array.from({ length: 28 }, (_, i) => {
@@ -119,11 +178,30 @@ export function RadialDial({
       <svg
         ref={svgRef}
         viewBox="0 0 200 200"
-        className={interactive ? 'absolute inset-0 cursor-pointer touch-none' : 'absolute inset-0'}
+        className={interactive
+          ? 'absolute inset-0 cursor-pointer touch-none rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0066cc]'
+          : 'absolute inset-0'}
+        role={interactive ? 'slider' : undefined}
+        tabIndex={interactive ? 0 : undefined}
+        aria-label={interactive ? accessibleName : undefined}
+        aria-valuemin={interactive ? min : undefined}
+        aria-valuemax={interactive ? max : undefined}
+        aria-valuenow={interactive ? clamped : undefined}
+        aria-valuetext={interactive ? label : undefined}
+        aria-orientation={interactive ? 'horizontal' : undefined}
+        aria-hidden={interactive ? undefined : true}
+        onFocus={() => { lastValue.current = clamped }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
+        onKeyDown={onKeyDown}
+        onKeyUp={(event) => {
+          if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End'].includes(event.key)) {
+            commitKeyboardValue()
+          }
+        }}
+        onBlur={commitKeyboardValue}
       >
         {/* tick ring */}
         {ticks.map((t) => (

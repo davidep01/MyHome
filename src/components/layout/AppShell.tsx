@@ -16,6 +16,11 @@ import { useConfigSync } from '../../hooks/useConfigSync'
 import { useAutoTheme } from '../../hooks/useAutoTheme'
 import { useIsDesktop } from '../../hooks/useIsDesktop'
 import { useTabletLayout } from '../../hooks/useTabletLayout'
+import { useFullyKiosk } from '../../hooks/useFullyKiosk'
+import { AmbientLayer } from '../home/layers/AmbientLayer'
+import { CriticalEventOverlay } from '../system/CriticalEventOverlay'
+import { useCriticalAlerts } from '../../hooks/useCriticalAlerts'
+import { useTimeOfDay } from '../../hooks/useTimeOfDay'
 
 // Le viste regia sono lazy: il kiosk (percorso primario) carica solo
 // TabletDashboard; il desktop scarica ogni pagina al primo accesso.
@@ -27,12 +32,28 @@ const SystemPage = lazy(() => import('../../pages/SystemPage').then((m) => ({ de
 export function AppShell() {
   const path = usePathname()
   const isDesktop = useIsDesktop()
-  const backendPath = isBackendPath(path)
   const kioskPath = isKioskPath(path)
+  const managementPath = isManagementPath(path)
 
-  if (backendPath && !isDesktop) return <DesktopOnlyMessage />
-  if (kioskPath || !isDesktop) return <KioskShell />
-  return <DesktopShell path={path} />
+  // Explicit URLs always win. Pointer type only chooses the convenient landing
+  // page at `/`; it must never make URL and rendered content disagree.
+  if (kioskPath) return <KioskShell />
+  if (managementPath) return <DesktopShell path={path} />
+  if (path === '/') return isDesktop ? <DesktopShell path={path} /> : <KioskShell />
+  return <NotFoundPage />
+}
+
+const VIEW_TITLES: Record<ReturnType<typeof viewFromPath>, string> = {
+  home: 'Stato',
+  entities: 'Entità',
+  functions: 'Funzioni',
+  system: 'Sistema',
+}
+
+function useDocumentTitle(title: string) {
+  useEffect(() => {
+    document.title = `${title} · MyHome`
+  }, [title])
 }
 
 /**
@@ -69,21 +90,29 @@ function usePathname() {
   return path
 }
 
-function isBackendPath(path: string) {
-  return path === '/backend' || path === '/admin' || path.startsWith('/backend/') || path.startsWith('/admin/') || path === '/settings'
+function isManagementPath(path: string) {
+  return path === '/entities' || path === '/functions' || path === '/system'
+    || path === '/backend' || path === '/admin' || path === '/settings'
+    || path.startsWith('/backend/') || path.startsWith('/admin/')
 }
 
 function isKioskPath(path: string) {
   return path === '/kiosk' || path === '/tablet' || path === '/dashboard' || path.startsWith('/kiosk/') || path.startsWith('/tablet/')
 }
 
-function DesktopOnlyMessage() {
+function NotFoundPage() {
+  useDocumentTitle('Pagina non trovata')
   return (
-    <div className="flex h-full w-full items-center justify-center bg-[#f5f5f7] px-6 text-center">
-      <div className="rounded-[18px] border border-black/10 bg-white/75 px-6 py-5 shadow-sm">
-        <p className="text-lg font-semibold text-[#1d1d1f]">Pannello disponibile solo da desktop.</p>
+    <main className="flex h-full w-full items-center justify-center bg-[#f5f5f7] px-6 text-center">
+      <div className="glass glass-border max-w-md rounded-[18px] px-6 py-6">
+        <h1 className="text-xl font-semibold text-[#1d1d1f]">Pagina non trovata</h1>
+        <p className="mt-2 text-sm text-black/55">Questo indirizzo non corrisponde a una vista di MyHome.</p>
+        <div className="mt-4 flex flex-wrap justify-center gap-2">
+          <a href="/" className="inline-flex min-h-11 items-center rounded-full bg-black/[0.07] px-5 text-sm font-semibold text-[#1d1d1f]">Apri la regia</a>
+          <a href="/kiosk" className="inline-flex min-h-11 items-center rounded-full bg-[#0066cc] px-5 text-sm font-semibold text-white">Apri la dashboard</a>
+        </div>
       </div>
-    </div>
+    </main>
   )
 }
 
@@ -91,10 +120,13 @@ function DesktopShell({ path }: { path: string }) {
   const activeView = useUIStore((s) => s.activeView)
   const selectedEntityId = useUIStore((s) => s.selectedEntityId)
   const setSelectedEntity = useUIStore((s) => s.setSelectedEntity)
+  const criticalAlerts = useCriticalAlerts()
+  const { data: layout } = useTabletLayout('home')
   useViewRouting(path)
   usePerfMode()
   useConfigSync()
   useAutoTheme()
+  useDocumentTitle(VIEW_TITLES[activeView])
 
   useEffect(() => {
     // Same data path as the kiosk: backend SSE stream (token never in browser).
@@ -113,6 +145,7 @@ function DesktopShell({ path }: { path: string }) {
 
   return (
     <div className="relative flex h-full w-full overflow-hidden">
+      <a href="#main-content" className="skip-link">Vai al contenuto</a>
       {/* Layout: sidebar | main | right panel */}
       <div
         className="relative flex w-full gap-3 h-full"
@@ -133,9 +166,9 @@ function DesktopShell({ path }: { path: string }) {
         {/* Main canvas — full width; extra bottom padding on mobile for the tab bar */}
         <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-hidden pb-[80px] md:pb-0">
           <LiveActivityBar />
-          <div className="min-h-0 flex-1 overflow-hidden">
+          <main id="main-content" tabIndex={-1} className="min-h-0 flex-1 overflow-hidden outline-none">
             {page}
-          </div>
+          </main>
         </div>
       </div>
 
@@ -148,6 +181,7 @@ function DesktopShell({ path }: { path: string }) {
         onClose={() => setSelectedEntity(null)}
         side="center"
         hideHeader
+        ariaLabel="Dettagli dispositivo"
       >
         {selectedEntityId && <ContextualPanel entityId={selectedEntityId} />}
       </GlassSheet>
@@ -157,7 +191,9 @@ function DesktopShell({ path }: { path: string }) {
       <ConnectionOverlay />
 
       {/* Doorbell → fullscreen video alert */}
-      <DoorbellAlert />
+      <DoorbellAlert doorbells={layout?.doorbells ?? []} vision={layout?.ai?.doorbellVision === true} />
+
+      <CriticalEventOverlay alerts={criticalAlerts} />
     </div>
   )
 }
@@ -166,11 +202,14 @@ function KioskShell() {
   const selectedEntityId = useUIStore((s) => s.selectedEntityId)
   const setSelectedEntity = useUIStore((s) => s.setSelectedEntity)
   const { data: layout } = useTabletLayout('home')
+  const criticalAlerts = useCriticalAlerts()
+  const { period } = useTimeOfDay()
   usePerfMode()
   useWakeLock()
   useAutoTheme()
+  useFullyKiosk({ ambientBrightness: layout?.kiosk?.screensaver?.brightness })
   useKioskDocumentMode()
-  useKioskIdleDimming()
+  useDocumentTitle('Dashboard')
 
   useEffect(() => {
     connectHAStream().catch(() => {})
@@ -179,18 +218,32 @@ function KioskShell() {
 
   return (
     <div className="kiosk-root relative h-full w-full overflow-hidden bg-[#f5f5f7]">
-      <TabletDashboard />
+      <div className={`kiosk-mesh-overlay kiosk-mesh-${period}`} aria-hidden="true">
+        <span className="kiosk-mesh-orb kiosk-mesh-orb-a" />
+        <span className="kiosk-mesh-orb kiosk-mesh-orb-b" />
+      </div>
+      <main id="main-content" className="h-full">
+        <TabletDashboard />
+      </main>
 
       <GlassSheet
         open={Boolean(selectedEntityId)}
         onClose={() => setSelectedEntity(null)}
         side="center"
         hideHeader
+        ariaLabel="Dettagli dispositivo"
       >
         {selectedEntityId && <ContextualPanel entityId={selectedEntityId} />}
       </GlassSheet>
 
-      <DoorbellAlert kiosk doorbells={layout?.doorbells ?? []} vision={layout?.ai?.doorbellVision !== false} />
+      <AmbientLayer
+        wakeEntityId={layout?.kiosk?.wakeEntityId}
+        settings={layout?.kiosk?.screensaver}
+        forceWake={criticalAlerts.length > 0}
+      />
+
+      <DoorbellAlert kiosk doorbells={layout?.doorbells ?? []} vision={layout?.ai?.doorbellVision === true} />
+      <CriticalEventOverlay alerts={criticalAlerts} />
     </div>
   )
 }
@@ -198,37 +251,8 @@ function KioskShell() {
 function useKioskDocumentMode() {
   useEffect(() => {
     document.documentElement.classList.add('kiosk-mode')
-    const prevent = (event: TouchEvent) => {
-      if (event.touches.length > 1) event.preventDefault()
-    }
-    document.addEventListener('touchmove', prevent, { passive: false })
     return () => {
       document.documentElement.classList.remove('kiosk-mode')
-      document.removeEventListener('touchmove', prevent)
-    }
-  }, [])
-}
-
-function useKioskIdleDimming() {
-  useEffect(() => {
-    let timer: ReturnType<typeof setTimeout> | null = null
-    const markActive = () => {
-      document.documentElement.classList.remove('kiosk-idle')
-      if (timer) clearTimeout(timer)
-      timer = setTimeout(() => {
-        document.documentElement.classList.add('kiosk-idle')
-      }, 180_000)
-    }
-    markActive()
-    window.addEventListener('pointerdown', markActive)
-    window.addEventListener('pointermove', markActive)
-    window.addEventListener('keydown', markActive)
-    return () => {
-      if (timer) clearTimeout(timer)
-      document.documentElement.classList.remove('kiosk-idle')
-      window.removeEventListener('pointerdown', markActive)
-      window.removeEventListener('pointermove', markActive)
-      window.removeEventListener('keydown', markActive)
     }
   }, [])
 }

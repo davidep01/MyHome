@@ -7,6 +7,12 @@ on:
 env:
   IMAGE: ghcr.io/davidep01/myhome
 
+# The last step pushes a version bump back to main. Serialize releases so two
+# nearby pushes cannot publish an image tag and then race on that git update.
+concurrency:
+  group: myhome-release-main
+  cancel-in-progress: false
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
@@ -24,16 +30,21 @@ jobs:
           node-version: '24'
           cache: 'npm'
 
-      # Use `npm install`, not `npm ci`: Rolldown/Vite's optional native bindings
-      # pull in @emnapi/* whose exact versions resolve differently per platform
-      # (e.g. 1.10.0 on macOS vs 1.11.0 on linux). A lockfile generated on one OS
-      # then makes `npm ci` (strict) fail on another. `npm install` reconciles the
-      # tree per-runner and never touches the committed lock here.
-      - name: Build frontend
-        run: npm install --no-audit --no-fund && npm run build
+      - name: Install frontend dependencies
+        run: npm ci --no-audit --no-fund
 
-      - name: Build backend
-        run: cd backend && npm install --no-audit --no-fund && npm run build
+      - name: Install backend dependencies
+        run: npm ci --prefix backend --no-audit --no-fund
+
+      - name: Quality gates
+        run: |
+          npm run lint
+          npm test
+          npm run build
+          npm run --prefix backend typecheck
+          npm run build:backend
+          npm audit --omit=dev --audit-level=high
+          npm audit --prefix backend --omit=dev --audit-level=high
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -49,7 +60,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       # Auto version: monotonically increasing, always above the 2.2.0 baseline.
-      # HA only re-pulls an image-based add-on when its version increases, so we
+      # HA only re-pulls an image-based app when its version increases, so we
       # bump it on every push. run_number strictly increases per workflow run.
       - name: Compute version
         id: ver
@@ -59,18 +70,22 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          # BuildKit sets TARGETARCH independently for each target platform;
+          # Dockerfile validates it, so it must not be overridden globally here.
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             ${{ env.IMAGE }}:latest
             ${{ env.IMAGE }}:${{ steps.ver.outputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: |
+            BUILD_VERSION=${{ steps.ver.outputs.version }}
 
-      # Write the new version into the add-on manifest and commit it back, so the
+      # Write the new version into the app manifest and commit it back, so the
       # HA Supervisor sees a newer version and (with Auto update on) installs it.
       # Pushing with GITHUB_TOKEN does not re-trigger this workflow.
-      - name: Bump add-on version
+      - name: Bump app version
         run: |
           sed -i -E 's/^version:.*/version: "${{ steps.ver.outputs.version }}"/' ha-addon/config.yaml
           git config user.name  "github-actions[bot]"

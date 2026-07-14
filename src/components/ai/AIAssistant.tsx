@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Sparkles, Send, Wand2, MessageCircle, Cog, Check, X } from 'lucide-react'
+import { Sparkles, Send, Wand2, MessageCircle, Cog, Copy, X } from 'lucide-react'
 import { GlassSheet } from '../glass/GlassSheet'
 import { useEntityStore } from '../../store/entities'
 import { aiApi, type AITurn, type AIContextEntity, type HAAutomation } from '../../api/ai'
@@ -19,7 +19,7 @@ export function AIAssistant() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState<HAAutomation | null>(null)
-  const [creating, setCreating] = useState(false)
+  const [copying, setCopying] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const context = useMemo<AIContextEntity[]>(
@@ -72,7 +72,7 @@ export function AIAssistant() {
       setPending(automation)
       setMessages((m) => [...m, {
         role: 'model',
-        text: `Ho preparato un'automazione${automation.alias ? `: "${automation.alias}"` : ''}. Controlla l'anteprima qui sotto e conferma per crearla in Home Assistant.`,
+        text: `Ho preparato un'automazione${automation.alias ? `: "${automation.alias}"` : ''}. Controlla con attenzione l'anteprima e copia la configurazione nell'editor di Home Assistant.`,
       }])
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Errore AI')
@@ -82,18 +82,20 @@ export function AIAssistant() {
     }
   }
 
-  const confirmAutomation = async () => {
-    if (!pending || creating) return
-    setCreating(true)
+  const copyAutomation = async () => {
+    if (!pending || copying) return
+    setCopying(true)
     setError(null)
     try {
-      const { id } = await aiApi.createAutomation(pending)
-      setMessages((m) => [...m, { role: 'model', text: `✅ Automazione creata in Home Assistant (${id}) e attivata.` }])
+      const text = JSON.stringify(pending, null, 2)
+      if (!navigator.clipboard?.writeText) throw new Error('Clipboard non disponibile')
+      await navigator.clipboard.writeText(text)
+      setMessages((m) => [...m, { role: 'model', text: 'Configurazione copiata. Verificala nell’editor di Home Assistant prima di salvarla.' }])
       setPending(null)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Creazione automazione fallita')
+      setError(e instanceof Error ? e.message : 'Copia della configurazione fallita')
     } finally {
-      setCreating(false)
+      setCopying(false)
       scrollDown()
     }
   }
@@ -166,7 +168,7 @@ export function AIAssistant() {
               <p className="px-1 pt-4 text-sm text-black/45">
                 {mode === 'chat'
                   ? 'Chiedi qualcosa sulla tua casa — es. "Quali luci sono accese?", "Riassumi lo stato dei sensori".'
-                  : 'Descrivi l\'automazione che vuoi — es. "Spegni tutte le luci a mezzanotte", "Accendi l\'ingresso quando rilevi movimento di sera". Genero la config e tu confermi.'}
+                  : 'Descrivi l\'automazione che vuoi — es. "Spegni tutte le luci a mezzanotte". Genero una bozza da verificare e copiare nell’editor di Home Assistant.'}
               </p>
             )}
             {messages.map((m, i) => (
@@ -195,20 +197,20 @@ export function AIAssistant() {
                 <div className="flex gap-2 p-2.5">
                   <button
                     onClick={cancelAutomation}
-                    disabled={creating}
+                    disabled={copying}
                     className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-black/[0.06] py-2.5 text-sm font-medium text-black/70 transition active:scale-95 disabled:opacity-50"
                   >
                     <X size={15} /> Annulla
                   </button>
                   <button
-                    onClick={confirmAutomation}
-                    disabled={creating}
+                    onClick={copyAutomation}
+                    disabled={copying}
                     className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-[#0066cc] py-2.5 text-sm font-medium text-white transition active:scale-95 disabled:opacity-50"
                   >
-                    {creating
+                    {copying
                       ? <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                      : <Check size={15} />}
-                    Crea in HA
+                      : <Copy size={15} />}
+                    Copia config
                   </button>
                 </div>
               </div>

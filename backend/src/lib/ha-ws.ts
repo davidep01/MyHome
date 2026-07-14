@@ -1,4 +1,4 @@
-import { getHABaseUrl, getHAConfig } from './ha-config.js'
+import { getHAConfig, getHAWebSocketUrl } from './ha-config.js'
 import { applyCompressedEvent, type CompressedStatesEvent } from './ha-ws-codec.js'
 import type { HaEntityLike } from './ha-stream.js'
 
@@ -9,7 +9,7 @@ import type { HaEntityLike } from './ha-stream.js'
  * exponential-backoff reconnect.
  *
  * The socket lives only while an entity feed is active (or a command is in
- * flight), so serverless deployments never hold an idle connection.
+ * flight), so the backend never holds an idle connection.
  */
 
 // ── Native WebSocket (structural types; no DOM lib in this tsconfig) ────────
@@ -39,6 +39,8 @@ export interface EntityFeedHandlers {
 }
 
 const COMMAND_TIMEOUT_MS = 10_000
+const AUTH_HANDSHAKE_TIMEOUT_MS = 10_000
+const MAX_PREAUTH_QUEUE = 256
 const PING_INTERVAL_MS = 30_000
 const PONG_TIMEOUT_MS = 10_000
 const MAX_RETRY_DELAY_MS = 30_000
@@ -48,7 +50,7 @@ let state: HaWsState = 'idle'
 let msgId = 1
 const pending = new Map<number, { resolve: (value: unknown) => void; reject: (error: Error) => void; timer: ReturnType<typeof setTimeout> }>()
 /** Commands issued before auth completes, flushed on auth_ok. */
-let sendQueue: string[] = []
+const sendQueue = new Map<number, string>()
 
 let feed: EntityFeedHandlers | null = null
 let feedSubId: number | null = null
@@ -59,7 +61,10 @@ let retryAttempt = 0
 let retryTimer: ReturnType<typeof setTimeout> | null = null
 let pingTimer: ReturnType<typeof setInterval> | null = null
 let pongTimer: ReturnType<typeof setTimeout> | null = null
+let handshakeTimer: ReturnType<typeof setTimeout> | null = null
 let manuallyClosed = false
+let connectPromise: Promise<void> | null = null
+let connectionGeneration = 0
 
 export function getHaWsState(): HaWsState {
   return state
@@ -69,10 +74,17 @@ function nextId(): number {
   return msgId++
 }
 
-function rawSend(payload: Record<string, unknown>): void {
+function rawSend(payload: Record<string, unknown>): boolean {
   const text = JSON.stringify(payload)
-  if (socket && state === 'connected') socket.send(text)
-  else sendQueue.push(text)
+  if (socket && state === 'connected') {
+    socket.send(text)
+    return true
+  }
+  const id = Number(payload.id)
+  if (!Number.isSafeInteger(id) || id < 1) return false
+  if (!sendQueue.has(id) && sendQueue.size >= MAX_PREAUTH_QUEUE) return false
+  sendQueue.set(id, text)
+  return true
 }
 
 function rejectAllPending(reason: string): void {
@@ -81,7 +93,11 @@ function rejectAllPending(reason: string): void {
     entry.reject(new Error(reason))
   }
   pending.clear()
-  sendQueue = []
+  sendQueue.clear()
+}
+
+function closeIfUnused(): void {
+  if (pending.size === 0 && !feed) closeHaWs()
 }
 
 function startHeartbeat(): void {
@@ -103,6 +119,11 @@ function stopHeartbeat(): void {
   pingTimer = null
   if (pongTimer) clearTimeout(pongTimer)
   pongTimer = null
+}
+
+function stopHandshakeTimeout(): void {
+  if (handshakeTimer) clearTimeout(handshakeTimer)
+  handshakeTimer = null
 }
 
 function scheduleRetry(): void {
@@ -140,11 +161,12 @@ function handleMessage(raw: unknown): void {
       return
     }
     case 'auth_ok': {
+      stopHandshakeTimeout()
       state = 'connected'
       retryAttempt = 0
       startHeartbeat()
-      const queued = sendQueue
-      sendQueue = []
+      const queued = [...sendQueue.values()]
+      sendQueue.clear()
       for (const text of queued) socket?.send(text)
       subscribeEntitiesNow()
       return
@@ -166,12 +188,14 @@ function handleMessage(raw: unknown): void {
       const entry = pending.get(id)
       if (!entry) return
       pending.delete(id)
+      sendQueue.delete(id)
       clearTimeout(entry.timer)
       if (msg.success) entry.resolve(msg.result)
       else {
         const error = msg.error as { message?: string } | undefined
         entry.reject(new Error(error?.message ?? 'Home Assistant command failed'))
       }
+      closeIfUnused()
       return
     }
     case 'event': {
@@ -190,52 +214,79 @@ function handleMessage(raw: unknown): void {
 }
 
 async function connect(): Promise<void> {
-  if (state !== 'idle') return
-  const Ctor = nativeWebSocket()
-  if (!Ctor) {
-    feed?.onDown('WebSocket non disponibile in questo runtime Node (<22)')
-    return
-  }
-  const { haToken } = await getHAConfig()
-  if (!haToken) {
-    feed?.onDown('Home Assistant token missing')
-    scheduleRetry()
-    return
-  }
+  if (state !== 'idle') return connectPromise ?? Promise.resolve()
+  if (connectPromise) return connectPromise
 
-  let ws: WsLike
-  try {
-    const base = await getHABaseUrl()
-    ws = new Ctor(`${base.replace(/^http/, 'ws')}/api/websocket`)
-  } catch (error) {
-    feed?.onDown(error instanceof Error ? error.message : 'Home Assistant WS unreachable')
-    scheduleRetry()
-    return
-  }
-
-  socket = ws
+  // Claim the connecting state synchronously, before reading async config. A
+  // cold-start registry Promise.all can no longer create three orphan sockets.
   state = 'connecting'
   manuallyClosed = false
+  const generation = ++connectionGeneration
 
-  ws.addEventListener('message', (event) => {
-    if (socket !== ws) return
-    handleMessage(event.data)
-  })
-  const onGone = (reason: string) => {
-    if (socket !== ws) return
-    socket = null
-    state = 'idle'
-    stopHeartbeat()
-    rejectAllPending(reason)
-    feedSubId = null
-    feedPrimed = false
-    if (!manuallyClosed) {
-      feed?.onDown(reason)
-      scheduleRetry()
+  const attempt: Promise<void> = (async () => {
+    const Ctor = nativeWebSocket()
+    if (!Ctor) {
+      if (generation === connectionGeneration) state = 'idle'
+      feed?.onDown('WebSocket non disponibile in questo runtime Node (<22)')
+      return
     }
-  }
-  ws.addEventListener('close', (event) => onGone(event.reason || 'Home Assistant WS closed'))
-  ws.addEventListener('error', () => onGone('Home Assistant WS error'))
+    const { haToken } = await getHAConfig()
+    if (generation !== connectionGeneration || manuallyClosed) return
+    if (!haToken) {
+      state = 'idle'
+      feed?.onDown('Home Assistant token missing')
+      scheduleRetry()
+      return
+    }
+
+    let ws: WsLike
+    try {
+      const websocketUrl = await getHAWebSocketUrl()
+      if (generation !== connectionGeneration || manuallyClosed) return
+      ws = new Ctor(websocketUrl)
+    } catch (error) {
+      if (generation === connectionGeneration) state = 'idle'
+      feed?.onDown(error instanceof Error ? error.message : 'Home Assistant WS unreachable')
+      scheduleRetry()
+      return
+    }
+    if (generation !== connectionGeneration || manuallyClosed) {
+      try { ws.close() } catch { /* stale attempt */ }
+      return
+    }
+
+    socket = ws
+
+    ws.addEventListener('message', (event) => {
+      if (socket !== ws) return
+      handleMessage(event.data)
+    })
+    const onGone = (reason: string) => {
+      if (socket !== ws) return
+      socket = null
+      state = 'idle'
+      stopHandshakeTimeout()
+      stopHeartbeat()
+      rejectAllPending(reason)
+      feedSubId = null
+      feedPrimed = false
+      if (!manuallyClosed) {
+        feed?.onDown(reason)
+        scheduleRetry()
+      }
+    }
+    ws.addEventListener('close', (event) => onGone(event.reason || 'Home Assistant WS closed'))
+    ws.addEventListener('error', () => onGone('Home Assistant WS error'))
+    handshakeTimer = setTimeout(() => {
+      if (socket !== ws || state === 'connected') return
+      try { ws.close(1008, 'Home Assistant auth timeout') } catch { /* cleanup below */ }
+      onGone('Home Assistant authentication timed out')
+    }, AUTH_HANDSHAKE_TIMEOUT_MS)
+  })().finally(() => {
+    if (connectPromise === attempt) connectPromise = null
+  })
+  connectPromise = attempt
+  return attempt
 }
 
 /**
@@ -249,16 +300,24 @@ export async function haWsCommand<T>(message: Record<string, unknown>, timeoutMs
   return new Promise<T>((resolve, reject) => {
     const timer = setTimeout(() => {
       pending.delete(id)
+      sendQueue.delete(id)
       reject(new Error('Home Assistant command timed out'))
+      closeIfUnused()
     }, timeoutMs)
     pending.set(id, { resolve: resolve as (value: unknown) => void, reject, timer })
-    rawSend({ id, ...message })
+    if (!rawSend({ ...message, id })) {
+      pending.delete(id)
+      clearTimeout(timer)
+      reject(new Error('Home Assistant pre-auth queue is full'))
+      closeIfUnused()
+    }
   })
 }
 
 /** Starts (or replaces) the live entity feed. The socket reconnects on its own. */
 export function startEntityFeed(handlers: EntityFeedHandlers): void {
   feed = handlers
+  manuallyClosed = false
   if (state === 'connected') subscribeEntitiesNow()
   else void connect()
 }
@@ -277,6 +336,9 @@ export function stopEntityFeed(): void {
 
 export function closeHaWs(): void {
   manuallyClosed = true
+  connectionGeneration += 1
+  connectPromise = null
+  stopHandshakeTimeout()
   stopHeartbeat()
   if (retryTimer) clearTimeout(retryTimer)
   retryTimer = null

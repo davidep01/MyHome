@@ -27,6 +27,8 @@ const FLUSH_MS = 50
 
 let eventSource: EventSource | null = null
 let proxyPollTimer: ReturnType<typeof setInterval> | null = null
+let proxyPollInFlight: Promise<void> | null = null
+let proxyPollAbort: AbortController | null = null
 let manuallyClosed = false
 
 // ── Delta coalescing ─────────────────────────────────────────────────────────
@@ -83,37 +85,51 @@ function applyStreamEvent(event: HaStreamEvent): void {
 
 // ── REST poll fallback (via backend proxy) ───────────────────────────────────
 
-async function pollProxyStates(): Promise<void> {
-  try {
-    const states = await haApi.states() as HassEntity[]
-    const next = states.reduce<HassEntities>((acc, entity) => {
-      acc[entity.entity_id] = entity
-      return acc
-    }, {})
-    useEntityStore.getState().setEntities(next)
-    useEntityStore.getState().setConnectionStatus('connected')
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Home Assistant non raggiungibile'
-    useEntityStore.getState().setConnectionStatus('error', message)
-  }
+function pollProxyStates(): Promise<void> {
+  if (proxyPollInFlight) return proxyPollInFlight
+  const controller = new AbortController()
+  proxyPollAbort = controller
+  const task = (async () => {
+    try {
+      const states = await haApi.states(controller.signal) as HassEntity[]
+      if (controller.signal.aborted) return
+      const next = states.reduce<HassEntities>((acc, entity) => {
+        acc[entity.entity_id] = entity
+        return acc
+      }, {})
+      useEntityStore.getState().setEntities(next)
+      useEntityStore.getState().setConnectionStatus('connected')
+    } catch (error) {
+      if (controller.signal.aborted) return
+      const message = error instanceof Error ? error.message : 'Home Assistant non raggiungibile'
+      useEntityStore.getState().setConnectionStatus('error', message)
+    }
+  })().finally(() => {
+    if (proxyPollAbort === controller) proxyPollAbort = null
+    if (proxyPollInFlight === task) proxyPollInFlight = null
+  })
+  proxyPollInFlight = task
+  return task
 }
 
 export async function connectHAProxy(): Promise<void> {
   manuallyClosed = false
   if (proxyPollTimer) return
   useEntityStore.getState().setConnectionStatus('connecting')
-  await pollProxyStates()
   proxyPollTimer = setInterval(() => {
     pollProxyStates().catch(() => {})
   }, PROXY_POLL_MS)
+  await pollProxyStates()
 }
 
 export function disconnectHAProxy() {
   if (proxyPollTimer) {
     clearInterval(proxyPollTimer)
     proxyPollTimer = null
-    useEntityStore.getState().setConnectionStatus('disconnected')
   }
+  proxyPollAbort?.abort()
+  proxyPollAbort = null
+  useEntityStore.getState().setConnectionStatus('disconnected')
 }
 
 // ── Primary connection: backend SSE stream ───────────────────────────────────

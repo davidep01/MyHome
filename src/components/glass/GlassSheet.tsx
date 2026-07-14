@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useId, useMemo, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
 import { framerSpring } from '../../design/tokens'
@@ -26,7 +26,18 @@ interface GlassSheetProps {
   hideHeader?: boolean
   /** Center variant: pannello largo (griglie di card, timeline) invece del dialogo standard. */
   wide?: boolean
+  /** Nome accessibile quando l'header visivo è fornito dal contenuto. */
+  ariaLabel?: string
 }
+
+const FOCUSABLE = [
+  'a[href]',
+  'button:not([disabled])',
+  'input:not([disabled]):not([type="hidden"])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(',')
 
 export function GlassSheet({
   open,
@@ -37,8 +48,57 @@ export function GlassSheet({
   className,
   hideHeader = false,
   wide = false,
+  ariaLabel,
 }: GlassSheetProps) {
   const isCenter = side === 'center'
+  const panelRef = useRef<HTMLDivElement>(null)
+  const titleId = useId()
+
+  useEffect(() => {
+    if (!open) return
+    const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    const frame = requestAnimationFrame(() => {
+      const panel = panelRef.current
+      if (!panel) return
+      const first = [...panel.querySelectorAll<HTMLElement>(FOCUSABLE)]
+        .find((element) => element.getClientRects().length > 0)
+      ;(first ?? panel).focus({ preventScroll: true })
+    })
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        onClose()
+        return
+      }
+      if (event.key !== 'Tab') return
+      const panel = panelRef.current
+      if (!panel) return
+      const focusable = [...panel.querySelectorAll<HTMLElement>(FOCUSABLE)]
+        .filter((element) => element.getClientRects().length > 0)
+      if (focusable.length === 0) {
+        event.preventDefault()
+        panel.focus()
+        return
+      }
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      cancelAnimationFrame(frame)
+      document.removeEventListener('keydown', handleKeyDown)
+      if (previous?.isConnected) previous.focus({ preventScroll: true })
+    }
+  }, [onClose, open])
 
   // Offset del tocco rispetto al centro viewport, catturato all'apertura.
   // In perf-lite si torna al semplice fade+scale (meno movimento su GPU deboli).
@@ -97,6 +157,12 @@ export function GlassSheet({
 
   const panel = (
     <motion.div
+      ref={panelRef}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={title ? titleId : undefined}
+      aria-label={title ? undefined : (ariaLabel ?? 'Pannello')}
+      tabIndex={-1}
       className={cn('glass glass-border flex min-h-0 flex-col overflow-hidden', positionClass, className)}
       style={sheetStyle}
       variants={variants}
@@ -108,7 +174,7 @@ export function GlassSheet({
     >
       {!hideHeader && (
         <div className="mb-4 flex shrink-0 items-center justify-between pt-1">
-          {title && <span className="truncate text-base font-semibold text-black/90">{title}</span>}
+          {title && <span id={titleId} className="truncate text-base font-semibold text-black/90">{title}</span>}
           <button
             onClick={onClose}
             className="ml-auto flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-black/10 text-black/60 transition-colors hover:text-[#1d1d1f]"

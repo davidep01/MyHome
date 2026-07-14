@@ -42,6 +42,7 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
   const [mode, setMode] = useState<Mode>('connecting')
   const [snap, setSnap] = useState('')
   const unavailable = !entity || entity.state === 'unavailable'
+  const cameraLabel = (entity?.attributes?.friendly_name as string | undefined) ?? entityId
   // Il MJPEG di certe camere (Ring) non emette MAI un frame finché lo stream
   // live non parte: senza onError l'<img> resta nera per sempre. Questi ref
   // alimentano il watchdog e il fallback dell'handler onError in render.
@@ -66,10 +67,10 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
       if (!video) return onFail()
       try {
         // hls.js è pesante (~250KB): caricato solo quando serve davvero uno stream HLS.
-        const { default: Hls } = await import('hls.js')
+        const { default: Hls } = await import('hls.js/light')
         const resp = await haApi.cameraHlsUrl(entityId)
         if (cancelled) return
-        const src = resp.url.startsWith('http') ? resp.url : toProxiedHlsUrl(resp.url)
+        const src = toProxiedHlsUrl(resp.url)
         if (Hls.isSupported()) {
           hls?.destroy()
           hls = new Hls({ enableWorker: true, backBufferLength: 30 })
@@ -140,13 +141,14 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
         autoPlay
         playsInline
         muted={muted}
+        aria-label={`Video in diretta: ${cameraLabel}`}
         className={cn('absolute inset-0 h-full w-full transition-opacity duration-500', fitClass, mode === 'hls' ? 'opacity-100' : 'opacity-0 pointer-events-none')}
       />
 
       {mode === 'mjpeg' && (
         <img
           src={getCameraStreamUrl(entityId)}
-          alt=""
+          alt={`Video in diretta: ${cameraLabel}`}
           className={cn('absolute inset-0 h-full w-full', fitClass)}
           onLoad={() => { mjpegLoadedRef.current = true }}
           onError={() => mjpegFallbackRef.current()}
@@ -154,7 +156,7 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
       )}
 
       {mode === 'snapshot' && snap && (
-        <img src={snap} alt="" className={cn('absolute inset-0 h-full w-full', fitClass)} onError={() => setMode('error')} />
+        <img src={snap} alt={`Immagine videocamera: ${cameraLabel}`} className={cn('absolute inset-0 h-full w-full', fitClass)} onError={() => setMode('error')} />
       )}
 
       {mode === 'connecting' && (

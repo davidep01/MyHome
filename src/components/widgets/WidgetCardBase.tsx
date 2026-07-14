@@ -1,7 +1,7 @@
 import { motion, type HTMLMotionProps } from 'framer-motion'
 import { AlertTriangle, GripVertical, Lock, LockOpen, WifiOff } from 'lucide-react'
-import { useRef, useState } from 'react'
-import type { CSSProperties, ElementType, PointerEvent as ReactPointerEvent, ReactNode } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import type { CSSProperties, ElementType, KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent, ReactNode } from 'react'
 import { cn } from '../../lib/utils'
 import { getWidgetSizeConfig } from './utils/getWidgetSizeConfig'
 import { widgetTones } from './utils/getRingColorScale'
@@ -30,6 +30,7 @@ export function WidgetCardShell({
   isError = false,
   isUnavailable = false,
   isOffline = false,
+  isPending = false,
   isEditing = false,
   isDragging = false,
   children,
@@ -37,7 +38,9 @@ export function WidgetCardShell({
   onClick,
 }: WidgetCardBaseProps) {
   const cfg = getWidgetSizeConfig(size)
-  const blocked = isLoading || isError || isUnavailable || isOffline
+  // An unavailable entity can still be opened to inspect diagnostics and
+  // attributes. Only states with no useful detail surface block the affordance.
+  const blocked = isLoading || isError || isOffline
   const interactive = Boolean(onClick) && !blocked && !isEditing
 
   return (
@@ -47,32 +50,31 @@ export function WidgetCardShell({
       data-widget-type={type}
       data-widget-size={size}
       data-widget-status={status}
-      role={interactive ? 'button' : undefined}
-      tabIndex={interactive ? 0 : undefined}
-      aria-label={title}
-      onClick={interactive ? onClick : undefined}
-      onKeyDown={interactive ? (event) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault()
-          onClick?.()
-        }
-      } : undefined}
+      aria-busy={isPending || undefined}
       className={cn(
         'widget-card-shell relative flex h-full min-w-0 flex-col overflow-hidden rounded-[18px]',
         cfg.paddingClass,
-        interactive && 'cursor-pointer select-none',
+        interactive && 'select-none',
         isActive && 'widget-card-active',
         (isUnavailable || isOffline) && 'widget-card-muted',
         isDragging && 'widget-card-dragging',
         className,
       )}
       style={{ minHeight: cfg.minHeight, '--widget-accent': accentColor } as CSSProperties}
-      whileTap={interactive ? { scale: 0.97 } : undefined}
       transition={{ type: 'spring', stiffness: 520, damping: 34 }}
     >
       {/* Stato attivo = vetro più luminoso: layer bianco che fa solo fade. */}
       <span className="widget-card-fill absolute inset-0 z-0" aria-hidden="true" />
-      <div className="relative z-10 flex h-full min-h-0 flex-col">
+      {interactive && (
+        <button
+          type="button"
+          className="absolute inset-0 z-20 cursor-pointer rounded-[18px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0066cc]"
+          onClick={onClick}
+          aria-label={`Apri dettagli di ${title}`}
+          aria-haspopup="dialog"
+        />
+      )}
+      <div className={cn('relative z-30 flex h-full min-h-0 flex-col', interactive && 'pointer-events-none')}>
         {isLoading ? (
           <WidgetCardSkeleton size={size} />
         ) : isError ? (
@@ -196,7 +198,7 @@ export function WidgetCardToggle({
   return (
     <button
       type="button"
-      className={cn('widget-card-toggle relative h-8 w-[52px] shrink-0 rounded-full transition active:scale-95 disabled:opacity-40', checked ? 'on' : '')}
+      className={cn('widget-card-toggle pointer-events-auto relative h-8 w-[52px] shrink-0 rounded-full transition active:scale-95 disabled:opacity-40', checked ? 'on' : '')}
       style={{ '--toggle-color': color } as CSSProperties}
       onClick={(event) => { event.stopPropagation(); onToggle() }}
       disabled={disabled}
@@ -223,7 +225,7 @@ export function WidgetCardControlButton({
   return (
     <button
       type="button"
-      className="widget-card-control tap-target inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-black/55 transition active:scale-90 disabled:opacity-35"
+      className="widget-card-control tap-target pointer-events-auto inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-black/55 transition active:scale-90 disabled:opacity-35"
       onClick={(event) => { event.stopPropagation(); onClick() }}
       disabled={disabled}
       aria-label={label}
@@ -243,12 +245,14 @@ export function WidgetCardSlider({
   onChange,
   onCommit,
   label = 'Regola valore',
+  disabled = false,
 }: {
   value: number
   color?: string
   onChange?: (value: number) => void
   onCommit?: (value: number) => void
   label?: string
+  disabled?: boolean
 }) {
   const trackRef = useRef<HTMLDivElement>(null)
   const [drag, setDrag] = useState<number | null>(null)
@@ -264,31 +268,53 @@ export function WidgetCardSlider({
     <div
       ref={trackRef}
       role="slider"
+      tabIndex={disabled ? -1 : 0}
       aria-label={label}
+      aria-disabled={disabled}
       aria-valuenow={Math.round(pct)}
+      aria-valuetext={`${Math.round(pct)}%`}
       aria-valuemin={0}
       aria-valuemax={100}
-      className="tap-target relative h-7 w-full touch-none select-none"
+      className={cn('tap-target pointer-events-auto relative h-7 w-full touch-none select-none', disabled && 'cursor-not-allowed opacity-40')}
       onClick={(event) => event.stopPropagation()}
       onPointerDown={(event) => {
         event.stopPropagation()
+        if (disabled) return
         event.currentTarget.setPointerCapture(event.pointerId)
         const v = valueFromPointer(event)
         setDrag(v)
         onChange?.(v)
       }}
       onPointerMove={(event) => {
-        if (drag === null) return
+        if (disabled || drag === null) return
         const v = valueFromPointer(event)
         setDrag(v)
         onChange?.(v)
       }}
       onPointerUp={(event) => {
-        if (drag === null) return
+        if (disabled || drag === null) return
         onCommit?.(valueFromPointer(event))
         setDrag(null)
       }}
       onPointerCancel={() => setDrag(null)}
+      onKeyDown={(event: ReactKeyboardEvent<HTMLDivElement>) => {
+        if (disabled) return
+        const step = event.shiftKey ? 10 : 5
+        const next = event.key === 'ArrowLeft' || event.key === 'ArrowDown'
+          ? Math.max(0, pct - step)
+          : event.key === 'ArrowRight' || event.key === 'ArrowUp'
+            ? Math.min(100, pct + step)
+            : event.key === 'Home'
+              ? 0
+              : event.key === 'End'
+                ? 100
+                : null
+        if (next === null) return
+        event.preventDefault()
+        event.stopPropagation()
+        onChange?.(next)
+        onCommit?.(next)
+      }}
     >
       <span className="absolute inset-x-0 top-1/2 h-[5px] -translate-y-1/2 rounded-full bg-black/10" />
       <span
@@ -324,32 +350,56 @@ export function WidgetCardHoldButton({
   const [holding, setHolding] = useState(false)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  useEffect(() => () => {
+    if (timer.current) clearTimeout(timer.current)
+  }, [])
+
   const cancel = () => {
     if (timer.current) clearTimeout(timer.current)
     timer.current = null
     setHolding(false)
   }
-  const start = (event: ReactPointerEvent) => {
-    event.stopPropagation()
+  const begin = () => {
     if (disabled) return
     if (!locked) { onLock(); return }
+    if (timer.current) return
     setHolding(true)
     timer.current = setTimeout(() => { cancel(); onUnlock() }, 900)
+  }
+  const start = (event: ReactPointerEvent) => {
+    event.stopPropagation()
+    begin()
   }
 
   return (
     <button
       type="button"
       className={cn(
-        'widget-card-control tap-target relative inline-flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full text-black/55 transition disabled:opacity-35',
+        'widget-card-control tap-target pointer-events-auto relative inline-flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full text-black/55 transition disabled:opacity-35',
         holding && 'scale-95',
       )}
       onPointerDown={start}
       onPointerUp={cancel}
+      onPointerCancel={cancel}
       onPointerLeave={cancel}
       onClick={(event) => event.stopPropagation()}
+      onKeyDown={(event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return
+        if (event.repeat) return
+        event.preventDefault()
+        event.stopPropagation()
+        begin()
+      }}
+      onKeyUp={(event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return
+        event.preventDefault()
+        event.stopPropagation()
+        if (locked) cancel()
+      }}
+      onBlur={cancel}
       disabled={disabled}
       aria-label={locked ? 'Tieni premuto per sbloccare' : 'Blocca'}
+      aria-description={locked ? 'Tieni premuto Invio o Spazio per 1 secondo.' : undefined}
     >
       {holding && (
         <span

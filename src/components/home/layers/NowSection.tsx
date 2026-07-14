@@ -24,14 +24,15 @@ export function NowSection({
 
   return (
     <section className="shrink-0">
-      <div className="grid grid-cols-2 gap-3.5 auto-rows-[170px] xl:grid-cols-3">
+      <div className="grid auto-rows-[190px] grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-3">
         {hero.map((slot, index) => {
           const big = index === 0 && slot.priority <= 2 && hero.length > 1
+          const featured = big || hero.length === 1
           return (
             <div
               key={slot.key}
               title={slot.reason}
-              className={cn('card-enter h-full min-w-0', big && 'col-span-2')}
+              className={cn('card-enter h-full min-w-0', featured && 'sm:col-span-2')}
               style={{ '--enter-i': Math.min(index, 8) } as CSSProperties}
             >
               <WidgetErrorBoundary>
@@ -41,7 +42,7 @@ export function NowSection({
                     className="h-full"
                   />
                 ) : slot.entityId ? (
-                  <EntityCard entity={makeRoomEntity(slot.entityId, entities, overrides)} size={big ? 'L' : 'M'} />
+                  <EntityCard entity={makeRoomEntity(slot.entityId, entities, overrides)} size={featured ? 'L' : 'M'} />
                 ) : null}
               </WidgetErrorBoundary>
             </div>

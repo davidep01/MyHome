@@ -1,6 +1,21 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { configApi, type AppConfig } from '../api/backend'
 
+// Config writes can originate from several independent cards. Keep a single
+// FIFO queue so an older, slower request can never overwrite a newer choice.
+let configWriteQueue: Promise<unknown> = Promise.resolve()
+let queuedWrites = 0
+
+function enqueueConfigWrite(data: Partial<AppConfig>) {
+  queuedWrites += 1
+  const request = configWriteQueue.then(() => configApi.update(data))
+  configWriteQueue = request.then(
+    () => undefined,
+    () => undefined,
+  )
+  return request.finally(() => { queuedWrites -= 1 })
+}
+
 export function useDashboardConfig(enabled = true) {
   return useQuery({
     queryKey: ['config'],
@@ -20,7 +35,7 @@ export function useDashboardConfig(enabled = true) {
 export function useUpdateConfig() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (data: Partial<AppConfig>) => configApi.update(data),
+    mutationFn: enqueueConfigWrite,
     onMutate: async (data) => {
       await qc.cancelQueries({ queryKey: ['config'] })
       const prev = qc.getQueryData<AppConfig>(['config'])
@@ -34,11 +49,26 @@ export function useUpdateConfig() {
         }
         return next
       })
-      return { prev }
+      const optimistic = qc.getQueryData<AppConfig>(['config'])
+      return { prev, optimistic, keys: Object.keys(data) as (keyof AppConfig)[] }
     },
     onError: (_err, _data, ctx) => {
-      if (ctx?.prev) qc.setQueryData(['config'], ctx.prev)
+      // Avoid restoring the entire previous object: another card may already
+      // have applied a newer optimistic update. Only restore keys that still
+      // contain the failed mutation's optimistic value.
+      const prev = ctx?.prev
+      if (!prev) return
+      qc.setQueryData<AppConfig>(['config'], (current) => {
+        if (!current) return prev
+        const next = { ...current }
+        for (const key of ctx.keys) {
+          if (Object.is(current[key], ctx.optimistic?.[key])) next[key] = prev[key] as never
+        }
+        return next
+      })
     },
-    onSettled: () => qc.invalidateQueries({ queryKey: ['config'] }),
+    onSettled: () => {
+      if (queuedWrites === 0) void qc.invalidateQueries({ queryKey: ['config'] })
+    },
   })
 }

@@ -60,7 +60,7 @@ function isWidgetSize(value: unknown): value is WidgetSize {
 }
 
 function stringOrUndefined(value: unknown): string | undefined {
-  return typeof value === 'string' && value.trim() ? value.trim() : undefined
+  return typeof value === 'string' && value.trim() && value.trim().length <= 120 ? value.trim() : undefined
 }
 
 function sanitizeWidget(value: unknown): HomeWidget | null {
@@ -68,11 +68,12 @@ function sanitizeWidget(value: unknown): HomeWidget | null {
   const id = stringOrUndefined(value.id)
   if (!id || !isWidgetType(value.type) || !isWidgetSize(value.size)) return null
 
+  if (!/^[a-z0-9][a-z0-9_-]*$/i.test(id)) return null
   const widget: HomeWidget = { id, type: value.type, size: value.size }
   const entityId = stringOrUndefined(value.entityId)
   const groupId = stringOrUndefined(value.groupId)
-  if (entityId) widget.entityId = entityId
-  if (groupId) widget.groupId = groupId
+  if (entityId && /^[a-z0-9_]+\.[a-z0-9_]+$/.test(entityId)) widget.entityId = entityId
+  if (groupId && /^[a-z0-9][a-z0-9_-]*$/i.test(groupId)) widget.groupId = groupId
   return widget
 }
 
@@ -81,7 +82,7 @@ function sanitizeWidgets(value: unknown, fallback: HomeWidget[]): HomeWidget[] {
   const seen = new Set<string>()
   const widgets: HomeWidget[] = []
 
-  for (const item of value) {
+  for (const item of value.slice(0, 100)) {
     const widget = sanitizeWidget(item)
     if (!widget || seen.has(widget.id)) continue
     seen.add(widget.id)
@@ -147,7 +148,7 @@ function positionFor(widget: HomeWidget, raw?: HomePosition | null): HomePositio
   const wh = HOME_SIZE_WH[widget.size]
   return {
     x: Math.max(0, Math.min(raw?.x ?? 0, HOME_COLS - wh.w)),
-    y: Math.max(0, raw?.y ?? 0),
+    y: Math.max(0, Math.min(raw?.y ?? 0, 1_000)),
     w: wh.w,
     h: wh.h,
   }
@@ -166,7 +167,7 @@ function firstFreeSlot(occupied: Set<string>, widget: HomeWidget): Pick<HomePosi
 
 function rawPositions(value: unknown): Record<string, HomePosition> {
   if (!isObject(value)) return {}
-  return Object.entries(value).reduce<Record<string, HomePosition>>((acc, [id, item]) => {
+  return Object.entries(value).slice(0, 200).reduce<Record<string, HomePosition>>((acc, [id, item]) => {
     const pos = rawPosition(item)
     if (pos) acc[id] = pos
     return acc
@@ -203,11 +204,11 @@ export function normalizeHomePositions(
 }
 
 function cleanLayoutVersion(value: unknown, fallback: number): number {
-  return Number.isInteger(value) && Number(value) > 0 ? Number(value) : fallback
+  return Number.isSafeInteger(value) && Number(value) > 0 ? Number(value) : fallback
 }
 
 function cleanUpdatedAt(value: unknown, fallback: string): string {
-  return typeof value === 'string' && value.trim() ? value : fallback
+  return typeof value === 'string' && value.length <= 40 && Number.isFinite(Date.parse(value)) ? value : fallback
 }
 
 function cleanUpdatedBy(value: unknown, fallback: NonNullable<HomeConfig['updatedBy']>): NonNullable<HomeConfig['updatedBy']> {
@@ -286,7 +287,8 @@ export function tabletHomeLayout(config: AppConfig) {
     // Curation data the kiosk needs to filter discovery (not secret).
     hiddenEntities: config.hiddenEntities ?? [],
     kiosk: config.kiosk ?? {},
-    ai: { doorbellVision: config.ai?.doorbellVision !== false },
+    // Privacy-sensitive cloud processing is explicit opt-in.
+    ai: { doorbellVision: config.ai?.doorbellVision === true },
     source: 'backend' as const,
   }
 }

@@ -1,6 +1,7 @@
-import { Droplets, Wind, Thermometer } from 'lucide-react'
+import { CloudSun, Droplets, Wind, Thermometer } from 'lucide-react'
 import { useCurrentWeather, useWeatherForecast } from '../../hooks/useWeather'
 import { tokens } from '../../design/tokens'
+import { WeatherIcon } from './WeatherIcon'
 
 const DAYS = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab']
 
@@ -18,11 +19,17 @@ export function WeatherWidget() {
 
   if (!current) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-2">
-        <Thermometer size={24} className="text-black/20" />
-        <p className="text-xs text-black/30 text-center">
-          {error instanceof Error ? error.message : 'Meteo non disponibile'}
-        </p>
+      <div className="flex h-full min-h-[220px] flex-col items-center justify-center gap-3 text-center">
+        <div className="flex h-14 w-14 items-center justify-center rounded-[18px] bg-gradient-to-br from-sky-400/18 to-amber-300/25 text-sky-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
+          <CloudSun size={27} strokeWidth={1.7} aria-hidden="true" />
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-[#1d1d1f]">Meteo da configurare</p>
+          <p className="mx-auto mt-1 max-w-[280px] text-xs leading-5 text-black/40">
+            Aggiungi la chiave OpenWeather dalla regia per vedere condizioni e previsioni.
+          </p>
+        </div>
+        <span className="sr-only">{error instanceof Error ? error.message : 'Meteo non disponibile'}</span>
       </div>
     )
   }
@@ -39,11 +46,7 @@ export function WeatherWidget() {
           <p className="text-sm capitalize text-black/60 mt-0.5">{current.description}</p>
           <p className="text-xs text-black/30 mt-0.5">{current.city}</p>
         </div>
-        <img
-          src={`https://openweathermap.org/img/wn/${current.icon}@2x.png`}
-          alt={current.description}
-          className="h-16 w-16 -mt-2 -mr-1"
-        />
+        <WeatherIcon code={current.icon} size={54} label={current.description} className="-mr-1 mt-0 text-[#0066cc]" />
       </div>
 
       {/* Details */}
@@ -73,11 +76,7 @@ export function WeatherWidget() {
                 className="flex flex-col items-center gap-1 rounded-[12px] bg-black/6 p-2 min-w-[52px]"
               >
                 <span className="text-xs text-black/40">{DAYS[d.getDay()]}</span>
-                <img
-                  src={`https://openweathermap.org/img/wn/${day.icon}.png`}
-                  alt=""
-                  className="h-8 w-8"
-                />
+                <WeatherIcon code={day.icon} size={27} />
                 <span className="text-xs font-medium text-black/80">{day.temp_max}°</span>
                 <span className="text-xs text-black/30">{day.temp_min}°</span>
               </div>

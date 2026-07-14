@@ -1,7 +1,23 @@
 const BASE = '/api'
 
+export class ApiError extends Error {
+  readonly status: number
+
+  constructor(
+    message: string,
+    status: number,
+  ) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
+  }
+}
+
 function clientContext(): 'desktop' | 'tablet' {
   if (typeof window === 'undefined') return 'desktop'
+  const firstSegment = window.location.pathname.split('/').filter(Boolean)[0]
+  if (firstSegment && ['kiosk', 'tablet', 'dashboard'].includes(firstSegment)) return 'tablet'
+  if (firstSegment && ['entities', 'functions', 'system', 'backend', 'admin', 'settings'].includes(firstSegment)) return 'desktop'
   return window.matchMedia('(pointer: fine)').matches ? 'desktop' : 'tablet'
 }
 
@@ -9,16 +25,53 @@ async function request<T>(
   path: string,
   options?: RequestInit,
 ): Promise<T> {
+  const { headers: optionHeaders, ...requestOptions } = options ?? {}
   const res = await fetch(`${BASE}${path}`, {
+    ...requestOptions,
+    credentials: 'same-origin',
     headers: {
       'Content-Type': 'application/json',
       'X-MyHome-Client': clientContext(),
-      ...(options?.headers ?? {}),
+      ...(optionHeaders ?? {}),
     },
-    ...options,
   })
-  if (!res.ok) throw new Error(`Backend ${options?.method ?? 'GET'} ${path} → ${res.status}`)
+  if (!res.ok) {
+    if (res.status === 401 && !path.startsWith('/auth/') && typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('myhome:auth-required'))
+    }
+    const payload = await res.json().catch(() => null) as { error?: unknown; action?: unknown } | null
+    const detail = typeof payload?.error === 'string' ? payload.error : `Errore ${res.status}`
+    const action = typeof payload?.action === 'string' ? ` ${payload.action}` : ''
+    throw new ApiError(`${detail}${action}`, res.status)
+  }
   return res.json() as Promise<T>
+}
+
+export interface AuthStatus {
+  mode: 'disabled' | 'required' | 'misconfigured'
+  authenticated: boolean
+  role: 'admin' | 'kiosk' | null
+  kioskEnabled: boolean
+  message?: string
+}
+
+export const authApi = {
+  status: () => request<AuthStatus>('/auth/status'),
+  login: (token: string) => request<{ ok: true; role: 'admin' | 'kiosk' }>('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ token }),
+  }),
+  logout: () => request<{ ok: true }>('/auth/logout', { method: 'POST', body: '{}' }),
+}
+
+export interface ScreensaverPhoto {
+  name: string
+  url: string
+  updatedAt: string
+}
+
+export const screensaverApi = {
+  list: () => request<{ photos: ScreensaverPhoto[]; source: 'local-folder' }>('/screensaver'),
 }
 
 // ── Config ─────────────────────────────────────────────────────────────────
@@ -27,7 +80,7 @@ export interface AppConfig {
   haUrl: string
   haToken: string
   haConfigSource?: {
-    url: 'env' | 'db' | 'default'
+    url: 'env' | 'db' | 'default' | 'invalid'
     token: 'env' | 'db' | 'missing'
   }
   haConfigLocked?: {
@@ -36,7 +89,7 @@ export interface AppConfig {
   }
   storage?: {
     writable: boolean
-    mode: 'file' | 'supabase' | 'read-only'
+    mode: 'file' | 'read-only'
   }
   weatherCity: string
   newsCategory: string
@@ -52,9 +105,9 @@ export interface AppConfig {
   groups?: EntityGroup[]
   home?: HomeConfig
   dashboardLayout?: DashboardLayout
-  /** Kiosk behaviour: presence-wake sensor + home a strati o griglia drag&drop. */
-  kiosk?: { wakeEntityId?: string; homeMode?: 'composer' | 'grid' }
-  /** AI features: doorbell Gemini Vision on/off (default on when key present) + volti di riferimento. */
+  /** Kiosk behaviour: presence wake, adaptive home and local photo screensaver. */
+  kiosk?: KioskSettings
+  /** AI features: doorbell Gemini Vision on/off + massimo 8 volti di riferimento. */
   ai?: { doorbellVision?: boolean; faces?: KnownFace[] }
 }
 
@@ -64,6 +117,17 @@ export interface KnownFace {
   name: string
   /** 1–3 foto frontali come data URL JPEG, ridotte lato client (~512px). */
   images: string[]
+}
+
+export interface KioskSettings {
+  wakeEntityId?: string
+  homeMode?: 'composer' | 'grid'
+  screensaver?: {
+    enabled?: boolean
+    idleSeconds?: number
+    slideSeconds?: number
+    brightness?: number
+  }
 }
 
 export type WidgetType =
@@ -172,7 +236,7 @@ export interface TabletDashboardLayout {
   deviceOverrides: Record<string, DeviceOverride>
   /** Curation data the kiosk needs to filter discovery (not secret). */
   hiddenEntities?: string[]
-  kiosk?: { wakeEntityId?: string; homeMode?: 'composer' | 'grid' }
+  kiosk?: KioskSettings
   ai?: { doorbellVision?: boolean }
   source?: 'backend' | 'cache'
 }
@@ -191,7 +255,9 @@ export const layoutApi = {
   update: (dashboardId: string, data: TabletLayoutPatch) =>
     request<TabletDashboardLayout>(`/layout/${encodeURIComponent(dashboardId)}`, {
       method: 'PUT',
-      headers: { 'X-MyHome-Client': 'tablet' },
+      // In authenticated deployments the signed session decides the role.
+      // The desktop hint only keeps local auth-disabled development editable.
+      headers: { 'X-MyHome-Client': 'desktop' },
       body: JSON.stringify(data),
     }),
 }
@@ -262,7 +328,7 @@ export interface HAHistoryPoint {
 export const haApi = {
   history: (entityId: string, hours = 1) =>
     request<HAHistoryPoint[]>(`/ha/history/${encodeURIComponent(entityId)}?hours=${hours}`),
-  states: () => request<unknown[]>('/ha/states'),
+  states: (signal?: AbortSignal) => request<unknown[]>('/ha/states', { signal }),
   state: (entityId: string) => request<unknown>(`/ha/states/${encodeURIComponent(entityId)}`),
   /** HA registries (areas/devices/entities), proxied over the backend WS. */
   registry: () => request<{ areas: unknown[]; devices: unknown[]; entities: unknown[] }>('/ha/registry'),
@@ -280,6 +346,10 @@ export const haApi = {
   cameraProxyUrl: (entityId: string) => `/api/ha/camera-proxy/${encodeURIComponent(entityId)}`,
   cameraStreamUrl: (entityId: string) => `/api/ha/camera-stream/${encodeURIComponent(entityId)}`,
   mediaUrl: (path: string) => `/api/ha/media?path=${encodeURIComponent(path)}`,
+  /** CSP-safe image URL for HA-relative and public HTTPS artwork. */
+  imageUrl: (source: string, entityId?: string) => source.startsWith('data:') || source.startsWith('blob:')
+    ? source
+    : `/api/ha/image?url=${encodeURIComponent(source)}${entityId ? `&entity=${encodeURIComponent(entityId)}` : ''}`,
   /** Suonata di prova: rimbalza via SSE su tutti i client (tablet incluso). */
   doorbellTest: (doorbellId: string) =>
     request<{ ok: boolean }>('/ha/doorbell-test', { method: 'POST', body: JSON.stringify({ doorbellId }) }),
@@ -293,7 +363,7 @@ export interface SystemStatus {
     latencyMs: number | null
     message?: string
     url: string
-    source: { url: 'env' | 'db' | 'default'; token: 'env' | 'db' | 'missing' }
+    source: { url: 'env' | 'db' | 'default' | 'invalid'; token: 'env' | 'db' | 'missing' }
     locked: { haUrl: boolean; haToken: boolean }
   }
   stream: {
@@ -305,8 +375,8 @@ export interface SystemStatus {
     lastEventId: number
     lastEventAt: string | null
   }
-  storage: { mode: 'file' | 'supabase' | 'read-only'; writable: boolean }
-  integrations: { gemini: boolean; openweather: boolean; supabase: boolean }
+  storage: { mode: 'file' | 'read-only'; writable: boolean }
+  integrations: { gemini: boolean; openweather: boolean }
   now: string
 }
 

@@ -40,6 +40,7 @@ if (existsSync(DIST)) {
     // /api/* route must return a clean 404, not index.html (which would break
     // EventSource/fetch consumers expecting JSON or text/event-stream).
     if (c.req.path.startsWith('/api/')) return c.json({ error: 'Not found' }, 404)
+    c.header('Cache-Control', 'no-cache, no-store, must-revalidate')
     return c.html(readFileSync(join(DIST, 'index.html'), 'utf-8'))
   })
 }
