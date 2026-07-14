@@ -1,6 +1,6 @@
 name: "MyHome Dashboard"
 description: "Dashboard privata per Home Assistant, ottimizzata per kiosk e regia desktop"
-version: "2.2.44"
+version: "2.2.46"
 slug: "myhome_dashboard"
 url: "https://github.com/davidep01/MyHome"
 init: false
