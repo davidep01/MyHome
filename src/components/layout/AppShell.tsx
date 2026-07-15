@@ -20,6 +20,8 @@ import { useFullyKiosk } from '../../hooks/useFullyKiosk'
 import { AmbientLayer } from '../home/layers/AmbientLayer'
 import { CriticalEventOverlay } from '../system/CriticalEventOverlay'
 import { useCriticalAlerts } from '../../hooks/useCriticalAlerts'
+import { useEmergencyMode } from '../../hooks/useEmergencyMode'
+import { useKioskHeartbeat } from '../../hooks/useKioskHeartbeat'
 import { useTimeOfDay } from '../../hooks/useTimeOfDay'
 
 // Le viste regia sono lazy: il kiosk (percorso primario) carica solo
@@ -193,7 +195,7 @@ function DesktopShell({ path }: { path: string }) {
       {/* Doorbell → fullscreen video alert */}
       <DoorbellAlert doorbells={layout?.doorbells ?? []} vision={layout?.ai?.doorbellVision === true} />
 
-      <CriticalEventOverlay alerts={criticalAlerts} />
+      <CriticalEventOverlay alerts={criticalAlerts} shortcuts={layout?.alarm?.shortcuts} />
     </div>
   )
 }
@@ -204,10 +206,12 @@ function KioskShell() {
   const { data: layout } = useTabletLayout('home')
   const criticalAlerts = useCriticalAlerts()
   const { period } = useTimeOfDay()
-  usePerfMode()
+  usePerfMode(layout?.kiosk?.perfProfile)
   useWakeLock()
   useAutoTheme()
   useFullyKiosk({ ambientBrightness: layout?.kiosk?.screensaver?.brightness })
+  useEmergencyMode(criticalAlerts, layout?.alarm?.photo === true)
+  useKioskHeartbeat()
   useKioskDocumentMode()
   useDocumentTitle('Dashboard')
 
@@ -243,7 +247,7 @@ function KioskShell() {
       />
 
       <DoorbellAlert kiosk doorbells={layout?.doorbells ?? []} vision={layout?.ai?.doorbellVision === true} />
-      <CriticalEventOverlay alerts={criticalAlerts} />
+      <CriticalEventOverlay alerts={criticalAlerts} shortcuts={layout?.alarm?.shortcuts} />
     </div>
   )
 }

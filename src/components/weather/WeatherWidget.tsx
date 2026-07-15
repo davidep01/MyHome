@@ -77,7 +77,7 @@ export function WeatherWidget() {
               >
                 <span className="text-xs text-black/40">{DAYS[d.getDay()]}</span>
                 <WeatherIcon code={day.icon} size={27} />
-                <span className="text-xs font-medium text-black/80">{day.temp_max}°</span>
+                <span className="text-xs font-semibold text-black/80">{day.temp_max}°</span>
                 <span className="text-xs text-black/30">{day.temp_min}°</span>
               </div>
             )

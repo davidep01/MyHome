@@ -55,7 +55,7 @@ function NotificationItem({
         <Icon size={14} style={{ color }} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-medium text-black/85 leading-snug">{notification.title}</p>
+        <p className="text-xs font-semibold text-black/85 leading-snug">{notification.title}</p>
         {notification.message && (
           <p className="text-[10px] mt-0.5" style={{ color: tokens.text.tertiary }}>
             {notification.message}

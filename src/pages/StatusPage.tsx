@@ -288,7 +288,7 @@ function BackupCard({ readOnly }: { readOnly: boolean }) {
         />
       </div>
       {message && (
-        <p className={cn('text-xs font-medium', message.ok ? 'text-green-700' : 'text-red-600')} role={message.ok ? 'status' : 'alert'} aria-live="polite">{message.text}</p>
+        <p className={cn('text-xs font-semibold', message.ok ? 'text-green-700' : 'text-red-600')} role={message.ok ? 'status' : 'alert'} aria-live="polite">{message.text}</p>
       )}
     </GlassCard>
   )

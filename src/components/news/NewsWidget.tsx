@@ -49,7 +49,7 @@ export function NewsWidget() {
             />
           )}
           <div className="flex flex-col gap-1 min-w-0">
-            <p className="text-xs font-medium text-black/85 line-clamp-2 leading-snug">
+            <p className="text-xs font-semibold text-black/85 line-clamp-2 leading-snug">
               {article.title}
             </p>
             <div className="flex items-center gap-1.5 mt-auto">

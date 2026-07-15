@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { useEntityStore } from '../store/entities'
+import { entityName } from '../components/widgets/utils/mapEntityToWidgetCard'
 
 export interface HANotification {
   id: string
@@ -36,7 +37,7 @@ export function useNotifications(): HANotification[] {
         && entity.state === 'on'
         && ['smoke', 'gas', 'carbon_monoxide', 'moisture', 'heat', 'safety', 'problem'].includes(deviceClass)
       ) {
-        const friendlyName = (entity.attributes?.friendly_name as string | undefined) ?? entityId
+        const friendlyName = entityName(entity)
         notifications.push({
           id: `safety-${entityId}`,
           type: 'safety',
@@ -55,8 +56,7 @@ export function useNotifications(): HANotification[] {
         !entityId.startsWith('group.') &&
         !entityId.startsWith('zone.')
       ) {
-        const friendlyName =
-          (entity.attributes?.friendly_name as string | undefined) ?? entityId
+        const friendlyName = entityName(entity)
         notifications.push({
           id: `offline-${entityId}`,
           type: 'offline',
@@ -73,8 +73,7 @@ export function useNotifications(): HANotification[] {
         (entity.attributes?.battery_level as number | undefined) ??
         (entity.attributes?.battery as number | undefined)
       if (batteryLevel !== undefined && batteryLevel < 20) {
-        const friendlyName =
-          (entity.attributes?.friendly_name as string | undefined) ?? entityId
+        const friendlyName = entityName(entity)
         notifications.push({
           id: `battery-${entityId}`,
           type: 'battery',

@@ -12,6 +12,7 @@ import { useRoomsOverview, type RoomOverview } from '../../../hooks/useRoomsOver
 import { ACTIVITY_META } from './roomActivity'
 import { AnimEqualizer, AnimFan, AnimFlame, AnimLightbulb, AnimSnowflake, AnimSparkles } from '../../icons/animated'
 import { widgetTones } from '../../widgets/utils/getRingColorScale'
+import { entityName } from '../../widgets/utils/mapEntityToWidgetCard'
 import type { RoomTarget } from './RoomsRow'
 import type { DeviceOverride } from '../../../api/backend'
 
@@ -156,7 +157,7 @@ function SpaceCard({ room, index, onOpen }: { room: RoomOverview; index: number;
 
       <div className="mt-auto min-w-0 pt-4">
         <p className="truncate text-[19px] font-semibold leading-tight text-[#1d1d1f]">{room.title}</p>
-        <p className={cn('mt-1 truncate text-[13px] font-medium', quiet ? 'text-black/35' : 'text-black/50')}>
+        <p className={cn('mt-1 truncate text-[13px] font-semibold', quiet ? 'text-black/35' : 'text-black/50')}>
           {roomFacts(room).join(' · ')}
         </p>
       </div>
@@ -195,7 +196,7 @@ function AutomationsSection({ baseIndex }: { baseIndex: number }) {
         const last = (e.attributes?.last_triggered as string | undefined) ?? null
         return {
           id: e.entity_id,
-          name: (e.attributes?.friendly_name as string | undefined) ?? e.entity_id.split('.')[1].replace(/_/g, ' '),
+          name: entityName(e),
           last,
           recent: isRecent(last),
         }
@@ -226,7 +227,7 @@ function AutomationsSection({ baseIndex }: { baseIndex: number }) {
             </span>
             <span className="min-w-0">
               <span className="block truncate text-sm font-semibold text-[#1d1d1f]">{a.name}</span>
-              <span className="block truncate text-xs font-medium text-black/40">
+              <span className="block truncate text-xs font-semibold text-black/40">
                 {a.last ? `Ultima esecuzione ${timeAgo(a.last)}` : 'Mai eseguita'}
               </span>
             </span>

@@ -4,6 +4,7 @@ import { getHABaseUrl, getHAConfig } from '../lib/ha-config.js'
 import { getStreamStats } from '../lib/ha-stream.js'
 import { desktopOnly } from '../lib/security.js'
 import { configuredIntegrations } from '../lib/integration-config.js'
+import { getAuditLog } from '../lib/audit-log.js'
 
 /**
  * Diagnostica per la regia desktop: salute HA (raggiungibilità + latenza),
@@ -13,6 +14,9 @@ import { configuredIntegrations } from '../lib/integration-config.js'
 export const systemRouter = new Hono()
 
 systemRouter.use('*', desktopOnly)
+
+// Log amministrativo azioni critiche (§3): aperture, disarmi, sirene.
+systemRouter.get('/audit', (c) => c.json({ entries: getAuditLog() }))
 
 systemRouter.get('/status', async (c) => {
   const ha = await getHAConfig()

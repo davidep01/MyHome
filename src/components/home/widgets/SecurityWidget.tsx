@@ -38,7 +38,7 @@ export function SecurityWidget({ size }: { size: WidgetSize }) {
         </div>
       ) : (
         <div className="mt-auto">
-          <p className="truncate text-sm font-medium text-black/80">{last.doorbellName}</p>
+          <p className="truncate text-sm font-semibold text-black/80">{last.doorbellName}</p>
           <p className="text-xs text-black/45">Ultimo squillo {timeAgo(last.timestamp)}</p>
         </div>
       )}

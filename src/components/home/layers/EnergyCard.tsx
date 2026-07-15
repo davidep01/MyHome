@@ -5,6 +5,7 @@ import { GlassCard } from '../../glass/GlassCard'
 import { haApi } from '../../../api/backend'
 import { useEntityStore } from '../../../store/entities'
 import { cn } from '../../../lib/utils'
+import { entityName } from '../../widgets/utils/mapEntityToWidgetCard'
 
 /**
  * Energia onesta (DOMINICA M5): capability-gated — senza sensori di potenza la
@@ -60,7 +61,7 @@ export function EnergyCard() {
           {Math.round(now)}<span className="ml-1 text-lg text-black/40">{unit}</span>
         </p>
         <p className="mt-2 truncate text-xs text-black/40">
-          {(sensor.attributes?.friendly_name as string | undefined) ?? sensor.entity_id}
+          {entityName(sensor)}
         </p>
       </div>
     </GlassCard>

@@ -4,6 +4,7 @@ import { GlassCard } from '../glass/GlassCard'
 import { useEntityStore } from '../../store/entities'
 import { cn } from '../../lib/utils'
 import { haApi } from '../../api/backend'
+import { entityName } from '../widgets/utils/mapEntityToWidgetCard'
 
 const PALETTE = ['#3b82f6', '#ec4899', '#22c55e', '#f59e0b', '#a855f7', '#06b6d4']
 
@@ -33,7 +34,7 @@ export function PeopleCard({ className }: { className?: string }) {
             </div>
           ) : (
             people.slice(0, 5).map((p, i) => {
-              const name = (p.attributes?.friendly_name as string | undefined) ?? p.entity_id.split('.')[1]
+              const name = entityName(p)
               const pic = p.attributes?.entity_picture as string | undefined
               const pictureUrl = pic ? haApi.imageUrl(pic, p.entity_id) : undefined
               return (

@@ -21,7 +21,7 @@ export function InfoPanel() {
             key={t}
             onClick={() => setTab(t)}
             className={cn(
-              'flex flex-1 items-center justify-center gap-1.5 rounded-[12px] py-2 text-xs font-medium transition-all',
+              'flex flex-1 items-center justify-center gap-1.5 rounded-[12px] py-2 text-xs font-semibold transition-all',
               tab === t ? 'bg-black/12 text-[#1d1d1f]' : 'text-black/40 hover:text-black/60',
             )}
           >

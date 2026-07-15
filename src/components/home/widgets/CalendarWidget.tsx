@@ -4,6 +4,7 @@ import { useEntityStore } from '../../../store/entities'
 import { AnimatedCard } from '../../anim/AnimatedCard'
 import { LiveDot } from '../../anim/LiveDot'
 import type { WidgetSize } from '../../../api/backend'
+import { entityName } from '../../widgets/utils/mapEntityToWidgetCard'
 
 interface Evt { title: string; start: number; ongoing: boolean; calendar: string; location?: string }
 
@@ -35,7 +36,7 @@ export function CalendarWidget({ size }: { size: WidgetSize }) {
           title: (a.message as string | undefined) ?? 'Evento',
           start,
           ongoing: e.state === 'on',
-          calendar: (a.friendly_name as string | undefined) ?? e.entity_id.split('.')[1],
+          calendar: entityName(e),
           location: a.location as string | undefined,
         }
       })
@@ -66,7 +67,7 @@ export function CalendarWidget({ size }: { size: WidgetSize }) {
             <div key={`${e.title}-${idx}`} className="flex items-center gap-2">
               <span className="h-7 w-1 shrink-0 rounded-full" style={{ background: e.ongoing ? '#7c3aed' : 'rgba(124,58,237,0.3)' }} />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-black/85">{e.title}</p>
+                <p className="truncate text-sm font-semibold text-black/85">{e.title}</p>
                 <p className="truncate text-[11px] text-black/45">{formatWhen(e.start, e.ongoing)}{e.location ? ` · ${e.location}` : ''}</p>
               </div>
             </div>

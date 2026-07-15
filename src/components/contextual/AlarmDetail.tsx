@@ -181,7 +181,7 @@ export function AlarmDetail({ entity }: { entity: HassEntity }) {
                   onClick={() => setCode((c) => (k === 'del' ? c.slice(0, -1) : (c + k).slice(0, 8)))}
                   disabled={busy}
                   aria-label={k === 'del' ? 'Cancella ultima cifra' : undefined}
-                  className="flex h-12 items-center justify-center rounded-[10px] bg-black/6 text-lg font-medium text-[#1d1d1f] transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0066cc] active:scale-95 hover:bg-black/10 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="flex h-12 items-center justify-center rounded-[10px] bg-black/6 text-lg font-semibold text-[#1d1d1f] transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0066cc] active:scale-95 hover:bg-black/10 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {k === 'del' ? <Delete size={18} aria-hidden="true" /> : k}
                 </button>
@@ -202,9 +202,9 @@ export function AlarmDetail({ entity }: { entity: HassEntity }) {
               return (
                 <div key={s.entity_id} className="flex items-center gap-2">
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-[#1d1d1f]">{sensorName(s)}</p>
+                    <p className="truncate text-sm font-semibold text-[#1d1d1f]">{sensorName(s)}</p>
                     {open && (
-                      <span className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-medium text-orange-600">
+                      <span className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-semibold text-orange-600">
                         <DoorOpen size={12} /> Aperto ora
                       </span>
                     )}
@@ -223,7 +223,7 @@ export function AlarmDetail({ entity }: { entity: HassEntity }) {
                         disabled={busy || s.state === o}
                         aria-pressed={s.state === o}
                         className={cn(
-                          'min-h-[40px] rounded-full px-2.5 py-1 text-[11px] font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0066cc] disabled:cursor-not-allowed',
+                          'min-h-[44px] rounded-full px-2.5 py-1 text-[11px] font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0066cc] disabled:cursor-not-allowed',
                           s.state === o ? 'bg-white text-[#1d1d1f] shadow-sm' : 'text-black/45 hover:text-black/70',
                         )}
                       >
@@ -253,7 +253,7 @@ export function AlarmDetail({ entity }: { entity: HassEntity }) {
             role="switch"
             aria-checked={bypassOpen}
             className={cn(
-              'mb-3 flex w-full items-center justify-between gap-3 rounded-[12px] px-3.5 py-2.5 text-left text-sm font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0066cc] disabled:cursor-not-allowed disabled:opacity-40',
+              'mb-3 flex w-full items-center justify-between gap-3 rounded-[12px] px-3.5 py-2.5 text-left text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0066cc] disabled:cursor-not-allowed disabled:opacity-40',
               bypassOpen ? 'bg-[#0066cc]/12 text-[#0066cc]' : 'bg-black/6 text-black/70 hover:bg-black/10',
             )}
           >
@@ -296,7 +296,7 @@ export function AlarmDetail({ entity }: { entity: HassEntity }) {
       </div>
 
       {error && (
-        <p role="alert" className="rounded-[12px] bg-red-500/10 px-3 py-2 text-sm font-medium text-red-700">
+        <p role="alert" className="rounded-[12px] bg-red-500/10 px-3 py-2 text-sm font-semibold text-red-700">
           {error}
         </p>
       )}

@@ -169,6 +169,16 @@ function AmbientContent({ slideSeconds }: { slideSeconds: number }) {
     return () => clearInterval(timer)
   }, [photos.length, slideSeconds])
 
+  // Precarica le prossime due foto (§14): la dissolvenza non deve mai
+  // aspettare la rete, e l'album remoto scalda la cache del backend.
+  useEffect(() => {
+    if (photos.length < 2) return
+    for (const offset of [1, 2]) {
+      const next = photos[(photoIndex + offset) % photos.length]
+      if (next) new Image().src = next.url
+    }
+  }, [photoIndex, photos])
+
   // Buio pesto (notte fonda): l'orologio si spegne un altro po'.
   const dim = lastLux != null && lastLux < 5
   const visibleIndex = photos.length ? photoIndex % photos.length : 0
@@ -226,7 +236,7 @@ function AmbientContent({ slideSeconds }: { slideSeconds: number }) {
         )}
       </div>
       {photos.length > 1 && (
-        <span aria-hidden="true" className="absolute bottom-[max(18px,env(safe-area-inset-bottom))] left-1/2 z-10 -translate-x-1/2 text-[11px] font-medium tabular-nums text-white/45">
+        <span aria-hidden="true" className="absolute bottom-[max(18px,env(safe-area-inset-bottom))] left-1/2 z-10 -translate-x-1/2 text-[11px] font-semibold tabular-nums text-white/45">
           {visibleIndex + 1} / {photos.length}
         </span>
       )}

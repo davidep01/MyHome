@@ -84,7 +84,7 @@ export function TimelineSheet({ open, onClose }: { open: boolean; onClose: () =>
               <item.icon size={16} />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-[#1d1d1f]">{item.title}</p>
+              <p className="truncate text-sm font-semibold text-[#1d1d1f]">{item.title}</p>
               <p className="truncate text-xs text-black/45">{item.detail}</p>
             </div>
             <span className="shrink-0 text-xs tabular-nums text-black/35">

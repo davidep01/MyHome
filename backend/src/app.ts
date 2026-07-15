@@ -13,6 +13,8 @@ import { layoutRouter } from './routes/layout.js'
 import { systemRouter } from './routes/system.js'
 import { authRouter } from './routes/auth.js'
 import { screensaverRouter } from './routes/screensaver.js'
+import { alarmRouter } from './routes/alarm.js'
+import { kioskRouter } from './routes/kiosk.js'
 import { authenticateRequest, authConfiguration } from './lib/security.js'
 import { db } from './db/client.js'
 import { safeRequestLogger } from './lib/request-logger.js'
@@ -59,6 +61,8 @@ app.route('/api/ha', haRouter)
 app.route('/api/ai', aiRouter)
 app.route('/api/system', systemRouter)
 app.route('/api/screensaver', screensaverRouter)
+app.route('/api/alarm', alarmRouter)
+app.route('/api/kiosk', kioskRouter)
 
 app.get('/api/health', async (c) => {
   const auth = authConfiguration()

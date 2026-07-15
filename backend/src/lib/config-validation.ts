@@ -1,5 +1,5 @@
 import type {
-  AppConfig, DashboardLayout, DeviceOverride, DoorbellDevice, DoorbellSettings,
+  ActionShortcut, AppConfig, DashboardLayout, DeviceOverride, DoorbellDevice, DoorbellSettings,
   EntityGroup, KnownFace,
 } from '../db/types.js'
 import { normalizeHomeConfig } from './home-layout.js'
@@ -16,8 +16,52 @@ const ALLOWED_KEYS = new Set<keyof AppConfig>([
   'haUrl', 'haToken', 'weatherCity', 'newsCategory', 'newsFeedUrl', 'userName',
   'dashboardName', 'hiddenEntities', 'deviceOverrides', 'forceCelsius',
   'advancedMode', 'doorbell', 'doorbells', 'groups', 'home', 'dashboardLayout',
-  'kiosk', 'ai',
+  'kiosk', 'alarm', 'ai',
 ])
+
+const MAX_SHORTCUTS = 4
+const SERVICE_NAME_PATTERN = /^[a-z][a-z0-9_]{0,63}$/
+
+/** Host consentiti per l'album pubblico dello screensaver (niente proxy arbitrari). */
+const SCREENSAVER_SOURCE_HOSTS = new Set(['photos.app.goo.gl', 'photos.google.com'])
+
+export function parseShortcuts(value: unknown): ActionShortcut[] | null {
+  if (!Array.isArray(value) || value.length > MAX_SHORTCUTS) return null
+  const ids = new Set<string>()
+  const result: ActionShortcut[] = []
+  for (const raw of value) {
+    if (!isRecord(raw) || !onlyKeys(raw, ['id', 'label', 'icon', 'entityId', 'service', 'confirm'])) return null
+    const label = cleanText(raw.label, 40)
+    if (
+      typeof raw.id !== 'string' || !SIMPLE_ID_PATTERN.test(raw.id) || ids.has(raw.id)
+      || !label || !isEntityId(raw.entityId)
+      || (raw.icon !== undefined && !isIconName(raw.icon))
+      || (raw.service !== undefined && (typeof raw.service !== 'string' || !SERVICE_NAME_PATTERN.test(raw.service)))
+      || (raw.confirm !== undefined && typeof raw.confirm !== 'boolean')
+    ) return null
+    ids.add(raw.id)
+    result.push({
+      id: raw.id,
+      label,
+      entityId: raw.entityId,
+      ...(typeof raw.icon === 'string' ? { icon: raw.icon } : {}),
+      ...(typeof raw.service === 'string' ? { service: raw.service } : {}),
+      ...(typeof raw.confirm === 'boolean' ? { confirm: raw.confirm } : {}),
+    })
+  }
+  return result
+}
+
+export function isAllowedScreensaverSourceUrl(value: unknown): value is string {
+  if (typeof value !== 'string' || value.length > 2_048) return false
+  try {
+    const url = new URL(value)
+    return url.protocol === 'https:' && !url.username && !url.password
+      && SCREENSAVER_SOURCE_HOSTS.has(url.hostname.toLowerCase())
+  } catch {
+    return false
+  }
+}
 
 function onlyKeys(value: Record<string, unknown>, allowed: readonly string[]): boolean {
   const set = new Set(allowed)
@@ -33,7 +77,7 @@ function parseDoorbell(value: unknown, legacy = false): DoorbellDevice | Doorbel
   if (!isRecord(value)) return null
   const allowed = legacy
     ? ['entityId', 'cameraEntityId']
-    : ['id', 'name', 'location', 'entityId', 'cameraEntityId', 'sound', 'volume', 'priority', 'active', 'lockEntityIds']
+    : ['id', 'name', 'location', 'entityId', 'cameraEntityId', 'sound', 'volume', 'priority', 'active', 'lockEntityIds', 'shortcuts']
   if (!onlyKeys(value, allowed)) return null
   if (legacy) {
     if (value.entityId !== undefined && !isEntityId(value.entityId)) return null
@@ -47,11 +91,12 @@ function parseDoorbell(value: unknown, legacy = false): DoorbellDevice | Doorbel
   const name = cleanText(value.name, 80)
   const location = value.location === undefined ? undefined : cleanText(value.location, 80, true)
   const locks = value.lockEntityIds === undefined ? undefined : entityIdList(value.lockEntityIds, 20)
+  const shortcuts = value.shortcuts === undefined ? undefined : parseShortcuts(value.shortcuts)
   if (
     typeof value.id !== 'string' || !SIMPLE_ID_PATTERN.test(value.id)
     || !name || !isEntityId(value.entityId)
     || (value.cameraEntityId !== undefined && !isEntityId(value.cameraEntityId))
-    || location === null || locks === null
+    || location === null || locks === null || shortcuts === null
     || (value.sound !== undefined && (typeof value.sound !== 'string' || !SIMPLE_ID_PATTERN.test(value.sound)))
     || (value.volume !== undefined && (typeof value.volume !== 'number' || !Number.isFinite(value.volume) || value.volume < 0 || value.volume > 1))
     || (value.priority !== undefined && !['low', 'medium', 'high', 'critical'].includes(String(value.priority)))
@@ -69,6 +114,7 @@ function parseDoorbell(value: unknown, legacy = false): DoorbellDevice | Doorbel
     ...(typeof value.priority === 'string' ? { priority: value.priority as DoorbellDevice['priority'] } : {}),
     ...(typeof value.active === 'boolean' ? { active: value.active } : {}),
     ...(locks ? { lockEntityIds: locks } : {}),
+    ...(shortcuts ? { shortcuts } : {}),
   }
 }
 
@@ -222,13 +268,14 @@ export function validateConfigPatch(input: unknown): Result {
     value.dashboardLayout = parsed
   }
   if (input.kiosk !== undefined) {
-    if (!isRecord(input.kiosk) || !onlyKeys(input.kiosk, ['wakeEntityId', 'homeMode', 'screensaver'])) return { ok: false, error: 'Configurazione kiosk non valida' }
+    if (!isRecord(input.kiosk) || !onlyKeys(input.kiosk, ['wakeEntityId', 'homeMode', 'perfProfile', 'screensaver'])) return { ok: false, error: 'Configurazione kiosk non valida' }
     if (input.kiosk.wakeEntityId !== undefined && !isEntityId(input.kiosk.wakeEntityId)) return { ok: false, error: 'Sensore presenza kiosk non valido' }
     if (input.kiosk.homeMode !== undefined && input.kiosk.homeMode !== 'composer' && input.kiosk.homeMode !== 'grid') return { ok: false, error: 'Modalità kiosk non valida' }
+    if (input.kiosk.perfProfile !== undefined && !['quality', 'balanced', 'saver'].includes(String(input.kiosk.perfProfile))) return { ok: false, error: 'Profilo prestazioni non valido' }
     let screensaver: NonNullable<AppConfig['kiosk']>['screensaver'] | undefined
     if (input.kiosk.screensaver !== undefined) {
       const raw = input.kiosk.screensaver
-      if (!isRecord(raw) || !onlyKeys(raw, ['enabled', 'idleSeconds', 'slideSeconds', 'brightness'])) {
+      if (!isRecord(raw) || !onlyKeys(raw, ['enabled', 'idleSeconds', 'slideSeconds', 'brightness', 'source', 'sourceUrl'])) {
         return { ok: false, error: 'Configurazione screensaver non valida' }
       }
       if (
@@ -236,18 +283,33 @@ export function validateConfigPatch(input: unknown): Result {
         || (raw.idleSeconds !== undefined && !integerInRange(raw.idleSeconds, 30, 3_600))
         || (raw.slideSeconds !== undefined && !integerInRange(raw.slideSeconds, 5, 120))
         || (raw.brightness !== undefined && !integerInRange(raw.brightness, 0, 255))
+        || (raw.source !== undefined && raw.source !== 'local' && raw.source !== 'google')
+        || (raw.sourceUrl !== undefined && raw.sourceUrl !== '' && !isAllowedScreensaverSourceUrl(raw.sourceUrl))
       ) return { ok: false, error: 'Configurazione screensaver non valida' }
       screensaver = {
         ...(typeof raw.enabled === 'boolean' ? { enabled: raw.enabled } : {}),
         ...(typeof raw.idleSeconds === 'number' ? { idleSeconds: raw.idleSeconds } : {}),
         ...(typeof raw.slideSeconds === 'number' ? { slideSeconds: raw.slideSeconds } : {}),
         ...(typeof raw.brightness === 'number' ? { brightness: raw.brightness } : {}),
+        ...(raw.source === 'local' || raw.source === 'google' ? { source: raw.source } : {}),
+        ...(isAllowedScreensaverSourceUrl(raw.sourceUrl) ? { sourceUrl: raw.sourceUrl } : {}),
       }
     }
     value.kiosk = {
       ...(isEntityId(input.kiosk.wakeEntityId) ? { wakeEntityId: input.kiosk.wakeEntityId } : {}),
       ...(input.kiosk.homeMode === 'composer' || input.kiosk.homeMode === 'grid' ? { homeMode: input.kiosk.homeMode } : {}),
+      ...(input.kiosk.perfProfile === 'quality' || input.kiosk.perfProfile === 'balanced' || input.kiosk.perfProfile === 'saver' ? { perfProfile: input.kiosk.perfProfile } : {}),
       ...(screensaver ? { screensaver } : {}),
+    }
+  }
+  if (input.alarm !== undefined) {
+    if (!isRecord(input.alarm) || !onlyKeys(input.alarm, ['photo', 'shortcuts'])) return { ok: false, error: 'Configurazione allarme non valida' }
+    if (input.alarm.photo !== undefined && typeof input.alarm.photo !== 'boolean') return { ok: false, error: 'Configurazione allarme non valida' }
+    const alarmShortcuts = input.alarm.shortcuts === undefined ? undefined : parseShortcuts(input.alarm.shortcuts)
+    if (alarmShortcuts === null) return { ok: false, error: 'Pulsanti di emergenza non validi' }
+    value.alarm = {
+      ...(typeof input.alarm.photo === 'boolean' ? { photo: input.alarm.photo } : {}),
+      ...(alarmShortcuts ? { shortcuts: alarmShortcuts } : {}),
     }
   }
   if (input.ai !== undefined) {

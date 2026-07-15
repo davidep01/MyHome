@@ -262,7 +262,7 @@ export function MediaDetail({ entity }: { entity: HassEntity }) {
                 disabled={busy || unavailable || isOff}
                 aria-pressed={currentSource === source}
                 className={cn(
-                  'min-h-11 truncate rounded-[12px] px-2 py-2.5 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-40',
+                  'min-h-11 truncate rounded-[12px] px-2 py-2.5 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-40',
                   currentSource === source ? 'bg-[#0066cc] text-white' : 'bg-black/8 text-black/65 hover:bg-black/12',
                 )}
               >
@@ -274,7 +274,7 @@ export function MediaDetail({ entity }: { entity: HassEntity }) {
       )}
 
       {error && (
-        <p role="alert" className="rounded-[12px] bg-red-500/10 px-3 py-2 text-sm font-medium text-red-700">
+        <p role="alert" className="rounded-[12px] bg-red-500/10 px-3 py-2 text-sm font-semibold text-red-700">
           {error}
         </p>
       )}
@@ -302,7 +302,7 @@ function RemoteBtn({ onClick, Icon, label, disabled }: { onClick: () => void; Ic
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="flex min-h-11 flex-col items-center gap-1 rounded-[14px] bg-black/8 py-2.5 text-[11px] font-medium text-black/65 transition hover:bg-black/12 active:scale-90 disabled:cursor-not-allowed disabled:opacity-40"
+      className="flex min-h-11 flex-col items-center gap-1 rounded-[14px] bg-black/8 py-2.5 text-[11px] font-semibold text-black/65 transition hover:bg-black/12 active:scale-90 disabled:cursor-not-allowed disabled:opacity-40"
     >
       <Icon size={18} aria-hidden="true" />
       {label}

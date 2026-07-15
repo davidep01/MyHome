@@ -1,7 +1,7 @@
 import { useId, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
-  Bell, Cloud, Images, LayoutGrid, MonitorSmartphone, Newspaper, Pencil, Plus, RefreshCw, Save, ScanFace, Sparkles, SunMoon, Trash2, Volume2, VolumeX,
+  Bell, Cloud, Gauge, Images, LayoutGrid, MonitorSmartphone, Newspaper, Pencil, Plus, RefreshCw, Save, ScanFace, Siren, Sparkles, SunMoon, Trash2, Volume2, VolumeX,
 } from 'lucide-react'
 import { GlassCard } from '../components/glass/GlassCard'
 import { GlassSheet } from '../components/glass/GlassSheet'
@@ -15,6 +15,7 @@ import { normalizeDoorbells } from '../lib/doorbell'
 import { uid } from '../lib/uid'
 import { canAddKnownFace, MAX_KNOWN_FACES } from '../lib/knownFaces'
 import type { SoundPreset } from '../lib/sound/SoundManager'
+import { ShortcutsEditor } from '../components/controls/ShortcutsEditor'
 import { cn } from '../lib/utils'
 
 /**
@@ -51,6 +52,7 @@ export function FunctionsPage() {
         <div className="flex flex-col gap-4">
           <SoundsCard />
           <KioskCard />
+          <EmergencyCard />
           <IntegrationsCard gemini={status?.integrations.gemini} openweather={status?.integrations.openweather} pending={statusPending} error={statusError} />
         </div>
       </div>
@@ -97,7 +99,7 @@ function PreferencesCard() {
   const readOnly = config.storage?.writable === false
   const field = (key: keyof typeof value, label: string, placeholder?: string, type: 'text' | 'url' = 'text') => (
     <div className="space-y-1.5">
-      <label htmlFor={`${id}-${key}`} className="text-xs font-medium text-black/50">{label}</label>
+      <label htmlFor={`${id}-${key}`} className="text-xs font-semibold text-black/50">{label}</label>
       <input
         id={`${id}-${key}`}
         type={type}
@@ -171,7 +173,7 @@ function ThemeCard() {
             type="button"
             onClick={() => setThemeMode(m.id)}
             aria-pressed={themeMode === m.id}
-            className={cn('min-h-[44px] flex-1 rounded-[12px] text-sm font-medium transition', themeMode === m.id ? 'bg-[#0066cc] text-white' : 'bg-black/[0.06] text-black/60')}
+            className={cn('min-h-[44px] flex-1 rounded-[12px] text-sm font-semibold transition', themeMode === m.id ? 'bg-[#0066cc] text-white' : 'bg-black/[0.06] text-black/60')}
           >
             {m.label}
           </button>
@@ -288,7 +290,7 @@ function DoorbellsCard() {
             <div key={d.id} className={cn('flex min-h-[48px] items-center gap-2 rounded-[10px] bg-black/[0.04] px-3 py-2', d.active === false && 'opacity-60')}>
               <Bell size={15} className="shrink-0 text-black/45" />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-[#1d1d1f]">{d.name || 'Senza nome'}</p>
+                <p className="truncate text-sm font-semibold text-[#1d1d1f]">{d.name || 'Senza nome'}</p>
                 <p className="truncate text-[11px] text-black/40">{d.active === false ? 'Disattivato · ' : ''}{d.location ? `${d.location} · ` : ''}{d.entityId || 'nessuna entità'}</p>
               </div>
               <button
@@ -335,16 +337,16 @@ function DoorbellsCard() {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1.5">
-                <label htmlFor={`${id}-doorbell-name`} className="text-xs font-medium text-black/50">Nome</label>
+                <label htmlFor={`${id}-doorbell-name`} className="text-xs font-semibold text-black/50">Nome</label>
                 <input id={`${id}-doorbell-name`} value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="es. Ingresso" className="w-full min-h-[44px] rounded-[12px] bg-black/8 px-3 py-3 text-sm text-[#1d1d1f] outline-none focus:bg-black/12" />
               </div>
               <div className="space-y-1.5">
-                <label htmlFor={`${id}-doorbell-location`} className="text-xs font-medium text-black/50">Posizione</label>
+                <label htmlFor={`${id}-doorbell-location`} className="text-xs font-semibold text-black/50">Posizione</label>
                 <input id={`${id}-doorbell-location`} value={draft.location ?? ''} onChange={(e) => setDraft({ ...draft, location: e.target.value || undefined })} placeholder="es. Cancello" className="w-full min-h-[44px] rounded-[12px] bg-black/8 px-3 py-3 text-sm text-[#1d1d1f] outline-none focus:bg-black/12" />
               </div>
             </div>
             <div className="space-y-1.5">
-              <label htmlFor={`${id}-doorbell-entity`} className="text-xs font-medium text-black/50">Entità campanello</label>
+              <label htmlFor={`${id}-doorbell-entity`} className="text-xs font-semibold text-black/50">Entità campanello</label>
               <select id={`${id}-doorbell-entity`} value={draft.entityId} onChange={(e) => setDraft({ ...draft, entityId: e.target.value })} className="w-full min-h-[44px] rounded-[12px] bg-black/8 px-3 py-3 text-sm text-[#1d1d1f] outline-none focus:bg-black/12">
                 <option value="">— event / binary_sensor —</option>
                 {doorbellOptions.map((e) => (
@@ -353,7 +355,7 @@ function DoorbellsCard() {
               </select>
             </div>
             <div className="space-y-1.5">
-              <label htmlFor={`${id}-doorbell-camera`} className="text-xs font-medium text-black/50">Videocamera</label>
+              <label htmlFor={`${id}-doorbell-camera`} className="text-xs font-semibold text-black/50">Videocamera</label>
               <select id={`${id}-doorbell-camera`} value={draft.cameraEntityId ?? ''} onChange={(e) => setDraft({ ...draft, cameraEntityId: e.target.value || undefined })} className="w-full min-h-[44px] rounded-[12px] bg-black/8 px-3 py-3 text-sm text-[#1d1d1f] outline-none focus:bg-black/12">
                 <option value="">— nessuna —</option>
                 {cameraOptions.map((e) => (
@@ -363,7 +365,7 @@ function DoorbellsCard() {
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1.5">
-                <label htmlFor={`${id}-doorbell-sound`} className="text-xs font-medium text-black/50">Suono</label>
+                <label htmlFor={`${id}-doorbell-sound`} className="text-xs font-semibold text-black/50">Suono</label>
                 <div className="flex gap-2">
                   <select id={`${id}-doorbell-sound`} value={draft.sound ?? 'dingdong'} onChange={(e) => setDraft({ ...draft, sound: e.target.value })} className="w-full min-h-[44px] rounded-[12px] bg-black/8 px-3 py-3 text-sm text-[#1d1d1f] outline-none focus:bg-black/12">
                     <option value="dingdong">Ding-dong</option>
@@ -372,11 +374,11 @@ function DoorbellsCard() {
                     <option value="soft">Soft</option>
                     <option value="none">Nessuno</option>
                   </select>
-                  <button type="button" onClick={() => play((draft.sound as SoundPreset) ?? 'dingdong', { cooldownMs: 0 })} className="min-h-[44px] shrink-0 rounded-[12px] bg-black/8 px-3 text-xs font-medium text-black/60" aria-label="Ascolta il suono selezionato">▶</button>
+                  <button type="button" onClick={() => play((draft.sound as SoundPreset) ?? 'dingdong', { cooldownMs: 0 })} className="min-h-[44px] shrink-0 rounded-[12px] bg-black/8 px-3 text-xs font-semibold text-black/60" aria-label="Ascolta il suono selezionato">▶</button>
                 </div>
               </div>
               <div className="space-y-1.5">
-                <label htmlFor={`${id}-doorbell-priority`} className="text-xs font-medium text-black/50">Priorità</label>
+                <label htmlFor={`${id}-doorbell-priority`} className="text-xs font-semibold text-black/50">Priorità</label>
                 <select id={`${id}-doorbell-priority`} value={draft.priority ?? 'high'} onChange={(e) => setDraft({ ...draft, priority: e.target.value as DoorbellDevice['priority'] })} className="w-full min-h-[44px] rounded-[12px] bg-black/8 px-3 py-3 text-sm text-[#1d1d1f] outline-none focus:bg-black/12">
                   <option value="low">Bassa</option>
                   <option value="medium">Media</option>
@@ -393,7 +395,7 @@ function DoorbellsCard() {
             )}
             {lockOptions.length > 0 && (
               <div className="space-y-1.5">
-                <p className="text-xs font-medium text-black/50" id={`${id}-doorbell-locks`}>Serrature apribili dal modale ({draft.lockEntityIds?.length ?? 0})</p>
+                <p className="text-xs font-semibold text-black/50" id={`${id}-doorbell-locks`}>Serrature apribili dal modale ({draft.lockEntityIds?.length ?? 0})</p>
                 <div className="flex flex-wrap gap-2" role="group" aria-labelledby={`${id}-doorbell-locks`}>
                   {lockOptions.map((e) => {
                     const checked = draft.lockEntityIds?.includes(e.entity_id) ?? false
@@ -409,7 +411,7 @@ function DoorbellsCard() {
                             : [...(draft.lockEntityIds ?? []), e.entity_id],
                         })}
                         className={cn(
-                          'min-h-[44px] rounded-full px-4 text-sm font-medium transition active:scale-95',
+                          'min-h-[44px] rounded-full px-4 text-sm font-semibold transition active:scale-95',
                           checked ? 'bg-[#0066cc] text-white' : 'bg-black/[0.06] text-black/60',
                         )}
                       >
@@ -421,8 +423,15 @@ function DoorbellsCard() {
                 <p className="text-[11px] text-black/35">Compaiono nel modale del campanello con apertura a pressione prolungata.</p>
               </div>
             )}
+            <ShortcutsEditor
+              value={draft.shortcuts ?? []}
+              onChange={(shortcuts) => setDraft({ ...draft, shortcuts: shortcuts.length ? shortcuts : undefined })}
+              disabled={readOnly}
+              title="Azioni rapide del modale"
+              hint="Compaiono come bottoni quando suona: luce ingresso, cancello, scena…"
+            />
             <div className="space-y-1.5">
-              <label htmlFor={`${id}-doorbell-volume`} className="text-xs font-medium text-black/50">Volume ({Math.round((draft.volume ?? 1) * 100)}%)</label>
+              <label htmlFor={`${id}-doorbell-volume`} className="text-xs font-semibold text-black/50">Volume ({Math.round((draft.volume ?? 1) * 100)}%)</label>
               <input id={`${id}-doorbell-volume`} type="range" min={0} max={1} step={0.05} value={draft.volume ?? 1} onChange={(e) => setDraft({ ...draft, volume: Number(e.target.value) })} className="min-h-[44px] w-full accent-[#0066cc]" />
             </div>
             <div className="flex items-center justify-between gap-3 rounded-[10px] bg-black/[0.035] px-3 py-2.5">
@@ -525,7 +534,7 @@ function KnownFacesRow() {
               <img key={i} src={img} alt={f.name} className="h-9 w-9 rounded-full border-2 border-white object-cover" />
             ))}
           </div>
-          <p className="min-w-0 flex-1 truncate text-sm font-medium text-[#1d1d1f]">{f.name}</p>
+          <p className="min-w-0 flex-1 truncate text-sm font-semibold text-[#1d1d1f]">{f.name}</p>
           {f.images.length < 3 && (
             <FacePhotoButton label="Foto" ariaLabel={`Aggiungi una foto per ${f.name}`} disabled={readOnly || busy || isPending} onFile={(file) => addPhoto(f, file)} />
           )}
@@ -543,7 +552,7 @@ function KnownFacesRow() {
         </div>
       ))}
       {!canAddPerson && (
-        <p id={`${id}-face-limit`} className="rounded-[10px] bg-amber-500/10 px-3 py-2 text-[11px] font-medium text-amber-800" role="status">
+        <p id={`${id}-face-limit`} className="rounded-[10px] bg-amber-500/10 px-3 py-2 text-[11px] font-semibold text-amber-800" role="status">
           Limite di {MAX_KNOWN_FACES} persone raggiunto. Elimina una persona per poterne aggiungere un’altra.
         </p>
       )}
@@ -619,7 +628,7 @@ function SoundsCard() {
         </button>
         <label htmlFor={`${id}-volume`} className="sr-only">Volume notifiche</label>
         <input id={`${id}-volume`} type="range" min={0} max={1} step={0.05} value={volume} disabled={muted} onChange={(e) => setVolume(Number(e.target.value))} className="min-h-[44px] min-w-0 flex-1 accent-[#0066cc]" />
-        <button type="button" onClick={() => play('dingdong', { cooldownMs: 0 })} disabled={muted} className="min-h-[44px] shrink-0 rounded-full bg-black/8 px-3 py-2 text-xs font-medium text-black/60 active:scale-95">Prova</button>
+        <button type="button" onClick={() => play('dingdong', { cooldownMs: 0 })} disabled={muted} className="min-h-[44px] shrink-0 rounded-full bg-black/8 px-3 py-2 text-xs font-semibold text-black/60 active:scale-95">Prova</button>
       </div>
     </GlassCard>
   )
@@ -650,9 +659,12 @@ function KioskCard() {
 
   const current = config?.kiosk?.wakeEntityId ?? ''
   const homeMode = config?.kiosk?.homeMode ?? 'composer'
+  const perfProfile = config?.kiosk?.perfProfile ?? 'balanced'
   const readOnly = config?.storage?.writable === false
   const screensaver = config?.kiosk?.screensaver
   const screensaverEnabled = screensaver?.enabled !== false
+  const photoSource = screensaver?.source ?? 'local'
+  const [sourceUrlDraft, setSourceUrlDraft] = useState<string | null>(null)
 
   const saveKiosk = (kiosk: NonNullable<typeof config>['kiosk'], successText: string) => {
     setMessage(null)
@@ -679,7 +691,7 @@ function KioskCard() {
       <FeatureHeader Icon={MonitorSmartphone} title="Kiosk" badge={current ? 'Risveglio attivo' : 'Solo tocco'} tone={current ? 'ok' : 'neutral'} />
       {readOnly && <ReadOnlyNotice />}
       <div className="space-y-1.5">
-        <p className="flex items-center gap-1.5 text-xs font-medium text-black/50" id={`${id}-home-mode`}><LayoutGrid size={12} /> Home del tablet</p>
+        <p className="flex items-center gap-1.5 text-xs font-semibold text-black/50" id={`${id}-home-mode`}><LayoutGrid size={12} /> Home del tablet</p>
         <div className="flex gap-2" role="group" aria-labelledby={`${id}-home-mode`}>
           {modes.map((m) => (
             <button
@@ -688,7 +700,7 @@ function KioskCard() {
               disabled={readOnly || isPending}
               onClick={() => saveKiosk({ ...config?.kiosk, homeMode: m.id }, 'Modalità home del kiosk aggiornata.')}
               aria-pressed={homeMode === m.id}
-              className={cn('min-h-[44px] flex-1 rounded-[12px] text-sm font-medium transition', homeMode === m.id ? 'bg-[#0066cc] text-white' : 'bg-black/[0.06] text-black/60')}
+              className={cn('min-h-[44px] flex-1 rounded-[12px] text-sm font-semibold transition', homeMode === m.id ? 'bg-[#0066cc] text-white' : 'bg-black/[0.06] text-black/60')}
             >
               {m.label}
             </button>
@@ -708,7 +720,7 @@ function KioskCard() {
         <div className="flex items-center gap-2">
           <Images size={15} className="text-black/45" aria-hidden="true" />
           <p className="flex-1 text-xs font-semibold text-black/65">Cornice digitale locale</p>
-          <label className="flex min-h-11 cursor-pointer items-center gap-2 text-xs font-medium text-black/55">
+          <label className="flex min-h-11 cursor-pointer items-center gap-2 text-xs font-semibold text-black/55">
             <input
               type="checkbox"
               checked={screensaverEnabled}
@@ -720,7 +732,7 @@ function KioskCard() {
           </label>
         </div>
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-          <label className="space-y-1 text-[11px] font-medium text-black/45">
+          <label className="space-y-1 text-[11px] font-semibold text-black/45">
             Inattività
             <select
               value={screensaver?.idleSeconds ?? 180}
@@ -735,7 +747,7 @@ function KioskCard() {
               <option value={900}>15 minuti</option>
             </select>
           </label>
-          <label className="space-y-1 text-[11px] font-medium text-black/45">
+          <label className="space-y-1 text-[11px] font-semibold text-black/45">
             Cambio foto
             <select
               value={screensaver?.slideSeconds ?? 20}
@@ -749,7 +761,7 @@ function KioskCard() {
               <option value={60}>1 minuto</option>
             </select>
           </label>
-          <label className="space-y-1 text-[11px] font-medium text-black/45">
+          <label className="space-y-1 text-[11px] font-semibold text-black/45">
             Luminosità ambient
             <select
               value={screensaver?.brightness ?? 28}
@@ -764,11 +776,61 @@ function KioskCard() {
             </select>
           </label>
         </div>
+        <div className="space-y-1.5">
+          <p className="text-[11px] font-semibold text-black/45" id={`${id}-photo-source`}>Sorgente foto</p>
+          <div className="flex gap-2" role="group" aria-labelledby={`${id}-photo-source`}>
+            {([['local', 'Cartella locale'], ['google', 'Album Google Foto']] as const).map(([sourceId, label]) => (
+              <button
+                key={sourceId}
+                type="button"
+                disabled={readOnly || isPending || !screensaverEnabled}
+                onClick={() => saveScreensaver({ source: sourceId }, 'Sorgente foto aggiornata.')}
+                aria-pressed={photoSource === sourceId}
+                className={cn('min-h-[44px] flex-1 rounded-[12px] text-sm font-semibold transition', photoSource === sourceId ? 'bg-[#0066cc] text-white' : 'bg-white/70 text-black/60')}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          {photoSource === 'google' && (
+            <div className="flex items-center gap-2">
+              <label htmlFor={`${id}-source-url`} className="sr-only">Link pubblico dell’album Google Foto</label>
+              <input
+                id={`${id}-source-url`}
+                type="url"
+                value={sourceUrlDraft ?? screensaver?.sourceUrl ?? ''}
+                disabled={readOnly || isPending || !screensaverEnabled}
+                onChange={(e) => setSourceUrlDraft(e.target.value)}
+                placeholder="https://photos.app.goo.gl/…"
+                className="min-h-[44px] min-w-0 flex-1 rounded-[11px] bg-white/70 px-3 text-sm text-black/70 outline-none focus:bg-white"
+              />
+              <button
+                type="button"
+                disabled={readOnly || isPending || sourceUrlDraft === null}
+                onClick={() => {
+                  const url = (sourceUrlDraft ?? '').trim()
+                  if (url && !/^https:\/\/(photos\.app\.goo\.gl|photos\.google\.com)\//.test(url)) {
+                    setMessage({ ok: false, text: 'Il link deve essere un album condiviso Google Foto (photos.app.goo.gl o photos.google.com).' })
+                    return
+                  }
+                  saveScreensaver({ sourceUrl: url }, 'Album collegato.')
+                  setSourceUrlDraft(null)
+                  setTimeout(() => { void photos.refetch() }, 400)
+                }}
+                className="flex min-h-[44px] shrink-0 items-center rounded-full bg-[#0066cc] px-4 text-xs font-semibold text-white active:scale-95 disabled:opacity-40"
+              >
+                Collega
+              </button>
+            </div>
+          )}
+        </div>
         <div className="flex min-h-11 items-center gap-2 rounded-[11px] bg-white/55 px-3 text-[11px] text-black/50">
           <span className="min-w-0 flex-1">
-            {photos.isPending ? 'Verifica della cartella foto…'
-              : photos.isError ? 'Cartella foto non raggiungibile'
-                : `${photos.data?.photos.length ?? 0} foto in /data/screensaver`}
+            {photos.isPending ? 'Verifica della sorgente foto…'
+              : photos.isError ? 'Sorgente foto non raggiungibile'
+                : photos.data?.error ? `${photos.data.error} — in uso ${photos.data.photos.length} foto locali`
+                  : photos.data?.source === 'google-photos' ? `${photos.data.photos.length} foto dall’album Google`
+                    : `${photos.data?.photos.length ?? 0} foto in /data/screensaver`}
           </span>
           <button
             type="button"
@@ -782,7 +844,29 @@ function KioskCard() {
         </div>
       </div>
       <div className="space-y-1.5">
-        <label htmlFor={`${id}-wake-sensor`} className="text-xs font-medium text-black/50">Sensore di presenza per il risveglio</label>
+        <p className="flex items-center gap-1.5 text-xs font-semibold text-black/50" id={`${id}-perf`}><Gauge size={12} /> Prestazioni del tablet</p>
+        <div className="flex gap-2" role="group" aria-labelledby={`${id}-perf`}>
+          {([['quality', 'Qualità'], ['balanced', 'Bilanciato'], ['saver', 'Risparmio']] as const).map(([profileId, label]) => (
+            <button
+              key={profileId}
+              type="button"
+              disabled={readOnly || isPending}
+              onClick={() => saveKiosk({ ...config?.kiosk, perfProfile: profileId }, 'Profilo prestazioni aggiornato.')}
+              aria-pressed={perfProfile === profileId}
+              className={cn('min-h-[44px] flex-1 rounded-[12px] text-sm font-semibold transition', perfProfile === profileId ? 'bg-[#0066cc] text-white' : 'bg-black/[0.06] text-black/60')}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <p className="text-[11px] text-black/40">
+          {perfProfile === 'quality' ? 'Vetro e animazioni sempre attivi: per tablet recenti.'
+            : perfProfile === 'saver' ? 'Superfici solide e niente animazioni ambientali: massima fluidità su hardware datato.'
+              : 'Il tablet misura i propri frame e riduce gli effetti solo se serve.'}
+        </p>
+      </div>
+      <div className="space-y-1.5">
+        <label htmlFor={`${id}-wake-sensor`} className="text-xs font-semibold text-black/50">Sensore di presenza per il risveglio</label>
         <select
           id={`${id}-wake-sensor`}
           value={current}
@@ -798,6 +882,65 @@ function KioskCard() {
           ))}
         </select>
       </div>
+      <SaveMessage message={message} />
+    </GlassCard>
+  )
+}
+
+// ── Emergenza (§11): foto dal tablet + pulsanti configurabili ────────────────
+
+function EmergencyCard() {
+  const { data: config } = useDashboardConfig()
+  const { mutate: update, isPending } = useUpdateConfig()
+  const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null)
+  const readOnly = config?.storage?.writable === false
+  const photoOn = config?.alarm?.photo === true
+
+  if (!config) return null
+
+  const saveAlarm = (patch: Partial<NonNullable<typeof config.alarm>>, successText: string) => {
+    setMessage(null)
+    update({ alarm: { ...config.alarm, ...patch } }, {
+      onSuccess: () => setMessage({ ok: true, text: successText }),
+      onError: () => setMessage({ ok: false, text: 'Impostazione non salvata. Riprova.' }),
+    })
+  }
+
+  return (
+    <GlassCard className="space-y-3">
+      <FeatureHeader Icon={Siren} title="Emergenza" badge={photoOn ? 'Foto attiva' : 'Solo avviso'} tone={photoOn ? 'ok' : 'neutral'} />
+      {readOnly && <ReadOnlyNotice />}
+      <p className="text-[12px] text-black/40">
+        Con un allarme attivo il tablet accende lo schermo alla massima luminosità e mostra l’avviso a tutto schermo.
+      </p>
+      <div className="flex items-center justify-between gap-3 rounded-[10px] bg-black/[0.035] px-3 py-2.5">
+        <div className="min-w-0">
+          <p className="text-sm text-[#1d1d1f]">Foto dal tablet all’allarme</p>
+          <p className="text-[11px] text-black/40">Opt-in: UNA fotografia dalla fotocamera frontale per evento, salvata nello storage locale MyHome. Niente video né scatti continui.</p>
+        </div>
+        <button
+          type="button"
+          className={cn('lg-toggle shrink-0', photoOn && 'on')}
+          disabled={readOnly || isPending}
+          onClick={() => {
+            const enabling = !photoOn
+            if (enabling && !window.confirm('Attivando la foto di emergenza, a ogni allarme il tablet scatterà una singola fotografia e la salverà nello storage locale di MyHome. Vuoi continuare?')) return
+            saveAlarm({ photo: enabling }, enabling ? 'Foto di emergenza attivata.' : 'Foto di emergenza disattivata.')
+          }}
+          role="switch"
+          aria-checked={photoOn}
+          aria-label="Foto dal tablet all’allarme"
+        >
+          <span className="lg-toggle-knob" aria-hidden="true" />
+        </button>
+      </div>
+      <ShortcutsEditor
+        value={config.alarm?.shortcuts ?? []}
+        onChange={(shortcuts) => saveAlarm({ shortcuts: shortcuts.length ? shortcuts : undefined }, 'Pulsanti di emergenza aggiornati.')}
+        disabled={readOnly || isPending}
+        title="Pulsanti di emergenza"
+        hint="Compaiono nell’avviso a tutto schermo. In emergenza ogni azione richiede la pressione prolungata."
+      />
       <SaveMessage message={message} />
     </GlassCard>
   )
@@ -836,7 +979,7 @@ function IntegrationRow({ Icon, name, state, offText }: { Icon: React.ElementTyp
 function SaveMessage({ message }: { message: { ok: boolean; text: string } | null }) {
   if (!message) return null
   return (
-    <p className={cn('text-xs font-medium', message.ok ? 'text-green-700' : 'text-red-600')} role={message.ok ? 'status' : 'alert'} aria-live="polite">
+    <p className={cn('text-xs font-semibold', message.ok ? 'text-green-700' : 'text-red-600')} role={message.ok ? 'status' : 'alert'} aria-live="polite">
       {message.text}
     </p>
   )

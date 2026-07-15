@@ -20,7 +20,7 @@ export function ClockWidget({ size, userName }: { size: WidgetSize; userName?: s
         {time}
       </div>
       <div className="mt-2 truncate text-sm capitalize text-black/45">{date}</div>
-      {big && <div className="mt-0.5 truncate text-sm font-medium text-black/70">{greeting}, {name}</div>}
+      {big && <div className="mt-0.5 truncate text-sm font-semibold text-black/70">{greeting}, {name}</div>}
     </AnimatedCard>
   )
 }

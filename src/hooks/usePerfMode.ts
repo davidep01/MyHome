@@ -1,12 +1,17 @@
 import { useEffect } from 'react'
 
+export type PerfProfile = 'quality' | 'balanced' | 'saver'
+
 /**
  * Drives the `perf-lite` class on <html>, which drops the (expensive) glass
- * backdrop-filters for a solid frosted surface. Three inputs, in priority:
+ * backdrop-filters for a solid frosted surface. Inputs, in priority:
  *
  *   1. Manual override   — localStorage `myhome.perfMode` = 'on' | 'off'
- *   2. Device heuristic  — low deviceMemory / CPU → start lite immediately
- *   3. Runtime watchdog  — measures real frame timing for a window after mount
+ *   2. Admin profile     — config `kiosk.perfProfile` (§15):
+ *                          'saver' → sempre lite; 'quality' → mai lite;
+ *                          'balanced' (default) → euristica + watchdog sotto.
+ *   3. Device heuristic  — low deviceMemory / CPU → start lite immediately
+ *   4. Runtime watchdog  — measures real frame timing for a window after mount
  *                          and degrades to lite if sustained jank is detected
  *                          (catches weak GPUs that specs don't reveal).
  *
@@ -22,7 +27,7 @@ function lowEndDevice(): boolean {
   return false
 }
 
-export function usePerfMode() {
+export function usePerfMode(profile: PerfProfile = 'balanced') {
   useEffect(() => {
     const root = document.documentElement
     const override = localStorage.getItem(KEY)
@@ -32,7 +37,10 @@ export function usePerfMode() {
     if (override === 'on') { setLite(true); return }
     if (override === 'off') { setLite(false); return }
 
-    // Auto mode
+    if (profile === 'saver') { setLite(true); return }
+    if (profile === 'quality') { setLite(false); return }
+
+    // Auto mode (balanced)
     if (lowEndDevice()) { setLite(true); return }
 
     // Runtime FPS watchdog: sample frame deltas; if >40% of frames in a
@@ -61,5 +69,5 @@ export function usePerfMode() {
     }
     raf = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(raf)
-  }, [])
+  }, [profile])
 }

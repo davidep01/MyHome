@@ -8,6 +8,7 @@ import { useEntityStore } from '../../store/entities'
 import { useUIStore } from '../../store/ui'
 import { timeAgo } from '../../lib/time'
 import { cn } from '../../lib/utils'
+import { entityName } from '../widgets/utils/mapEntityToWidgetCard'
 
 type LivePriority = 'critical' | 'high' | 'normal'
 
@@ -28,7 +29,7 @@ const OPEN_STATES = new Set(['open', 'on'])
 const CLIMATE_ACTIONS = new Set(['heating', 'cooling', 'drying', 'fan'])
 
 function label(entity: HassEntity): string {
-  return (entity.attributes?.friendly_name as string | undefined) ?? entity.entity_id
+  return entityName(entity)
 }
 
 function includesAny(text: string, words: string[]) {

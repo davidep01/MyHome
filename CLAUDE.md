@@ -1,7 +1,7 @@
 # CLAUDE.md — MyHome
 
 > Documento sorgente unico (grafico + tecnico) per lo sviluppo di MyHome.
-> Versione doc: 2.1 · Allineato a app `2.2.x` · Aggiornato: 2026-07-14 · Lingua: italiano (identificatori in inglese).
+> Versione doc: 2.1 · Allineato a app `2.2.x` · Aggiornato: 2026-07-15 · Lingua: italiano (identificatori in inglese).
 >
 > Questo file ha **precedenza** sulle assunzioni generiche. `docs/DESIGN_SYSTEM.md` resta il riferimento grafico esteso; questo file lo riassume e ne risolve le incongruenze. Quando i due divergono, **vince questo file** e va aggiornato `docs/DESIGN_SYSTEM.md` di conseguenza.
 
@@ -247,7 +247,25 @@ Fasi 2–6 applicate. La Definition of Done richiede a ogni rilascio lint, suite
 - **Serrature: verità in UI** — l'HA dell'utente non ha entità `lock.*`: la sezione serrature del form campanello ora lo dice esplicitamente invece di sparire in silenzio.
 - Verifica: build:all ✅ · lint ✅ · test 40/40 ✅ · screenshot prima/dopo su kiosk live (EntitySheet, home, stanza con luci accese) ✅ · ring simulato (SSE mockato) e reale (backend di test) ✅.
 
-**Residui noti (non bloccanti):** WebRTC/talk-back via signaling proxy backend; rimozione definitiva della grid legacy (+ kernel + react-grid-layout + `/api/layout` solo-posizioni) dopo validazione del composer sul tablet reale; AI write-back automazioni (roadmap).
+**Risolti (2026-07-15) — pass "zero errori grafici e di utilizzo" (pre-pubblicazione):**
+- **Peso 500 eliminato davvero** — 104 occorrenze di `font-medium` (peso 500, vietato dal §7) sostituite con `font-semibold` in tutto `src/`; ora la scala pesi in uso è solo 300/400/600 come da `typography.ts`.
+- **Mai più `entity_id` grezzi nella UI operativa** — `entityName()` (già in `mapEntityToWidgetCard.ts`) è ora esportato ed è l'unica fonte del nome pubblico: sostituiti i fallback `?? entity_id` / `.split('.')[1]` in ContextualPanel, GenericDetail (rimossa anche la riga `entity_id` in `AttributesCard`), CameraStream, DoorbellAlert, StatusHeader, PeopleCard, LiveActivityBar, SpacesCatalog, CalendarWidget, EnergyCard (layers) e `useNotifications`. Le pagine regia (Entità/Funzioni/Sistema) continuano a mostrare gli ID di proposito: sono strumenti admin.
+- **Touch target ≥44px chiusi** — chip opzioni di `GenericDetail`/`AlarmDetail` da 40→44px; bottone chiudi del `ContextualPanel` con `.tap-target` + `active:scale-95` (prima 36px e feedback solo hover).
+- **Igiene** — rimosso `apple-tahoe-liquid-glass-button.tsx` (zero importer, conteneva `font-medium` e gloss fuori canone) e disinstallata `class-variance-authority` (usata solo lì).
+- Audit senza intervento (già conformi): blocco comandi doppi via `busyRef`+`disabled` in `WidgetCardFactory` e `GenericDetail`; nessuna funzione hover-only sul kiosk (i tooltip desktop hanno fallback `focus-visible`); `callService` non accoda comandi offline (fallisce subito → rollback+shake).
+- Verifica: lint ✅ · test 157/157 ✅ · build:all ✅ · typecheck backend ✅.
+
+**Risolti (2026-07-15, sera) — funzioni P2/P3 del piano correzioni (campanello, allarme, cornice, flotta):**
+- **Shortcut campanello configurabili (§10.3)** — `ActionShortcut` condiviso in `db/types.ts` (max 4, validati in `config-validation.ts`); risoluzione dominio→servizio e hold obbligatorio su lock/cover/valve/siren in [src/lib/actionShortcuts.ts](src/lib/actionShortcuts.ts) (test); bottone tap/hold-900ms ottimistico [ShortcutActionButton](src/components/controls/ShortcutActionButton.tsx); editor riordinabile [ShortcutsEditor](src/components/controls/ShortcutsEditor.tsx) in Funzioni→Campanelli; resi nel modale del `DoorbellAlert`.
+- **Modalità allarme (§11)** — con emergenza attiva il kiosk accende lo schermo a luminosità massima (arbitrato in `useFullyKiosk` via `emergencyActive` nello store, non litiga con l'ambient); pulsazione rossa opacity-only nell'overlay; **pulsanti emergenza** configurabili (stesso `ActionShortcut`, hold forzato); **foto singola dal tablet** (opt-in `config.alarm.photo`, camshot Fully, coda locale max 3 in `src/lib/alarmPhoto.ts` con test, upload a `POST /api/alarm/photo`, retention 40 file in `/data/alarm`, lista admin-only in Sistema). Card "Emergenza" in Funzioni.
+- **Screensaver "Cornice" con Google Foto (§14)** — `kiosk.screensaver.source: 'local'|'google'` + `sourceUrl` (host allowlist photos.app.goo.gl/photos.google.com); adapter sostituibile in [backend/src/lib/googlePhotos.ts](backend/src/lib/googlePhotos.ts) (parser puro + test), elenco album cache 6h, immagini proxate same-origin da `/api/screensaver/remote/:i` (CSP intatta, LRU 48MB); fallback automatico alla cartella locale con errore esposto in Funzioni; preload delle prossime 2 foto in `AmbientLayer`.
+- **Profili prestazioni (§15)** — `kiosk.perfProfile: 'quality'|'balanced'|'saver'` in `usePerfMode` (override localStorage resta prioritario per diagnostica); selettore in Funzioni→Kiosk.
+- **Cache media LRU (§16)** — [backend/src/lib/lru.ts](backend/src/lib/lru.ts) (byte-cap+TTL, test) usata da `/api/ha/image` esterno (24MB/6h) e dalle foto remote screensaver.
+- **Log azioni critiche (§3)** — ring buffer 200 voci in `backend/src/lib/audit-log.ts` (unlock/open/disarm/sirena/spegnimento generale, registrato nel proxy servizi con ruolo), `GET /api/system/audit`, card "Azioni critiche & emergenze" in Sistema.
+- **Flotta kiosk (§4.5/§12)** — bridge Fully esteso (batteria, alimentazione, TTS, screen off, camshot, screensaver, restart, deviceId); heartbeat 60s `POST /api/kiosk/heartbeat` (store in-memory testato in `kiosk-fleet.ts`); comandi dalla regia `POST /api/kiosk/command` → evento one-shot `kiosk-command` sullo stream SSE (stesso canale del doorbell-test, fuori ring buffer) eseguito solo dal tablet bersaglio; card "Tablet a muro" in Sistema (stato + Ricarica/Schermo/Annuncio TTS/Screensaver/Riavvia con conferme).
+- Verifica: lint ✅ · test 187/187 ✅ · build:all ✅ · typecheck backend ✅. **Da provare sul tablet reale:** camshot/TTS/riavvio Fully e un album Google Foto vero.
+
+**Residui noti (non bloccanti):** WebRTC/talk-back via signaling proxy backend; rimozione definitiva della grid legacy (+ kernel + react-grid-layout + `/api/layout` solo-posizioni) dopo validazione del composer sul tablet reale; AI write-back automazioni (roadmap); versioning config con storico snapshot (§4.4) e modalità ospiti/pulizie (§6.4) non ancora implementati.
 
 ---
 

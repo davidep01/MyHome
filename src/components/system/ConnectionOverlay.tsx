@@ -69,13 +69,13 @@ export function ConnectionOverlay() {
           <div className="flex flex-wrap items-center justify-center gap-2">
             <button
               onClick={retry}
-              className="flex items-center gap-2 rounded-full bg-[#0066cc] px-5 py-2.5 text-sm font-medium text-white transition active:scale-95"
+              className="flex items-center gap-2 rounded-full bg-[#0066cc] px-5 py-2.5 text-sm font-semibold text-white transition active:scale-95"
             >
               <RotateCw size={15} /> Riprova adesso
             </button>
             <button
               onClick={() => setActiveView('system')}
-              className="flex items-center gap-2 rounded-full bg-black/8 px-5 py-2.5 text-sm font-medium text-[#1d1d1f] transition hover:bg-black/12 active:scale-95"
+              className="flex items-center gap-2 rounded-full bg-black/8 px-5 py-2.5 text-sm font-semibold text-[#1d1d1f] transition hover:bg-black/12 active:scale-95"
             >
               <Settings size={15} /> Configura connessione
             </button>

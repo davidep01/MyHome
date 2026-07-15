@@ -20,6 +20,7 @@ type HaStreamEvent =
   | { type: 'delta'; changed: HassEntity[]; removed: string[] }
   | { type: 'error'; message: string }
   | { type: 'doorbell-test'; doorbellId: string }
+  | { type: 'kiosk-command'; target: string; command: string; value?: number | string }
 
 const PROXY_POLL_MS = 4000
 /** Delta coalescing window: many SSE frames → one store update. */
@@ -80,6 +81,14 @@ function applyStreamEvent(event: HaStreamEvent): void {
   } else if (event.type === 'doorbell-test') {
     // Prova dal pannello desktop: ogni client connesso suona (tablet incluso).
     useDoorbellEvents.getState().triggerTest(event.doorbellId)
+  } else if (event.type === 'kiosk-command') {
+    // Comando dalla regia (§4.5/§12): lo esegue solo il tablet bersaglio.
+    void import('../lib/kioskDevice').then(({ executeKioskCommand, getKioskDeviceId }) => {
+      const isKiosk = document.documentElement.classList.contains('kiosk-mode')
+      if (!isKiosk) return
+      if (event.target !== 'all' && event.target !== getKioskDeviceId()) return
+      executeKioskCommand(event.command as Parameters<typeof executeKioskCommand>[0], event.value)
+    })
   }
 }
 

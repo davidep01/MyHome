@@ -60,7 +60,7 @@ export function BottomTabBar() {
             </span>
             <span
               className={cn(
-                'relative text-[10px] font-medium leading-none transition-colors duration-200',
+                'relative text-[10px] font-semibold leading-none transition-colors duration-200',
                 isActive ? 'text-[#1d1d1f]' : 'text-black/35',
               )}
             >

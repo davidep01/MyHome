@@ -269,7 +269,7 @@ export function EntitiesPage() {
           {groups.map((g) => (
             <div key={g.id} className="flex items-center gap-2 rounded-full bg-black/[0.05] py-1.5 pl-3 pr-1.5">
               <DynamicIcon name={g.icon} fallback={Layers} size={14} className="text-black/50" />
-              <span className="text-sm font-medium text-[#1d1d1f]">{g.label}</span>
+              <span className="text-sm font-semibold text-[#1d1d1f]">{g.label}</span>
               <span className="text-xs text-black/35">{g.entityIds.length}</span>
               <button type="button" onClick={() => { setGroupQuery(''); setGroupDraft({ ...g }) }} disabled={readOnly} className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-black/55" aria-label={`Modifica gruppo ${g.label}`}>
                 <Pencil size={12} />
@@ -340,7 +340,7 @@ export function EntitiesPage() {
         {!connected && Object.keys(entities).length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center gap-2 px-4 text-center text-black/40" role="status">
             <Boxes size={28} />
-            <p className="text-sm font-medium text-black/55">Home Assistant non è connesso</p>
+            <p className="text-sm font-semibold text-black/55">Home Assistant non è connesso</p>
             <p className="max-w-sm text-xs">Verifica la connessione nella pagina Sistema. MyHome comunica con Home Assistant direttamente nella rete LAN.</p>
           </div>
         ) : registryPending && connected && Object.keys(entities).length === 0 ? (
@@ -492,7 +492,7 @@ function EntityRow({
             className="w-full rounded-[8px] bg-white px-2 py-1 text-sm text-[#1d1d1f] outline-none ring-1 ring-[#0066cc]"
           />
         ) : (
-          <button type="button" disabled={disabled} onClick={() => { skipBlurCommit.current = false; setDraft(row.name); setEditing(true) }} className="block min-h-[44px] w-full truncate text-left text-sm font-medium text-[#1d1d1f] hover:underline decoration-black/20" aria-label={`Rinomina ${row.name}`}>
+          <button type="button" disabled={disabled} onClick={() => { skipBlurCommit.current = false; setDraft(row.name); setEditing(true) }} className="block min-h-[44px] w-full truncate text-left text-sm font-semibold text-[#1d1d1f] hover:underline decoration-black/20" aria-label={`Rinomina ${row.name}`}>
             {row.name}{row.hasOverride && <span className="ml-1.5 align-middle text-[9px] font-bold uppercase text-[#0066cc]">mod</span>}
           </button>
         )}
@@ -503,7 +503,7 @@ function EntityRow({
 
       <span className="hidden shrink-0 rounded-full bg-black/[0.06] px-2 py-0.5 text-[10px] font-semibold text-black/45 md:block">{row.domain}</span>
       <span className="hidden w-24 shrink-0 truncate text-xs text-black/45 lg:block">{row.areaName ?? '—'}</span>
-      <span className={cn('hidden w-28 shrink-0 truncate text-right text-xs font-medium sm:block', row.state === 'unavailable' ? 'text-orange-600' : 'text-black/55')}>
+      <span className={cn('hidden w-28 shrink-0 truncate text-right text-xs font-semibold sm:block', row.state === 'unavailable' ? 'text-orange-600' : 'text-black/55')}>
         {stateLabel(row.state)}
       </span>
 
@@ -546,7 +546,7 @@ function EntityDetail({
       {disabled && <p className="rounded-[10px] bg-orange-500/10 px-3 py-2 text-xs text-orange-700" role="status">Configurazione in sola lettura: puoi consultare l’entità, ma non modificarla.</p>}
       {/* Anteprima live: la card ESATTAMENTE come appare sul kiosk */}
       <div className="space-y-1.5">
-        <p className="text-xs font-medium text-black/50">Anteprima live</p>
+        <p className="text-xs font-semibold text-black/50">Anteprima live</p>
         <div className="h-[170px] rounded-[18px] bg-[#f5f5f7] p-2">
           <EntityCard entity={makeRoomEntity(entityId, entities, overrides)} size="M" />
         </div>
@@ -561,7 +561,7 @@ function EntityDetail({
       )}
 
       <div className="space-y-1.5">
-        <p className="text-xs font-medium text-black/50" id={`${id}-hero-label`}>Nello strato “Adesso” del kiosk</p>
+        <p className="text-xs font-semibold text-black/50" id={`${id}-hero-label`}>Nello strato “Adesso” del kiosk</p>
         <div className="flex rounded-full bg-black/[0.05] p-1" role="group" aria-labelledby={`${id}-hero-label`}>
           {([['', 'Auto'], ['always', 'Sempre'], ['never', 'Mai']] as const).map(([v, label]) => (
             <button
@@ -583,7 +583,7 @@ function EntityDetail({
       </div>
 
       <div className="space-y-1.5">
-        <label htmlFor={`${id}-name`} className="text-xs font-medium text-black/50">Nome</label>
+        <label htmlFor={`${id}-name`} className="text-xs font-semibold text-black/50">Nome</label>
         <input
           id={`${id}-name`}
           value={override?.label ?? ''}
@@ -595,7 +595,7 @@ function EntityDetail({
       </div>
 
       <div className="space-y-1.5">
-        <p className="text-xs font-medium text-black/50" id={`${id}-type-label`}>Tipo card</p>
+        <p className="text-xs font-semibold text-black/50" id={`${id}-type-label`}>Tipo card</p>
         <div className="grid grid-cols-2 gap-2" role="group" aria-labelledby={`${id}-type-label`}>
           {TYPE_OPTIONS.map((t) => (
             <button
@@ -604,7 +604,7 @@ function EntityDetail({
               disabled={disabled}
               onClick={() => onPatch({ type: override?.type === t.value ? undefined : t.value })}
               aria-pressed={override?.type === t.value}
-              className={cn('min-h-[44px] rounded-[10px] px-2 py-2 text-xs font-medium transition', override?.type === t.value ? 'bg-[#0066cc] text-white' : 'bg-black/8 text-black/60 hover:bg-black/12')}
+              className={cn('min-h-[44px] rounded-[10px] px-2 py-2 text-xs font-semibold transition', override?.type === t.value ? 'bg-[#0066cc] text-white' : 'bg-black/8 text-black/60 hover:bg-black/12')}
             >
               {t.label}
             </button>
@@ -614,7 +614,7 @@ function EntityDetail({
       </div>
 
       <div className="space-y-1.5">
-        <label htmlFor={`${id}-icon`} className="text-xs font-medium text-black/50">Icona (nome Lucide)</label>
+        <label htmlFor={`${id}-icon`} className="text-xs font-semibold text-black/50">Icona (nome Lucide)</label>
         <div className="flex items-center gap-2">
           <input
             id={`${id}-icon`}
@@ -685,7 +685,7 @@ function GroupEditor({
   return (
     <div className="space-y-4">
       <div className="space-y-1.5">
-        <label htmlFor={`${id}-name`} className="text-xs font-medium text-black/50">Nome gruppo</label>
+        <label htmlFor={`${id}-name`} className="text-xs font-semibold text-black/50">Nome gruppo</label>
         <input
           id={`${id}-name`}
           value={draft.label}
@@ -698,7 +698,7 @@ function GroupEditor({
 
       <div className="grid grid-cols-2 gap-2">
         <div className="space-y-1.5">
-          <label htmlFor={`${id}-type`} className="text-xs font-medium text-black/50">Tipo</label>
+          <label htmlFor={`${id}-type`} className="text-xs font-semibold text-black/50">Tipo</label>
           <select
             id={`${id}-type`}
             value={draft.type ?? ''}
@@ -711,7 +711,7 @@ function GroupEditor({
           </select>
         </div>
         <div className="space-y-1.5">
-          <label htmlFor={`${id}-icon`} className="text-xs font-medium text-black/50">Icona</label>
+          <label htmlFor={`${id}-icon`} className="text-xs font-semibold text-black/50">Icona</label>
           <input
             id={`${id}-icon`}
             value={draft.icon ?? ''}
@@ -724,7 +724,7 @@ function GroupEditor({
       </div>
 
       <div className="space-y-1.5">
-        <label htmlFor={`${id}-members`} className="text-xs font-medium text-black/50">Membri ({draft.entityIds.length})</label>
+        <label htmlFor={`${id}-members`} className="text-xs font-semibold text-black/50">Membri ({draft.entityIds.length})</label>
         <div className="relative">
           <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-black/35" />
           <input

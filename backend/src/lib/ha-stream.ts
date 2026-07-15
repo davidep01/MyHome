@@ -34,6 +34,8 @@ export type HaStreamEvent =
   | { type: 'error'; message: string }
   /** Prova campanello (Funzioni → Campanelli → Prova): suona su TUTTI i client. */
   | { type: 'doorbell-test'; doorbellId: string }
+  /** Comando dalla regia a un tablet (§4.5/§12): ricarica, schermo, TTS… */
+  | { type: 'kiosk-command'; target: string; command: string; value?: number | string }
 
 type Subscriber = (event: HaStreamEvent, id: number) => void
 
@@ -91,6 +93,15 @@ function pushEvent(event: HaStreamEvent): void {
 export function broadcastDoorbellTest(doorbellId: string): void {
   eventSeq += 1
   broadcast({ type: 'doorbell-test', doorbellId }, eventSeq)
+}
+
+/**
+ * Comando remoto per i tablet: stesso canale one-shot della prova campanello
+ * (fuori dal ring buffer — un comando non deve rieseguirsi a una riconnessione).
+ */
+export function broadcastKioskCommand(target: string, command: string, value?: number | string): void {
+  eventSeq += 1
+  broadcast({ type: 'kiosk-command', target, command, ...(value !== undefined ? { value } : {}) }, eventSeq)
 }
 
 // ── Poll fallback (the original loop, unchanged in spirit) ──────────────────

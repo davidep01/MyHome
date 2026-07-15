@@ -13,9 +13,17 @@ export const EMPTY_FULLY_KIOSK_CAPABILITIES: FullyKioskCapabilities = {
   brightnessWrite: false,
   screenState: false,
   screenWake: false,
+  screenOff: false,
   motionStart: false,
   motionStop: false,
   motionState: false,
+  battery: false,
+  plugged: false,
+  tts: false,
+  camshot: false,
+  screensaverControl: false,
+  restart: false,
+  deviceId: false,
 }
 
 interface FullyKioskSnapshot {
@@ -29,6 +37,8 @@ interface FullyKioskSnapshot {
   motionRunning: boolean | null
   screensaverActive: boolean
   lastMotionAt: number | null
+  /** Emergenza in corso (§11): schermo acceso e luminosità al massimo. */
+  emergencyActive: boolean
 }
 
 interface FullyKioskStore extends FullyKioskSnapshot {
@@ -48,6 +58,7 @@ function initialSnapshot(availability: FullyKioskAvailability = 'unavailable'): 
     motionRunning: null,
     screensaverActive: false,
     lastMotionAt: null,
+    emergencyActive: false,
   }
 }
 

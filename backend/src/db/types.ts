@@ -48,6 +48,8 @@ export interface AppConfig {
   dashboardLayout?: DashboardLayout
   /** Kiosk behaviour: presence wake, adaptive home and local photo screensaver. */
   kiosk?: KioskSettings
+  /** Modalità allarme: foto dal tablet e pulsanti di emergenza (§11). */
+  alarm?: AlarmSettings
   /** AI features: doorbell Gemini Vision on/off + massimo 8 volti di riferimento. */
   ai?: { doorbellVision?: boolean; faces?: KnownFace[] }
 }
@@ -63,6 +65,8 @@ export interface KnownFace {
 export interface KioskSettings {
   wakeEntityId?: string
   homeMode?: 'composer' | 'grid'
+  /** Profilo prestazioni del tablet: qualità piena, bilanciato (auto) o risparmio. */
+  perfProfile?: 'quality' | 'balanced' | 'saver'
   screensaver?: {
     enabled?: boolean
     /** Seconds without interaction before ambient mode starts. */
@@ -71,7 +75,34 @@ export interface KioskSettings {
     slideSeconds?: number
     /** Fully Kiosk screen brightness while ambient mode is visible (0..255). */
     brightness?: number
+    /** Sorgente foto: cartella locale (default) o album pubblico Google Foto. */
+    source?: 'local' | 'google'
+    /** Link pubblico dell'album Google Foto (photos.app.goo.gl / photos.google.com). */
+    sourceUrl?: string
   }
+}
+
+/**
+ * Azione rapida configurabile (campanello §10.3 / emergenza §11): un bottone
+ * con nome pubblico che chiama un servizio HA allowlisted su una entità.
+ */
+export interface ActionShortcut {
+  id: string
+  label: string
+  /** lucide icon name */
+  icon?: string
+  entityId: string
+  /** servizio esplicito (es. 'turn_on'); se assente lo decide il dominio */
+  service?: string
+  /** true = pressione prolungata 900ms prima di eseguire (azioni critiche) */
+  confirm?: boolean
+}
+
+export interface AlarmSettings {
+  /** Foto singola dalla fotocamera del tablet quando scatta un'emergenza (opt-in). */
+  photo?: boolean
+  /** Pulsanti di emergenza nell'overlay critico (sempre a pressione prolungata). */
+  shortcuts?: ActionShortcut[]
 }
 
 export type WidgetType =
@@ -139,6 +170,8 @@ export interface DoorbellDevice {
   active?: boolean
   /** Serrature apribili dal modale del campanello (hold 900ms ciascuna). */
   lockEntityIds?: string[]
+  /** Azioni rapide del modale (max 4): luce ingresso, cancello, scena… */
+  shortcuts?: ActionShortcut[]
 }
 
 export interface DashboardLayout {

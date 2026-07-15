@@ -8,6 +8,7 @@ import { cn } from '../../../lib/utils'
 import type { HomeChip } from '../../../hooks/useComposedHome'
 import { WeatherIcon } from '../../weather/WeatherIcon'
 import { NotificationBell } from '../../notifications/NotificationCenter'
+import { entityName } from '../../widgets/utils/mapEntityToWidgetCard'
 
 /**
  * Strato 1 — Stato di casa. Sempre presente, mai configurato: ora, saluto,
@@ -53,7 +54,7 @@ export function StatusHeader({
   const personsHome = useMemo(
     () => Object.values(entities)
       .filter((e) => e.entity_id.startsWith('person.') && e.state === 'home')
-      .map((e) => (e.attributes?.friendly_name as string | undefined) ?? e.entity_id.split('.')[1]),
+      .map((e) => entityName(e)),
     [entities],
   )
 
@@ -75,7 +76,7 @@ export function StatusHeader({
 
         <div className="flex min-w-0 flex-wrap items-center gap-2 sm:shrink-0 sm:justify-end sm:gap-2.5">
           {personsHome.length > 0 && (
-            <div className="flex min-h-11 min-w-0 max-w-full items-center gap-2 rounded-full bg-black/[0.05] px-4 text-sm font-medium text-black/60">
+            <div className="flex min-h-11 min-w-0 max-w-full items-center gap-2 rounded-full bg-black/[0.05] px-4 text-sm font-semibold text-black/60">
               <Users size={16} className="shrink-0 text-black/40" />
               <span className="max-w-[min(52vw,220px)] truncate">{personsHome.join(' · ')}</span>
             </div>
@@ -131,7 +132,7 @@ export function StatusHeader({
           ))}
         </div>
       )}
-      {actionError && <p role="alert" className="text-sm font-medium text-red-700">{actionError}</p>}
+      {actionError && <p role="alert" className="text-sm font-semibold text-red-700">{actionError}</p>}
     </header>
   )
 }

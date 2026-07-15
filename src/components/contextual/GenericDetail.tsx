@@ -6,6 +6,7 @@ import {
 import { callService } from '../../api/ha-websocket'
 import { CameraStream } from '../widgets/CameraStream'
 import { stateLabel } from '../widgets/utils/stateLabel'
+import { entityName } from '../widgets/utils/mapEntityToWidgetCard'
 import { useEntityStore } from '../../store/entities'
 import { useHaptic } from '../../hooks/useHaptic'
 import { useActionFeedback } from '../../hooks/useActionFeedback'
@@ -73,10 +74,10 @@ export function GenericDetail({ entity }: { entity: HassEntity }) {
       {domain === 'siren' && (
         <div className="flex items-center justify-between gap-3 rounded-[14px] bg-black/[0.04] px-4 py-3">
           <div>
-            <p className="text-sm font-medium text-[#1d1d1f]">Sirena {on ? 'attiva' : 'spenta'}</p>
+            <p className="text-sm font-semibold text-[#1d1d1f]">Sirena {on ? 'attiva' : 'spenta'}</p>
             <p className="mt-0.5 text-xs text-black/45">L’attivazione richiede una pressione prolungata.</p>
           </div>
-          <HoldDangerAction active={on} disabled={disabled} onActivate={toggle} onDeactivate={toggle} label={(attrs.friendly_name as string | undefined) ?? entity.entity_id} />
+          <HoldDangerAction active={on} disabled={disabled} onActivate={toggle} onDeactivate={toggle} label={entityName(entity)} />
         </div>
       )}
 
@@ -223,7 +224,7 @@ export function GenericDetail({ entity }: { entity: HassEntity }) {
               type="button"
               onClick={() => act(() => call('locate'), hLight)}
               disabled={disabled}
-              className="col-span-3 flex min-h-[44px] items-center justify-center gap-2 rounded-[12px] bg-black/[0.05] text-sm font-medium text-black/60 transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
+              className="col-span-3 flex min-h-[44px] items-center justify-center gap-2 rounded-[12px] bg-black/[0.05] text-sm font-semibold text-black/60 transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
             >
               <MapPin size={15} aria-hidden="true" /> Localizza
             </button>
@@ -316,7 +317,7 @@ export function GenericDetail({ entity }: { entity: HassEntity }) {
       )}
 
       {error && (
-        <p role="alert" className="rounded-[14px] bg-red-500/10 px-3 py-2 text-sm font-medium text-red-700">
+        <p role="alert" className="rounded-[14px] bg-red-500/10 px-3 py-2 text-sm font-semibold text-red-700">
           {error}
         </p>
       )}
@@ -334,7 +335,7 @@ function ToggleRow({ label, checked, disabled, onToggle }: { label: string; chec
   const statusId = useId()
   return (
     <div className="flex items-center justify-between rounded-[14px] bg-black/[0.04] px-4 py-3">
-      <label htmlFor={controlId} id={statusId} className="text-sm font-medium text-[#1d1d1f]">{label}</label>
+      <label htmlFor={controlId} id={statusId} className="text-sm font-semibold text-[#1d1d1f]">{label}</label>
       <button
         id={controlId}
         type="button"
@@ -382,7 +383,7 @@ function SliderRow({
   return (
     <div className="space-y-1.5 rounded-[14px] bg-black/[0.04] px-4 py-3">
       <div className="flex items-center justify-between">
-        <label htmlFor={inputId} className="text-xs font-medium text-black/50">{label}</label>
+        <label htmlFor={inputId} className="text-xs font-semibold text-black/50">{label}</label>
         <output id={valueId} htmlFor={inputId} className="text-sm font-semibold tabular-nums text-[#1d1d1f]">
           {Math.round(shown)}
         </output>
@@ -420,7 +421,7 @@ function OptionChips({
   if (options.length === 0) return null
   return (
     <div className="space-y-1.5">
-      <p id={labelId} className="px-1 text-xs font-medium text-black/50">{label}</p>
+      <p id={labelId} className="px-1 text-xs font-semibold text-black/50">{label}</p>
       <div className="flex flex-wrap gap-2" role="group" aria-labelledby={labelId}>
         {options.map((option) => (
           <button
@@ -430,7 +431,7 @@ function OptionChips({
             disabled={disabled}
             aria-pressed={option === current}
             className={cn(
-              'min-h-[40px] rounded-full px-4 text-sm font-medium transition active:scale-95 disabled:opacity-40',
+              'min-h-[44px] rounded-full px-4 text-sm font-semibold transition active:scale-95 disabled:opacity-40',
               option === current ? 'bg-[#0066cc] text-white' : 'bg-black/[0.06] text-black/60',
             )}
           >
@@ -568,19 +569,16 @@ function AttributesCard({ entity }: { entity: HassEntity }) {
 
   return (
     <div className="rounded-[16px] bg-black/[0.04] p-4">
-      <div className="flex items-baseline justify-between gap-3">
-        <p className="text-2xl font-semibold text-[#1d1d1f]">
-          {stateLabel(entity.state)}
-          {entity.attributes?.unit_of_measurement ? <span className="ml-1 text-base font-medium text-black/40">{String(entity.attributes.unit_of_measurement)}</span> : null}
-        </p>
-        <p className="shrink-0 font-mono text-[10px] text-black/30">{entity.entity_id}</p>
-      </div>
+      <p className="text-2xl font-semibold text-[#1d1d1f]">
+        {stateLabel(entity.state)}
+        {entity.attributes?.unit_of_measurement ? <span className="ml-1 text-base font-semibold text-black/40">{String(entity.attributes.unit_of_measurement)}</span> : null}
+      </p>
       {rows.length > 0 && (
         <div className="mt-3 space-y-1">
           {rows.map(([key, value]) => (
             <div key={key} className="flex items-center justify-between gap-3 text-xs">
               <span className="text-black/40">{key.replace(/_/g, ' ')}</span>
-              <span className="truncate font-medium text-black/65">{String(value)}</span>
+              <span className="truncate font-semibold text-black/65">{String(value)}</span>
             </div>
           ))}
         </div>

@@ -30,7 +30,7 @@ export function QuickStats() {
       {lightsOn > 0 && (
         <button
           onClick={allLightsOff}
-          className="press-card flex items-center gap-2 rounded-full bg-[rgba(234,179,8,0.16)] py-2.5 pl-3.5 pr-3 text-[15px] font-medium text-[#7a5b08] active:scale-95"
+          className="press-card flex items-center gap-2 rounded-full bg-[rgba(234,179,8,0.16)] py-2.5 pl-3.5 pr-3 text-[15px] font-semibold text-[#7a5b08] active:scale-95"
         >
           <Lightbulb size={17} className="amb-float fill-[#eab308]/30" />
           <CountUp value={lightsOn} className="tabular-nums" />
@@ -42,7 +42,7 @@ export function QuickStats() {
       )}
 
       {avgIndoorTemp !== null && (
-        <div className="flex items-center gap-2 rounded-full bg-black/[0.05] py-2.5 px-3.5 text-[15px] font-medium text-black/70">
+        <div className="flex items-center gap-2 rounded-full bg-black/[0.05] py-2.5 px-3.5 text-[15px] font-semibold text-black/70">
           <Thermometer size={17} className="text-[#0066cc]" />
           <CountUp value={avgIndoorTemp} decimals={1} suffix={TEMP_UNIT} className="tabular-nums" />
           <span className="text-black/40">in casa</span>
@@ -50,7 +50,7 @@ export function QuickStats() {
       )}
 
       {climateActive > 0 && (
-        <div className="flex items-center gap-2 rounded-full bg-[rgba(220,38,38,0.10)] py-2.5 px-3.5 text-[15px] font-medium text-[#b91c1c]">
+        <div className="flex items-center gap-2 rounded-full bg-[rgba(220,38,38,0.10)] py-2.5 px-3.5 text-[15px] font-semibold text-[#b91c1c]">
           <LiveDot color="#dc2626" size={8} />
           <CountUp value={climateActive} className="tabular-nums" />
           <span className="text-[#b91c1c]/70">clima attivo</span>
@@ -58,7 +58,7 @@ export function QuickStats() {
       )}
 
       {coversOpen > 0 && (
-        <div className="flex items-center gap-2 rounded-full bg-black/[0.05] py-2.5 px-3.5 text-[15px] font-medium text-black/70">
+        <div className="flex items-center gap-2 rounded-full bg-black/[0.05] py-2.5 px-3.5 text-[15px] font-semibold text-black/70">
           <Blinds size={17} className="text-[#7c3aed]" />
           <CountUp value={coversOpen} className="tabular-nums" />
           <span className="text-black/40">{coversOpen === 1 ? 'aperta' : 'aperte'}</span>

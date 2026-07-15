@@ -148,7 +148,7 @@ export function LightDetail({ entity }: { entity: HassEntity }) {
       </div>
 
       {error && (
-        <p role="alert" className="rounded-[11px] bg-red-500/10 px-3 py-2 text-sm font-medium text-red-700">
+        <p role="alert" className="rounded-[11px] bg-red-500/10 px-3 py-2 text-sm font-semibold text-red-700">
           {error}
         </p>
       )}

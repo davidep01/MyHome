@@ -7,6 +7,8 @@ import { haWsCommand } from '../lib/ha-ws.js'
 import { normalizeHAHlsPath, normalizeHAMediaPath } from '../lib/ha-paths.js'
 import { OutboundRequestError, fetchWithLimits } from '../lib/request-safety.js'
 import { cacheHARegistry, getCachedHARegistry, type RegistryPayload } from '../lib/ha-registry-cache.js'
+import { ByteLru } from '../lib/lru.js'
+import { isCriticalAction, recordCriticalAction } from '../lib/audit-log.js'
 
 export const haRouter = new Hono()
 
@@ -56,6 +58,10 @@ function canCallService(role: 'admin' | 'kiosk', domain: string, service: string
 const ENTITY_ID = /^[a-z0-9_]+\.[a-z0-9_]+$/
 const SAFE_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif'])
 const MAX_PROXY_IMAGE_BYTES = 5 * 1_024 * 1_024
+
+// Cache media (§16): copertine/artwork esterni riusati da tutti i client —
+// N kiosk non diventano N fetch verso l'esterno, con memoria prevedibile.
+const externalImageCache = new ByteLru({ maxEntries: 120, maxTotalBytes: 24 * 1_024 * 1_024, ttlMs: 6 * 60 * 60 * 1_000 })
 
 function validNotificationDismissPayload(value: unknown): value is Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false
@@ -288,6 +294,12 @@ haRouter.post('/services/:domain/:service', async (c) => {
     method: 'POST',
     body: JSON.stringify(parsed),
   })
+  // Log amministrativo (§3): le azioni che aprono/disarmano restano tracciate.
+  if (res.ok && isCriticalAction(domain, service)) {
+    const target = (parsed as Record<string, unknown>).entity_id
+    const entityIds = (Array.isArray(target) ? target : [target]).filter((id): id is string => typeof id === 'string')
+    recordCriticalAction(role, domain, service, entityIds)
+  }
   return forwardResponse(res)
 })
 
@@ -403,6 +415,13 @@ haRouter.get('/image', async (c) => {
     }
   }
 
+  const cached = externalImageCache.get(source)
+  if (cached) {
+    const body = new ArrayBuffer(cached.bytes.byteLength)
+    new Uint8Array(body).set(cached.bytes)
+    return imageResponse(body, cached.contentType)
+  }
+
   try {
     const { response, bytes } = await fetchWithLimits(
       source,
@@ -418,6 +437,7 @@ haRouter.get('/image', async (c) => {
     if (!response.ok || !contentType || bytes.byteLength === 0) {
       return c.json({ error: 'Immagine esterna non disponibile' }, 502)
     }
+    externalImageCache.set(source, { bytes, contentType })
     const body = new ArrayBuffer(bytes.byteLength)
     new Uint8Array(body).set(bytes)
     return imageResponse(body, contentType)

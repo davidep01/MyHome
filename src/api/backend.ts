@@ -70,8 +70,15 @@ export interface ScreensaverPhoto {
   updatedAt: string
 }
 
+export interface ScreensaverList {
+  photos: ScreensaverPhoto[]
+  source: 'local-folder' | 'google-photos'
+  /** Presente quando la sorgente remota non è raggiungibile (fallback a locale). */
+  error?: string
+}
+
 export const screensaverApi = {
-  list: () => request<{ photos: ScreensaverPhoto[]; source: 'local-folder' }>('/screensaver'),
+  list: () => request<ScreensaverList>('/screensaver'),
 }
 
 // ── Config ─────────────────────────────────────────────────────────────────
@@ -107,6 +114,8 @@ export interface AppConfig {
   dashboardLayout?: DashboardLayout
   /** Kiosk behaviour: presence wake, adaptive home and local photo screensaver. */
   kiosk?: KioskSettings
+  /** Modalità allarme: foto dal tablet e pulsanti di emergenza (§11). */
+  alarm?: AlarmSettings
   /** AI features: doorbell Gemini Vision on/off + massimo 8 volti di riferimento. */
   ai?: { doorbellVision?: boolean; faces?: KnownFace[] }
 }
@@ -122,12 +131,40 @@ export interface KnownFace {
 export interface KioskSettings {
   wakeEntityId?: string
   homeMode?: 'composer' | 'grid'
+  /** Profilo prestazioni del tablet: qualità piena, bilanciato (auto) o risparmio. */
+  perfProfile?: 'quality' | 'balanced' | 'saver'
   screensaver?: {
     enabled?: boolean
     idleSeconds?: number
     slideSeconds?: number
     brightness?: number
+    /** Sorgente foto: cartella locale (default) o album pubblico Google Foto. */
+    source?: 'local' | 'google'
+    sourceUrl?: string
   }
+}
+
+/**
+ * Azione rapida configurabile (campanello / emergenza): un bottone con nome
+ * pubblico che chiama un servizio HA allowlisted su una entità.
+ */
+export interface ActionShortcut {
+  id: string
+  label: string
+  /** lucide icon name */
+  icon?: string
+  entityId: string
+  /** servizio esplicito (es. 'turn_on'); se assente lo decide il dominio */
+  service?: string
+  /** true = pressione prolungata 900ms prima di eseguire (azioni critiche) */
+  confirm?: boolean
+}
+
+export interface AlarmSettings {
+  /** Foto singola dalla fotocamera del tablet quando scatta un'emergenza (opt-in). */
+  photo?: boolean
+  /** Pulsanti di emergenza nell'overlay critico (sempre a pressione prolungata). */
+  shortcuts?: ActionShortcut[]
 }
 
 export type WidgetType =
@@ -174,6 +211,8 @@ export interface DoorbellDevice {
   active?: boolean
   /** Serrature apribili dal modale del campanello (hold 900ms ciascuna). */
   lockEntityIds?: string[]
+  /** Azioni rapide del modale (max 4): luce ingresso, cancello, scena… */
+  shortcuts?: ActionShortcut[]
 }
 
 export interface EntityGroup {
@@ -237,6 +276,7 @@ export interface TabletDashboardLayout {
   /** Curation data the kiosk needs to filter discovery (not secret). */
   hiddenEntities?: string[]
   kiosk?: KioskSettings
+  alarm?: AlarmSettings
   ai?: { doorbellVision?: boolean }
   source?: 'backend' | 'cache'
 }
@@ -355,6 +395,63 @@ export const haApi = {
     request<{ ok: boolean }>('/ha/doorbell-test', { method: 'POST', body: JSON.stringify({ doorbellId }) }),
 }
 
+// ── Allarme (§11): foto singola dal tablet ──────────────────────────────────
+
+export interface AlarmPhotoUpload {
+  /** data URL JPEG dalla fotocamera del tablet */
+  image: string
+  alertId: string
+  takenAt: string
+  deviceId?: string
+}
+
+export interface AlarmPhotoInfo {
+  name: string
+  url: string
+  takenAt: string
+}
+
+export const alarmApi = {
+  uploadPhoto: (photo: AlarmPhotoUpload) =>
+    request<{ ok: true }>('/alarm/photo', { method: 'POST', body: JSON.stringify(photo) }),
+  listPhotos: () => request<{ photos: AlarmPhotoInfo[] }>('/alarm/photos'),
+}
+
+// ── Flotta kiosk (§4.5/§12) ─────────────────────────────────────────────────
+
+export interface KioskHeartbeatPayload {
+  deviceId: string
+  name?: string
+  battery?: number
+  charging?: boolean
+  screenOn?: boolean
+  brightness?: number
+  screensaver?: boolean
+  page?: string
+  memoryMb?: number
+}
+
+export interface KioskDeviceStatus extends KioskHeartbeatPayload {
+  lastSeenAt: string
+  online: boolean
+}
+
+export const kioskApi = {
+  heartbeat: (payload: KioskHeartbeatPayload) =>
+    request<{ ok: true }>('/kiosk/heartbeat', { method: 'POST', body: JSON.stringify(payload) }),
+  devices: () => request<{ devices: KioskDeviceStatus[] }>('/kiosk/devices'),
+  command: (target: string, command: string, value?: number | string) =>
+    request<{ ok: true }>('/kiosk/command', { method: 'POST', body: JSON.stringify({ target, command, ...(value !== undefined ? { value } : {}) }) }),
+}
+
+export interface AuditEntry {
+  at: string
+  role: 'admin' | 'kiosk'
+  domain: string
+  service: string
+  entityIds: string[]
+}
+
 // ── System status (regia) ───────────────────────────────────────────────────
 
 export interface SystemStatus {
@@ -382,4 +479,5 @@ export interface SystemStatus {
 
 export const systemApi = {
   status: () => request<SystemStatus>('/system/status'),
+  audit: () => request<{ entries: AuditEntry[] }>('/system/audit'),
 }

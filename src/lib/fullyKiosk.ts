@@ -25,9 +25,17 @@ export interface FullyKioskCapabilities {
   brightnessWrite: boolean
   screenState: boolean
   screenWake: boolean
+  screenOff: boolean
   motionStart: boolean
   motionStop: boolean
   motionState: boolean
+  battery: boolean
+  plugged: boolean
+  tts: boolean
+  camshot: boolean
+  screensaverControl: boolean
+  restart: boolean
+  deviceId: boolean
 }
 
 export interface FullyKioskBridge {
@@ -37,10 +45,23 @@ export interface FullyKioskBridge {
   setBrightness: (level: number) => boolean
   getScreenOn: () => boolean | null
   turnScreenOn: () => boolean
+  turnScreenOff: () => boolean
   isMotionRunning: () => boolean | null
   startMotion: () => boolean
   stopMotion: () => boolean
   bind: (eventName: FullyKioskEventName, javascript: string) => boolean
+  /** 0..100, o null quando Fully non espone la batteria. */
+  getBatteryLevel: () => number | null
+  isPlugged: () => boolean | null
+  /** Pronuncia un testo con il TTS del tablet (annunci dalla regia). */
+  say: (text: string) => boolean
+  /** Foto singola dalla fotocamera del tablet: data URL JPEG, o null. */
+  getCamshotDataUrl: () => string | null
+  startScreensaver: () => boolean
+  stopScreensaver: () => boolean
+  /** Riavvia l'app Fully Kiosk (ripartenza pulita del tablet a muro). */
+  restartApp: () => boolean
+  getDeviceId: () => string | null
 }
 
 interface LocationLike {
@@ -140,9 +161,17 @@ export function createFullyKioskBridge(
     brightnessWrite: has('setScreenBrightness'),
     screenState: has('getScreenOn'),
     screenWake: has('turnScreenOn'),
+    screenOff: has('turnScreenOff'),
     motionStart: has('startMotionDetection'),
     motionStop: has('stopMotionDetection'),
     motionState: has('isMotionDetectionRunning'),
+    battery: has('getBatteryLevel'),
+    plugged: has('isPlugged'),
+    tts: has('textToSpeech'),
+    camshot: has('getCamshotJpgBase64'),
+    screensaverControl: has('startScreensaver') && has('stopScreensaver'),
+    restart: has('restartApp'),
+    deviceId: has('getDeviceId'),
   }
 
   const invoke = (name: string, ...args: unknown[]): { ok: boolean; value?: unknown } => {
@@ -183,6 +212,7 @@ export function createFullyKioskBridge(
       return result.ok ? booleanValue(result.value) : null
     },
     turnScreenOn: () => invoke('turnScreenOn').ok,
+    turnScreenOff: () => invoke('turnScreenOff').ok,
     isMotionRunning: () => {
       const result = invoke('isMotionDetectionRunning')
       return result.ok ? booleanValue(result.value) : null
@@ -190,6 +220,34 @@ export function createFullyKioskBridge(
     startMotion: () => invoke('startMotionDetection').ok,
     stopMotion: () => invoke('stopMotionDetection').ok,
     bind: (eventName, javascript) => invoke('bind', eventName, javascript).ok,
+    getBatteryLevel: () => {
+      const result = invoke('getBatteryLevel')
+      const value = result.ok ? finiteNumber(result.value) : null
+      return value !== null && value >= 0 && value <= 100 ? Math.round(value) : null
+    },
+    isPlugged: () => {
+      const result = invoke('isPlugged')
+      return result.ok ? booleanValue(result.value) : null
+    },
+    say: (text) => {
+      if (typeof text !== 'string' || !text.trim() || text.length > 300) return false
+      return invoke('textToSpeech', text.trim()).ok
+    },
+    getCamshotDataUrl: () => {
+      const result = invoke('getCamshotJpgBase64')
+      if (!result.ok || typeof result.value !== 'string' || !result.value) return null
+      // Fully restituisce base64 puro o già con prefisso data:, a seconda della versione.
+      const raw = result.value.trim()
+      if (raw.startsWith('data:image/')) return raw
+      return /^[a-z0-9+/]+=*$/i.test(raw) ? `data:image/jpeg;base64,${raw}` : null
+    },
+    startScreensaver: () => invoke('startScreensaver').ok,
+    stopScreensaver: () => invoke('stopScreensaver').ok,
+    restartApp: () => invoke('restartApp').ok,
+    getDeviceId: () => {
+      const result = invoke('getDeviceId')
+      return result.ok && typeof result.value === 'string' && result.value.trim() ? result.value.trim() : null
+    },
   }
 }
 

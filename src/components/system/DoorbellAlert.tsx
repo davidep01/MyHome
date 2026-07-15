@@ -13,6 +13,9 @@ import { cn } from '../../lib/utils'
 import type { DoorbellDevice } from '../../api/backend'
 import { markKioskActivity } from '../../lib/kioskActivity'
 import { shouldRecognizeDoorbell } from '../../lib/doorbellRecognition'
+import { entityName } from '../widgets/utils/mapEntityToWidgetCard'
+import { visibleShortcuts } from '../../lib/actionShortcuts'
+import { ShortcutActionButton } from '../controls/ShortcutActionButton'
 
 type Recog = { status: 'scanning' | 'done' | 'error'; name?: string; known?: boolean }
 type Tone = 'scan' | 'known' | 'unknown' | 'none' | 'error'
@@ -69,7 +72,7 @@ export function DoorbellAlert({ kiosk = false, doorbells, vision = false }: { ki
   const personNames = useMemo(
     () => Object.values(entities)
       .filter((e) => e.entity_id.startsWith('person.'))
-      .map((e) => (e.attributes?.friendly_name as string | undefined) ?? e.entity_id.split('.')[1]),
+      .map((e) => entityName(e)),
     [entities],
   )
 
@@ -174,7 +177,7 @@ export function DoorbellAlert({ kiosk = false, doorbells, vision = false }: { ki
             <AnimatePresence mode="popLayout">
               <motion.div
                 key={pill}
-                className="flex items-center gap-2 self-start rounded-full bg-white/12 px-3.5 py-1.5 text-sm font-medium text-white/90 backdrop-blur"
+                className="flex items-center gap-2 self-start rounded-full bg-white/12 px-3.5 py-1.5 text-sm font-semibold text-white/90 backdrop-blur"
                 initial={{ scale: 0.92, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.92, opacity: 0 }}
@@ -193,16 +196,23 @@ export function DoorbellAlert({ kiosk = false, doorbells, vision = false }: { ki
                 ))}
               </div>
             )}
+            {visibleShortcuts(active?.device.shortcuts).length > 0 && (
+              <div className="flex flex-wrap gap-3">
+                {visibleShortcuts(active?.device.shortcuts).map((shortcut) => (
+                  <ShortcutActionButton key={shortcut.id} shortcut={shortcut} />
+                ))}
+              </div>
+            )}
             <div className="flex gap-3">
               <button
                 onClick={dismiss}
-                className="flex-1 rounded-full bg-white/15 py-3.5 text-base font-medium text-white backdrop-blur transition active:scale-95"
+                className="flex-1 rounded-full bg-white/15 py-3.5 text-base font-semibold text-white backdrop-blur transition active:scale-95"
               >
                 Ignora
               </button>
               <button
                 onClick={dismiss}
-                className="flex-1 rounded-full bg-[#0066cc] py-3.5 text-base font-medium text-white transition active:scale-95"
+                className="flex-1 rounded-full bg-[#0066cc] py-3.5 text-base font-semibold text-white transition active:scale-95"
               >
                 Visto
               </button>
@@ -230,7 +240,7 @@ function HoldUnlockButton({ entityId }: { entityId: string }) {
     if (timer.current) clearTimeout(timer.current)
   }, [])
 
-  const name = (entity?.attributes?.friendly_name as string | undefined) ?? entityId.split('.')[1]
+  const name = entityName(entity)
   const unlocked = entity?.state === 'unlocked'
   const unavailable = !entity || entity.state === 'unavailable'
 
@@ -274,7 +284,7 @@ function HoldUnlockButton({ entityId }: { entityId: string }) {
       }}
       disabled={unavailable || unlocked}
       className={cn(
-        'relative flex min-h-[52px] flex-1 items-center justify-center gap-2 overflow-hidden rounded-full text-base font-medium backdrop-blur transition',
+        'relative flex min-h-[52px] flex-1 items-center justify-center gap-2 overflow-hidden rounded-full text-base font-semibold backdrop-blur transition',
         unlocked ? 'bg-[#30d158]/25 text-[#7ee2a8]' : failed ? 'bg-red-500/25 text-red-200' : 'bg-white/15 text-white',
         holding && 'scale-[0.98]',
         unavailable && 'opacity-40',

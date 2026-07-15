@@ -287,6 +287,8 @@ export function tabletHomeLayout(config: AppConfig) {
     // Curation data the kiosk needs to filter discovery (not secret).
     hiddenEntities: config.hiddenEntities ?? [],
     kiosk: config.kiosk ?? {},
+    // Modalità allarme: il kiosk deve conoscere foto opt-in e pulsanti emergenza.
+    alarm: config.alarm ?? {},
     // Privacy-sensitive cloud processing is explicit opt-in.
     ai: { doorbellVision: config.ai?.doorbellVision === true },
     source: 'backend' as const,

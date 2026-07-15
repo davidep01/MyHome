@@ -7,6 +7,7 @@ import { MediaDetail } from './MediaDetail'
 import { useHAEntity } from '../../hooks/useHAEntity'
 import { useUIStore } from '../../store/ui'
 import { stateLabel } from '../widgets/utils/stateLabel'
+import { entityName } from '../widgets/utils/mapEntityToWidgetCard'
 import { tokens } from '../../design/tokens'
 
 const domainMeta: Record<string, { Icon: React.ElementType; color: string }> = {
@@ -22,7 +23,7 @@ export function ContextualPanel({ entityId }: { entityId: string }) {
   const domain = entityId.split('.')[0]
   const meta = domainMeta[domain] ?? { Icon: Cpu, color: tokens.accent.blue }
   const Icon = meta.Icon
-  const name = (entity?.attributes?.friendly_name as string | undefined) ?? entityId
+  const name = entityName(entity)
 
   return (
     <div className="flex flex-col">
@@ -40,7 +41,7 @@ export function ContextualPanel({ entityId }: { entityId: string }) {
         <button
           type="button"
           onClick={() => setSelectedEntity(null)}
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-black/10 text-black/60 transition hover:text-[#1d1d1f]"
+          className="tap-target flex h-9 w-9 items-center justify-center rounded-full bg-black/10 text-black/60 transition hover:text-[#1d1d1f] active:scale-95"
           aria-label="Chiudi"
         >
           <X size={16} aria-hidden="true" />

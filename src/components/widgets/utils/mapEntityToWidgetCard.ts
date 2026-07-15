@@ -91,7 +91,8 @@ export interface WidgetEntityMapping {
   percent?: number
 }
 
-function entityName(entity?: HassEntity | null, fallback?: string) {
+/** Nome pubblico di un'entità: mai l'entity_id grezzo in UI. */
+export function entityName(entity?: HassEntity | null, fallback?: string) {
   return fallback || (entity?.attributes?.friendly_name as string | undefined) || entity?.entity_id?.split('.')[1]?.replace(/_/g, ' ') || 'Dispositivo'
 }
 

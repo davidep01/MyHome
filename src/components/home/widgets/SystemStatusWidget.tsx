@@ -48,7 +48,7 @@ function Row({ icon: Icon, label, value, color }: { icon: React.ElementType; lab
     <div className="flex items-center gap-2 text-xs">
       <Icon size={13} className="shrink-0 text-black/40" />
       <span className="flex-1 truncate text-black/55">{label}</span>
-      <span className="shrink-0 font-medium" style={{ color }}>{value}</span>
+      <span className="shrink-0 font-semibold" style={{ color }}>{value}</span>
     </div>
   )
 }

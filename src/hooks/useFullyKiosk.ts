@@ -62,6 +62,8 @@ export function useFullyKiosk(options: UseFullyKioskOptions = {}): void {
       motionRunning: bridge.isMotionRunning(),
     })
 
+    let emergency = useFullyKioskStore.getState().emergencyActive
+
     const anyScreensaver = () => appScreensaver || fullyScreensaver
     const activeScreensaverBrightness = () => appScreensaver
       ? appScreensaverBrightness
@@ -85,6 +87,7 @@ export function useFullyKiosk(options: UseFullyKioskOptions = {}): void {
     const syncScreensaverBrightness = (wasActive: boolean) => {
       const active = anyScreensaver()
       useFullyKioskStore.getState()._patch({ screensaverActive: active })
+      if (emergency) return // l'emergenza tiene lo schermo al massimo, lo screensaver aspetta
       if (active) {
         if (!wasActive) {
           const current = bridge.getBrightness()
@@ -104,6 +107,27 @@ export function useFullyKiosk(options: UseFullyKioskOptions = {}): void {
       appScreensaver = detail.active
       appScreensaverBrightness = detail.brightness
       syncScreensaverBrightness(wasActive)
+    })
+
+    // Emergenza (§11): schermo acceso e luminosità al massimo finché l'allarme
+    // è attivo; al rientro si torna allo stato che spetterebbe (ambient o normale).
+    const applyEmergency = (active: boolean) => {
+      if (active === emergency) return
+      emergency = active
+      if (active) {
+        const current = bridge.getBrightness()
+        if (current !== null && !anyScreensaver()) normalBrightness = current
+        bridge.turnScreenOn()
+        applyBrightness(255)
+      } else if (anyScreensaver()) {
+        if (normalBrightness !== null) applyBrightness(activeScreensaverBrightness())
+      } else {
+        restoreNormalBrightness()
+      }
+    }
+    applyEmergency(useFullyKioskStore.getState().emergencyActive)
+    const removeEmergencyListener = useFullyKioskStore.subscribe((state, prev) => {
+      if (state.emergencyActive !== prev.emergencyActive) applyEmergency(state.emergencyActive)
     })
 
     const handleFullyEvent = (event: Event) => {
@@ -182,7 +206,7 @@ export function useFullyKiosk(options: UseFullyKioskOptions = {}): void {
         : Math.round(normalBrightness * 0.65 + target * 0.35)
       useFullyKioskStore.getState()._patch({ normalBrightness })
 
-      if (!anyScreensaver()
+      if (!anyScreensaver() && !emergency
         && (lastAppliedBrightness === null || Math.abs(normalBrightness - lastAppliedBrightness) >= BRIGHTNESS_DEADBAND)) {
         applyBrightness(normalBrightness)
       }
@@ -197,6 +221,7 @@ export function useFullyKiosk(options: UseFullyKioskOptions = {}): void {
       document.removeEventListener('visibilitychange', pollAmbientLight)
       window.removeEventListener(FULLY_KIOSK_EVENT, handleFullyEvent)
       removeScreensaverListener()
+      removeEmergencyListener()
       if (startedMotionHere && bridge.capabilities.motionStop) bridge.stopMotion()
       if (originalBrightness !== null) bridge.setBrightness(originalBrightness)
       useFullyKioskStore.getState()._reset()

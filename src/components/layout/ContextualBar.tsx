@@ -109,7 +109,7 @@ export function ContextualBar() {
               onClick={() => runAction(action)}
               whileTap={{ scale: 0.93 }}
               transition={framerSpringBounce}
-              className="flex shrink-0 items-center gap-1.5 rounded-[10px] bg-black/8 px-3 py-1.5 text-xs font-medium text-black/70 hover:bg-black/12 hover:text-[#1d1d1f] transition-colors"
+              className="flex shrink-0 items-center gap-1.5 rounded-[10px] bg-black/8 px-3 py-1.5 text-xs font-semibold text-black/70 hover:bg-black/12 hover:text-[#1d1d1f] transition-colors"
             >
               <span>{action.emoji}</span>
               <span>{action.label}</span>

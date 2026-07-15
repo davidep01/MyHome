@@ -1,16 +1,23 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { ChevronUp, ShieldAlert, TriangleAlert } from 'lucide-react'
 import type { CriticalAlert } from '../../lib/criticalAlerts'
+import type { ActionShortcut } from '../../api/backend'
 import { markKioskActivity } from '../../lib/kioskActivity'
+import { visibleShortcuts } from '../../lib/actionShortcuts'
+import { ShortcutActionButton } from '../controls/ShortcutActionButton'
 import { useSoundNotifications } from '../../hooks/useSoundNotifications'
 import { useUIStore } from '../../store/ui'
 
-export function CriticalEventOverlay({ alerts }: { alerts: CriticalAlert[] }) {
+export function CriticalEventOverlay({ alerts, shortcuts }: { alerts: CriticalAlert[]; shortcuts?: ActionShortcut[] }) {
   const [minimizedFor, setMinimizedFor] = useState<string | null>(null)
   const setSelectedEntity = useUIStore((state) => state.setSelectedEntity)
   const { play } = useSoundNotifications()
+  const reduceMotion = useReducedMotion()
   const focusRef = useRef<HTMLButtonElement | null>(null)
+  const emergencyActions = visibleShortcuts(shortcuts)
+    // In emergenza NIENTE tap: ogni azione richiede la pressione prolungata.
+    .map((shortcut) => ({ ...shortcut, confirm: true }))
   const signature = useMemo(
     () => alerts.map((alert) => `${alert.id}:${alert.changedAt}`).join('|'),
     [alerts],
@@ -67,6 +74,15 @@ export function CriticalEventOverlay({ alerts }: { alerts: CriticalAlert[] }) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
         >
+          {/* Pulsazione rossa intermittente (§11): solo opacity, spenta con reduced-motion. */}
+          {!reduceMotion && (
+            <motion.div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 bg-[#ff2038]"
+              animate={{ opacity: [0, 0.14, 0] }}
+              transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+            />
+          )}
           <motion.div
             className="flex w-full max-w-[720px] flex-col items-center text-center"
             initial={{ opacity: 0, y: 22, scale: 0.98 }}
@@ -87,13 +103,20 @@ export function CriticalEventOverlay({ alerts }: { alerts: CriticalAlert[] }) {
             <p id="critical-description" className="mt-5 max-w-[620px] text-[clamp(17px,2.4vw,24px)] leading-relaxed text-white/80">
               {current.detail}
             </p>
-            <p className="mt-3 max-w-[620px] rounded-[18px] border border-white/15 bg-black/15 px-5 py-4 text-base font-medium leading-relaxed text-white/90">
+            <p className="mt-3 max-w-[620px] rounded-[18px] border border-white/15 bg-black/15 px-5 py-4 text-base font-semibold leading-relaxed text-white/90">
               {current.instruction}
             </p>
             {alerts.length > 1 && (
               <p className="mt-4 rounded-full bg-white/12 px-4 py-2 text-sm font-semibold">
                 Altri {alerts.length - 1} {alerts.length === 2 ? 'evento critico attivo' : 'eventi critici attivi'}
               </p>
+            )}
+            {emergencyActions.length > 0 && (
+              <div className="mt-7 flex w-full max-w-[580px] flex-wrap gap-3">
+                {emergencyActions.map((shortcut) => (
+                  <ShortcutActionButton key={shortcut.id} shortcut={shortcut} />
+                ))}
+              </div>
             )}
             <div className="mt-8 flex w-full max-w-[580px] flex-col gap-3 sm:flex-row">
               <button

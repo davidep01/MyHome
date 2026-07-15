@@ -168,11 +168,11 @@ export function KioskWidgetHome() {
         <div className="mb-3 flex shrink-0 items-center justify-between gap-3">
           <div className="min-w-0">
             {editing ? (
-              <p className="truncate text-sm font-medium text-black/50">Stai modificando solo la disposizione</p>
+              <p className="truncate text-sm font-semibold text-black/50">Stai modificando solo la disposizione</p>
             ) : (
-              <p className="truncate text-sm font-medium text-black/35">{data.dashboardName}</p>
+              <p className="truncate text-sm font-semibold text-black/35">{data.dashboardName}</p>
             )}
-            {message && <p aria-live="polite" className="mt-0.5 text-xs font-medium text-black/45">{message}</p>}
+            {message && <p aria-live="polite" className="mt-0.5 text-xs font-semibold text-black/45">{message}</p>}
           </div>
 
           <div className="flex shrink-0 items-center gap-2">

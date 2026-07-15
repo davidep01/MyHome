@@ -97,7 +97,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
           {kiosk ? 'Inserisci una volta il codice kiosk configurato nell’add-on.' : 'Inserisci il codice amministratore per gestire la casa.'}
         </p>
         <div className="mt-5 space-y-2">
-          <label htmlFor={tokenId} className="block text-sm font-medium text-[#1d1d1f]">Codice di accesso</label>
+          <label htmlFor={tokenId} className="block text-sm font-semibold text-[#1d1d1f]">Codice di accesso</label>
           <input
             id={tokenId}
             name="access-code"
@@ -111,7 +111,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
             className="min-h-12 w-full rounded-[14px] border border-black/10 bg-black/[0.035] px-4 text-base text-[#1d1d1f] outline-none transition-colors focus:border-[#0066cc] focus:bg-white disabled:opacity-50"
           />
         </div>
-        <p role="alert" aria-live="polite" className="mt-2 min-h-5 text-sm font-medium text-red-600">{error}</p>
+        <p role="alert" aria-live="polite" className="mt-2 min-h-5 text-sm font-semibold text-red-600">{error}</p>
         <button
           type="submit"
           disabled={submitting || !token.trim()}

@@ -9,6 +9,7 @@ import { useActiveWhenVisible } from '../../hooks/useActiveWhenVisible'
 import { haApi } from '../../api/backend'
 import { getCameraStreamUrl, getCameraProxyUrl, toProxiedHlsUrl } from '../../api/ha-rest'
 import { cn } from '../../lib/utils'
+import { entityName } from './utils/mapEntityToWidgetCard'
 
 interface CameraStreamProps {
   entityId: string
@@ -42,7 +43,7 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
   const [mode, setMode] = useState<Mode>('connecting')
   const [snap, setSnap] = useState('')
   const unavailable = !entity || entity.state === 'unavailable'
-  const cameraLabel = (entity?.attributes?.friendly_name as string | undefined) ?? entityId
+  const cameraLabel = entityName(entity)
   // Il MJPEG di certe camere (Ring) non emette MAI un frame finché lo stream
   // live non parte: senza onError l'<img> resta nera per sempre. Questi ref
   // alimentano il watchdog e il fallback dell'handler onError in render.

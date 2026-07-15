@@ -136,7 +136,7 @@ export function AIAssistant() {
             <button
               onClick={() => setMode('chat')}
               className={cn(
-                'flex flex-1 items-center justify-center gap-1.5 rounded-full py-1.5 font-medium transition',
+                'flex flex-1 items-center justify-center gap-1.5 rounded-full py-1.5 font-semibold transition',
                 mode === 'chat' ? 'bg-white text-[#1d1d1f] shadow-sm' : 'text-black/45',
               )}
             >
@@ -145,7 +145,7 @@ export function AIAssistant() {
             <button
               onClick={() => setMode('automation')}
               className={cn(
-                'flex flex-1 items-center justify-center gap-1.5 rounded-full py-1.5 font-medium transition',
+                'flex flex-1 items-center justify-center gap-1.5 rounded-full py-1.5 font-semibold transition',
                 mode === 'automation' ? 'bg-white text-[#1d1d1f] shadow-sm' : 'text-black/45',
               )}
             >
@@ -157,7 +157,7 @@ export function AIAssistant() {
             <button
               onClick={() => run('suggest')}
               disabled={loading}
-              className="flex items-center justify-center gap-2 rounded-full bg-[#0066cc] px-4 py-2.5 text-sm font-medium text-white transition active:scale-95 disabled:opacity-50"
+              className="flex items-center justify-center gap-2 rounded-full bg-[#0066cc] px-4 py-2.5 text-sm font-semibold text-white transition active:scale-95 disabled:opacity-50"
             >
               <Wand2 size={15} /> Suggerisci automazioni
             </button>
@@ -187,7 +187,7 @@ export function AIAssistant() {
 
             {pending && (
               <div className="mr-2 overflow-hidden rounded-[16px] border border-[#0066cc]/20 bg-white">
-                <div className="flex items-center gap-2 border-b border-black/8 px-3.5 py-2 text-sm font-medium text-[#1d1d1f]">
+                <div className="flex items-center gap-2 border-b border-black/8 px-3.5 py-2 text-sm font-semibold text-[#1d1d1f]">
                   <Cog size={15} className="text-[#0066cc]" />
                   {pending.alias ?? 'Automazione'}
                 </div>
@@ -198,14 +198,14 @@ export function AIAssistant() {
                   <button
                     onClick={cancelAutomation}
                     disabled={copying}
-                    className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-black/[0.06] py-2.5 text-sm font-medium text-black/70 transition active:scale-95 disabled:opacity-50"
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-black/[0.06] py-2.5 text-sm font-semibold text-black/70 transition active:scale-95 disabled:opacity-50"
                   >
                     <X size={15} /> Annulla
                   </button>
                   <button
                     onClick={copyAutomation}
                     disabled={copying}
-                    className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-[#0066cc] py-2.5 text-sm font-medium text-white transition active:scale-95 disabled:opacity-50"
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-[#0066cc] py-2.5 text-sm font-semibold text-white transition active:scale-95 disabled:opacity-50"
                   >
                     {copying
                       ? <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/40 border-t-white" />

@@ -208,7 +208,7 @@ export function ClimateDetail({ entity }: { entity: HassEntity }) {
             type="button"
             onClick={() => { if (current !== undefined) setTemp(current) }}
             disabled={pending || visual.unavailable || current === undefined}
-            className="rounded-full bg-black/8 px-6 py-3 text-sm font-medium text-black/80 transition hover:bg-black/14 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-full bg-black/8 px-6 py-3 text-sm font-semibold text-black/80 transition hover:bg-black/14 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
             aria-label="Imposta la temperatura ambiente come target"
           >
             Allinea all’ambiente
@@ -237,7 +237,7 @@ export function ClimateDetail({ entity }: { entity: HassEntity }) {
             style={visual.isOn ? { background: tokens.accent.green } : undefined}
           >
             ON
-            <span className="text-[10px] font-medium opacity-75">{getHvacModeLabel(onMode)}</span>
+            <span className="text-[10px] font-semibold opacity-75">{getHvacModeLabel(onMode)}</span>
           </button>
           <button
             type="button"
@@ -361,7 +361,7 @@ export function ClimateDetail({ entity }: { entity: HassEntity }) {
       )}
 
       {error && (
-        <p role="alert" className="rounded-[14px] bg-red-500/10 px-3 py-2 text-sm font-medium text-red-700">
+        <p role="alert" className="rounded-[14px] bg-red-500/10 px-3 py-2 text-sm font-semibold text-red-700">
           {error}
         </p>
       )}
