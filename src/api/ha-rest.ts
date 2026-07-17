@@ -16,6 +16,12 @@ export function getCameraStreamUrl(entityId: string): string {
   return haApi.cameraStreamUrl(entityId)
 }
 
+/** Ring's native `*_live_view` entity is WebRTC-only and has no still image. */
+export function getCameraPreviewEntityId(entityId: string): string {
+  const match = /^camera\.(.+)_live_view$/.exec(entityId)
+  return match ? `camera.${match[1]}_snapshot` : entityId
+}
+
 /**
  * Rewrites an HA HLS url (`/api/hls/<token>/playlist.m3u8`) to route through the
  * backend proxy (`/api/ha/hls/...`), keeping it same-origin so the browser's HLS

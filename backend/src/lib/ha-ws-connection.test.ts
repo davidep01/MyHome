@@ -7,7 +7,7 @@ const configMocks = vi.hoisted(() => ({
 
 vi.mock('./ha-config.js', () => configMocks)
 
-import { closeHaWs, getHaWsState, haWsCommand } from './ha-ws.js'
+import { closeHaWs, getHaWsState, haWsCommand, haWsSubscribe } from './ha-ws.js'
 
 type WsEvent = { data?: unknown; reason?: string }
 
@@ -126,5 +126,26 @@ describe('HA WebSocket connection reliability', () => {
     expect(FakeWebSocket.instances).toHaveLength(1)
     expect(FakeWebSocket.instances[0].closeCalls).toBe(1)
     expect(getHaWsState()).toBe('idle')
+  })
+
+  it('forwards subscription events and unsubscribes cleanly', async () => {
+    installFakeWebSocket()
+    const onEvent = vi.fn()
+    const subscription = haWsSubscribe({ type: 'camera/webrtc/offer', entity_id: 'camera.porta', offer: 'v=0' }, { onEvent })
+    await vi.waitFor(() => expect(FakeWebSocket.instances).toHaveLength(1))
+    const ws = FakeWebSocket.instances[0]
+    ws.emitMessage({ type: 'auth_ok' })
+    const subscribeFrame = JSON.parse(ws.sent.find((frame) => frame.includes('camera/webrtc/offer'))!) as { id: number }
+    ws.emitMessage({ type: 'result', id: subscribeFrame.id, success: true, result: null })
+    const unsubscribe = await subscription
+
+    ws.emitMessage({ type: 'event', id: subscribeFrame.id, event: { type: 'answer', answer: 'sdp' } })
+    expect(onEvent).toHaveBeenCalledWith({ type: 'answer', answer: 'sdp' })
+
+    unsubscribe()
+    await vi.waitFor(() => expect(ws.sent.some((frame) => frame.includes('unsubscribe_events'))).toBe(true))
+    const unsubscribeFrame = JSON.parse(ws.sent.find((frame) => frame.includes('unsubscribe_events'))!) as { id: number }
+    ws.emitMessage({ type: 'result', id: unsubscribeFrame.id, success: true, result: null })
+    expect(ws.closeCalls).toBe(1)
   })
 })

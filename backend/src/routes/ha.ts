@@ -10,6 +10,13 @@ import { cacheHARegistry, getCachedHARegistry, type RegistryPayload } from '../l
 import { ByteLru } from '../lib/lru.js'
 import { isCriticalAction, recordCriticalAction } from '../lib/audit-log.js'
 import { advertisedArtworkSources } from '../lib/ha-media.js'
+import {
+  addWebRtcCandidate,
+  closeWebRtcSession,
+  hasWebRtcSession,
+  listenWebRtcSession,
+  startWebRtcSession,
+} from '../lib/ha-webrtc.js'
 
 export const haRouter = new Hono()
 
@@ -59,6 +66,7 @@ function canCallService(role: 'admin' | 'kiosk', domain: string, service: string
 const ENTITY_ID = /^[a-z0-9_]+\.[a-z0-9_]+$/
 const SAFE_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif'])
 const MAX_PROXY_IMAGE_BYTES = 5 * 1_024 * 1_024
+const WEBRTC_SESSION_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 // Cache media (§16): copertine/artwork esterni riusati da tutti i client —
 // N kiosk non diventano N fetch verso l'esterno, con memoria prevedibile.
@@ -261,6 +269,131 @@ haRouter.get('/camera-hls-url/:entityId', async (c) => {
   } catch {
     return c.json({ error: 'Stream HLS non disponibile' }, 502)
   }
+})
+
+// Native WebRTC signaling for cameras such as the official Ring integration.
+// SDP and ICE travel through this authenticated same-origin bridge; the media
+// remains a direct browser-to-Ring WebRTC stream, exactly as in HA's frontend.
+haRouter.get('/camera-capabilities/:entityId', async (c) => {
+  const entityId = c.req.param('entityId')
+  if (!ENTITY_ID.test(entityId) || !entityId.startsWith('camera.')) return c.json({ error: 'Videocamera non valida' }, 400)
+  try {
+    const result = await haWsCommand<{ frontend_stream_types?: unknown }>({
+      type: 'camera/capabilities',
+      entity_id: entityId,
+    })
+    const frontendStreamTypes = Array.isArray(result?.frontend_stream_types)
+      ? result.frontend_stream_types.filter((value): value is 'web_rtc' | 'hls' => value === 'web_rtc' || value === 'hls')
+      : []
+    return c.json({ frontend_stream_types: frontendStreamTypes })
+  } catch {
+    return c.json({ error: 'Capacità videocamera non disponibili' }, 502)
+  }
+})
+
+haRouter.get('/camera-webrtc-config/:entityId', async (c) => {
+  const entityId = c.req.param('entityId')
+  if (!ENTITY_ID.test(entityId) || !entityId.startsWith('camera.')) return c.json({ error: 'Videocamera non valida' }, 400)
+  try {
+    const result = await haWsCommand<{ configuration?: unknown; dataChannel?: unknown }>({
+      type: 'camera/webrtc/get_client_config',
+      entity_id: entityId,
+    })
+    const configuration = result?.configuration && typeof result.configuration === 'object' && !Array.isArray(result.configuration)
+      ? result.configuration
+      : {}
+    const dataChannel = typeof result?.dataChannel === 'string' && result.dataChannel.length <= 128
+      ? result.dataChannel
+      : undefined
+    return c.json({ configuration, ...(dataChannel ? { dataChannel } : {}) })
+  } catch {
+    return c.json({ error: 'Configurazione WebRTC non disponibile' }, 502)
+  }
+})
+
+haRouter.post('/camera-webrtc-offer/:entityId', async (c) => {
+  const entityId = c.req.param('entityId')
+  if (!ENTITY_ID.test(entityId) || !entityId.startsWith('camera.')) return c.json({ error: 'Videocamera non valida' }, 400)
+  const body = await c.req.json<{ offer?: unknown }>().catch(() => null)
+  if (!body || typeof body.offer !== 'string' || body.offer.length < 20 || body.offer.length > 512_000) {
+    return c.json({ error: 'Offerta WebRTC non valida' }, 400)
+  }
+  try {
+    const sessionId = await startWebRtcSession(entityId, body.offer)
+    return c.json({ sessionId })
+  } catch {
+    return c.json({ error: 'Sessione WebRTC non disponibile' }, 502)
+  }
+})
+
+haRouter.get('/camera-webrtc-events/:sessionId', (c) => {
+  const sessionId = c.req.param('sessionId')
+  if (!WEBRTC_SESSION_ID.test(sessionId) || !hasWebRtcSession(sessionId)) {
+    return c.json({ error: 'Sessione WebRTC non valida' }, 404)
+  }
+  c.header('X-Accel-Buffering', 'no')
+  c.header('Content-Type', 'text/event-stream')
+  return streamSSE(c, async (stream) => {
+    let closed = false
+    let wake: (() => void) | null = null
+    const queue: unknown[] = []
+    const unlisten = listenWebRtcSession(sessionId, (event) => {
+      queue.push(event)
+      wake?.()
+      wake = null
+    })
+    if (!unlisten) return
+    stream.onAbort(() => { closed = true; unlisten(); wake?.() })
+    await stream.writeSSE({ event: 'ready', data: 'ok' })
+    while (!closed && hasWebRtcSession(sessionId)) {
+      while (!closed && queue.length) {
+        await stream.writeSSE({ event: 'signal', data: JSON.stringify(queue.shift()) })
+      }
+      if (closed) break
+      let ping = false
+      await new Promise<void>((resolve) => {
+        const timer = setTimeout(() => { ping = true; wake = null; resolve() }, 15_000)
+        wake = () => { clearTimeout(timer); resolve() }
+      })
+      wake = null
+      if (ping && !closed && queue.length === 0) await stream.writeSSE({ event: 'ping', data: '' })
+    }
+    unlisten()
+  })
+})
+
+haRouter.post('/camera-webrtc-candidate/:sessionId', async (c) => {
+  const sessionId = c.req.param('sessionId')
+  if (!WEBRTC_SESSION_ID.test(sessionId)) return c.json({ error: 'Sessione WebRTC non valida' }, 404)
+  const body = await c.req.json<{ candidate?: unknown }>().catch(() => null)
+  if (!body?.candidate || typeof body.candidate !== 'object' || Array.isArray(body.candidate)) {
+    return c.json({ error: 'Candidato ICE non valido' }, 400)
+  }
+  const rawCandidate = body.candidate as Record<string, unknown>
+  if (typeof rawCandidate.candidate !== 'string' || rawCandidate.candidate.length > 8_192
+    || (rawCandidate.sdpMid !== undefined && (typeof rawCandidate.sdpMid !== 'string' || rawCandidate.sdpMid.length > 128))
+    || (rawCandidate.sdpMLineIndex !== undefined && (!Number.isInteger(rawCandidate.sdpMLineIndex) || Number(rawCandidate.sdpMLineIndex) < 0))
+    || (rawCandidate.usernameFragment !== undefined && (typeof rawCandidate.usernameFragment !== 'string' || rawCandidate.usernameFragment.length > 256))) {
+    return c.json({ error: 'Candidato ICE non valido' }, 400)
+  }
+  const candidate: Record<string, unknown> = { candidate: rawCandidate.candidate }
+  if (rawCandidate.sdpMid !== undefined) candidate.sdpMid = rawCandidate.sdpMid
+  if (rawCandidate.sdpMLineIndex !== undefined) candidate.sdpMLineIndex = rawCandidate.sdpMLineIndex
+  if (rawCandidate.usernameFragment !== undefined) candidate.usernameFragment = rawCandidate.usernameFragment
+  try {
+    if (!await addWebRtcCandidate(sessionId, candidate)) return c.json({ error: 'Sessione WebRTC non valida' }, 404)
+    return c.json({ ok: true })
+  } catch {
+    return c.json({ error: 'Candidato ICE rifiutato' }, 502)
+  }
+})
+
+haRouter.delete('/camera-webrtc-session/:sessionId', (c) => {
+  const sessionId = c.req.param('sessionId')
+  if (!WEBRTC_SESSION_ID.test(sessionId) || !closeWebRtcSession(sessionId)) {
+    return c.json({ error: 'Sessione WebRTC non valida' }, 404)
+  }
+  return c.json({ ok: true })
 })
 
 haRouter.get('/states', async () => {

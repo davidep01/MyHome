@@ -11,6 +11,7 @@ vi.mock('../lib/ha-config.js', () => ({
 }))
 vi.mock('../lib/ha-ws.js', () => ({
   haWsCommand: vi.fn(),
+  haWsSubscribe: vi.fn(),
 }))
 
 import { haRouter } from './ha.js'

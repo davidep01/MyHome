@@ -367,6 +367,13 @@ export interface HAHistoryPoint {
   attributes?: Record<string, unknown>
 }
 
+export type CameraStreamType = 'web_rtc' | 'hls'
+
+export interface CameraWebRtcConfig {
+  configuration: RTCConfiguration
+  dataChannel?: string
+}
+
 export const haApi = {
   history: (entityId: string, hours = 1) =>
     request<HAHistoryPoint[]>(`/ha/history/${encodeURIComponent(entityId)}?hours=${hours}`),
@@ -380,6 +387,23 @@ export const haApi = {
   /** Backend-signed HLS playlist URL for a camera (token stays server-side). */
   cameraHlsUrl: (entityId: string) =>
     request<{ url: string }>(`/ha/camera-hls-url/${encodeURIComponent(entityId)}`),
+  cameraCapabilities: (entityId: string) =>
+    request<{ frontend_stream_types: CameraStreamType[] }>(`/ha/camera-capabilities/${encodeURIComponent(entityId)}`),
+  cameraWebRtcConfig: (entityId: string) =>
+    request<CameraWebRtcConfig>(`/ha/camera-webrtc-config/${encodeURIComponent(entityId)}`),
+  cameraWebRtcOffer: (entityId: string, offer: string) =>
+    request<{ sessionId: string }>(`/ha/camera-webrtc-offer/${encodeURIComponent(entityId)}`, {
+      method: 'POST',
+      body: JSON.stringify({ offer }),
+    }),
+  cameraWebRtcCandidate: (sessionId: string, candidate: RTCIceCandidateInit) =>
+    request<{ ok: true }>(`/ha/camera-webrtc-candidate/${encodeURIComponent(sessionId)}`, {
+      method: 'POST',
+      body: JSON.stringify({ candidate }),
+    }),
+  cameraWebRtcClose: (sessionId: string) =>
+    request<{ ok: true }>(`/ha/camera-webrtc-session/${encodeURIComponent(sessionId)}`, { method: 'DELETE' }),
+  cameraWebRtcEventsUrl: (sessionId: string) => `/api/ha/camera-webrtc-events/${encodeURIComponent(sessionId)}`,
   service: (domain: string, service: string, data?: Record<string, unknown>) =>
     request<unknown[]>(`/ha/services/${encodeURIComponent(domain)}/${encodeURIComponent(service)}`, {
       method: 'POST',

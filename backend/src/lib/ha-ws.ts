@@ -49,6 +49,10 @@ let socket: WsLike | null = null
 let state: HaWsState = 'idle'
 let msgId = 1
 const pending = new Map<number, { resolve: (value: unknown) => void; reject: (error: Error) => void; timer: ReturnType<typeof setTimeout> }>()
+const subscriptions = new Map<number, {
+  onEvent: (event: unknown) => void
+  onError?: (error: Error) => void
+}>()
 /** Commands issued before auth completes, flushed on auth_ok. */
 const sendQueue = new Map<number, string>()
 
@@ -96,8 +100,14 @@ function rejectAllPending(reason: string): void {
   sendQueue.clear()
 }
 
+function rejectAllSubscriptions(reason: string): void {
+  const error = new Error(reason)
+  for (const [, entry] of subscriptions) entry.onError?.(error)
+  subscriptions.clear()
+}
+
 function closeIfUnused(): void {
-  if (pending.size === 0 && !feed) closeHaWs()
+  if (pending.size === 0 && subscriptions.size === 0 && !feed) closeHaWs()
 }
 
 function startHeartbeat(): void {
@@ -199,15 +209,19 @@ function handleMessage(raw: unknown): void {
       return
     }
     case 'event': {
-      if (Number(msg.id) !== feedSubId || !feed) return
-      const event = msg.event as CompressedStatesEvent
-      const { changed, removed } = applyCompressedEvent(entityMap, event)
-      if (!feedPrimed) {
-        feedPrimed = true
-        feed.onSnapshot([...entityMap.values()])
-      } else if (changed.length || removed.length) {
-        feed.onDelta(changed, removed)
+      const id = Number(msg.id)
+      if (id === feedSubId && feed) {
+        const event = msg.event as CompressedStatesEvent
+        const { changed, removed } = applyCompressedEvent(entityMap, event)
+        if (!feedPrimed) {
+          feedPrimed = true
+          feed.onSnapshot([...entityMap.values()])
+        } else if (changed.length || removed.length) {
+          feed.onDelta(changed, removed)
+        }
+        return
       }
+      subscriptions.get(id)?.onEvent(msg.event)
       return
     }
   }
@@ -268,6 +282,7 @@ async function connect(): Promise<void> {
       stopHandshakeTimeout()
       stopHeartbeat()
       rejectAllPending(reason)
+      rejectAllSubscriptions(reason)
       feedSubId = null
       feedPrimed = false
       if (!manuallyClosed) {
@@ -314,6 +329,62 @@ export async function haWsCommand<T>(message: Record<string, unknown>, timeoutMs
   })
 }
 
+/**
+ * Starts an id-correlated Home Assistant subscription. Used by WebRTC camera
+ * signaling, whose answer and ICE candidates arrive as a sequence of events
+ * rather than as one command result.
+ */
+export async function haWsSubscribe<T = unknown>(
+  message: Record<string, unknown>,
+  handlers: { onEvent: (event: T) => void; onError?: (error: Error) => void },
+  timeoutMs = COMMAND_TIMEOUT_MS,
+): Promise<() => void> {
+  await connect()
+  if (state === 'idle') throw new Error('Home Assistant WebSocket unavailable')
+  const id = nextId()
+  let stopped = false
+
+  const stop = () => {
+    if (stopped) return
+    stopped = true
+    subscriptions.delete(id)
+    sendQueue.delete(id)
+    if (state === 'connected') {
+      void haWsCommand({ type: 'unsubscribe_events', subscription: id }, 5_000).catch(() => {})
+    } else {
+      closeIfUnused()
+    }
+  }
+
+  return new Promise<() => void>((resolve, reject) => {
+    const fail = (error: Error) => {
+      subscriptions.delete(id)
+      handlers.onError?.(error)
+      reject(error)
+      closeIfUnused()
+    }
+    const timer = setTimeout(() => {
+      pending.delete(id)
+      sendQueue.delete(id)
+      fail(new Error('Home Assistant subscription timed out'))
+    }, timeoutMs)
+    subscriptions.set(id, {
+      onEvent: handlers.onEvent as (event: unknown) => void,
+      onError: handlers.onError,
+    })
+    pending.set(id, {
+      resolve: () => resolve(stop),
+      reject: fail,
+      timer,
+    })
+    if (!rawSend({ ...message, id })) {
+      pending.delete(id)
+      clearTimeout(timer)
+      fail(new Error('Home Assistant pre-auth queue is full'))
+    }
+  })
+}
+
 /** Starts (or replaces) the live entity feed. The socket reconnects on its own. */
 export function startEntityFeed(handlers: EntityFeedHandlers): void {
   feed = handlers
@@ -343,6 +414,7 @@ export function closeHaWs(): void {
   if (retryTimer) clearTimeout(retryTimer)
   retryTimer = null
   rejectAllPending('Home Assistant WS closed')
+  rejectAllSubscriptions('Home Assistant WS closed')
   try { socket?.close() } catch { /* noop */ }
   socket = null
   state = 'idle'

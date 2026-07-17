@@ -7,7 +7,7 @@ import { Video } from 'lucide-react'
 import { useHAEntity } from '../../hooks/useHAEntity'
 import { useActiveWhenVisible } from '../../hooks/useActiveWhenVisible'
 import { haApi } from '../../api/backend'
-import { getCameraStreamUrl, getCameraProxyUrl, toProxiedHlsUrl } from '../../api/ha-rest'
+import { getCameraPreviewEntityId, getCameraStreamUrl, getCameraProxyUrl, toProxiedHlsUrl } from '../../api/ha-rest'
 import { cn } from '../../lib/utils'
 import { entityName } from './utils/mapEntityToWidgetCard'
 
@@ -37,7 +37,7 @@ interface CameraStreamProps {
  *   3. Snapshot aggiornato ogni 2s quando nessun live è possibile.
  * (WebRTC/talk-back torneranno con un signaling proxy backend — docs/DOMINICA.md.)
  */
-type Mode = 'connecting' | 'hls' | 'mjpeg' | 'snapshot' | 'error' | 'paused'
+type Mode = 'connecting' | 'webrtc' | 'hls' | 'mjpeg' | 'snapshot' | 'error' | 'paused'
 
 /** hls.js su camere cloud (Ring): la playlist può arrivare dopo parecchi secondi. */
 const HLS_CONFIG = {
@@ -51,6 +51,7 @@ const HLS_CONFIG = {
 }
 
 const LIVE_NEGOTIATION_MS = 20_000
+const WEBRTC_NEGOTIATION_MS = 18_000
 const LIVE_RETRY_MS = 12_000
 const STALL_RETRY_MS = 10_000
 
@@ -64,6 +65,7 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
   const [mjpegLive, setMjpegLive] = useState(false)
   const [retryKey, setRetryKey] = useState(0)
   const unavailable = !entity || entity.state === 'unavailable'
+  const previewEntityId = getCameraPreviewEntityId(entityId)
   const cameraLabel = entityName(entity)
   const mjpegLoadedRef = useRef(false)
   /** Primo frame MJPEG arrivato (in gara: il MJPEG vince e l'HLS si spegne). */
@@ -78,17 +80,23 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
 
     let cancelled = false
     let hls: Hls | null = null
-    let watchdog: ReturnType<typeof setTimeout> | null = null
+    let peer: RTCPeerConnection | null = null
+    let eventSource: EventSource | null = null
+    let webRtcSessionId: string | null = null
+    let webRtcWatchdog: ReturnType<typeof setTimeout> | null = null
+    let liveWatchdog: ReturnType<typeof setTimeout> | null = null
     let stallTimer: ReturnType<typeof setTimeout> | null = null
     let mediaRecoveries = 0
     let settled = false
+    let fallbackStarted = false
+    const pendingLocalCandidates: RTCIceCandidateInit[] = []
     const streamVideo = videoRef.current
     setMode('connecting')
     setMjpegLive(false)
     mjpegLoadedRef.current = false
 
     // 0 — placeholder istantaneo: l'ultima immagine disponibile, mai schermo nero.
-    setPlaceholder(`${getCameraProxyUrl(entityId)}?_t=${Date.now()}`)
+    setPlaceholder(`${getCameraProxyUrl(previewEntityId)}?_t=${Date.now()}`)
 
     const clearStallTimer = () => {
       if (stallTimer) clearTimeout(stallTimer)
@@ -99,7 +107,8 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
       if (cancelled) return
       settled = true
       clearStallTimer()
-      if (watchdog) clearTimeout(watchdog)
+      if (webRtcWatchdog) clearTimeout(webRtcWatchdog)
+      if (liveWatchdog) clearTimeout(liveWatchdog)
       setMode('connecting')
       setRetryKey((key) => key + 1)
     }
@@ -125,6 +134,23 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
     }
     let stopWatchingPlayback: (() => void) | null = null
 
+    const stopWebRtc = () => {
+      if (webRtcWatchdog) clearTimeout(webRtcWatchdog)
+      webRtcWatchdog = null
+      eventSource?.close()
+      eventSource = null
+      peer?.close()
+      peer = null
+      if (webRtcSessionId) {
+        void haApi.cameraWebRtcClose(webRtcSessionId).catch(() => {})
+        webRtcSessionId = null
+      }
+      if (streamVideo?.srcObject) {
+        for (const track of (streamVideo.srcObject as MediaStream).getTracks()) track.stop()
+        streamVideo.srcObject = null
+      }
+    }
+
     const startHls = async (onFail: () => void) => {
       const video = streamVideo
       if (!video) return onFail()
@@ -144,7 +170,7 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
           hls.on(Hls.Events.FRAG_BUFFERED, () => {
             if (cancelled || settled) return
             settled = true
-            if (watchdog) clearTimeout(watchdog)
+            if (liveWatchdog) clearTimeout(liveWatchdog)
             setMode('hls')
             stopWatchingPlayback = watchPlayback(video)
             video.play().catch(() => {})
@@ -167,7 +193,7 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
           video.addEventListener('loadeddata', () => {
             if (cancelled || settled) return
             settled = true
-            if (watchdog) clearTimeout(watchdog)
+            if (liveWatchdog) clearTimeout(liveWatchdog)
             setMode('hls')
             stopWatchingPlayback = watchPlayback(video)
             video.play().catch(() => {})
@@ -179,68 +205,166 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
       }
     }
 
-    if (preferLive) {
-      // ── Gara MJPEG ‖ HLS: vince il primo frame ──────────────────────────────
-      setMode('mjpeg')
-      mjpegLoadedRef.current = false
-      mjpegWinRef.current = () => {
-        if (cancelled || settled) return
-        settled = true
-        if (watchdog) clearTimeout(watchdog)
-        hls?.destroy()
-        hls = null
-      }
-      // Un errore MJPEG in gara non decide nulla: l'HLS sta già correndo.
-      mjpegFailRef.current = () => {}
-      // Un fallimento HLS non deve troncare il MJPEG ancora in gara.
-      void startHls(() => {})
-      // Le Ring cloud possono impiegare diversi secondi a produrre il primo
-      // segmento: il timeout copre l'intera negoziazione, non solo il manifest.
-      watchdog = setTimeout(() => { if (!mjpegLoadedRef.current) goSnapshot() }, LIVE_NEGOTIATION_MS)
-    } else {
-      // ── Catena classica: HLS → MJPEG → snapshot ────────────────────────────
-      void startHls(() => {
-        if (cancelled) return
-        mjpegLoadedRef.current = false
+    const startFallback = () => {
+      if (cancelled || settled || fallbackStarted) return
+      fallbackStarted = true
+      stopWebRtc()
+      if (preferLive) {
+        // ── Gara MJPEG ‖ HLS: vince il primo frame ────────────────────────────
         setMode('mjpeg')
-        mjpegWinRef.current = () => { if (watchdog) clearTimeout(watchdog) }
-        mjpegFailRef.current = goSnapshot
-        if (watchdog) clearTimeout(watchdog)
-        watchdog = setTimeout(() => {
-          if (!cancelled && !mjpegLoadedRef.current) goSnapshot()
-        }, 6_000)
-      })
+        mjpegLoadedRef.current = false
+        mjpegWinRef.current = () => {
+          if (cancelled || settled) return
+          settled = true
+          if (liveWatchdog) clearTimeout(liveWatchdog)
+          hls?.destroy()
+          hls = null
+        }
+        // Un errore MJPEG in gara non decide nulla: l'HLS sta già correndo.
+        mjpegFailRef.current = () => {}
+        void startHls(() => {})
+        liveWatchdog = setTimeout(() => { if (!mjpegLoadedRef.current) goSnapshot() }, LIVE_NEGOTIATION_MS)
+      } else {
+        // ── Catena classica: HLS → MJPEG → snapshot ──────────────────────────
+        void startHls(() => {
+          if (cancelled) return
+          mjpegLoadedRef.current = false
+          setMode('mjpeg')
+          mjpegWinRef.current = () => { if (liveWatchdog) clearTimeout(liveWatchdog) }
+          mjpegFailRef.current = goSnapshot
+          if (liveWatchdog) clearTimeout(liveWatchdog)
+          liveWatchdog = setTimeout(() => {
+            if (!cancelled && !mjpegLoadedRef.current) goSnapshot()
+          }, 6_000)
+        })
+      }
     }
+
+    const startWebRtc = async () => {
+      const video = streamVideo
+      if (!video || typeof RTCPeerConnection === 'undefined') return startFallback()
+      try {
+        const capabilities = await haApi.cameraCapabilities(entityId)
+        if (cancelled || settled) return
+        if (!capabilities.frontend_stream_types.includes('web_rtc')) return startFallback()
+
+        const clientConfig = await haApi.cameraWebRtcConfig(entityId)
+        if (cancelled || settled) return
+        peer = new RTCPeerConnection(clientConfig.configuration)
+        if (clientConfig.dataChannel) peer.createDataChannel(clientConfig.dataChannel)
+        const remoteStream = new MediaStream()
+        let remoteDescriptionReady = false
+        const pendingRemoteCandidates: RTCIceCandidateInit[] = []
+
+        const firstFrame = () => {
+          if (cancelled || settled) return
+          settled = true
+          if (webRtcWatchdog) clearTimeout(webRtcWatchdog)
+          setMode('webrtc')
+          stopWatchingPlayback = watchPlayback(video)
+          video.play().catch(() => {})
+        }
+        video.addEventListener('loadeddata', firstFrame, { once: true })
+        video.addEventListener('playing', firstFrame, { once: true })
+        peer.ontrack = (event) => {
+          if (event.track.kind === 'audio' && muted) return
+          remoteStream.addTrack(event.track)
+          video.srcObject = remoteStream
+          video.play().catch(() => {})
+        }
+        peer.onicecandidate = (event) => {
+          if (!event.candidate?.candidate) return
+          const candidate = event.candidate.toJSON()
+          if (!webRtcSessionId) pendingLocalCandidates.push(candidate)
+          else void haApi.cameraWebRtcCandidate(webRtcSessionId, candidate).catch(() => {})
+        }
+        peer.onconnectionstatechange = () => {
+          if (!peer || cancelled) return
+          if (peer.connectionState === 'failed' || peer.connectionState === 'closed') {
+            if (settled) reconnect(); else startFallback()
+          }
+        }
+        peer.addTransceiver('audio', { direction: 'recvonly' })
+        peer.addTransceiver('video', { direction: 'recvonly' })
+        const offer = await peer.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: true })
+        await peer.setLocalDescription(offer)
+        if (cancelled || !offer.sdp) return
+
+        const session = await haApi.cameraWebRtcOffer(entityId, offer.sdp)
+        if (cancelled) {
+          void haApi.cameraWebRtcClose(session.sessionId).catch(() => {})
+          return
+        }
+        webRtcSessionId = session.sessionId
+        for (const candidate of pendingLocalCandidates.splice(0)) {
+          void haApi.cameraWebRtcCandidate(session.sessionId, candidate).catch(() => {})
+        }
+
+        let signalChain = Promise.resolve()
+        eventSource = new EventSource(haApi.cameraWebRtcEventsUrl(session.sessionId))
+        eventSource.addEventListener('signal', (rawEvent) => {
+          signalChain = signalChain.then(async () => {
+            if (cancelled || !peer) return
+            const event = JSON.parse((rawEvent as MessageEvent<string>).data) as {
+              type?: string
+              answer?: string
+              candidate?: RTCIceCandidateInit
+              message?: string
+            }
+            if (event.type === 'answer' && event.answer) {
+              await peer.setRemoteDescription({ type: 'answer', sdp: event.answer })
+              remoteDescriptionReady = true
+              for (const candidate of pendingRemoteCandidates.splice(0)) await peer.addIceCandidate(candidate)
+            } else if (event.type === 'candidate' && event.candidate?.candidate) {
+              const candidate = event.candidate.sdpMid || event.candidate.sdpMLineIndex != null
+                ? event.candidate
+                : { ...event.candidate, sdpMid: '0' }
+              if (remoteDescriptionReady) await peer.addIceCandidate(candidate)
+              else pendingRemoteCandidates.push(candidate)
+            } else if (event.type === 'error') {
+              throw new Error(event.message || 'WebRTC signaling failed')
+            }
+          }).catch(() => { if (settled) reconnect(); else startFallback() })
+        })
+        eventSource.onerror = () => { if (settled) reconnect(); else startFallback() }
+        webRtcWatchdog = setTimeout(startFallback, WEBRTC_NEGOTIATION_MS)
+      } catch {
+        if (!settled) startFallback()
+      }
+    }
+
+    void startWebRtc()
 
     return () => {
       cancelled = true
       settled = true
-      if (watchdog) clearTimeout(watchdog)
+      if (liveWatchdog) clearTimeout(liveWatchdog)
       clearStallTimer()
       stopWatchingPlayback?.()
       hls?.destroy()
+      stopWebRtc()
       if (streamVideo) {
         streamVideo.pause()
         streamVideo.removeAttribute('src')
         streamVideo.load()
       }
     }
-  }, [entityId, preferLive, unavailable, active, retryKey])
+  }, [entityId, previewEntityId, preferLive, unavailable, active, retryKey, muted])
 
   // ── Snapshot polling — solo quando nessun flusso live è disponibile ──
   useEffect(() => {
     if (mode !== 'snapshot') return
-    const tick = () => setSnap(`${getCameraProxyUrl(entityId)}?_t=${Date.now()}`)
+    const tick = () => setSnap(`${getCameraProxyUrl(previewEntityId)}?_t=${Date.now()}`)
     tick()
     const id = setInterval(tick, 2000)
     // Snapshot is a resilient fallback, not a terminal state: periodically ask
     // HA for a fresh signed stream so Ring recovers without closing the panel.
     const retry = setTimeout(() => setRetryKey((key) => key + 1), LIVE_RETRY_MS)
     return () => { clearInterval(id); clearTimeout(retry) }
-  }, [mode, entityId])
+  }, [mode, previewEntityId])
 
   const fitClass = fit === 'contain' ? 'object-contain' : 'object-cover'
-  const liveVisible = mode === 'hls' || (mode === 'mjpeg' && mjpegLive)
+  const liveVisible = mode === 'webrtc' || mode === 'hls' || (mode === 'mjpeg' && mjpegLive)
   const showPlaceholder = Boolean(placeholder) && !liveVisible && mode !== 'snapshot' && mode !== 'error'
   const backdrop = fit === 'contain' ? (snap || placeholder) : ''
 
@@ -276,7 +400,7 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
         playsInline
         muted={muted}
         aria-label={`Video in diretta: ${cameraLabel}`}
-        className={cn('absolute inset-0 h-full w-full transition-opacity duration-500', fitClass, mode === 'hls' ? 'opacity-100' : 'opacity-0 pointer-events-none')}
+        className={cn('absolute inset-0 h-full w-full transition-opacity duration-500', fitClass, mode === 'webrtc' || mode === 'hls' ? 'opacity-100' : 'opacity-0 pointer-events-none')}
       />
 
       {mode === 'mjpeg' && (
