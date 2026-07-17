@@ -63,7 +63,7 @@ function stringOrUndefined(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim() && value.trim().length <= 120 ? value.trim() : undefined
 }
 
-function sanitizeWidget(value: unknown): HomeWidget | null {
+export function sanitizeWidget(value: unknown): HomeWidget | null {
   if (!isObject(value)) return null
   const id = stringOrUndefined(value.id)
   if (!id || !isWidgetType(value.type) || !isWidgetSize(value.size)) return null
@@ -75,6 +75,26 @@ function sanitizeWidget(value: unknown): HomeWidget | null {
   if (entityId && /^[a-z0-9_]+\.[a-z0-9_]+$/.test(entityId)) widget.entityId = entityId
   if (groupId && /^[a-z0-9][a-z0-9_-]*$/i.test(groupId)) widget.groupId = groupId
   return widget
+}
+
+export const MAX_HOME_WIDGETS = 60
+
+/**
+ * Strict parse of a client-supplied widget list (home editor add/remove/resize):
+ * every entry must be valid and unique, or the whole list is rejected — a widget
+ * manager must never silently drop a tile the user just placed.
+ */
+export function parseHomeWidgets(value: unknown): HomeWidget[] | null {
+  if (!Array.isArray(value) || value.length === 0 || value.length > MAX_HOME_WIDGETS) return null
+  const seen = new Set<string>()
+  const widgets: HomeWidget[] = []
+  for (const item of value) {
+    const widget = sanitizeWidget(item)
+    if (!widget || seen.has(widget.id)) return null
+    seen.add(widget.id)
+    widgets.push(widget)
+  }
+  return widgets
 }
 
 function sanitizeWidgets(value: unknown, fallback: HomeWidget[]): HomeWidget[] {

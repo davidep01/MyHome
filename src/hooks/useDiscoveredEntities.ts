@@ -2,7 +2,14 @@ import { useMemo } from 'react'
 import { useEntityStore } from '../store/entities'
 import { useDashboardConfig } from './useDashboardConfig'
 import { useHAHiddenEntities } from './useHAHiddenEntities'
-import type { EntityType, RoomEntity } from '../api/backend'
+import type { DeviceOverride, EntityGroup, EntityType, RoomEntity } from '../api/backend'
+
+/** Curation the kiosk already holds in its public layout (no admin config fetch). */
+export interface CurationSource {
+  hiddenEntities?: string[]
+  deviceOverrides?: Record<string, DeviceOverride>
+  groups?: EntityGroup[]
+}
 
 /** HA domain → dashboard card type. Domains not listed are ignored (infra/system). */
 export const DOMAIN_TYPE: Record<string, EntityType> = {
@@ -89,12 +96,14 @@ export interface DiscoveredSection {
  * Builds dashboard sections directly from the live Home Assistant entity store.
  * Auto-updates whenever HA pushes new states/entities over the WebSocket.
  */
-export function useDiscoveredEntities(): { sections: DiscoveredSection[]; total: number } {
+export function useDiscoveredEntities(curation?: CurationSource): { sections: DiscoveredSection[]; total: number } {
   const entities = useEntityStore((s) => s.entities)
-  const { data: config } = useDashboardConfig()
-  const hidden = config?.hiddenEntities
-  const overrides = config?.deviceOverrides
-  const groups = config?.groups
+  // On the kiosk the full admin config is out of reach; the public layout already
+  // carries the curation (hidden/overrides/groups), so accept it and skip the fetch.
+  const { data: config } = useDashboardConfig(!curation)
+  const hidden = curation?.hiddenEntities ?? config?.hiddenEntities
+  const overrides = curation?.deviceOverrides ?? config?.deviceOverrides
+  const groups = curation?.groups ?? config?.groups
   const haHidden = useHAHiddenEntities()
 
   return useMemo(() => {

@@ -34,9 +34,11 @@ COPY backend/dist ./backend/dist
 COPY run.sh /run.sh
 RUN chmod +x /run.sh
 
+# Auth mode is decided at startup by run.sh: OFF by default, ON only when an
+# admin_token option is provided. No hard-coded default here so the container
+# never forces a login the operator did not ask for.
 ENV NODE_ENV=production \
-    MYHOME_DB_PATH=/data/db.json \
-    MYHOME_AUTH_MODE=required
+    MYHOME_DB_PATH=/data/db.json
 
 EXPOSE 3001
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \

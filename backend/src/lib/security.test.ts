@@ -19,22 +19,33 @@ afterEach(() => {
 })
 
 describe.sequential('LAN authentication', () => {
-  it('fails closed in production when the admin secret is absent', () => {
+  it('is disabled by default, even in production and even with tokens present', () => {
     process.env.NODE_ENV = 'production'
+    delete process.env.MYHOME_AUTH_MODE
+    delete process.env.MYHOME_ADMIN_TOKEN
+    delete process.env.MYHOME_ACCESS_TOKEN
+    expect(authConfiguration().mode).toBe('disabled')
+    // A leftover token no longer silently turns login on: it must be opt-in.
+    process.env.MYHOME_ADMIN_TOKEN = 'admin-secret'
+    expect(authConfiguration().mode).toBe('disabled')
+  })
+
+  it('turns authentication on only when explicitly requested', () => {
+    process.env.NODE_ENV = 'production'
+    process.env.MYHOME_AUTH_MODE = 'required'
+    process.env.MYHOME_ADMIN_TOKEN = 'admin-secret'
+    expect(authConfiguration().mode).toBe('required')
+  })
+
+  it('fails closed when required but the admin secret is absent', () => {
+    process.env.MYHOME_AUTH_MODE = 'required'
     delete process.env.MYHOME_ADMIN_TOKEN
     delete process.env.MYHOME_ACCESS_TOKEN
     expect(authConfiguration().mode).toBe('misconfigured')
   })
 
-  it('cannot disable authentication in production', () => {
-    process.env.NODE_ENV = 'production'
-    process.env.MYHOME_AUTH_MODE = 'disabled'
-    process.env.MYHOME_ADMIN_TOKEN = 'admin-secret'
-    expect(authConfiguration().mode).toBe('required')
-  })
-
   it('derives roles only from their configured access codes', () => {
-    process.env.NODE_ENV = 'production'
+    process.env.MYHOME_AUTH_MODE = 'required'
     process.env.MYHOME_ADMIN_TOKEN = 'admin-secret'
     process.env.MYHOME_KIOSK_TOKEN = 'kiosk-secret'
     expect(roleForAccessToken('admin-secret')).toBe('admin')
@@ -56,7 +67,7 @@ describe.sequential('LAN authentication', () => {
   })
 
   it('rejects access codes outside the accepted length range', () => {
-    process.env.NODE_ENV = 'production'
+    process.env.MYHOME_AUTH_MODE = 'required'
     process.env.MYHOME_ADMIN_TOKEN = 'short'
     expect(authConfiguration()).toMatchObject({ mode: 'misconfigured', error: 'invalid_tokens' })
     process.env.MYHOME_ADMIN_TOKEN = 'x'.repeat(513)

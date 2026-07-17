@@ -2,20 +2,40 @@ import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import type { Layout } from 'react-grid-layout/legacy'
 import 'react-grid-layout/css/styles.css'
-import { Check, GripVertical, Pencil, RotateCcw, Save, WifiOff, X } from 'lucide-react'
+import { GripVertical, LayoutGrid, Maximize2, Pencil, Plus, Save, WifiOff, X } from 'lucide-react'
 import { HomeGridCanvas } from './HomeGridCanvas'
+import { WidgetPicker } from './WidgetPicker'
+import { WIDGET_META } from './widgetCatalog'
 import { buildLayout, orderFromLayout, positionsFromLayout, sameLayout } from '../../../lib/homeLayout'
 import { useTabletLayout, useSaveTabletLayout } from '../../../hooks/useTabletLayout'
 import { useClock } from '../../../hooks/useClock'
 import { useTimeOfDay } from '../../../hooks/useTimeOfDay'
 import { useCurrentWeather } from '../../../hooks/useWeather'
 import { useEntityStore } from '../../../store/entities'
+import { useHaptic } from '../../../hooks/useHaptic'
 import { cn } from '../../../lib/utils'
 import { WeatherIcon } from '../../weather/WeatherIcon'
-import { authApi, type TabletDashboardLayout } from '../../../api/backend'
+import { authApi, type HomeWidget, type TabletDashboardLayout, type WidgetSize } from '../../../api/backend'
 import { NotificationBell } from '../../notifications/NotificationCenter'
 
 const GRID_GAP = [14, 14] as const
+const SIZE_SHORT: Record<WidgetSize, string> = { sm: 'S', md: 'M', lg: 'L', wide: 'XL' }
+
+interface Draft {
+  widgets: HomeWidget[]
+  layout: Layout
+}
+
+/** True when two widget sets carry the same tiles with the same binding + size. */
+function sameWidgets(a: HomeWidget[], b: HomeWidget[]): boolean {
+  if (a.length !== b.length) return false
+  const byId = new Map(b.map((w) => [w.id, w]))
+  return a.every((w) => {
+    const other = byId.get(w.id)
+    return Boolean(other) && other!.type === w.type && other!.size === w.size
+      && other!.entityId === w.entityId && other!.groupId === w.groupId
+  })
+}
 
 function KioskHeader({ layout }: { layout: TabletDashboardLayout }) {
   const { time, date } = useClock()
@@ -51,7 +71,7 @@ function KioskHeader({ layout }: { layout: TabletDashboardLayout }) {
             online && !cached ? 'bg-green-500/12 text-green-700' : syncing ? 'bg-orange-500/12 text-orange-700' : 'bg-black/[0.06] text-black/55',
           )}
         >
-          <span className={cn('h-2.5 w-2.5 rounded-full', online && !cached ? 'bg-green-500' : syncing ? 'bg-orange-400' : 'bg-orange-400')} />
+          <span className={cn('h-2.5 w-2.5 rounded-full', online && !cached ? 'bg-green-500' : 'bg-orange-400')} />
           {online && !cached ? 'Online' : syncing ? 'Sincronizzazione' : 'Offline'}
         </div>
         <NotificationBell allowDismiss={false} />
@@ -73,60 +93,86 @@ function LoadingGrid() {
 export function KioskWidgetHome() {
   const { data, isLoading, isError, refetch } = useTabletLayout('home')
   const saveLayout = useSaveTabletLayout('home')
+  const { light: tapHaptic } = useHaptic()
   const authStatus = useQuery({
     queryKey: ['auth-status'],
     queryFn: authApi.status,
     retry: false,
     staleTime: 30_000,
   })
-  const [editMode, setEditMode] = useState(false)
-  const [draft, setDraft] = useState<Layout | null>(null)
+  const [draft, setDraft] = useState<Draft | null>(null)
+  const [pickerOpen, setPickerOpen] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
 
-  const widgets = useMemo(() => data?.widgets ?? [], [data?.widgets])
-  const savedLayout = useMemo(() => buildLayout(widgets, data?.layout.items), [widgets, data?.layout.items])
-  const activeLayout = draft ?? savedLayout
-  const dirty = draft ? !sameLayout(draft, savedLayout) : false
-  const isAdmin = authStatus.data?.authenticated === true && authStatus.data.role === 'admin'
-  const editing = editMode && isAdmin
+  const savedWidgets = useMemo(() => data?.widgets ?? [], [data?.widgets])
+  const savedLayout = useMemo(() => buildLayout(savedWidgets, data?.layout.items), [savedWidgets, data?.layout.items])
+
+  // Auth removed on the LAN → /status reports the admin role on every device,
+  // so home customization is available directly on the wall tablet.
+  const canEdit = authStatus.data?.role === 'admin'
+  const editing = draft !== null && canEdit
+  const activeWidgets = editing ? draft.widgets : savedWidgets
+  const activeLayout = editing ? draft.layout : savedLayout
+  const dirty = editing ? (!sameWidgets(draft.widgets, savedWidgets) || !sameLayout(draft.layout, savedLayout)) : false
 
   const beginEdit = () => {
+    if (!canEdit) return
     setMessage(null)
-    setDraft(savedLayout)
-    setEditMode(true)
+    setDraft({ widgets: savedWidgets, layout: savedLayout })
     if (document.fullscreenEnabled && !document.fullscreenElement) {
       void document.documentElement.requestFullscreen().catch(() => {})
     }
   }
 
-  const enterEdit = () => {
-    if (!isAdmin) return
-    beginEdit()
-  }
-
   const cancel = () => {
     setDraft(null)
-    setEditMode(false)
+    setPickerOpen(false)
     setMessage('Modifiche annullate')
   }
 
+  /** Re-pack after any change: keep current x/y, re-derive footprints from size. */
+  const repack = (widgets: HomeWidget[], layout: Layout): Draft => ({
+    widgets,
+    layout: buildLayout(widgets, positionsFromLayout(layout)),
+  })
+
+  const addWidget = (widget: HomeWidget) => {
+    if (!draft) return
+    tapHaptic()
+    setDraft(repack([...draft.widgets, widget], draft.layout))
+  }
+
+  const removeWidget = (id: string) => {
+    if (!draft) return
+    tapHaptic()
+    setDraft(repack(draft.widgets.filter((w) => w.id !== id), draft.layout))
+  }
+
+  const resizeWidget = (id: string) => {
+    if (!draft) return
+    const widget = draft.widgets.find((w) => w.id === id)
+    if (!widget) return
+    const sizes = WIDGET_META[widget.type].sizes
+    const next = sizes[(sizes.indexOf(widget.size) + 1) % sizes.length]
+    tapHaptic()
+    setDraft(repack(draft.widgets.map((w) => (w.id === id ? { ...w, size: next } : w)), draft.layout))
+  }
+
   const save = () => {
-    if (!isAdmin || !data || !draft) return
-    setMessage('Salvataggio...')
+    if (!data || !draft) return
+    setMessage('Salvataggio…')
     saveLayout.mutate({
       layoutVersion: data.layoutVersion,
-      items: positionsFromLayout(draft, widgets),
-      order: orderFromLayout(draft),
+      widgets: draft.widgets,
+      items: positionsFromLayout(draft.layout, draft.widgets),
+      order: orderFromLayout(draft.layout),
     }, {
       onSuccess: () => {
         setDraft(null)
-        setEditMode(false)
-        setMessage('Modifiche salvate')
+        setPickerOpen(false)
+        setMessage('Home aggiornata')
       },
-      onError: () => {
-        setDraft(savedLayout)
-        setMessage('Errore salvataggio')
-      },
+      onError: () => setMessage('Salvataggio non riuscito. Riprova.'),
     })
   }
 
@@ -168,7 +214,7 @@ export function KioskWidgetHome() {
         <div className="mb-3 flex shrink-0 items-center justify-between gap-3">
           <div className="min-w-0">
             {editing ? (
-              <p className="truncate text-sm font-semibold text-black/50">Stai modificando solo la disposizione</p>
+              <p className="truncate text-sm font-semibold text-[#0066cc]">Personalizzazione home</p>
             ) : (
               <p className="truncate text-sm font-semibold text-black/35">{data.dashboardName}</p>
             )}
@@ -179,11 +225,17 @@ export function KioskWidgetHome() {
             {editing ? (
               <>
                 <button
+                  onClick={() => setPickerOpen(true)}
+                  className="flex min-h-[48px] items-center gap-2 rounded-full bg-[#0066cc] px-5 text-base font-semibold text-white transition active:scale-95"
+                >
+                  <Plus size={18} /> Aggiungi
+                </button>
+                <button
                   onClick={save}
                   disabled={!dirty || saveLayout.isPending}
-                  className="flex min-h-[48px] items-center gap-2 rounded-full bg-[#0066cc] px-5 text-base font-semibold text-white transition active:scale-95 disabled:opacity-45"
+                  className="flex min-h-[48px] items-center gap-2 rounded-full bg-black px-5 text-base font-semibold text-white transition active:scale-95 disabled:opacity-40"
                 >
-                  <Save size={18} /> {saveLayout.isPending ? 'Salvataggio...' : 'Salva'}
+                  <Save size={18} /> {saveLayout.isPending ? 'Salvataggio…' : 'Salva'}
                 </button>
                 <button
                   onClick={cancel}
@@ -192,66 +244,104 @@ export function KioskWidgetHome() {
                 >
                   <X size={18} /> Annulla
                 </button>
-                <button
-                  onClick={() => { setDraft(null); setEditMode(false) }}
-                  disabled={saveLayout.isPending}
-                  className="flex min-h-[48px] items-center gap-2 rounded-full bg-black px-5 text-base font-semibold text-white transition active:scale-95 disabled:opacity-45"
-                >
-                  <Check size={18} /> Fine
-                </button>
               </>
-            ) : isAdmin ? (
+            ) : canEdit ? (
               <button
                 type="button"
-                onClick={enterEdit}
+                onClick={beginEdit}
                 className="flex min-h-[48px] items-center gap-2 rounded-full bg-black/[0.06] px-5 text-base font-semibold text-black/60 transition active:scale-95"
               >
-                <Pencil size={17} aria-hidden="true" /> Modifica disposizione
+                <Pencil size={17} aria-hidden="true" /> Personalizza
               </button>
             ) : null}
           </div>
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1">
-          <HomeGridCanvas
-            className={cn('relative pb-10', editing && 'kiosk-layout-editing')}
-            widgets={widgets}
-            layout={activeLayout}
-            rowHeight={data.layout.rowHeight}
-            gap={GRID_GAP}
-            editMode={editing}
-            isDraggable={editing}
-            draggableCancel="button, input, select, textarea, a"
-            publicConfig={data}
-            onDrag={(_, __, ___, ____, event) => event.stopPropagation()}
-            onDragStop={(nextLayout) => setDraft(buildLayout(widgets, positionsFromLayout(nextLayout, widgets)))}
-            renderOverlay={() => (
-              <>
-                <div className="pointer-events-none absolute inset-0 rounded-[18px] ring-2 ring-[#0066cc]/45" />
-                <div
-                  className="absolute inset-0 z-10 cursor-grab rounded-[18px] active:cursor-grabbing"
-                  style={{ touchAction: 'none' }}
-                  aria-hidden="true"
+          {editing && activeWidgets.length === 0 ? (
+            <button
+              type="button"
+              onClick={() => setPickerOpen(true)}
+              className="flex min-h-[220px] w-full flex-col items-center justify-center gap-3 rounded-[20px] border-2 border-dashed border-black/15 text-black/45 transition hover:border-[#0066cc]/40 hover:text-[#0066cc]"
+            >
+              <LayoutGrid size={30} aria-hidden="true" />
+              <span className="text-base font-semibold">Aggiungi il primo widget</span>
+            </button>
+          ) : (
+            <HomeGridCanvas
+              className={cn('relative pb-10', editing && 'kiosk-layout-editing')}
+              widgets={activeWidgets}
+              layout={activeLayout}
+              rowHeight={data.layout.rowHeight}
+              gap={GRID_GAP}
+              editMode={editing}
+              isDraggable={editing}
+              draggableCancel="button, input, select, textarea, a"
+              publicConfig={data}
+              onDrag={(_, __, ___, ____, event) => event.stopPropagation()}
+              onDragStop={(nextLayout) => draft && setDraft({ ...draft, layout: buildLayout(draft.widgets, positionsFromLayout(nextLayout, draft.widgets)) })}
+              renderOverlay={(widget) => (
+                <TileEditOverlay
+                  widget={widget}
+                  onRemove={() => removeWidget(widget.id)}
+                  onResize={() => resizeWidget(widget.id)}
                 />
-                <div className="pointer-events-none absolute bottom-2 left-1/2 z-20 flex h-8 w-12 -translate-x-1/2 items-center justify-center rounded-full bg-white/95 text-black/45 shadow-lg">
-                  <GripVertical size={18} />
-                </div>
-              </>
-            )}
-          />
+              )}
+            />
+          )}
         </div>
       </div>
 
-      {editing && (
+      <WidgetPicker
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        existing={activeWidgets}
+        onAdd={addWidget}
+        curation={data}
+      />
+    </div>
+  )
+}
+
+/** Per-tile controls in edit mode: drag surface, remove and resize. */
+function TileEditOverlay({
+  widget, onRemove, onResize,
+}: {
+  widget: HomeWidget
+  onRemove: () => void
+  onResize: () => void
+}) {
+  const resizable = WIDGET_META[widget.type].sizes.length > 1
+  return (
+    <>
+      <div className="pointer-events-none absolute inset-0 rounded-[18px] bg-white/10 ring-2 ring-[#0066cc]/40" />
+      {/* Full-surface grab layer: blocks accidental device toggles while editing. */}
+      <div
+        className="absolute inset-0 z-10 cursor-grab rounded-[18px] active:cursor-grabbing"
+        style={{ touchAction: 'none' }}
+        aria-hidden="true"
+      />
+      <button
+        type="button"
+        onClick={onRemove}
+        aria-label="Rimuovi widget"
+        className="tap-target pointer-events-auto absolute -right-2 -top-2 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-red-500 text-white shadow-lg transition active:scale-90"
+      >
+        <X size={17} aria-hidden="true" />
+      </button>
+      {resizable && (
         <button
-          onClick={() => setDraft(savedLayout)}
-          disabled={!dirty || saveLayout.isPending}
-          className="fixed bottom-[max(18px,env(safe-area-inset-bottom))] left-[max(20px,env(safe-area-inset-left))] z-40 flex min-h-[48px] items-center gap-2 rounded-full bg-white/90 px-5 text-sm font-semibold text-black/60 shadow-lg backdrop-blur active:scale-95 disabled:opacity-40"
+          type="button"
+          onClick={onResize}
+          aria-label={`Cambia dimensione widget (attuale ${SIZE_SHORT[widget.size]})`}
+          className="pointer-events-auto absolute bottom-2 right-2 z-20 flex min-h-9 items-center gap-1 rounded-full bg-white/95 px-3 text-sm font-semibold text-black/70 shadow-lg transition active:scale-90"
         >
-          <RotateCcw size={16} /> Ripristina
+          <Maximize2 size={14} aria-hidden="true" /> {SIZE_SHORT[widget.size]}
         </button>
       )}
-
-    </div>
+      <div className="pointer-events-none absolute bottom-2 left-1/2 z-10 flex h-8 w-12 -translate-x-1/2 items-center justify-center rounded-full bg-white/95 text-black/45 shadow-lg">
+        <GripVertical size={18} aria-hidden="true" />
+      </div>
+    </>
   )
 }

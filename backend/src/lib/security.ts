@@ -22,10 +22,10 @@ export function authConfiguration() {
   const adminToken = envValue('MYHOME_ADMIN_TOKEN') || envValue('MYHOME_ACCESS_TOKEN')
   const kioskToken = envValue('MYHOME_KIOSK_TOKEN')
   const requested = envValue('MYHOME_AUTH_MODE').toLowerCase()
-  const production = process.env.NODE_ENV === 'production'
-  // Production is never allowed to opt out of authentication. The explicit
-  // disabled mode exists only for local development and tests.
-  const required = production || requested === 'required' || (requested !== 'disabled' && Boolean(adminToken || kioskToken))
+  // Login is OFF by default: MyHome is a single-home LAN dashboard and the owner
+  // wants immediate access on every device, admin and kiosk alike. Codes come
+  // back only when the operator explicitly opts in with MYHOME_AUTH_MODE=required.
+  const required = requested === 'required'
   // Equal access codes are ambiguous. Checking the admin code first would turn
   // a kiosk login into an administrator session, so fail the whole auth setup
   // closed until the operator configures two distinct values.

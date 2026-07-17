@@ -34,7 +34,7 @@ options:
 schema:
   ha_url: str?
   ha_token: password?
-  admin_token: password
-  kiosk_token: password
+  admin_token: password?
+  kiosk_token: password?
   openweather_key: password
   gemini_key: password

@@ -9,6 +9,7 @@ import {
   HOME_SIZE_WH,
   mergeHomeConfig,
   normalizeHomePositions,
+  parseHomeWidgets,
   tabletHomeLayout,
   type HomePosition,
 } from '../lib/home-layout.js'
@@ -23,10 +24,10 @@ function int(value: unknown): number | null {
   return Number.isInteger(value) ? value as number : null
 }
 
-function validatePatch(body: unknown, widgets: HomeWidget[], currentVersion: number) {
+function validatePatch(body: unknown, currentWidgets: HomeWidget[], currentVersion: number) {
   if (!isObject(body)) return { ok: false as const, error: 'Payload non valido' }
 
-  const allowedTopLevel = new Set(['layoutVersion', 'items', 'order'])
+  const allowedTopLevel = new Set(['layoutVersion', 'widgets', 'items', 'order'])
   const forbiddenTopLevel = Object.keys(body).filter((key) => !allowedTopLevel.has(key))
   if (forbiddenTopLevel.length) {
     return { ok: false as const, error: `Campi non consentiti: ${forbiddenTopLevel.join(', ')}` }
@@ -35,6 +36,17 @@ function validatePatch(body: unknown, widgets: HomeWidget[], currentVersion: num
   if (body.layoutVersion !== currentVersion) {
     return { ok: false as const, conflict: true as const, error: 'Layout modificato da un altro dispositivo' }
   }
+
+  // A widget-manager save (add/remove/resize) sends the full new widget set;
+  // a plain reorder omits it and keeps the current one. Either way, items and
+  // order below are validated against `widgets`.
+  let nextWidgets: HomeWidget[] | undefined
+  if (body.widgets !== undefined) {
+    const parsed = parseHomeWidgets(body.widgets)
+    if (!parsed) return { ok: false as const, error: 'Elenco widget non valido' }
+    nextWidgets = parsed
+  }
+  const widgets = nextWidgets ?? currentWidgets
 
   if (!isObject(body.items)) return { ok: false as const, error: 'items mancante o non valido' }
 
@@ -77,7 +89,7 @@ function validatePatch(body: unknown, widgets: HomeWidget[], currentVersion: num
     order = [...body.order, ...widgets.map((widget) => widget.id).filter((id) => !seen.has(id))]
   }
 
-  return { ok: true as const, items: normalizeHomePositions(widgets, nextItems), order }
+  return { ok: true as const, widgets: nextWidgets, items: normalizeHomePositions(widgets, nextItems), order }
 }
 
 layoutRouter.get('/:dashboardId', async (c) => {
@@ -111,8 +123,9 @@ layoutRouter.put('/:dashboardId', adminOnly, async (c) => {
       return
     }
     store.config.home = mergeHomeConfig(store.config.home, {
+      ...(atomicValidation.widgets ? { widgets: atomicValidation.widgets } : {}),
       positions: atomicValidation.items,
-      order: atomicValidation.order ?? latest.layout.order,
+      order: atomicValidation.order ?? (atomicValidation.widgets ? undefined : latest.layout.order),
       layoutVersion: latest.layoutVersion + 1,
     }, 'tablet')
   })

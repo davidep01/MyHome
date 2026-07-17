@@ -86,14 +86,26 @@ if [ -z "${HA_URL:-}" ] && [ -z "${HA_TOKEN:-}" ] && [ -n "${SUPERVISOR_TOKEN:-}
   export HA_TOKEN="$SUPERVISOR_TOKEN"
 fi
 
-MYHOME_ADMIN_TOKEN=$(load_token "$ADMIN_OPT" /data/myhome-admin-token "amministratore") || exit 1
-MYHOME_KIOSK_TOKEN=$(load_token "$KIOSK_OPT" /data/myhome-kiosk-token "kiosk") || exit 1
-if [ "$MYHOME_ADMIN_TOKEN" = "$MYHOME_KIOSK_TOKEN" ]; then
-  echo "Errore: i codici amministratore e kiosk devono essere diversi." >&2
-  exit 1
+# Authentication is OFF by default: MyHome runs on a trusted home LAN and the
+# owner wants immediate access. It turns ON only when an admin_token option is
+# set — then (optionally) a distinct kiosk_token adds the reduced kiosk role.
+if [ -n "$ADMIN_OPT" ]; then
+  MYHOME_ADMIN_TOKEN=$(load_token "$ADMIN_OPT" /data/myhome-admin-token "amministratore") || exit 1
+  export MYHOME_ADMIN_TOKEN
+  if [ -n "$KIOSK_OPT" ]; then
+    MYHOME_KIOSK_TOKEN=$(load_token "$KIOSK_OPT" /data/myhome-kiosk-token "kiosk") || exit 1
+    if [ "$MYHOME_ADMIN_TOKEN" = "$MYHOME_KIOSK_TOKEN" ]; then
+      echo "Errore: i codici amministratore e kiosk devono essere diversi." >&2
+      exit 1
+    fi
+    export MYHOME_KIOSK_TOKEN
+  fi
+  export MYHOME_AUTH_MODE=required
+  echo "🔐 Accesso protetto: è richiesto il codice amministratore." >&2
+else
+  export MYHOME_AUTH_MODE=disabled
+  echo "🔓 Accesso diretto in LAN (nessun codice richiesto)." >&2
 fi
-export MYHOME_ADMIN_TOKEN MYHOME_KIOSK_TOKEN
-export MYHOME_AUTH_MODE=required
 
 chown node:node /data
 if [ -e /data/db.json ] || [ -L /data/db.json ]; then

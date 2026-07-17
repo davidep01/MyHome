@@ -683,7 +683,7 @@ function KioskCard() {
 
   const modes: { id: 'composer' | 'grid'; label: string }[] = [
     { id: 'composer', label: 'Auto-composta' },
-    { id: 'grid', label: 'Griglia drag & drop' },
+    { id: 'grid', label: 'Personalizzabile' },
   ]
 
   return (
@@ -708,7 +708,7 @@ function KioskCard() {
         </div>
         <p className="text-[11px] text-black/40">
           {homeMode === 'grid'
-            ? 'Sul tablet appare "Modifica disposizione": trascina le card dove vuoi e salva. La modifica arriva live.'
+            ? 'Sul tablet appare "Personalizza": aggiungi, rimuovi, ridimensiona e trascina i widget. Le modifiche arrivano live.'
             : 'Le card si scelgono da sole per rilevanza (composer): niente da disporre.'}
         </p>
       </div>

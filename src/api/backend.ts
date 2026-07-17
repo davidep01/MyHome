@@ -283,6 +283,8 @@ export interface TabletDashboardLayout {
 
 export interface TabletLayoutPatch {
   layoutVersion: number
+  /** Full new widget set when adding/removing/resizing; omit for a plain reorder. */
+  widgets?: HomeWidget[]
   items: Record<string, DashboardPosition>
   order?: string[]
 }

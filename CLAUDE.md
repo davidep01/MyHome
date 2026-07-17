@@ -1,7 +1,7 @@
 # CLAUDE.md — MyHome
 
 > Documento sorgente unico (grafico + tecnico) per lo sviluppo di MyHome.
-> Versione doc: 2.1 · Allineato a app `2.2.x` · Aggiornato: 2026-07-15 · Lingua: italiano (identificatori in inglese).
+> Versione doc: 2.1 · Allineato a app `2.2.x` · Aggiornato: 2026-07-17 · Lingua: italiano (identificatori in inglese).
 >
 > Questo file ha **precedenza** sulle assunzioni generiche. `docs/DESIGN_SYSTEM.md` resta il riferimento grafico esteso; questo file lo riassume e ne risolve le incongruenze. Quando i due divergono, **vince questo file** e va aggiornato `docs/DESIGN_SYSTEM.md` di conseguenza.
 
@@ -96,7 +96,7 @@ Ogni `write` fa read-modify-write dell'intero blob. La route `layout` usa **conc
 
 **Credenziali HA** (`backend/src/lib/ha-config.ts`): precedenza `env` > `db` > default; se da env sono **locked** (non sovrascrivibili da UI). Il token è mascherato come `***` in `/api/config` e non esiste alcun endpoint che lo consegni al browser.
 
-**Autenticazione locale** (`backend/src/lib/security.ts`, `routes/auth.ts`): in produzione `MYHOME_AUTH_MODE=required`. Il login scambia il codice admin/kiosk con una sessione firmata in cookie `HttpOnly`, `SameSite=Strict`; il ruolo viene ricavato esclusivamente dalla sessione, mai da header dichiarati dal client. Admin accede a configurazione e regia; kiosk soltanto alle route operative necessarie. `/api/health` e `/api/auth/*` sono pubblici, tutte le altre API richiedono una sessione.
+**Autenticazione locale** (`backend/src/lib/security.ts`, `routes/auth.ts`): **login OFF di default** (`mode: 'disabled'`) — MyHome è una dashboard di casa in LAN e l'accesso è immediato su ogni dispositivo. In `disabled` il ruolo si deriva dal contesto client (desktop→admin, tablet→kiosk) e la SPA non mostra alcuna schermata di login. L'auth si riaccende **solo** con `MYHOME_AUTH_MODE=required` (l'add-on la abilita quando l'operatore imposta `admin_token`; `run.sh` altrimenti esporta `disabled`): allora il login scambia il codice admin/kiosk con una sessione firmata in cookie `HttpOnly`, `SameSite=Strict`, il ruolo viene ricavato esclusivamente dalla sessione, e `/api/health` + `/api/auth/*` restano pubblici mentre il resto richiede la sessione.
 
 ### 4.4 Deployment LAN
 - **Add-on HA** — `Dockerfile` (artefatti pre-buildati in CI), `run.sh` legge `/data/options.json` (Supervisor) e avvia il backend come utente non-root. Se `admin_token`/`kiosk_token` sono vuoti genera codici casuali, li stampa una volta nei log e li persiste in `/data` con permessi `0600`.
@@ -265,7 +265,13 @@ Fasi 2–6 applicate. La Definition of Done richiede a ogni rilascio lint, suite
 - **Flotta kiosk (§4.5/§12)** — bridge Fully esteso (batteria, alimentazione, TTS, screen off, camshot, screensaver, restart, deviceId); heartbeat 60s `POST /api/kiosk/heartbeat` (store in-memory testato in `kiosk-fleet.ts`); comandi dalla regia `POST /api/kiosk/command` → evento one-shot `kiosk-command` sullo stream SSE (stesso canale del doorbell-test, fuori ring buffer) eseguito solo dal tablet bersaglio; card "Tablet a muro" in Sistema (stato + Ricarica/Schermo/Annuncio TTS/Screensaver/Riavvia con conferme).
 - Verifica: lint ✅ · test 187/187 ✅ · build:all ✅ · typecheck backend ✅. **Da provare sul tablet reale:** camshot/TTS/riavvio Fully e un album Google Foto vero.
 
-**Residui noti (non bloccanti):** WebRTC/talk-back via signaling proxy backend; rimozione definitiva della grid legacy (+ kernel + react-grid-layout + `/api/layout` solo-posizioni) dopo validazione del composer sul tablet reale; AI write-back automazioni (roadmap); versioning config con storico snapshot (§4.4) e modalità ospiti/pulizie (§6.4) non ancora implementati.
+**Risolti (2026-07-17) — login opt-in + gestore widget della home:**
+- **Login rimosso di default (§3)** — `authConfiguration()` ora è `disabled` salvo `MYHOME_AUTH_MODE=required`; tolto il vincolo "produzione forza l'auth". `run.sh` non genera più codici d'ufficio e imposta `disabled` finché non c'è un `admin_token`; rimosso il default `MYHOME_AUTH_MODE=required` dal `Dockerfile`; `config.yaml` rende `admin_token`/`kiosk_token` opzionali. La SPA (AuthGate) in `disabled` salta la schermata di login. Test `security.test.ts` riscritti al modello opt-in.
+- **Vero gestore widget in grid mode (§4.1–4.3)** — la home "Personalizzabile" (Funzioni→Kiosk) non fa più solo riordino: **aggiungi / rimuovi / ridimensiona / trascina**. [WidgetPicker](src/components/home/widgets/WidgetPicker.tsx) è un bottom sheet con i widget informativi in griglia e i **dispositivi reali** scoperti da HA con ricerca (voci già presenti spuntate); il picker è alimentato dalla curation del layout pubblico (`useDiscoveredEntities(curation)`), quindi funziona sul kiosk senza toccare `GET /api/config` (desktopOnly). [KioskWidgetHome](src/components/home/widgets/KioskWidgetHome.tsx) gestisce un draft `{widgets, layout}`, overlay per-tile (rimuovi ✕ + ridimensiona S/M/L/XL + grip), toolbar chiara **Aggiungi · Salva · Annulla**, stato non-salvato e ripacking deterministico via `homeLayout.buildLayout`.
+- **Percorso di scrittura unico** — `PUT /api/layout/home` accetta ora l'intero set `widgets` (oltre a `items`/`order`) con `parseHomeWidgets` strict (nessun drop silenzioso) e la **stessa concorrenza `layoutVersion`** (409 su scrittura stale). Editing disponibile sul tablet perché in `disabled` `/status` riporta il ruolo admin ovunque.
+- Verifica: lint ✅ · test 197/197 ✅ (nuovi: `home-layout` widget parse/merge, route `layout.test.ts` add/remove/invalid/concorrenza in auth-off) · build:all ✅ · typecheck backend ✅. **Da provare sul tablet reale:** drag+resize su GPU mid-range e il picker con entità HA vive.
+
+**Residui noti (non bloccanti):** WebRTC/talk-back via signaling proxy backend; rimozione definitiva della grid legacy dopo validazione del composer sul tablet reale; AI write-back automazioni (roadmap); versioning config con storico snapshot (§4.4) e modalità ospiti/pulizie (§6.4) non ancora implementati.
 
 ---
 
@@ -393,8 +399,8 @@ Backend (config/layout) ──SSE config──▶ useConfigSync ──▶ refetc
 
 ## 10. Sicurezza
 
-- **LAN-only con autenticazione obbligatoria**: in produzione manca un servizio sano finché `MYHOME_ADMIN_TOKEN` non è configurato. Admin e kiosk hanno codici e ruoli distinti.
-- Login con rate limit; sessione HMAC firmata in cookie `HttpOnly`, `SameSite=Strict`, `Secure` quando l'origine è HTTPS. Gli header client non conferiscono privilegi.
+- **LAN-only, login opt-in**: di default l'accesso è diretto (nessun codice), scelta deliberata per la casa in rete locale. L'auth si abilita solo con `MYHOME_AUTH_MODE=required` + `MYHOME_ADMIN_TOKEN` (add-on: impostando `admin_token`); allora admin e kiosk hanno codici e ruoli distinti e un token mancante/duplicato tiene il servizio `misconfigured`.
+- Quando l'auth è attiva: login con rate limit; sessione HMAC firmata in cookie `HttpOnly`, `SameSite=Strict`, `Secure` quando l'origine è HTTPS. Gli header client non conferiscono privilegi.
 - Tutte le API, eccetto `/api/health` e `/api/auth/*`, richiedono la sessione. Config, sistema, entità gestite e operazioni distruttive richiedono il ruolo admin.
 - Segreti **solo backend**, senza prefisso `VITE_`; il token HA non viene mai consegnato al browser ed è mascherato in `/api/config`.
 - I backup portatili hanno `secretsIncluded:false`, redigono il token HA e non ripristinano credenziali legate all'installazione.
