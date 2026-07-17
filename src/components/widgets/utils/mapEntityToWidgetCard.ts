@@ -89,6 +89,18 @@ export interface WidgetEntityMapping {
   unit?: string
   /** 0..100 per lo slider inline (luminosità, velocità, umidità target). */
   percent?: number
+  /** Percorso `entity_picture` (copertina media): il factory lo proxa. */
+  artwork?: string
+  /** Progresso della riproduzione, per la barra sottile della card media. */
+  mediaProgress?: {
+    /** secondi già riprodotti al momento di `updatedAt` */
+    position: number
+    /** durata totale in secondi */
+    duration: number
+    /** ISO: quando HA ha misurato `position` (per l'avanzamento locale) */
+    updatedAt?: string
+    playing: boolean
+  }
 }
 
 /** Nome pubblico di un'entità: mai l'entity_id grezzo in UI. */
@@ -381,15 +393,37 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
     case 'speaker':
     case 'tv': {
       const playing = rawState === 'playing'
+      const paused = rawState === 'paused'
       const mediaTitle = entity?.attributes?.media_title as string | undefined
+      const artist = (entity?.attributes?.media_artist
+        ?? entity?.attributes?.media_series_title
+        ?? entity?.attributes?.app_name) as string | undefined
+      const picture = entity?.attributes?.entity_picture as string | undefined
+      const position = numericState(entity?.attributes?.media_position)
+      const duration = numericState(entity?.attributes?.media_duration)
+      const nowLine = mediaTitle
+        ? (artist && artist !== mediaTitle ? `${mediaTitle} · ${artist}` : mediaTitle)
+        : 'In riproduzione'
       return {
         ...base, Icon: family === 'tv' ? AnimTv : family === 'speaker' ? AnimSpeaker : AnimEqualizer,
         status: playing ? 'active' : 'idle',
         accentColor: widgetTones.media.color,
         isActive: playing,
-        state: playing ? (mediaTitle ?? 'In riproduzione')
-          : rawState === 'paused' ? 'In pausa'
+        state: playing ? nowLine
+          : paused ? (mediaTitle ? `In pausa · ${mediaTitle}` : 'In pausa')
           : rawState === 'off' ? 'Spenta' : stateLabel(rawState),
+        // La copertina è contenuto vivo: c'è solo mentre qualcosa suona o è in pausa.
+        ...(picture && (playing || paused) ? { artwork: picture } : {}),
+        ...(position !== undefined && duration !== undefined && duration > 0 && (playing || paused)
+          ? {
+              mediaProgress: {
+                position,
+                duration,
+                updatedAt: entity?.attributes?.media_position_updated_at as string | undefined,
+                playing,
+              },
+            }
+          : {}),
       }
     }
     case 'vacuum':

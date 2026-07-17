@@ -54,6 +54,11 @@ export interface WidgetCardBaseProps {
   isEditing?: boolean
   isDragging?: boolean
   children?: ReactNode
+  /**
+   * Layer full-bleed dietro i contenuti (live camera, artwork): riempie tutta
+   * la card ignorando il padding, sotto il bottone di apertura e i controlli.
+   */
+  media?: ReactNode
   className?: string
   onClick?: () => void
 }

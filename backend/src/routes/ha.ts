@@ -320,10 +320,17 @@ haRouter.get('/camera-proxy/:entityId', async (c) => {
 })
 
 // Live MJPEG stream (continuous multipart) — usable directly as an <img> src.
+// The default 20s proxy timeout would abort a healthy live feed mid-stream:
+// only the connection setup is bounded here, then the stream runs until the
+// client (or HA) closes it.
 haRouter.get('/camera-stream/:entityId', async (c) => {
   const entityId = c.req.param('entityId')
   if (!ENTITY_ID.test(entityId) || !entityId.startsWith('camera.')) return c.json({ error: 'Videocamera non valida' }, 400)
-  const res = await proxyHA(`/api/camera_proxy_stream/${encodeURIComponent(entityId)}`)
+  const abort = new AbortController()
+  const connectTimeout = setTimeout(() => abort.abort(), 15_000)
+  const res = await proxyHA(`/api/camera_proxy_stream/${encodeURIComponent(entityId)}`, { signal: abort.signal })
+  clearTimeout(connectTimeout)
+  c.req.raw.signal.addEventListener('abort', () => abort.abort(), { once: true })
   return new Response(res.body, {
     status: res.status,
     headers: {

@@ -17,114 +17,152 @@ interface CameraStreamProps {
   className?: string
   muted?: boolean
   /**
-   * Skip HLS and start straight from MJPEG: ~live latency for answer-the-door
-   * use (HLS trails by a few seconds). Used by the doorbell alert.
+   * Latenza minima per rispondere alla porta: MJPEG e HLS partono IN PARALLELO
+   * e vince il primo che consegna un frame (le Ring non emettono mai MJPEG,
+   * l'HLS cloud impiega 5–10s: in serie era nero troppo a lungo). Usato dal
+   * campanello.
    */
   preferLive?: boolean
+  /** Pill di stato (LIVE / FOTO) nell'angolo — per le card. */
+  badge?: boolean
 }
 
 /**
- * Format-agnostic camera view. The browser holds no HA socket or token: the
- * HLS playlist URL is signed by the backend (`/api/ha/camera-hls-url`) and
- * every stream flows through the same-origin proxy. Chain, in order:
- *   1. HLS     — backend-signed `camera/stream` + hls.js (skipped by preferLive).
- *   2. MJPEG   — /camera_proxy_stream.
- *   3. Snapshot— polled stills.
- *   4. Error   — nothing worked.
- * (WebRTC/talk-back went away with the in-browser HA socket; it returns with a
- * backend signaling proxy — see docs/DOMINICA.md.)
+ * Vista camera format-agnostica. Il browser non ha socket né token HA: l'URL
+ * HLS è firmato dal backend (`/api/ha/camera-hls-url`) e ogni flusso passa dal
+ * proxy same-origin. Catena:
+ *   0. Snapshot immediato come placeholder: si vede SUBITO qualcosa.
+ *   1. HLS   — `camera/stream` firmato + hls.js (in gara col MJPEG se preferLive).
+ *   2. MJPEG — /camera_proxy_stream (il proxy non tronca più il flusso).
+ *   3. Snapshot aggiornato ogni 2s quando nessun live è possibile.
+ * (WebRTC/talk-back torneranno con un signaling proxy backend — docs/DOMINICA.md.)
  */
 type Mode = 'connecting' | 'hls' | 'mjpeg' | 'snapshot' | 'error' | 'paused'
 
-export function CameraStream({ entityId, fit = 'cover', className, muted = true, preferLive = false }: CameraStreamProps) {
+/** hls.js su camere cloud (Ring): la playlist può arrivare dopo parecchi secondi. */
+const HLS_CONFIG = {
+  enableWorker: true,
+  backBufferLength: 30,
+  manifestLoadingTimeOut: 15_000,
+  manifestLoadingMaxRetry: 2,
+  levelLoadingTimeOut: 15_000,
+}
+
+export function CameraStream({ entityId, fit = 'cover', className, muted = true, preferLive = false, badge = false }: CameraStreamProps) {
   const entity = useHAEntity(entityId)
   const videoRef = useRef<HTMLVideoElement>(null)
   const { ref: containerRef, active } = useActiveWhenVisible<HTMLDivElement>()
   const [mode, setMode] = useState<Mode>('connecting')
   const [snap, setSnap] = useState('')
+  const [placeholder, setPlaceholder] = useState('')
+  const [mjpegLive, setMjpegLive] = useState(false)
   const unavailable = !entity || entity.state === 'unavailable'
   const cameraLabel = entityName(entity)
-  // Il MJPEG di certe camere (Ring) non emette MAI un frame finché lo stream
-  // live non parte: senza onError l'<img> resta nera per sempre. Questi ref
-  // alimentano il watchdog e il fallback dell'handler onError in render.
   const mjpegLoadedRef = useRef(false)
-  const mjpegFallbackRef = useRef<() => void>(() => {})
+  /** Primo frame MJPEG arrivato (in gara: il MJPEG vince e l'HLS si spegne). */
+  const mjpegWinRef = useRef<() => void>(() => {})
+  /** MJPEG in errore senza frame (catena classica: si passa allo snapshot). */
+  const mjpegFailRef = useRef<() => void>(() => {})
 
   useEffect(() => {
     if (unavailable) { setMode('error'); return }
-    // Don't stream while off-screen or with the display off — the effect's
-    // cleanup tears down any existing stream when `active` flips to false.
+    // Fuori dallo schermo o display spento → nessun flusso attivo.
     if (!active) { setMode('paused'); return }
 
     let cancelled = false
     let hls: Hls | null = null
     let watchdog: ReturnType<typeof setTimeout> | null = null
+    let settled = false
     setMode('connecting')
+    setMjpegLive(false)
+    mjpegLoadedRef.current = false
 
-    const goSnapshot = () => { if (!cancelled) setMode('snapshot') }
+    // 0 — placeholder istantaneo: l'ultima immagine disponibile, mai schermo nero.
+    setPlaceholder(`${getCameraProxyUrl(entityId)}?_t=${Date.now()}`)
+
+    const goSnapshot = () => { if (!cancelled && !settled) { settled = true; setMode('snapshot') } }
 
     const startHls = async (onFail: () => void) => {
       const video = videoRef.current
       if (!video) return onFail()
       try {
-        // hls.js è pesante (~250KB): caricato solo quando serve davvero uno stream HLS.
+        // hls.js è pesante (~250KB): caricato solo quando serve davvero.
         const { default: Hls } = await import('hls.js/light')
         const resp = await haApi.cameraHlsUrl(entityId)
-        if (cancelled) return
+        if (cancelled || settled) return
         const src = toProxiedHlsUrl(resp.url)
         if (Hls.isSupported()) {
           hls?.destroy()
-          hls = new Hls({ enableWorker: true, backBufferLength: 30 })
+          hls = new Hls(HLS_CONFIG)
           hls.loadSource(src); hls.attachMedia(video)
-          hls.on(Hls.Events.MANIFEST_PARSED, () => { if (!cancelled) { setMode('hls'); video.play().catch(() => {}) } })
+          hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            if (cancelled || settled) { hls?.destroy(); return }
+            settled = true
+            if (watchdog) clearTimeout(watchdog)
+            setMode('hls')
+            video.play().catch(() => {})
+          })
           hls.on(Hls.Events.ERROR, (_e, data) => {
             if (!data.fatal || cancelled) return
             if (data.type === Hls.ErrorTypes.MEDIA_ERROR) { try { hls?.recoverMediaError(); return } catch { /* fall through */ } }
-            onFail()
+            if (!settled) onFail()
           })
         } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
           video.src = src
-          video.addEventListener('loadedmetadata', () => { if (!cancelled) { setMode('hls'); video.play().catch(() => {}) } }, { once: true })
-          video.addEventListener('error', onFail, { once: true })
+          video.addEventListener('loadedmetadata', () => {
+            if (cancelled || settled) return
+            settled = true
+            if (watchdog) clearTimeout(watchdog)
+            setMode('hls')
+            video.play().catch(() => {})
+          }, { once: true })
+          video.addEventListener('error', () => { if (!settled) onFail() }, { once: true })
         } else onFail()
       } catch {
-        onFail() // HLS unsupported by this camera → fallback successivo
+        if (!settled) onFail() // HLS non supportato da questa camera → fallback
       }
     }
 
-    const startMjpeg = () => {
-      if (cancelled) return
-      mjpegLoadedRef.current = false
+    if (preferLive) {
+      // ── Gara MJPEG ‖ HLS: vince il primo frame ──────────────────────────────
       setMode('mjpeg')
-      // Watchdog: nessun frame entro 4s (camera che non streama) → prova HLS,
-      // e se anche quello fallisce → snapshot. L'onError dell'<img> usa lo
-      // stesso fallback (via ref), così il percorso è unico.
-      mjpegFallbackRef.current = () => { if (!cancelled) void startHls(goSnapshot) }
-      if (watchdog) clearTimeout(watchdog)
-      watchdog = setTimeout(() => {
-        if (!cancelled && !mjpegLoadedRef.current) mjpegFallbackRef.current()
-      }, 4000)
+      mjpegLoadedRef.current = false
+      mjpegWinRef.current = () => {
+        if (cancelled || settled) return
+        settled = true
+        if (watchdog) clearTimeout(watchdog)
+        hls?.destroy()
+        hls = null
+      }
+      // Un errore MJPEG in gara non decide nulla: l'HLS sta già correndo.
+      mjpegFailRef.current = () => {}
+      void startHls(goSnapshot)
+      // Se dopo 12s non ha vinto nessuno (né frame MJPEG né manifest HLS) → foto.
+      watchdog = setTimeout(() => { if (!mjpegLoadedRef.current) goSnapshot() }, 12_000)
+    } else {
+      // ── Catena classica: HLS → MJPEG → snapshot ────────────────────────────
+      void startHls(() => {
+        if (cancelled) return
+        mjpegLoadedRef.current = false
+        setMode('mjpeg')
+        mjpegWinRef.current = () => { if (watchdog) clearTimeout(watchdog) }
+        mjpegFailRef.current = goSnapshot
+        if (watchdog) clearTimeout(watchdog)
+        watchdog = setTimeout(() => {
+          if (!cancelled && !mjpegLoadedRef.current) goSnapshot()
+        }, 6_000)
+      })
     }
-
-    if (preferLive) startMjpeg()
-    else void startHls(() => {
-      // Catena classica: HLS → MJPEG → snapshot (watchdog incluso).
-      startMjpeg()
-      mjpegFallbackRef.current = goSnapshot
-      if (watchdog) clearTimeout(watchdog)
-      watchdog = setTimeout(() => {
-        if (!cancelled && !mjpegLoadedRef.current) goSnapshot()
-      }, 4000)
-    })
 
     return () => {
       cancelled = true
+      settled = true
       if (watchdog) clearTimeout(watchdog)
       hls?.destroy()
     }
   }, [entityId, preferLive, unavailable, active])
 
-  // ── Snapshot polling — only once MJPEG has failed ──
+  // ── Snapshot polling — solo quando nessun flusso live è disponibile ──
   useEffect(() => {
     if (mode !== 'snapshot') return
     const tick = () => setSnap(`${getCameraProxyUrl(entityId)}?_t=${Date.now()}`)
@@ -134,9 +172,22 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
   }, [mode, entityId])
 
   const fitClass = fit === 'contain' ? 'object-contain' : 'object-cover'
+  const liveVisible = mode === 'hls' || (mode === 'mjpeg' && mjpegLive)
+  const showPlaceholder = Boolean(placeholder) && !liveVisible && mode !== 'snapshot' && mode !== 'error'
 
   return (
     <div ref={containerRef} className={cn('relative h-full w-full overflow-hidden bg-[#15171c]', className)}>
+      {/* Placeholder: l'ultima foto nota, leggermente attenuata finché il live non arriva. */}
+      {showPlaceholder && (
+        <img
+          src={placeholder}
+          alt=""
+          aria-hidden="true"
+          className={cn('absolute inset-0 h-full w-full opacity-80', fitClass)}
+          onError={(event) => { (event.currentTarget as HTMLImageElement).style.display = 'none' }}
+        />
+      )}
+
       <video
         ref={videoRef}
         autoPlay
@@ -150,9 +201,9 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
         <img
           src={getCameraStreamUrl(entityId)}
           alt={`Video in diretta: ${cameraLabel}`}
-          className={cn('absolute inset-0 h-full w-full', fitClass)}
-          onLoad={() => { mjpegLoadedRef.current = true }}
-          onError={() => mjpegFallbackRef.current()}
+          className={cn('absolute inset-0 h-full w-full transition-opacity duration-300', fitClass, mjpegLive ? 'opacity-100' : 'opacity-0')}
+          onLoad={() => { mjpegLoadedRef.current = true; setMjpegLive(true); mjpegWinRef.current() }}
+          onError={() => { if (!mjpegLoadedRef.current) mjpegFailRef.current() }}
         />
       )}
 
@@ -160,10 +211,25 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
         <img src={snap} alt={`Immagine videocamera: ${cameraLabel}`} className={cn('absolute inset-0 h-full w-full', fitClass)} onError={() => setMode('error')} />
       )}
 
-      {mode === 'connecting' && (
+      {mode === 'connecting' && !showPlaceholder && (
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-white/20 border-t-white/70" />
         </div>
+      )}
+      {showPlaceholder && (
+        <div className="absolute bottom-2 right-2 h-4 w-4 animate-spin rounded-full border-2 border-white/25 border-t-white/80" aria-hidden="true" />
+      )}
+
+      {badge && liveVisible && (
+        <span className="absolute left-2 top-2 z-10 flex items-center gap-1.5 rounded-full bg-black/55 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-white backdrop-blur-sm">
+          <span className="camera-live-dot h-1.5 w-1.5 rounded-full bg-[#ff453a]" aria-hidden="true" />
+          Live
+        </span>
+      )}
+      {badge && mode === 'snapshot' && (
+        <span className="absolute left-2 top-2 z-10 rounded-full bg-black/55 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-white/80 backdrop-blur-sm">
+          Foto
+        </span>
       )}
 
       {(mode === 'error' || unavailable) && (

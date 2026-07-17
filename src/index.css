@@ -387,6 +387,30 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
 }
 .widget-card-shell.widget-card-active .widget-card-fill { opacity: 1; }
 
+/* Copertina media al posto del puck icona: hairline per staccare dal vetro. */
+.widget-card-artwork {
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08);
+  background: rgba(0,0,0,0.05);
+}
+
+/* Card camera: scrim funzionale in basso — il nome resta leggibile sul video.
+   Non è decorazione: stessa ragione del gradiente nel modale campanello. */
+.camera-card-scrim {
+  background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.55) 100%);
+  pointer-events: none;
+}
+
+/* Pallino LIVE: pulsazione opacity-only, spenta in perf-lite/reduced-motion. */
+@keyframes camera-live-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+.camera-live-dot { animation: camera-live-pulse 1.6s ease-in-out infinite; }
+.perf-lite .camera-live-dot { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .camera-live-dot { animation: none; }
+}
+
 .widget-card-shell:focus-visible {
   outline: 3px solid rgba(0,102,204,0.36);
   outline-offset: 2px;

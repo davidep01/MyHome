@@ -1,10 +1,12 @@
 import { ChevronDown, ChevronUp, Home, Minus, Pause, Play, Plus, Square } from 'lucide-react'
-import { useMemo, useRef, useState } from 'react'
-import type { RoomEntity } from '../../api/backend'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import type { ElementType } from 'react'
+import { haApi, type RoomEntity } from '../../api/backend'
 import { useHAEntity } from '../../hooks/useHAEntity'
 import { useHAService } from '../../hooks/useHAService'
 import { useHaptic } from '../../hooks/useHaptic'
 import { useActionFeedback } from '../../hooks/useActionFeedback'
+import { useDominantColor } from '../../hooks/useDominantColor'
 import { cn } from '../../lib/utils'
 import { useEntityStore } from '../../store/entities'
 import { useUIStore } from '../../store/ui'
@@ -12,8 +14,10 @@ import {
   WidgetCardControlButton, WidgetCardHoldButton, WidgetCardIcon, WidgetCardIdentity,
   WidgetCardShell, WidgetCardSlider, WidgetCardToggle,
 } from './WidgetCardBase'
+import { CameraStream } from './CameraStream'
 import { mapEntityToWidgetCard } from './utils/mapEntityToWidgetCard'
 import { numericState } from './utils/formatWidgetValue'
+import { mediaProgressPct } from './utils/mediaProgress'
 import type { WidgetVisualSize } from './types'
 import { HoldDangerAction } from '../controls/HoldDangerAction'
 
@@ -56,6 +60,17 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
   const on = isOnState(entity?.state)
 
   const busy = pendingAction !== null
+
+  // ── Card dinamiche: copertina per i media, live feed per le camere ─────────
+  const isMediaCard = MEDIA_FAMILIES.has(mapped.family)
+  const artworkUrl = isMediaCard && mapped.artwork
+    ? haApi.imageUrl(mapped.artwork, roomEntity.entityId)
+    : undefined
+  const dominant = useDominantColor(artworkUrl)
+  const mediaAccent = dominant ?? mapped.accentColor
+  // Il live nel corpo card ha senso da M in su: su S resta l'icona animata.
+  const liveCamera = (mapped.family === 'camera' || mapped.family === 'doorbell')
+    && size !== 'S' && !unavailable
 
   /** One in-flight command per card: optimistic start, visible rollback, no double submit. */
   const perform = (
@@ -327,35 +342,119 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
       isDragging={isDragging}
       className={cn(className, feedbackClass)}
       onClick={() => setSelectedEntity(roomEntity.entityId)}
+      media={liveCamera ? (
+        <>
+          <CameraStream entityId={roomEntity.entityId} fit="cover" badge className="h-full w-full" />
+          {/* Scrim funzionale: il nome resta leggibile su qualunque frame. */}
+          <span className="camera-card-scrim absolute inset-x-0 bottom-0 h-16" />
+        </>
+      ) : undefined}
     >
-      <div className="flex items-start justify-between gap-2">
-        <WidgetCardIcon Icon={mapped.Icon} size={size} accentColor={mapped.accentColor} active={mapped.isActive} />
-        {trailing && <div className="flex shrink-0 items-center gap-1.5">{trailing}</div>}
-      </div>
-
-      <WidgetCardIdentity
-        title={mapped.title}
-        state={actionError ?? (size === 'S' && mapped.value !== undefined ? undefined : mapped.state || undefined)}
-        stateColor={actionError ? '#b42318' : mapped.stateAccent ? mapped.accentColor : undefined}
-        value={mapped.value}
-        unit={mapped.unit}
-        size={size}
-        active={mapped.isActive}
-        singleLineTitle={showSlider && size === 'M'}
-      />
-
-      {showSlider && (
-        <div className="mt-1.5">
-          <WidgetCardSlider
-            value={mapped.percent ?? 0}
-            color={mapped.accentColor}
-            label={`Regola ${mapped.title}`}
-            disabled={busy}
-            onChange={mapped.family === 'light' ? setBrightness : undefined}
-            onCommit={mapped.family === 'light' ? commitBrightness : mapped.family === 'fan' ? setFanSpeed : setTargetHumidity}
-          />
+      {liveCamera ? (
+        <div className="mt-auto min-w-0 pt-2">
+          <p className="line-clamp-1 text-[15px] font-semibold leading-snug text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.55)]">
+            {mapped.title}
+          </p>
+          {actionError && <p className="mt-0.5 truncate text-[13px] text-red-300">{actionError}</p>}
         </div>
+      ) : (
+        <>
+          <div className="flex items-start justify-between gap-2">
+            {artworkUrl
+              ? <ArtworkThumb url={artworkUrl} size={size} Icon={mapped.Icon} accentColor={mediaAccent} active={mapped.isActive} title={mapped.title} />
+              : <WidgetCardIcon Icon={mapped.Icon} size={size} accentColor={mapped.accentColor} active={mapped.isActive} />}
+            {trailing && <div className="flex shrink-0 items-center gap-1.5">{trailing}</div>}
+          </div>
+
+          <WidgetCardIdentity
+            title={mapped.title}
+            state={actionError ?? (size === 'S' && mapped.value !== undefined ? undefined : mapped.state || undefined)}
+            stateColor={actionError ? '#b42318'
+              : mapped.stateAccent ? mapped.accentColor
+              : isMediaCard && mapped.isActive && dominant ? dominant
+              : undefined}
+            value={mapped.value}
+            unit={mapped.unit}
+            size={size}
+            active={mapped.isActive}
+            singleLineTitle={showSlider && size === 'M'}
+          />
+
+          {size !== 'S' && mapped.mediaProgress && (
+            <MediaProgressBar progress={mapped.mediaProgress} color={mediaAccent} />
+          )}
+
+          {showSlider && (
+            <div className="mt-1.5">
+              <WidgetCardSlider
+                value={mapped.percent ?? 0}
+                color={mapped.accentColor}
+                label={`Regola ${mapped.title}`}
+                disabled={busy}
+                onChange={mapped.family === 'light' ? setBrightness : undefined}
+                onCommit={mapped.family === 'light' ? commitBrightness : mapped.family === 'fan' ? setFanSpeed : setTargetHumidity}
+              />
+            </div>
+          )}
+        </>
       )}
     </WidgetCardShell>
+  )
+}
+
+/**
+ * Copertina al posto del puck icona (§9.4): quadrata, raggio interno, si
+ * degrada all'icona animata se l'immagine non arriva. Il colore dominante
+ * della copertina diventa l'accent della card mentre suona.
+ */
+function ArtworkThumb({
+  url, size, Icon, accentColor, active, title,
+}: {
+  url: string
+  size: WidgetVisualSize
+  Icon: ElementType
+  accentColor: string
+  active: boolean
+  title: string
+}) {
+  // Il fallimento è per-URL: una copertina nuova riprova da sola, senza effect.
+  const [failedUrl, setFailedUrl] = useState<string | null>(null)
+  if (failedUrl === url) return <WidgetCardIcon Icon={Icon} size={size} accentColor={accentColor} active={active} />
+  const box = size === 'S' ? 34 : size === 'M' ? 44 : 52
+  return (
+    <img
+      src={url}
+      alt={`Copertina: ${title}`}
+      width={box}
+      height={box}
+      className="widget-card-artwork shrink-0 rounded-[11px] object-cover"
+      style={{ width: box, height: box }}
+      onError={() => setFailedUrl(url)}
+    />
+  )
+}
+
+/** Barra sottile del progresso di riproduzione: scaleX-only, tick 1s. */
+function MediaProgressBar({
+  progress, color,
+}: {
+  progress: NonNullable<ReturnType<typeof mapEntityToWidgetCard>['mediaProgress']>
+  color: string
+}) {
+  // La percentuale si deriva in render; l'intervallo fa solo avanzare il tempo.
+  const [, tick] = useState(0)
+  useEffect(() => {
+    if (!progress.playing) return
+    const id = setInterval(() => tick((n) => n + 1), 1_000)
+    return () => clearInterval(id)
+  }, [progress.playing])
+  const pct = mediaProgressPct(progress)
+  return (
+    <div className="mt-1.5 h-[3px] w-full overflow-hidden rounded-full bg-black/10" aria-hidden="true">
+      <span
+        className="block h-full w-full origin-left rounded-full transition-transform duration-1000 ease-linear"
+        style={{ transform: `scaleX(${pct / 100})`, background: color }}
+      />
+    </div>
   )
 }

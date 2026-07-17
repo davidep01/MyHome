@@ -34,6 +34,7 @@ export function WidgetCardShell({
   isEditing = false,
   isDragging = false,
   children,
+  media,
   className,
   onClick,
 }: WidgetCardBaseProps) {
@@ -65,6 +66,12 @@ export function WidgetCardShell({
     >
       {/* Stato attivo = vetro più luminoso: layer bianco che fa solo fade. */}
       <span className="widget-card-fill absolute inset-0 z-0" aria-hidden="true" />
+      {/* Media full-bleed (live camera / artwork): sopra il vetro, sotto controlli e testo. */}
+      {media && !isUnavailable && !isOffline && !isLoading && !isError && (
+        <div className="absolute inset-0 z-[5] overflow-hidden rounded-[18px]" aria-hidden="true">
+          {media}
+        </div>
+      )}
       {interactive && (
         <button
           type="button"
