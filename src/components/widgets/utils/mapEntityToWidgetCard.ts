@@ -16,6 +16,7 @@ import { airQualityTone, batteryTone, securityTone, temperatureTone, widgetTones
 import { numericState } from './formatWidgetValue'
 import { stateLabel } from './stateLabel'
 import type { WidgetCardStatus } from '../types'
+import { resolveMediaArtwork } from '../../../lib/mediaArtwork'
 
 export type WidgetFamily =
   | 'light'
@@ -398,7 +399,7 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
       const artist = (entity?.attributes?.media_artist
         ?? entity?.attributes?.media_series_title
         ?? entity?.attributes?.app_name) as string | undefined
-      const picture = entity?.attributes?.entity_picture as string | undefined
+      const picture = resolveMediaArtwork(entity?.attributes)
       const position = numericState(entity?.attributes?.media_position)
       const duration = numericState(entity?.attributes?.media_duration)
       const nowLine = mediaTitle
@@ -412,8 +413,9 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
         state: playing ? nowLine
           : paused ? (mediaTitle ? `In pausa · ${mediaTitle}` : 'In pausa')
           : rawState === 'off' ? 'Spenta' : stateLabel(rawState),
-        // La copertina è contenuto vivo: c'è solo mentre qualcosa suona o è in pausa.
-        ...(picture && (playing || paused) ? { artwork: picture } : {}),
+        // Apple TV conserva spesso la locandina o l'icona dell'app anche in
+        // idle/standby: è comunque informazione viva e non va nascosta.
+        ...(picture && !unavailable && rawState !== 'off' ? { artwork: picture } : {}),
         ...(position !== undefined && duration !== undefined && duration > 0 && (playing || paused)
           ? {
               mediaProgress: {

@@ -4,6 +4,7 @@ import { useFullyKioskStore } from '../store/fullyKiosk'
 import { createFullyKioskBridge } from '../lib/fullyKiosk'
 import { alarmApi } from '../api/backend'
 import { drainQueue, enqueuePhoto } from '../lib/alarmPhoto'
+import { criticalAlertEventKey } from '../lib/criticalAlerts'
 
 /**
  * Modalità allarme del kiosk (§11): con un'emergenza attiva lo schermo si
@@ -22,11 +23,16 @@ export function useEmergencyMode(alerts: CriticalAlert[], photoEnabled: boolean)
     }
   }, [active])
 
-  // Una sola foto per evento: l'id dell'alert più grave fa da chiave.
+  // Una sola foto per ATTIVAZIONE: changedAt distingue due allarmi successivi
+  // della stessa entità (l'id da solo resterebbe identico per sempre).
   const shotFor = useRef<string | null>(null)
-  const alertId = alerts[0]?.id ?? null
+  const alertId = criticalAlertEventKey(alerts[0])
   useEffect(() => {
-    if (!photoEnabled || !alertId || shotFor.current === alertId) return
+    if (!alertId) {
+      shotFor.current = null
+      return
+    }
+    if (!photoEnabled || shotFor.current === alertId) return
     shotFor.current = alertId
     const bridge = createFullyKioskBridge(window.fully, window.location)
     const image = bridge?.getCamshotDataUrl() ?? null

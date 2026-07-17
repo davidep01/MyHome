@@ -9,6 +9,7 @@ import { cn } from '../../../lib/utils'
 import { WeatherIcon } from '../../weather/WeatherIcon'
 import { screensaverApi, type KioskSettings } from '../../../api/backend'
 import { KIOSK_ACTIVITY_EVENT, reportKioskScreensaver } from '../../../lib/kioskActivity'
+import { BRAND_EXPANDED, BRAND_NAME } from '../../../lib/brand'
 
 const DEFAULT_IDLE_SECONDS = 180
 const DEFAULT_SLIDE_SECONDS = 20
@@ -144,9 +145,9 @@ export function AmbientLayer({
 }
 
 const PHOTO_MOVES: { scale: number[]; x: string[]; y: string[] }[] = [
-  { scale: [1.01, 1.08], x: ['-1.2%', '1.2%'], y: ['-0.6%', '0.6%'] },
-  { scale: [1.08, 1.01], x: ['1%', '-1%'], y: ['0.8%', '-0.8%'] },
-  { scale: [1.02, 1.09], x: ['0%', '-1.2%'], y: ['1%', '-0.5%'] },
+  { scale: [1.03, 1.12], x: ['-1.5%', '1.5%'], y: ['-0.8%', '0.8%'] },
+  { scale: [1.12, 1.03], x: ['1.4%', '-1.4%'], y: ['1%', '-1%'] },
+  { scale: [1.04, 1.13], x: ['0.5%', '-1.5%'], y: ['1.2%', '-0.7%'] },
 ]
 
 function AmbientContent({ slideSeconds }: { slideSeconds: number }) {
@@ -196,7 +197,7 @@ function AmbientContent({ slideSeconds }: { slideSeconds: number }) {
             aria-hidden="true"
             draggable={false}
             decoding="async"
-            className="absolute inset-[-4%] h-[108%] w-[108%] object-cover"
+            className="absolute inset-[-5%] h-[110%] w-[110%] transform-gpu object-cover will-change-transform"
             initial={{ opacity: 0, scale: reduceMotion ? 1.03 : movement.scale[0] }}
             animate={{
               opacity: 1,
@@ -222,11 +223,12 @@ function AmbientContent({ slideSeconds }: { slideSeconds: number }) {
         )}
       />
       <div
-        className="ambient-drift relative z-10 flex max-w-[92vw] flex-col items-center gap-3 text-center drop-shadow-[0_2px_18px_rgba(0,0,0,.45)]"
+        className="ambient-drift absolute bottom-[max(28px,env(safe-area-inset-bottom))] right-[max(30px,env(safe-area-inset-right))] z-10 flex max-w-[min(86vw,720px)] flex-col items-end gap-2 text-right drop-shadow-[0_2px_18px_rgba(0,0,0,.55)]"
         role="status"
         aria-label={`Sono le ${time}, ${date}`}
       >
-        <span className={cn('text-[clamp(72px,16vw,148px)] font-light leading-none tracking-[-0.035em] tabular-nums transition-colors duration-1000', dim ? 'text-white/65' : 'text-white/95')}>{time}</span>
+        <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/55" title={BRAND_EXPANDED}>{BRAND_NAME}</span>
+        <span className={cn('text-[clamp(68px,14vw,132px)] font-light leading-[0.88] tracking-[-0.035em] tabular-nums transition-colors duration-1000', dim ? 'text-white/65' : 'text-white/95')}>{time}</span>
         <span className="text-[clamp(16px,2.2vw,24px)] capitalize text-white/70">{date}</span>
         {weather && (
           <span className="mt-2 flex items-center gap-2 text-[clamp(15px,2vw,21px)] text-white/75">
@@ -236,7 +238,7 @@ function AmbientContent({ slideSeconds }: { slideSeconds: number }) {
         )}
       </div>
       {photos.length > 1 && (
-        <span aria-hidden="true" className="absolute bottom-[max(18px,env(safe-area-inset-bottom))] left-1/2 z-10 -translate-x-1/2 text-[11px] font-semibold tabular-nums text-white/45">
+        <span aria-hidden="true" className="absolute bottom-[max(22px,env(safe-area-inset-bottom))] left-[max(24px,env(safe-area-inset-left))] z-10 text-[11px] font-semibold tabular-nums text-white/45">
           {visibleIndex + 1} / {photos.length}
         </span>
       )}

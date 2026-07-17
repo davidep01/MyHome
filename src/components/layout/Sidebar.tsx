@@ -6,6 +6,7 @@ import { useEntityStore } from '../../store/entities'
 import { NotificationBell } from '../notifications/NotificationCenter'
 import { cn } from '../../lib/utils'
 import { authApi } from '../../api/backend'
+import { BRAND_EXPANDED, BRAND_NAME } from '../../lib/brand'
 
 /** La regia ha 4 viste; il controllo della casa è il kiosk (link in basso). */
 const nav: { id: AppView; label: string; Icon: React.ElementType }[] = [
@@ -100,8 +101,8 @@ export function Sidebar() {
   return (
     <nav aria-label="Navigazione principale" className="glass glass-border flex h-full w-[68px] flex-col items-center gap-2 overflow-y-auto rounded-[24px] py-4">
       {/* Avatar + connection dot */}
-      <div className="relative mb-2">
-        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#0066cc] text-sm font-semibold text-white ring-1 ring-black/5">
+      <div className="relative mb-2" title={`${BRAND_NAME} — ${BRAND_EXPANDED}`}>
+        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#0066cc] text-sm font-semibold text-white ring-1 ring-black/5" aria-label={BRAND_NAME}>
           <Home size={18} className="text-white" />
         </div>
         <span
@@ -113,6 +114,7 @@ export function Sidebar() {
           aria-label={connected ? 'Home Assistant connesso' : connectionStatus === 'connecting' ? 'Connessione a Home Assistant in corso' : 'Home Assistant non connesso'}
         />
       </div>
+      <span className="-mt-1 select-none text-[8px] font-bold tracking-[0.12em] text-black/35" aria-hidden="true">SIMI</span>
 
       <div className="my-1 h-px w-7 bg-black/10" />
 

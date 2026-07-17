@@ -1,6 +1,6 @@
-# MyHome
+# S.I.M.I.
 
-Dashboard privata per **Home Assistant**, progettata per un tablet a muro (Fully Kiosk / Android) e una regia desktop. L'applicazione viene servita da un unico processo Hono: SPA e API hanno la stessa origine e restano nella rete locale.
+**Sistema Integrato di Monitoraggio Intelligente**, la dashboard privata per **Home Assistant** del progetto tecnico MyHome. È progettata per un tablet a muro (Fully Kiosk / Android) e una regia desktop. L'applicazione viene servita da un unico processo Hono: SPA e API hanno la stessa origine e restano nella rete locale.
 
 > Il solo target di produzione supportato è **LAN-only**: add-on Home Assistant oppure container Docker. L'interfaccia non va pubblicata fuori dalla rete locale.
 
@@ -28,7 +28,7 @@ LAN-only non significa “senza autenticazione”: il pannello può comandare se
 
 1. In Home Assistant apri **Impostazioni → Componenti aggiuntivi → Store → Repository**.
 2. Aggiungi `https://github.com/davidep01/MyHome`.
-3. Installa **MyHome Dashboard**.
+3. Installa **S.I.M.I. Dashboard**.
 4. Nella configurazione indica almeno `ha_url` e `ha_token`. Il token deve essere un long-lived access token di Home Assistant.
 5. Imposta due codici diversi in `admin_token` e `kiosk_token`, quindi avvia l'add-on.
 6. Usa **Apri interfaccia web** oppure visita `http://<IP_HOME_ASSISTANT>:3001/`. Sul tablet usa `http://<IP_HOME_ASSISTANT>:3001/kiosk`.

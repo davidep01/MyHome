@@ -9,6 +9,7 @@ import type { HomeChip } from '../../../hooks/useComposedHome'
 import { WeatherIcon } from '../../weather/WeatherIcon'
 import { NotificationBell } from '../../notifications/NotificationCenter'
 import { entityName } from '../../widgets/utils/mapEntityToWidgetCard'
+import { BRAND_EXPANDED, BRAND_NAME } from '../../../lib/brand'
 
 /**
  * Strato 1 — Stato di casa. Sempre presente, mai configurato: ora, saluto,
@@ -69,9 +70,12 @@ export function StatusHeader({
             <span className="shrink-0 text-[clamp(46px,15vw,56px)] font-light leading-none text-[#1d1d1f] tabular-nums">{time}</span>
             <span className="min-w-0 text-sm capitalize leading-snug text-black/45 sm:text-base">{date}</span>
           </div>
-          <p className="mt-2 break-words text-xl font-semibold leading-tight text-[#1d1d1f]">
-            {greeting}{userName ? `, ${userName}` : ''}
-          </p>
+          <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#0066cc]" title={BRAND_EXPANDED}>{BRAND_NAME}</span>
+            <p className="break-words text-xl font-semibold leading-tight text-[#1d1d1f]">
+              {greeting}{userName ? `, ${userName}` : ''}
+            </p>
+          </div>
         </button>
 
         <div className="flex min-w-0 flex-wrap items-center gap-2 sm:shrink-0 sm:justify-end sm:gap-2.5">

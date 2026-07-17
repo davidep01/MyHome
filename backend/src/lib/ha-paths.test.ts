@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { normalizeHAHlsPath, normalizeHAMediaPath } from './ha-paths.js'
+import { normalizeHAHlsPath, normalizeHAHlsStreamUrl, normalizeHAMediaPath } from './ha-paths.js'
 
 describe('HA media path normalization', () => {
   it.each([
@@ -45,5 +45,17 @@ describe('HA HLS path normalization', () => {
     'token/%2e%2e/secret.m3u8',
   ])('rejects recursively encoded HLS traversal: %s', (path) => {
     expect(normalizeHAHlsPath(path)).toBeNull()
+  })
+
+  it('normalizes relative and same-origin absolute stream URLs', () => {
+    const base = 'https://homeassistant.local:8123'
+    expect(normalizeHAHlsStreamUrl('/api/hls/token/master.m3u8?auth=a%2Bb', base))
+      .toBe('/api/hls/token/master.m3u8?auth=a%2Bb')
+    expect(normalizeHAHlsStreamUrl('https://homeassistant.local:8123/api/hls/token/master.m3u8', base))
+      .toBe('/api/hls/token/master.m3u8')
+  })
+
+  it('rejects a stream URL from another origin', () => {
+    expect(normalizeHAHlsStreamUrl('https://attacker.invalid/api/hls/token/master.m3u8', 'https://homeassistant.local:8123')).toBeNull()
   })
 })

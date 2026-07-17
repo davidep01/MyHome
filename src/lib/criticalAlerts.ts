@@ -18,6 +18,12 @@ export interface CriticalAlert {
   changedAt: string
 }
 
+/** Stable for one activation, different when the same sensor triggers again. */
+export function criticalAlertEventKey(alert?: Pick<CriticalAlert, 'id' | 'changedAt'> | null): string | null {
+  if (!alert) return null
+  return `${alert.id}:${alert.changedAt || 'unknown-time'}`
+}
+
 const BINARY_META: Record<string, Omit<CriticalAlert, 'id' | 'entityId' | 'changedAt'>> = {
   smoke: {
     kind: 'smoke', title: 'Fumo rilevato', detail: 'Un sensore antincendio è attivo.',

@@ -13,6 +13,7 @@ import { useActionFeedback } from '../../hooks/useActionFeedback'
 import { useEntityStore } from '../../store/entities'
 import { haApi } from '../../api/backend'
 import { cn } from '../../lib/utils'
+import { resolveMediaArtwork } from '../../lib/mediaArtwork'
 
 /** Full media controls + (for Apple TV / pyatv) a directional remote pad. */
 export function MediaDetail({ entity }: { entity: HassEntity }) {
@@ -36,7 +37,7 @@ export function MediaDetail({ entity }: { entity: HassEntity }) {
 
   const title = attrs.media_title as string | undefined
   const artist = (attrs.media_artist ?? attrs.app_name) as string | undefined
-  const picturePath = attrs.entity_picture as string | undefined
+  const picturePath = resolveMediaArtwork(attrs)
   const pic = picturePath ? haApi.imageUrl(picturePath, entity.entity_id) : undefined
   const volume = (attrs.volume_level as number | undefined) ?? 0.5
   const muted = Boolean(attrs.is_volume_muted)

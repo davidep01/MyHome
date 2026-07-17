@@ -24,7 +24,7 @@ export function AlarmDetail({ entity }: { entity: HassEntity }) {
   const armed = isArmed(state)
   const feat = Number(entity.attributes?.supported_features ?? 0)
   const codeRequired = Boolean(entity.attributes?.code_arm_required)
-  const codeFormat = entity.attributes?.code_format as string | undefined // 'number' | 'text' | null
+  const codeFormat = String(entity.attributes?.code_format ?? '').toLowerCase() // 'number' | 'text' | ''
   const modes = availableArmModes(feat)
   const tone = alarmTone(state)
   const Icon = state === 'triggered' ? ShieldAlert : armed ? ShieldCheck : ShieldOff
@@ -143,8 +143,9 @@ export function AlarmDetail({ entity }: { entity: HassEntity }) {
   // `code_arm_required` only governs *arming*. Disarming a panel that uses a numeric
   // code virtually always needs the PIN, so show the keypad whenever it's armed too.
   const codeFormatNumber = codeFormat === 'number'
-  const needsCodeToArm = codeRequired && codeFormatNumber
-  const needsCodeToDisarm = armed && codeFormatNumber
+  const hasCode = codeFormatNumber || codeFormat === 'text'
+  const needsCodeToArm = codeRequired && hasCode
+  const needsCodeToDisarm = armed && hasCode
   const needsCode = needsCodeToArm || needsCodeToDisarm
   const busy = busyAction !== null || busyBypass !== null
 
@@ -160,34 +161,49 @@ export function AlarmDetail({ entity }: { entity: HassEntity }) {
         </p>
       </div>
 
-      {/* Numeric keypad (only when a code is required) */}
+      {/* Code entry: numeric keypad when requested by HA, secure text otherwise. */}
       {needsCode && (
         <div className="rounded-[16px] bg-black/[0.04] p-4">
           <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-black/35">Codice</p>
-          <div
-            className="mb-3 flex h-11 items-center justify-center rounded-[10px] bg-white text-lg tracking-[0.3em] text-[#1d1d1f]"
-            role="status"
-            aria-live="polite"
-            aria-label={code ? `Codice: ${code.length} cifre inserite` : 'Codice vuoto'}
-          >
-            {code.replace(/./g, '•') || '—'}
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            {['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'del'].map((k, i) =>
-              k === '' ? <div key={i} /> : (
-                <button
-                  type="button"
-                  key={i}
-                  onClick={() => setCode((c) => (k === 'del' ? c.slice(0, -1) : (c + k).slice(0, 8)))}
-                  disabled={busy}
-                  aria-label={k === 'del' ? 'Cancella ultima cifra' : undefined}
-                  className="flex h-12 items-center justify-center rounded-[10px] bg-black/6 text-lg font-semibold text-[#1d1d1f] transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0066cc] active:scale-95 hover:bg-black/10 disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  {k === 'del' ? <Delete size={18} aria-hidden="true" /> : k}
-                </button>
-              ),
-            )}
-          </div>
+          {codeFormatNumber ? (
+            <>
+              <div
+                className="mb-3 flex h-11 items-center justify-center rounded-[10px] bg-white text-lg tracking-[0.3em] text-[#1d1d1f]"
+                role="status"
+                aria-live="polite"
+                aria-label={code ? `Codice: ${code.length} cifre inserite` : 'Codice vuoto'}
+              >
+                {code.replace(/./g, '•') || '—'}
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'del'].map((k, i) =>
+                  k === '' ? <div key={i} /> : (
+                    <button
+                      type="button"
+                      key={i}
+                      onClick={() => setCode((c) => (k === 'del' ? c.slice(0, -1) : (c + k).slice(0, 8)))}
+                      disabled={busy}
+                      aria-label={k === 'del' ? 'Cancella ultima cifra' : undefined}
+                      className="flex h-12 items-center justify-center rounded-[10px] bg-black/6 text-lg font-semibold text-[#1d1d1f] transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0066cc] active:scale-95 hover:bg-black/10 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      {k === 'del' ? <Delete size={18} aria-hidden="true" /> : k}
+                    </button>
+                  ),
+                )}
+              </div>
+            </>
+          ) : (
+            <input
+              type="password"
+              value={code}
+              onChange={(event) => setCode(event.target.value.slice(0, 32))}
+              disabled={busy}
+              autoComplete="off"
+              inputMode="text"
+              aria-label="Codice allarme"
+              className="min-h-12 w-full rounded-[10px] bg-white px-3 text-base text-[#1d1d1f] outline-none focus:ring-2 focus:ring-[#0066cc] disabled:opacity-40"
+            />
+          )}
         </div>
       )}
 
@@ -268,7 +284,7 @@ export function AlarmDetail({ entity }: { entity: HassEntity }) {
           <button
             type="button"
             onClick={() => void send('alarm_disarm', 'disarmed')}
-            disabled={busy || (needsCodeToDisarm && !code)}
+            disabled={busy || !armed || (needsCodeToDisarm && !code)}
             aria-pressed={!armed}
             className={cn(
               'col-span-2 rounded-[12px] py-3 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0066cc] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40',
@@ -282,7 +298,7 @@ export function AlarmDetail({ entity }: { entity: HassEntity }) {
               type="button"
               key={m.id}
               onClick={() => void send(m.service, m.state)}
-              disabled={busy || (needsCodeToArm && !code)}
+              disabled={busy || state === m.state || (needsCodeToArm && !code)}
               aria-pressed={state === m.state}
               className={cn(
                 'rounded-[12px] py-3 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0066cc] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40',

@@ -59,6 +59,7 @@ const DANGER_CLASSES = new Set(['smoke', 'gas', 'carbon_monoxide', 'moisture', '
 const OCCUPANCY_CLASSES = new Set(['motion', 'occupancy', 'presence'])
 const ACTIVE_HVAC = new Set(['heating', 'cooling', 'drying'])
 const BUSY_STATES = new Set(['cleaning', 'returning', 'mowing', 'opening', 'closing'])
+const ACTIVE_AUXILIARY_STATES = new Set(['on', 'active', 'running'])
 const UNOCCUPIED_ROOM_MS = 2 * 60 * 1000
 
 function domainOf(id: string): string {
@@ -136,6 +137,12 @@ export function composeHome(entities: ComposerEntity[], opts: ComposeOptions): C
         }
         break
       }
+      case 'siren': {
+        if (e.state === 'on') {
+          candidates.push({ key: e.entity_id, entityId: e.entity_id, priority: 0, reason: 'Sirena attiva', changed: changedMs(e) })
+        }
+        break
+      }
       case 'lock': {
         if (e.state === 'unlocked') {
           unlockedLocks.push(e)
@@ -151,6 +158,13 @@ export function composeHome(entities: ComposerEntity[], opts: ComposeOptions): C
           candidates.push({ key: e.entity_id, entityId: e.entity_id, priority: 0, reason: 'Sensore di sicurezza attivo', changed: changedMs(e) })
         } else if (e.state === 'on' && OPENING_CLASSES.has(cls)) {
           openOpenings.push(e)
+          candidates.push({
+            key: e.entity_id,
+            entityId: e.entity_id,
+            priority: night ? 0 : 3,
+            reason: night ? 'Apertura aperta di notte' : 'Apertura aperta',
+            changed: changedMs(e),
+          })
         }
         break
       }
@@ -180,10 +194,33 @@ export function composeHome(entities: ComposerEntity[], opts: ComposeOptions): C
         }
         break
       }
+      case 'fan':
+      case 'humidifier':
+      case 'water_heater': {
+        if (ACTIVE_AUXILIARY_STATES.has(e.state)) {
+          candidates.push({
+            key: e.entity_id,
+            entityId: e.entity_id,
+            priority: 3,
+            reason: domain === 'fan' ? 'Ventilazione attiva'
+              : domain === 'humidifier' ? 'Trattamento aria attivo'
+                : 'Acqua calda attiva',
+            changed: changedMs(e),
+          })
+        }
+        break
+      }
       case 'cover':
       case 'valve': {
         if (e.state === 'opening' || e.state === 'closing') {
           candidates.push({ key: e.entity_id, entityId: e.entity_id, priority: 3, reason: 'In movimento', changed: changedMs(e) })
+        }
+        break
+      }
+      case 'switch':
+      case 'input_boolean': {
+        if (e.state === 'on') {
+          candidates.push({ key: e.entity_id, entityId: e.entity_id, priority: 4, reason: 'Dispositivo attivo', changed: changedMs(e) })
         }
         break
       }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { deriveCriticalAlerts, type CriticalEntity } from './criticalAlerts'
+import { criticalAlertEventKey, deriveCriticalAlerts, type CriticalEntity } from './criticalAlerts'
 
 function entity(entity_id: string, state: string, deviceClass?: string): CriticalEntity {
   return {
@@ -25,5 +25,13 @@ describe('deriveCriticalAlerts', () => {
       motion: entity('binary_sensor.movimento', 'on', 'motion'),
       smoke: entity('binary_sensor.fumo', 'off', 'smoke'),
     })).toEqual([])
+  })
+})
+
+describe('criticalAlertEventKey', () => {
+  it('changes when the same alarm entity triggers a second time', () => {
+    const base = { id: 'intrusion:alarm_control_panel.casa' }
+    expect(criticalAlertEventKey({ ...base, changedAt: '2026-07-17T10:00:00Z' }))
+      .not.toBe(criticalAlertEventKey({ ...base, changedAt: '2026-07-17T11:00:00Z' }))
   })
 })

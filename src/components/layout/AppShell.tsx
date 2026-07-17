@@ -23,6 +23,7 @@ import { useCriticalAlerts } from '../../hooks/useCriticalAlerts'
 import { useEmergencyMode } from '../../hooks/useEmergencyMode'
 import { useKioskHeartbeat } from '../../hooks/useKioskHeartbeat'
 import { useTimeOfDay } from '../../hooks/useTimeOfDay'
+import { BRAND_NAME } from '../../lib/brand'
 
 // Le viste regia sono lazy: il kiosk (percorso primario) carica solo
 // TabletDashboard; il desktop scarica ogni pagina al primo accesso.
@@ -54,7 +55,7 @@ const VIEW_TITLES: Record<ReturnType<typeof viewFromPath>, string> = {
 
 function useDocumentTitle(title: string) {
   useEffect(() => {
-    document.title = `${title} · MyHome`
+    document.title = `${title} · ${BRAND_NAME}`
   }, [title])
 }
 

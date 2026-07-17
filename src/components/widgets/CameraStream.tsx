@@ -44,9 +44,15 @@ const HLS_CONFIG = {
   enableWorker: true,
   backBufferLength: 30,
   manifestLoadingTimeOut: 15_000,
-  manifestLoadingMaxRetry: 2,
+  manifestLoadingMaxRetry: 1,
   levelLoadingTimeOut: 15_000,
+  fragLoadingTimeOut: 15_000,
+  lowLatencyMode: true,
 }
+
+const LIVE_NEGOTIATION_MS = 20_000
+const LIVE_RETRY_MS = 12_000
+const STALL_RETRY_MS = 10_000
 
 export function CameraStream({ entityId, fit = 'cover', className, muted = true, preferLive = false, badge = false }: CameraStreamProps) {
   const entity = useHAEntity(entityId)
@@ -56,6 +62,7 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
   const [snap, setSnap] = useState('')
   const [placeholder, setPlaceholder] = useState('')
   const [mjpegLive, setMjpegLive] = useState(false)
+  const [retryKey, setRetryKey] = useState(0)
   const unavailable = !entity || entity.state === 'unavailable'
   const cameraLabel = entityName(entity)
   const mjpegLoadedRef = useRef(false)
@@ -72,7 +79,10 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
     let cancelled = false
     let hls: Hls | null = null
     let watchdog: ReturnType<typeof setTimeout> | null = null
+    let stallTimer: ReturnType<typeof setTimeout> | null = null
+    let mediaRecoveries = 0
     let settled = false
+    const streamVideo = videoRef.current
     setMode('connecting')
     setMjpegLive(false)
     mjpegLoadedRef.current = false
@@ -80,10 +90,43 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
     // 0 — placeholder istantaneo: l'ultima immagine disponibile, mai schermo nero.
     setPlaceholder(`${getCameraProxyUrl(entityId)}?_t=${Date.now()}`)
 
+    const clearStallTimer = () => {
+      if (stallTimer) clearTimeout(stallTimer)
+      stallTimer = null
+    }
     const goSnapshot = () => { if (!cancelled && !settled) { settled = true; setMode('snapshot') } }
+    const reconnect = () => {
+      if (cancelled) return
+      settled = true
+      clearStallTimer()
+      if (watchdog) clearTimeout(watchdog)
+      setMode('connecting')
+      setRetryKey((key) => key + 1)
+    }
+
+    const watchPlayback = (video: HTMLVideoElement) => {
+      const onHealthy = () => clearStallTimer()
+      const onWaiting = () => {
+        clearStallTimer()
+        stallTimer = setTimeout(reconnect, STALL_RETRY_MS)
+      }
+      video.addEventListener('playing', onHealthy)
+      video.addEventListener('timeupdate', onHealthy)
+      video.addEventListener('waiting', onWaiting)
+      video.addEventListener('stalled', onWaiting)
+      video.addEventListener('ended', reconnect)
+      return () => {
+        video.removeEventListener('playing', onHealthy)
+        video.removeEventListener('timeupdate', onHealthy)
+        video.removeEventListener('waiting', onWaiting)
+        video.removeEventListener('stalled', onWaiting)
+        video.removeEventListener('ended', reconnect)
+      }
+    }
+    let stopWatchingPlayback: (() => void) | null = null
 
     const startHls = async (onFail: () => void) => {
-      const video = videoRef.current
+      const video = streamVideo
       if (!video) return onFail()
       try {
         // hls.js è pesante (~250KB): caricato solo quando serve davvero.
@@ -95,28 +138,41 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
           hls?.destroy()
           hls = new Hls(HLS_CONFIG)
           hls.loadSource(src); hls.attachMedia(video)
-          hls.on(Hls.Events.MANIFEST_PARSED, () => {
-            if (cancelled || settled) { hls?.destroy(); return }
-            settled = true
-            if (watchdog) clearTimeout(watchdog)
-            setMode('hls')
-            video.play().catch(() => {})
-          })
-          hls.on(Hls.Events.ERROR, (_e, data) => {
-            if (!data.fatal || cancelled) return
-            if (data.type === Hls.ErrorTypes.MEDIA_ERROR) { try { hls?.recoverMediaError(); return } catch { /* fall through */ } }
-            if (!settled) onFail()
-          })
-        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-          video.src = src
-          video.addEventListener('loadedmetadata', () => {
+          hls.on(Hls.Events.MANIFEST_PARSED, () => { video.play().catch(() => {}) })
+          // Un manifest valido non garantisce che Ring stia consegnando video:
+          // dichiariamo vittoria soltanto al primo frammento realmente bufferizzato.
+          hls.on(Hls.Events.FRAG_BUFFERED, () => {
             if (cancelled || settled) return
             settled = true
             if (watchdog) clearTimeout(watchdog)
             setMode('hls')
+            stopWatchingPlayback = watchPlayback(video)
+            video.play().catch(() => {})
+          })
+          hls.on(Hls.Events.ERROR, (_e, data) => {
+            if (!data.fatal || cancelled) return
+            if (data.type === Hls.ErrorTypes.MEDIA_ERROR && mediaRecoveries < 1) {
+              mediaRecoveries += 1
+              try { hls?.recoverMediaError(); return } catch { /* fall through */ }
+            }
+            if (settled) reconnect()
+            else {
+              hls?.destroy()
+              hls = null
+              onFail()
+            }
+          })
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+          video.src = src
+          video.addEventListener('loadeddata', () => {
+            if (cancelled || settled) return
+            settled = true
+            if (watchdog) clearTimeout(watchdog)
+            setMode('hls')
+            stopWatchingPlayback = watchPlayback(video)
             video.play().catch(() => {})
           }, { once: true })
-          video.addEventListener('error', () => { if (!settled) onFail() }, { once: true })
+          video.addEventListener('error', () => { if (settled) reconnect(); else onFail() }, { once: true })
         } else onFail()
       } catch {
         if (!settled) onFail() // HLS non supportato da questa camera → fallback
@@ -136,9 +192,11 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
       }
       // Un errore MJPEG in gara non decide nulla: l'HLS sta già correndo.
       mjpegFailRef.current = () => {}
-      void startHls(goSnapshot)
-      // Se dopo 12s non ha vinto nessuno (né frame MJPEG né manifest HLS) → foto.
-      watchdog = setTimeout(() => { if (!mjpegLoadedRef.current) goSnapshot() }, 12_000)
+      // Un fallimento HLS non deve troncare il MJPEG ancora in gara.
+      void startHls(() => {})
+      // Le Ring cloud possono impiegare diversi secondi a produrre il primo
+      // segmento: il timeout copre l'intera negoziazione, non solo il manifest.
+      watchdog = setTimeout(() => { if (!mjpegLoadedRef.current) goSnapshot() }, LIVE_NEGOTIATION_MS)
     } else {
       // ── Catena classica: HLS → MJPEG → snapshot ────────────────────────────
       void startHls(() => {
@@ -158,9 +216,16 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
       cancelled = true
       settled = true
       if (watchdog) clearTimeout(watchdog)
+      clearStallTimer()
+      stopWatchingPlayback?.()
       hls?.destroy()
+      if (streamVideo) {
+        streamVideo.pause()
+        streamVideo.removeAttribute('src')
+        streamVideo.load()
+      }
     }
-  }, [entityId, preferLive, unavailable, active])
+  }, [entityId, preferLive, unavailable, active, retryKey])
 
   // ── Snapshot polling — solo quando nessun flusso live è disponibile ──
   useEffect(() => {
@@ -168,15 +233,32 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
     const tick = () => setSnap(`${getCameraProxyUrl(entityId)}?_t=${Date.now()}`)
     tick()
     const id = setInterval(tick, 2000)
-    return () => clearInterval(id)
+    // Snapshot is a resilient fallback, not a terminal state: periodically ask
+    // HA for a fresh signed stream so Ring recovers without closing the panel.
+    const retry = setTimeout(() => setRetryKey((key) => key + 1), LIVE_RETRY_MS)
+    return () => { clearInterval(id); clearTimeout(retry) }
   }, [mode, entityId])
 
   const fitClass = fit === 'contain' ? 'object-contain' : 'object-cover'
   const liveVisible = mode === 'hls' || (mode === 'mjpeg' && mjpegLive)
   const showPlaceholder = Boolean(placeholder) && !liveVisible && mode !== 'snapshot' && mode !== 'error'
+  const backdrop = fit === 'contain' ? (snap || placeholder) : ''
 
   return (
     <div ref={containerRef} className={cn('relative h-full w-full overflow-hidden bg-[#15171c]', className)}>
+      {/* Le camere Ring sono spesso più strette del tablet. In modalità contain
+          l'intera inquadratura resta visibile e le bande vengono riempite da
+          una copia sfocata dello snapshot, senza ritagliare persone o pacchi. */}
+      {backdrop && (
+        <img
+          src={backdrop}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-[-8%] h-[116%] w-[116%] scale-110 object-cover opacity-50 blur-2xl"
+          onError={(event) => { (event.currentTarget as HTMLImageElement).style.display = 'none' }}
+        />
+      )}
+
       {/* Placeholder: l'ultima foto nota, leggermente attenuata finché il live non arriva. */}
       {showPlaceholder && (
         <img
@@ -208,7 +290,7 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
       )}
 
       {mode === 'snapshot' && snap && (
-        <img src={snap} alt={`Immagine videocamera: ${cameraLabel}`} className={cn('absolute inset-0 h-full w-full', fitClass)} onError={() => setMode('error')} />
+        <img src={snap} alt={`Immagine videocamera: ${cameraLabel}`} className={cn('absolute inset-0 h-full w-full', fitClass)} />
       )}
 
       {mode === 'connecting' && !showPlaceholder && (

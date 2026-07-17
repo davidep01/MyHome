@@ -1,5 +1,5 @@
-name: "MyHome Dashboard"
-description: "Dashboard privata per Home Assistant, ottimizzata per kiosk e regia desktop"
+name: "S.I.M.I. Dashboard"
+description: "Sistema Integrato di Monitoraggio Intelligente per Home Assistant"
 version: "2.2.51"
 slug: "myhome_dashboard"
 url: "https://github.com/davidep01/MyHome"
@@ -20,7 +20,7 @@ watchdog: "http://[HOST]:[PORT:3001]/api/health"
 ports:
   3001/tcp: 3001
 ports_description:
-  3001/tcp: "MyHome Dashboard (web)"
+  3001/tcp: "S.I.M.I. Dashboard (web)"
 map:
   - type: data
     read_only: false

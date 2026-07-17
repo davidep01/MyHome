@@ -118,7 +118,7 @@ function PreferencesCard() {
       {readOnly && <ReadOnlyNotice />}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {field('userName', 'Il tuo nome', 'es. Davide')}
-        {field('dashboardName', 'Nome dashboard', 'MyHome')}
+        {field('dashboardName', 'Nome dashboard', 'S.I.M.I.')}
       </div>
       {field('weatherCity', 'Città meteo', 'es. Milan,IT')}
       {field('newsFeedUrl', 'Feed RSS news', 'https://…/rss.xml', 'url')}

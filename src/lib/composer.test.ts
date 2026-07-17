@@ -100,6 +100,38 @@ describe('composeHome', () => {
     ], { now: DAY })
     expect(out.alerts).toHaveLength(1)
     expect(out.alerts[0]).toMatchObject({ id: 'openings', label: '2 aperture aperte' })
+    expect(out.hero.map((slot) => slot.entityId)).toEqual([
+      'binary_sensor.finestra',
+      'binary_sensor.porta',
+    ])
+  })
+
+  it('porta nella home i dispositivi attivi che richiedono attenzione o controllo', () => {
+    const out = composeHome([
+      e('fan.studio', 'on'),
+      e('humidifier.camera', 'on'),
+      e('switch.presa_tv', 'on'),
+      e('input_boolean.ospiti', 'on'),
+    ], { now: DAY })
+    expect(out.hero.map((slot) => slot.key)).toEqual([
+      'fan.studio',
+      'humidifier.camera',
+      'input_boolean.ospiti',
+      'switch.presa_tv',
+    ])
+  })
+
+  it('tratta sirena e apertura notturna come priorità immediate', () => {
+    const out = composeHome([
+      e('binary_sensor.porta', 'on', { device_class: 'door' }),
+      e('siren.casa', 'on'),
+      e('media_player.tv', 'playing'),
+    ], { now: NIGHT })
+    expect(out.hero.slice(0, 2).every((slot) => slot.priority === 0)).toBe(true)
+    expect(out.hero.slice(0, 2).map((slot) => slot.key)).toEqual([
+      'binary_sensor.porta',
+      'siren.casa',
+    ])
   })
 
   it('è deterministico: stesso input → stesso output (tie-break per entity_id)', () => {

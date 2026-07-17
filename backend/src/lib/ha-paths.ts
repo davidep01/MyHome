@@ -74,3 +74,27 @@ export function normalizeHAHlsPath(value: unknown): string | null {
   if (decoded.split('/').some((segment) => segment === '.' || segment === '..') || decoded.includes('..')) return null
   return value
 }
+
+/**
+ * HA normally returns a root-relative HLS URL, but some reverse-proxy setups
+ * return an absolute same-origin URL. Normalize both forms before exposing the
+ * signed path to the browser; a foreign origin is never accepted.
+ */
+export function normalizeHAHlsStreamUrl(value: unknown, haBaseUrl: string): string | null {
+  if (typeof value !== 'string' || value.length > 2_048) return null
+  let relative = value
+  try {
+    if (/^https?:\/\//i.test(value)) {
+      const streamUrl = new URL(value)
+      const haUrl = new URL(haBaseUrl)
+      if (streamUrl.origin !== haUrl.origin) return null
+      relative = `${streamUrl.pathname}${streamUrl.search}`
+    }
+  } catch {
+    return null
+  }
+  if (!relative.startsWith('/api/hls/') || relative.includes('#')) return null
+  const [path, query = ''] = relative.slice('/api/hls/'.length).split('?', 2)
+  if (!normalizeHAHlsPath(path)) return null
+  return `/api/hls/${path}${query ? `?${query}` : ''}`
+}

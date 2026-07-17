@@ -1,6 +1,6 @@
-# CLAUDE.md — MyHome
+# CLAUDE.md — MyHome / S.I.M.I.
 
-> Documento sorgente unico (grafico + tecnico) per lo sviluppo di MyHome.
+> Documento sorgente unico (grafico + tecnico) per lo sviluppo di MyHome. Il nome prodotto mostrato all'utente è **S.I.M.I. — Sistema Integrato di Monitoraggio Intelligente**; “MyHome” resta il nome tecnico di repository, package e chiavi di compatibilità.
 > Versione doc: 2.1 · Allineato a app `2.2.x` · Aggiornato: 2026-07-17 · Lingua: italiano (identificatori in inglese).
 >
 > Questo file ha **precedenza** sulle assunzioni generiche. `docs/DESIGN_SYSTEM.md` resta il riferimento grafico esteso; questo file lo riassume e ne risolve le incongruenze. Quando i due divergono, **vince questo file** e va aggiornato `docs/DESIGN_SYSTEM.md` di conseguenza.
@@ -20,7 +20,7 @@
 
 ---
 
-## 1. Cos'è MyHome
+## 1. Cos'è S.I.M.I.
 
 Dashboard domotica personale per **Home Assistant**, estetica **Apple "Liquid Glass"** (vetro smerigliato su parchment `#f5f5f7`, zero ombre decorative, un solo accento blu). Due contesti d'uso:
 

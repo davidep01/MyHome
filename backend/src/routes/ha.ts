@@ -4,11 +4,12 @@ import { getHABaseUrl, getHAConfig } from '../lib/ha-config.js'
 import { adminOnly, authRole } from '../lib/security.js'
 import { broadcastDoorbellTest, isKnownHAImageSource, subscribeHaStream } from '../lib/ha-stream.js'
 import { haWsCommand } from '../lib/ha-ws.js'
-import { normalizeHAHlsPath, normalizeHAMediaPath } from '../lib/ha-paths.js'
+import { normalizeHAHlsPath, normalizeHAHlsStreamUrl, normalizeHAMediaPath } from '../lib/ha-paths.js'
 import { OutboundRequestError, fetchWithLimits } from '../lib/request-safety.js'
 import { cacheHARegistry, getCachedHARegistry, type RegistryPayload } from '../lib/ha-registry-cache.js'
 import { ByteLru } from '../lib/lru.js'
 import { isCriticalAction, recordCriticalAction } from '../lib/audit-log.js'
+import { advertisedArtworkSources } from '../lib/ha-media.js'
 
 export const haRouter = new Hono()
 
@@ -252,10 +253,11 @@ haRouter.get('/camera-hls-url/:entityId', async (c) => {
       { type: 'camera/stream', entity_id: entityId, format: 'hls' },
       15_000,
     )
-    if (!result?.url || result.url.length > 2_048 || !result.url.startsWith('/api/hls/') || result.url.includes('..')) {
+    const url = normalizeHAHlsStreamUrl(result?.url, await getHABaseUrl())
+    if (!url) {
       return c.json({ error: 'Stream HLS non disponibile' }, 502)
     }
-    return c.json({ url: result.url })
+    return c.json({ url })
   } catch {
     return c.json({ error: 'Stream HLS non disponibile' }, 502)
   }
@@ -416,8 +418,8 @@ haRouter.get('/image', async (c) => {
       await stateResponse.body?.cancel().catch(() => undefined)
       return c.json({ error: 'Entità immagine non disponibile' }, 403)
     }
-    const currentState = await stateResponse.json().catch(() => null) as { attributes?: { entity_picture?: unknown } } | null
-    if (currentState?.attributes?.entity_picture !== source) {
+    const currentState = await stateResponse.json().catch(() => null) as { attributes?: Record<string, unknown> } | null
+    if (!advertisedArtworkSources(currentState?.attributes).includes(source)) {
       return c.json({ error: 'Immagine non associata allo stato Home Assistant' }, 403)
     }
   }

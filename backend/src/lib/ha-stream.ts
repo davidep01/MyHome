@@ -1,5 +1,6 @@
 import { getHABaseUrl, getHAConfig } from './ha-config.js'
 import { closeHaWs, getHaWsState, startEntityFeed, stopEntityFeed } from './ha-ws.js'
+import { advertisedArtworkSources } from './ha-media.js'
 
 /**
  * Backend-held Home Assistant state stream.
@@ -298,7 +299,7 @@ export function getStreamStats() {
 export function isKnownHAImageSource(source: string): boolean {
   if (!source || source.length > 2_048) return false
   for (const entity of snapshot.values()) {
-    if (entity.attributes?.entity_picture === source) return true
+    if (advertisedArtworkSources(entity.attributes).includes(source)) return true
   }
   return false
 }

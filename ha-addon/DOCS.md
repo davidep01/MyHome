@@ -1,6 +1,6 @@
-# MyHome Dashboard
+# S.I.M.I. Dashboard
 
-MyHome serve una dashboard privata per Home Assistant sulla porta LAN `3001`. Include una home touch per tablet e una regia amministrativa desktop.
+S.I.M.I. — Sistema Integrato di Monitoraggio Intelligente — serve una dashboard privata per Home Assistant sulla porta LAN `3001`. Include una home touch per tablet e una regia amministrativa desktop.
 
 ## Configurazione
 

@@ -25,7 +25,7 @@ const DEFAULT_DB: DbStore = {
     newsCategory: 'technology',
     newsFeedUrl: 'https://www.ansa.it/sito/ansait_rss.xml',
     userName: 'Davide',
-    dashboardName: 'MyHome',
+    dashboardName: 'S.I.M.I.',
     hiddenEntities: [],
     home: { widgets: defaultHomeWidgets() },
   },
@@ -141,6 +141,13 @@ class JsonStore {
 
     if (!this.data.config.newsFeedUrl) {
       this.data.config.newsFeedUrl = DEFAULT_DB.config.newsFeedUrl
+      changed = true
+    }
+
+    // Rebrand migration: preserve every custom dashboard name, replacing only
+    // the untouched historical default.
+    if (this.data.config.dashboardName === 'MyHome') {
+      this.data.config.dashboardName = 'S.I.M.I.'
       changed = true
     }
 

@@ -17,6 +17,7 @@ import { cn } from '../../../lib/utils'
 import { WeatherIcon } from '../../weather/WeatherIcon'
 import { authApi, type HomeWidget, type TabletDashboardLayout, type WidgetSize } from '../../../api/backend'
 import { NotificationBell } from '../../notifications/NotificationCenter'
+import { BRAND_EXPANDED, BRAND_NAME } from '../../../lib/brand'
 
 const GRID_GAP = [14, 14] as const
 const SIZE_SHORT: Record<WidgetSize, string> = { sm: 'S', md: 'M', lg: 'L', wide: 'XL' }
@@ -53,9 +54,12 @@ function KioskHeader({ layout }: { layout: TabletDashboardLayout }) {
           <span className="text-[56px] font-light leading-none text-[#1d1d1f] tabular-nums">{time}</span>
           <span className="truncate text-base capitalize text-black/45">{date}</span>
         </div>
-        <p className="mt-2 truncate text-xl font-semibold text-[#1d1d1f]">
-          {greeting}, {layout.userName || layout.dashboardName || 'Casa'}
-        </p>
+        <div className="mt-2 flex min-w-0 items-baseline gap-2">
+          <span className="shrink-0 text-[10px] font-bold uppercase tracking-[0.14em] text-[#0066cc]" title={BRAND_EXPANDED}>{BRAND_NAME}</span>
+          <p className="truncate text-xl font-semibold text-[#1d1d1f]">
+            {greeting}, {layout.userName || layout.dashboardName || 'Casa'}
+          </p>
+        </div>
       </div>
 
       <div className="flex items-center gap-3">
