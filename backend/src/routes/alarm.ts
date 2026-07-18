@@ -2,6 +2,12 @@ import { lstat, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises
 import { basename, dirname, join, resolve } from 'node:path'
 import { Hono } from 'hono'
 import { adminOnly } from '../lib/security.js'
+import {
+  getSharedAlarmTest,
+  startSharedAlarmTest,
+  stopSharedAlarmTest,
+  type AlarmTestScenario,
+} from '../lib/ha-stream.js'
 
 /**
  * Foto-allarme (§11): il kiosk carica UNA foto JPEG per evento critico
@@ -46,6 +52,25 @@ async function prunePhotos(directory: string): Promise<void> {
 }
 
 export const alarmRouter = new Hono()
+
+const ALARM_TEST_SCENARIOS = new Set<AlarmTestScenario>(['intrusion', 'siren', 'smoke'])
+
+/** Current state is kiosk-readable so REST fallback clients still converge. */
+alarmRouter.get('/test', (c) => c.json(getSharedAlarmTest()))
+
+alarmRouter.post('/test', adminOnly, async (c) => {
+  const body = await c.req.json<{ scenario?: unknown }>().catch(() => null)
+  if (!body || typeof body.scenario !== 'string' || !ALARM_TEST_SCENARIOS.has(body.scenario as AlarmTestScenario)) {
+    return c.json({ error: 'Scenario test non valido' }, 400)
+  }
+  return c.json({ active: true as const, ...startSharedAlarmTest(body.scenario as AlarmTestScenario), serverNow: new Date().toISOString() })
+})
+
+// Any authenticated kiosk may end a harmless simulation from its own overlay.
+alarmRouter.delete('/test', (c) => {
+  stopSharedAlarmTest()
+  return c.json({ ok: true as const })
+})
 
 alarmRouter.post('/photo', async (c) => {
   if (!writesAllowed()) return c.json({ error: 'Storage in sola lettura' }, 403)

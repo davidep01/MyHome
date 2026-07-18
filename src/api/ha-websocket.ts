@@ -1,7 +1,8 @@
 import type { HassEntities, HassEntity } from 'home-assistant-js-websocket'
 import { useEntityStore } from '../store/entities'
 import { useDoorbellEvents } from '../store/doorbellEvents'
-import { haApi } from './backend'
+import { useAlarmTestStore } from '../store/alarmTest'
+import { alarmApi, haApi, type AlarmTestRemoteState } from './backend'
 
 /**
  * Live Home Assistant data for every client (kiosk AND desktop).
@@ -21,6 +22,7 @@ type HaStreamEvent =
   | { type: 'error'; message: string }
   | { type: 'doorbell-test'; doorbellId: string }
   | { type: 'kiosk-command'; target: string; command: string; value?: number | string }
+  | ({ type: 'alarm-test' } & AlarmTestRemoteState)
 
 const PROXY_POLL_MS = 4000
 /** Delta coalescing window: many SSE frames → one store update. */
@@ -81,6 +83,8 @@ function applyStreamEvent(event: HaStreamEvent): void {
   } else if (event.type === 'doorbell-test') {
     // Prova dal pannello desktop: ogni client connesso suona (tablet incluso).
     useDoorbellEvents.getState().triggerTest(event.doorbellId)
+  } else if (event.type === 'alarm-test') {
+    useAlarmTestStore.getState().sync(event)
   } else if (event.type === 'kiosk-command') {
     // Comando dalla regia (§4.5/§12): lo esegue solo il tablet bersaglio.
     void import('../lib/kioskDevice').then(({ executeKioskCommand, getKioskDeviceId }) => {
@@ -100,13 +104,17 @@ function pollProxyStates(): Promise<void> {
   proxyPollAbort = controller
   const task = (async () => {
     try {
-      const states = await haApi.states(controller.signal) as HassEntity[]
+      const [states, alarmTest] = await Promise.all([
+        haApi.states(controller.signal) as Promise<HassEntity[]>,
+        alarmApi.testStatus().catch(() => null),
+      ])
       if (controller.signal.aborted) return
       const next = states.reduce<HassEntities>((acc, entity) => {
         acc[entity.entity_id] = entity
         return acc
       }, {})
       useEntityStore.getState().setEntities(next)
+      if (alarmTest) useAlarmTestStore.getState().sync(alarmTest)
       useEntityStore.getState().setConnectionStatus('connected')
     } catch (error) {
       if (controller.signal.aborted) return

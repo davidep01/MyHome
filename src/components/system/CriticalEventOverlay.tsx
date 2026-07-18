@@ -10,11 +10,11 @@ import { useSoundNotifications } from '../../hooks/useSoundNotifications'
 import { useUIStore } from '../../store/ui'
 import { startRepeatingSound } from '../../lib/sound/SoundManager'
 import { ALARM_TEST_DURATION_MS, useAlarmTestStore } from '../../store/alarmTest'
+import { alarmApi } from '../../api/backend'
 
 export function CriticalEventOverlay({ alerts, shortcuts }: { alerts: CriticalAlert[]; shortcuts?: ActionShortcut[] }) {
   const [minimizedFor, setMinimizedFor] = useState<string | null>(null)
   const setSelectedEntity = useUIStore((state) => state.setSelectedEntity)
-  const stopAlarmTest = useAlarmTestStore((state) => state.stop)
   const { play } = useSoundNotifications()
   const reduceMotion = useReducedMotion()
   const focusRef = useRef<HTMLButtonElement | null>(null)
@@ -51,7 +51,7 @@ export function CriticalEventOverlay({ alerts, shortcuts }: { alerts: CriticalAl
 
   const openControl = () => {
     if (current.test) {
-      stopAlarmTest()
+      void alarmApi.stopTest().then(() => useAlarmTestStore.getState().stop())
       return
     }
     setMinimizedFor(signature)

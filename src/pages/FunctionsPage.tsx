@@ -9,7 +9,7 @@ import { useDashboardConfig, useUpdateConfig } from '../hooks/useDashboardConfig
 import { useSoundNotifications } from '../hooks/useSoundNotifications'
 import { useThemeStore } from '../store/theme'
 import { useEntityStore } from '../store/entities'
-import { haApi, screensaverApi, systemApi, type DoorbellDevice, type KnownFace } from '../api/backend'
+import { alarmApi, haApi, screensaverApi, systemApi, type DoorbellDevice, type KnownFace } from '../api/backend'
 import { fileToFaceDataUrl } from '../lib/faceImage'
 import { normalizeDoorbells } from '../lib/doorbell'
 import { uid } from '../lib/uid'
@@ -910,9 +910,8 @@ function EmergencyCard() {
   const { mutate: update, isPending } = useUpdateConfig()
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null)
   const [testScenario, setTestScenario] = useState<AlarmTestScenario>('intrusion')
+  const [testPending, setTestPending] = useState(false)
   const alarmTest = useAlarmTestStore((state) => state.alert)
-  const startAlarmTest = useAlarmTestStore((state) => state.start)
-  const stopAlarmTest = useAlarmTestStore((state) => state.stop)
   const readOnly = config?.storage?.writable === false
   const photoOn = config?.alarm?.photo === true
 
@@ -926,6 +925,24 @@ function EmergencyCard() {
     })
   }
 
+  const toggleAlarmTest = async () => {
+    setTestPending(true)
+    setMessage(null)
+    try {
+      if (alarmTest) {
+        await alarmApi.stopTest()
+        useAlarmTestStore.getState().stop()
+      } else {
+        const remote = await alarmApi.startTest(testScenario)
+        useAlarmTestStore.getState().sync(remote)
+      }
+    } catch {
+      setMessage({ ok: false, text: 'Test non sincronizzato. Controlla la connessione e riprova.' })
+    } finally {
+      setTestPending(false)
+    }
+  }
+
   return (
     <GlassCard className="space-y-3">
       <FeatureHeader Icon={Siren} title="Emergenza" badge={photoOn ? 'Foto attiva' : 'Solo avviso'} tone={photoOn ? 'ok' : 'neutral'} />
@@ -937,7 +954,7 @@ function EmergencyCard() {
         <div>
           <p className="text-sm font-semibold text-[#1d1d1f]">Pannello test allarme</p>
           <p className="mt-0.5 text-[11px] leading-relaxed text-black/45">
-            Prova overlay, audio e pulsanti per {ALARM_TEST_DURATION_MS / 1_000} secondi. È una simulazione locale: non arma HASS, non attiva dispositivi e non scatta fotografie.
+            Prova overlay, audio e pulsanti per {ALARM_TEST_DURATION_MS / 1_000} secondi su tutti i kiosk collegati. Non arma HASS, non attiva dispositivi e non scatta fotografie.
           </p>
         </div>
         <div className="grid grid-cols-3 gap-2" role="group" aria-label="Scenario del test allarme">
@@ -950,7 +967,7 @@ function EmergencyCard() {
               key={scenario}
               type="button"
               aria-pressed={testScenario === scenario}
-              disabled={Boolean(alarmTest)}
+              disabled={Boolean(alarmTest) || testPending}
               onClick={() => setTestScenario(scenario)}
               className={cn(
                 'min-h-11 rounded-[11px] px-2 text-xs font-semibold transition disabled:opacity-45',
@@ -963,14 +980,15 @@ function EmergencyCard() {
         </div>
         <button
           type="button"
-          onClick={() => alarmTest ? stopAlarmTest() : startAlarmTest(testScenario)}
+          onClick={() => void toggleAlarmTest()}
+          disabled={testPending}
           className={cn(
             'flex min-h-12 w-full items-center justify-center gap-2 rounded-[12px] text-sm font-bold text-white transition active:scale-[0.98]',
             alarmTest ? 'bg-black/65' : 'bg-[#a8071a]',
           )}
         >
           <Siren size={17} aria-hidden="true" />
-          {alarmTest ? 'Termina test in corso' : 'Avvia test allarme'}
+          {testPending ? 'Sincronizzazione…' : alarmTest ? 'Termina test su tutti i kiosk' : 'Avvia test su tutti i kiosk'}
         </button>
       </div>
       <div className="flex items-center justify-between gap-3 rounded-[10px] bg-black/[0.035] px-3 py-2.5">

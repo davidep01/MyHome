@@ -29,6 +29,19 @@ export interface HaEntityLike {
   context?: unknown
 }
 
+export type AlarmTestScenario = 'intrusion' | 'siren' | 'smoke'
+
+export interface ActiveAlarmTest {
+  id: string
+  scenario: AlarmTestScenario
+  startedAt: string
+  expiresAt: string
+}
+
+export type AlarmTestStreamEvent =
+  | ({ type: 'alarm-test'; active: true; serverNow: string } & ActiveAlarmTest)
+  | { type: 'alarm-test'; active: false; id?: string; serverNow: string }
+
 export type HaStreamEvent =
   | { type: 'snapshot'; entities: HaEntityLike[] }
   | { type: 'delta'; changed: HaEntityLike[]; removed: string[] }
@@ -37,6 +50,8 @@ export type HaStreamEvent =
   | { type: 'doorbell-test'; doorbellId: string }
   /** Comando dalla regia a un tablet (§4.5/§12): ricarica, schermo, TTS… */
   | { type: 'kiosk-command'; target: string; command: string; value?: number | string }
+  /** Simulazione emergenza coordinata dal server su tutti i kiosk. */
+  | AlarmTestStreamEvent
 
 type Subscriber = (event: HaStreamEvent, id: number) => void
 
@@ -67,6 +82,8 @@ let eventSeq = 0
 let lastEventAt: string | null = null
 /** Recent deltas only — a snapshot resets it (older deltas become irrelevant). */
 let ring: { id: number; event: HaStreamEvent }[] = []
+let activeAlarmTest: ActiveAlarmTest | null = null
+let alarmTestTimer: ReturnType<typeof setTimeout> | null = null
 
 function broadcast(event: HaStreamEvent, id: number): void {
   for (const sub of subscribers) {
@@ -103,6 +120,48 @@ export function broadcastDoorbellTest(doorbellId: string): void {
 export function broadcastKioskCommand(target: string, command: string, value?: number | string): void {
   eventSeq += 1
   broadcast({ type: 'kiosk-command', target, command, ...(value !== undefined ? { value } : {}) }, eventSeq)
+}
+
+function activeAlarmTestEvent(test: ActiveAlarmTest): AlarmTestStreamEvent {
+  return { type: 'alarm-test', active: true, ...test, serverNow: new Date().toISOString() }
+}
+
+/** Starts (or replaces) the shared emergency simulation for every kiosk. */
+export function startSharedAlarmTest(scenario: AlarmTestScenario, durationMs = 20_000): ActiveAlarmTest {
+  if (alarmTestTimer) clearTimeout(alarmTestTimer)
+  const now = Date.now()
+  const test: ActiveAlarmTest = {
+    id: `alarm-test-${now}-${Math.random().toString(36).slice(2, 8)}`,
+    scenario,
+    startedAt: new Date(now).toISOString(),
+    expiresAt: new Date(now + durationMs).toISOString(),
+  }
+  activeAlarmTest = test
+  eventSeq += 1
+  broadcast(activeAlarmTestEvent(test), eventSeq)
+  alarmTestTimer = setTimeout(() => stopSharedAlarmTest(test.id), durationMs)
+  return test
+}
+
+/** Stops the current simulation and synchronizes dismissal across clients. */
+export function stopSharedAlarmTest(expectedId?: string): boolean {
+  if (!activeAlarmTest || (expectedId && activeAlarmTest.id !== expectedId)) return false
+  const stoppedId = activeAlarmTest.id
+  activeAlarmTest = null
+  if (alarmTestTimer) clearTimeout(alarmTestTimer)
+  alarmTestTimer = null
+  eventSeq += 1
+  broadcast({ type: 'alarm-test', active: false, id: stoppedId, serverNow: new Date().toISOString() }, eventSeq)
+  return true
+}
+
+export function getSharedAlarmTest(): ({ active: true; serverNow: string } & ActiveAlarmTest) | { active: false; serverNow: string } {
+  if (!activeAlarmTest) return { active: false, serverNow: new Date().toISOString() }
+  if (Date.parse(activeAlarmTest.expiresAt) <= Date.now()) {
+    stopSharedAlarmTest(activeAlarmTest.id)
+    return { active: false, serverNow: new Date().toISOString() }
+  }
+  return { active: true, ...activeAlarmTest, serverNow: new Date().toISOString() }
 }
 
 // ── Poll fallback (the original loop, unchanged in spirit) ──────────────────
@@ -274,6 +333,9 @@ export function subscribeHaStream(sub: Subscriber, sinceId?: number): () => void
   } else if (snapshot.size > 0) {
     sub({ type: 'snapshot', entities: [...snapshot.values()] }, eventSeq)
   }
+
+  const alarmTest = getSharedAlarmTest()
+  if (alarmTest.active) sub({ type: 'alarm-test', ...alarmTest }, eventSeq)
 
   ensureFeed()
   return () => {

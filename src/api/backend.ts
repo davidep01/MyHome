@@ -453,10 +453,29 @@ export interface AlarmPhotoInfo {
   takenAt: string
 }
 
+export type AlarmTestScenario = 'intrusion' | 'siren' | 'smoke'
+
+export type AlarmTestRemoteState =
+  | {
+      active: true
+      id: string
+      scenario: AlarmTestScenario
+      startedAt: string
+      expiresAt: string
+      serverNow: string
+    }
+  | { active: false; serverNow: string }
+
 export const alarmApi = {
   uploadPhoto: (photo: AlarmPhotoUpload) =>
     request<{ ok: true }>('/alarm/photo', { method: 'POST', body: JSON.stringify(photo) }),
   listPhotos: () => request<{ photos: AlarmPhotoInfo[] }>('/alarm/photos'),
+  testStatus: () => request<AlarmTestRemoteState>('/alarm/test'),
+  startTest: (scenario: AlarmTestScenario) => request<AlarmTestRemoteState>('/alarm/test', {
+    method: 'POST',
+    body: JSON.stringify({ scenario }),
+  }),
+  stopTest: () => request<{ ok: true }>('/alarm/test', { method: 'DELETE' }),
 }
 
 // ── Flotta kiosk (§4.5/§12) ─────────────────────────────────────────────────
