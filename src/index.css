@@ -217,6 +217,14 @@ html.kiosk-mode body {
   user-select: none;
 }
 
+.kiosk-color-canvas {
+  background:
+    radial-gradient(circle at 8% 0%, rgba(59,130,246,.12) 0%, transparent 34%),
+    radial-gradient(circle at 94% 12%, rgba(168,85,247,.10) 0%, transparent 31%),
+    radial-gradient(circle at 68% 105%, rgba(249,115,22,.10) 0%, transparent 38%),
+    #f5f5f7;
+}
+
 /* Mesh ambientale: due soli layer compositi, sopra il canvas e sotto popup/
    alert. Animiamo esclusivamente transform/opacity, quindi nessun layout e
    nessun blur ricalcolato a ogni frame anche sui pannelli 90/120 Hz. */
@@ -227,7 +235,7 @@ html.kiosk-mode body {
   overflow: hidden;
   pointer-events: none;
   contain: strict;
-  opacity: .34;
+  opacity: .48;
   mix-blend-mode: soft-light;
 }
 .kiosk-mesh-orb {
@@ -235,7 +243,7 @@ html.kiosk-mode body {
   width: 72vmax;
   height: 72vmax;
   border-radius: 999px;
-  opacity: .42;
+  opacity: .52;
   will-change: transform;
   transform: translate3d(0, 0, 0);
 }
@@ -254,7 +262,7 @@ html.kiosk-mode body {
 .kiosk-mesh-mattina .kiosk-mesh-orb-b { opacity: .58; }
 .kiosk-mesh-sera .kiosk-mesh-orb-a,
 .kiosk-mesh-notte .kiosk-mesh-orb-a { opacity: .52; }
-.kiosk-mesh-notte { opacity: .2; }
+.kiosk-mesh-notte { opacity: .28; }
 
 @keyframes kiosk-mesh-a {
   from { transform: translate3d(-3%, -2%, 0) scale(.94); }
@@ -361,11 +369,9 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
 }
 
 /* ----------------------------------------------------------------------------
-   Card entità — vetro NEUTRO, identico per ogni famiglia (canone HomeKit).
-   Spenta = vetro più trasparente; attiva = più bianca e luminosa (il layer
-   `.widget-card-fill` fa solo fade di opacity: compositor-only). Il colore
-   vive nell'icona e nella riga di stato, mai come lavaggio di fondo.
-   Niente gradienti decorativi, niente ombre esterne (regole del design system).
+   Card entità — vetro colorato in modo contestuale. La tinta rimane leggera
+   a riposo e cresce con lo stato attivo, così la Home è più viva senza perdere
+   la gerarchia funzionale dei colori.
    ------------------------------------------------------------------------- */
 .widget-card-shell {
   background: rgba(255,255,255,0.44);
@@ -386,6 +392,15 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
   transition: opacity 240ms cubic-bezier(0.32,0.72,0,1);
 }
 .widget-card-shell.widget-card-active .widget-card-fill { opacity: 1; }
+
+.widget-card-tint {
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--widget-accent) 30%, transparent) 0%, transparent 64%),
+    radial-gradient(circle at 0% 115%, color-mix(in srgb, var(--widget-accent) 16%, transparent) 0%, transparent 58%);
+  opacity: .34;
+  transition: opacity 240ms cubic-bezier(0.32,0.72,0,1);
+}
+.widget-card-shell.widget-card-active .widget-card-tint { opacity: .9; }
 
 /* Copertina media al posto del puck icona: hairline per staccare dal vetro. */
 .widget-card-artwork {
@@ -462,6 +477,8 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
   backdrop-filter: none;
   background: rgba(255,255,255,0.78);
 }
+.perf-lite .widget-card-tint { opacity: .24; }
+.perf-lite .widget-card-shell.widget-card-active .widget-card-tint { opacity: .68; }
 @media (prefers-reduced-transparency: reduce) {
   .widget-card-shell {
     -webkit-backdrop-filter: none;

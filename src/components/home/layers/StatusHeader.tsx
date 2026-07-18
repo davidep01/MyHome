@@ -80,13 +80,13 @@ export function StatusHeader({
 
         <div className="flex min-w-0 flex-wrap items-center gap-2 sm:shrink-0 sm:justify-end sm:gap-2.5">
           {personsHome.length > 0 && (
-            <div className="flex min-h-11 min-w-0 max-w-full items-center gap-2 rounded-full bg-black/[0.05] px-4 text-sm font-semibold text-black/60">
-              <Users size={16} className="shrink-0 text-black/40" />
+            <div className="flex min-h-11 min-w-0 max-w-full items-center gap-2 rounded-full bg-emerald-500/10 px-4 text-sm font-semibold text-emerald-900/70 ring-1 ring-emerald-500/10">
+              <Users size={16} className="shrink-0 text-emerald-700/70" />
               <span className="max-w-[min(52vw,220px)] truncate">{personsHome.join(' · ')}</span>
             </div>
           )}
           {weather && (
-            <div className="flex min-h-11 shrink-0 items-center gap-2 rounded-full bg-black/[0.05] px-3.5 sm:px-4">
+            <div className="flex min-h-11 shrink-0 items-center gap-2 rounded-full bg-sky-500/10 px-3.5 ring-1 ring-sky-500/10 sm:px-4">
               <WeatherIcon code={weather.icon} size={27} />
               <span className="text-2xl font-light text-[#1d1d1f]">{weather.temp}°</span>
             </div>
@@ -94,7 +94,12 @@ export function StatusHeader({
           <span
             role="status"
             aria-label={online ? 'Online' : syncing ? 'Sincronizzazione' : 'Offline'}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-black/[0.05]"
+            className={cn(
+              'flex h-11 w-11 shrink-0 items-center justify-center rounded-full ring-1',
+              online ? 'bg-green-500/10 ring-green-500/10'
+                : syncing ? 'bg-orange-500/10 ring-orange-500/10'
+                  : 'bg-red-500/10 ring-red-500/10',
+            )}
             title={online ? 'Online' : syncing ? 'Sincronizzazione' : 'Offline'}
           >
             <span className={cn('h-2.5 w-2.5 rounded-full', online ? 'bg-green-500' : syncing ? 'animate-pulse bg-orange-400' : 'bg-red-400')} />

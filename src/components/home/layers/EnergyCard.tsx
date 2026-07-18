@@ -41,7 +41,11 @@ export function EnergyCard() {
   const delta = avg && avg > 1 ? Math.round(((now - avg) / avg) * 100) : null
 
   return (
-    <GlassCard depth className="flex min-h-[200px] flex-col justify-between">
+    <GlassCard
+      depth
+      className="flex min-h-[200px] flex-col justify-between"
+      style={{ background: 'linear-gradient(145deg, rgba(245,158,11,0.16), rgba(255,255,255,0.66) 72%)' }}
+    >
       <div className="flex items-center gap-2">
         <div className="flex h-9 w-9 items-center justify-center rounded-[11px] bg-amber-500/12 text-amber-600">
           <Zap size={17} />

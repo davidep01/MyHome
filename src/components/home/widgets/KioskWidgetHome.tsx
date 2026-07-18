@@ -64,7 +64,7 @@ function KioskHeader({ layout }: { layout: TabletDashboardLayout }) {
 
       <div className="flex items-center gap-3">
         {weather && (
-          <div className="flex items-center gap-2 rounded-full bg-black/[0.05] px-4 py-2">
+          <div className="flex items-center gap-2 rounded-full bg-sky-500/10 px-4 py-2 ring-1 ring-sky-500/10">
             <WeatherIcon code={weather.icon} size={27} />
             <span className="text-2xl font-light text-[#1d1d1f]">{weather.temp}°</span>
           </div>
@@ -72,7 +72,9 @@ function KioskHeader({ layout }: { layout: TabletDashboardLayout }) {
         <div
           className={cn(
             'flex min-h-[48px] items-center gap-2 rounded-full px-4 text-sm font-semibold',
-            online && !cached ? 'bg-green-500/12 text-green-700' : syncing ? 'bg-orange-500/12 text-orange-700' : 'bg-black/[0.06] text-black/55',
+            online && !cached ? 'bg-green-500/12 text-green-700 ring-1 ring-green-500/10'
+              : syncing ? 'bg-orange-500/12 text-orange-700 ring-1 ring-orange-500/10'
+                : 'bg-red-500/10 text-red-700 ring-1 ring-red-500/10',
           )}
         >
           <span className={cn('h-2.5 w-2.5 rounded-full', online && !cached ? 'bg-green-500' : 'bg-orange-400')} />

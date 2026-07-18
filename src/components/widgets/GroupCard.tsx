@@ -18,6 +18,7 @@ import {
   optimisticGroupState,
 } from './utils/groupActions'
 import { HoldDangerAction } from '../controls/HoldDangerAction'
+import { widgetTones } from './utils/getRingColorScale'
 
 export function GroupCard({ group, className }: { group: EntityGroup; className?: string }) {
   const entities = useEntityStore((s) => s.entities)
@@ -73,8 +74,14 @@ export function GroupCard({ group, className }: { group: EntityGroup; className?
       })
   }
 
-  const accent = anyActive ? 'rgba(234,179,8,0.15)' : 'rgba(0,0,0,0.05)'
-  const iconColor = anyActive ? '#b45309' : 'rgba(29,29,31,0.40)'
+  const activeTone = presentationType === 'media' ? widgetTones.media
+    : presentationType === 'climate' || presentationType === 'water_heater' ? widgetTones.heat
+      : presentationType === 'fan' || presentationType === 'cover' ? widgetTones.cool
+        : presentationType === 'lock' || presentationType === 'security' || presentationType === 'alarm' ? widgetTones.warning
+          : presentationType === 'switch' ? widgetTones.ok
+            : widgetTones.light
+  const accent = anyActive ? activeTone.bg : widgetTones.neutral.bg
+  const iconColor = anyActive ? activeTone.color : 'rgba(29,29,31,0.40)'
   const missing = total - availableMembers.length
   const status = error
     ?? (pending ? 'Invio comando…'
@@ -95,6 +102,9 @@ export function GroupCard({ group, className }: { group: EntityGroup; className?
       depth
       className={cn('flex h-full min-h-[104px] flex-col justify-between gap-3', feedbackClass, className)}
       aria-busy={pending}
+      style={anyActive ? {
+        background: `linear-gradient(145deg, ${activeTone.bg}, rgba(255,255,255,0.66) 70%)`,
+      } : undefined}
     >
       <div className="flex items-start justify-between gap-3">
         <div
@@ -155,7 +165,7 @@ export function GroupCard({ group, className }: { group: EntityGroup; className?
           className={cn('mt-0.5 flex items-center gap-1.5 text-[13px]', error ? 'text-red-700' : 'text-black/50')}
           role={error ? 'alert' : 'status'}
         >
-          {anyActive && capability?.kind !== 'activate' && !error && <span aria-hidden="true"><LiveDot color="#eab308" size={7} /></span>}
+          {anyActive && capability?.kind !== 'activate' && !error && <span aria-hidden="true"><LiveDot color={activeTone.color} size={7} /></span>}
           <span className="truncate">{status}</span>
         </p>
       </div>

@@ -64,14 +64,14 @@ export function HomeWidgetView({ widget, publicConfig }: { widget: HomeWidget; p
     case 'insight': return <QuickInsightWidget />
     case 'calendar': return <CalendarWidget size={widget.size} />
     case 'news':
-      return <GlassCard depth className="h-full overflow-hidden"><NewsWidget /></GlassCard>
+      return <AnimatedCard depth ambient="drift" ambientColor="rgba(239,68,68,0.16)" index={3} className="h-full overflow-hidden"><NewsWidget /></AnimatedCard>
     case 'people': return <PeopleCard className="h-full" />
     case 'quickStats':
-      return <GlassCard depth className="flex h-full items-center"><QuickStats /></GlassCard>
+      return <AnimatedCard depth ambient="drift" ambientColor="rgba(16,185,129,0.16)" index={4} className="flex h-full items-center"><QuickStats /></AnimatedCard>
     case 'scenes':
-      return <GlassCard depth className="flex h-full items-center overflow-hidden"><SceneRow /></GlassCard>
+      return <AnimatedCard depth ambient="drift" ambientColor="rgba(99,102,241,0.16)" index={5} className="flex h-full items-center overflow-hidden"><SceneRow /></AnimatedCard>
     case 'weather':
-      return <AnimatedCard depth ambient="drift" index={2} ambientColor="rgba(41,151,255,0.12)" noPadding className="h-full"><div className="h-full overflow-hidden p-[14px]"><WeatherWidget /></div></AnimatedCard>
+      return <AnimatedCard depth ambient="drift" index={2} ambientColor="rgba(41,151,255,0.19)" noPadding className="h-full"><div className="h-full overflow-hidden p-[14px]"><WeatherWidget /></div></AnimatedCard>
     case 'sensor':
       return roomEntity
         ? <EntityCard entity={roomEntity} size={visualSize} />

@@ -13,9 +13,8 @@ import type { WidgetCardBaseProps, WidgetVisualSize } from './types'
  *   …spazio…
  *   Nome dispositivo
  *   Stato · dettaglio
- * Vetro neutro identico per ogni famiglia; attiva = vetro più bianco
- * (`.widget-card-fill`, solo opacity). Il colore vive nell'icona e nello
- * stato, mai come lavaggio di fondo. Niente ring, gradienti od ombre esterne.
+ * Il vetro prende una tinta contestuale molto leggera dalla famiglia; quando
+ * la card è attiva la tinta cresce insieme alla luminosità del fondo.
  */
 export function WidgetCardShell({
   id,
@@ -66,6 +65,7 @@ export function WidgetCardShell({
     >
       {/* Stato attivo = vetro più luminoso: layer bianco che fa solo fade. */}
       <span className="widget-card-fill absolute inset-0 z-0" aria-hidden="true" />
+      <span className="widget-card-tint pointer-events-none absolute inset-0 z-[1]" aria-hidden="true" />
       {/* Media full-bleed (live camera / artwork): sopra il vetro, sotto controlli e testo. */}
       {media && !isUnavailable && !isOffline && !isLoading && !isError && (
         <div className="absolute inset-0 z-[5] overflow-hidden rounded-[18px]" aria-hidden="true">

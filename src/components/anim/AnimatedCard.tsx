@@ -15,6 +15,8 @@ interface AnimatedCardProps extends GlassProps {
   index?: number
   /** Layout classes for the content wrapper (which sits above the ambient layer). */
   contentClassName?: string
+  /** Broad, static tint that keeps category color visible without relying on motion. */
+  colorWash?: boolean
 }
 
 /**
@@ -26,6 +28,7 @@ export function AnimatedCard({
   ambientColor = 'rgba(0,102,204,0.10)',
   index = 0,
   contentClassName,
+  colorWash = true,
   children,
   className,
   ...rest
@@ -34,6 +37,13 @@ export function AnimatedCard({
 
   return (
     <GlassCard className={cn('relative overflow-hidden', className)} {...rest}>
+      {colorWash && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{ background: `radial-gradient(circle at 96% 0%, ${ambientColor} 0%, transparent 64%)` }}
+        />
+      )}
       {ambient === 'drift' && (
         <span
           aria-hidden

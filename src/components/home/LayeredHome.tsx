@@ -5,7 +5,6 @@ import { RoomsRow, type RoomTarget } from './layers/RoomsRow'
 import { EntitySheet } from './layers/EntitySheet'
 import { TimelineSheet } from './layers/TimelineSheet'
 import { SpacesCatalog } from './layers/SpacesCatalog'
-import { GlassCard } from '../glass/GlassCard'
 import { AnimatedCard } from '../anim/AnimatedCard'
 import { WeatherWidget } from '../weather/WeatherWidget'
 import { SceneRow } from '../layout/SceneRow'
@@ -113,7 +112,7 @@ function QuietSection() {
         depth
         ambient="drift"
         index={1}
-        ambientColor="rgba(41,151,255,0.12)"
+        ambientColor="rgba(41,151,255,0.19)"
         noPadding
         className={cn('min-h-[272px] sm:col-span-2', hasEnergy ? 'xl:col-span-2' : 'xl:col-span-3')}
       >
@@ -122,9 +121,9 @@ function QuietSection() {
       {hasEnergy && <div className="min-w-0 sm:col-span-2 xl:col-span-1 [&>*]:h-full">
         <EnergyCard />
       </div>}
-      {hasScenes && <GlassCard depth className="flex min-h-[120px] items-center overflow-hidden sm:col-span-2 sm:min-w-0 xl:col-span-3">
+      {hasScenes && <AnimatedCard depth ambient="drift" ambientColor="rgba(99,102,241,0.16)" index={3} className="flex min-h-[120px] items-center overflow-hidden sm:col-span-2 sm:min-w-0 xl:col-span-3">
         <SceneRow />
-      </GlassCard>}
+      </AnimatedCard>}
     </section>
   )
 }

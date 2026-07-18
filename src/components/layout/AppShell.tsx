@@ -227,7 +227,7 @@ function KioskShell() {
   }, [])
 
   return (
-    <div className="kiosk-root relative h-full w-full overflow-hidden bg-[#f5f5f7]">
+    <div className="kiosk-root kiosk-color-canvas relative h-full w-full overflow-hidden">
       <div className={`kiosk-mesh-overlay kiosk-mesh-${period}`} aria-hidden="true">
         <span className="kiosk-mesh-orb kiosk-mesh-orb-a" />
         <span className="kiosk-mesh-orb kiosk-mesh-orb-b" />
