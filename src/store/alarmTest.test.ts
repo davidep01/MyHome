@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { ALARM_TEST_DURATION_MS, useAlarmTestStore } from './alarmTest'
+import { alarmTestNeedsSync, ALARM_TEST_DURATION_MS, useAlarmTestStore } from './alarmTest'
 
 describe('alarm test store', () => {
   afterEach(() => {
@@ -62,5 +62,22 @@ describe('alarm test store', () => {
     expect(useAlarmTestStore.getState().alert).not.toBeNull()
     vi.advanceTimersByTime(1)
     expect(useAlarmTestStore.getState().alert).toBeNull()
+  })
+
+  it('detects when the fallback heartbeat must converge the local kiosk', () => {
+    const active = {
+      active: true as const,
+      id: 'shared-live',
+      scenario: 'intrusion' as const,
+      startedAt: '2026-07-18T12:00:00.000Z',
+      expiresAt: '2026-07-18T12:00:20.000Z',
+      serverNow: '2026-07-18T12:00:01.000Z',
+    }
+
+    expect(alarmTestNeedsSync(null, active)).toBe(true)
+    expect(alarmTestNeedsSync('shared-live', active)).toBe(false)
+    expect(alarmTestNeedsSync('old-test', active)).toBe(true)
+    expect(alarmTestNeedsSync('shared-live', { active: false, serverNow: active.serverNow })).toBe(true)
+    expect(alarmTestNeedsSync(null, { active: false, serverNow: active.serverNow })).toBe(false)
   })
 })

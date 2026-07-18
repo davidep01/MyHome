@@ -36,6 +36,10 @@ interface AlarmTestState {
   stop: () => void
 }
 
+export function alarmTestNeedsSync(testId: string | null, remote: AlarmTestRemoteState): boolean {
+  return remote.active ? testId !== remote.id : testId !== null
+}
+
 let expiryTimer: ReturnType<typeof setTimeout> | null = null
 
 function clearExpiryTimer() {

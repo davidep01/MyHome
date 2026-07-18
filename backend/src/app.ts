@@ -20,6 +20,7 @@ import { authenticateRequest, authConfiguration } from './lib/security.js'
 import { db } from './db/client.js'
 import { safeRequestLogger } from './lib/request-logger.js'
 import { enforceAllowedHost } from './lib/host-guard.js'
+import { ALARM_SIREN_WAV } from './lib/alarm-sound.js'
 
 export const app = new Hono()
 
@@ -84,6 +85,23 @@ app.get('/api/health', async (c) => {
     storage,
     ts: Date.now(),
   }, healthy ? 200 : 503)
+})
+
+// Public same-origin media asset: Fully Kiosk's native player does not share
+// the WebView session cookie, so this harmless synthesized siren intentionally
+// lives outside /api. Host validation still limits access to the installation.
+app.get('/alarm-siren.wav', () => {
+  const body = ALARM_SIREN_WAV.buffer.slice(
+    ALARM_SIREN_WAV.byteOffset,
+    ALARM_SIREN_WAV.byteOffset + ALARM_SIREN_WAV.byteLength,
+  ) as ArrayBuffer
+  return new Response(body, {
+    headers: {
+      'Content-Type': 'audio/wav',
+      'Cache-Control': 'public, max-age=31536000, immutable',
+      'Content-Length': String(ALARM_SIREN_WAV.byteLength),
+    },
+  })
 })
 
 app.notFound((c) => c.json({ error: 'Endpoint non trovato' }, 404))

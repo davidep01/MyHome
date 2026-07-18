@@ -87,6 +87,26 @@ describe('Fully Kiosk capability bridge', () => {
     expect(failing?.turnScreenOn()).toBe(false)
   })
 
+  it('uses Fully native alarm audio and restores safe stream values', () => {
+    const setAudioVolume = vi.fn<(level: number, stream: number) => void>()
+    const playSound = vi.fn<(url: string, loop: boolean, stream?: number) => void>()
+    const stopSound = vi.fn<() => void>()
+    const bridge = createFullyKioskBridge({
+      getAudioVolume: () => '62',
+      setAudioVolume,
+      playSound,
+      stopSound,
+    }, LAN_LOCATION)
+
+    expect(bridge?.getAudioVolume(4)).toBe(62)
+    expect(bridge?.setAudioVolume(140, 4)).toBe(true)
+    expect(bridge?.playSound('http://homeassistant/alarm-siren.wav', true, 4)).toBe(true)
+    expect(bridge?.stopSound()).toBe(true)
+    expect(setAudioVolume).toHaveBeenCalledWith(100, 4)
+    expect(playSound).toHaveBeenCalledWith('http://homeassistant/alarm-siren.wav', true, 4)
+    expect(stopSound).toHaveBeenCalledOnce()
+  })
+
   it('registers each supported event only once', () => {
     const bind = vi.fn<(eventName: string, javascript: string) => void>()
     const bridge = createFullyKioskBridge({ bind }, LAN_LOCATION)

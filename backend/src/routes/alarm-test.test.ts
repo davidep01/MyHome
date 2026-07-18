@@ -16,6 +16,13 @@ afterEach(() => {
 })
 
 describe.sequential('shared alarm test', () => {
+  it('serves the native kiosk siren without an authenticated WebView session', async () => {
+    const response = await app.request('/alarm-siren.wav')
+    expect(response.status).toBe(200)
+    expect(response.headers.get('Content-Type')).toBe('audio/wav')
+    expect(new Uint8Array(await response.arrayBuffer()).slice(0, 4)).toEqual(new Uint8Array([82, 73, 70, 70]))
+  })
+
   it('broadcasts start and stop to every connected kiosk and hydrates late subscribers', async () => {
     const first: HaStreamEvent[] = []
     const second: HaStreamEvent[] = []

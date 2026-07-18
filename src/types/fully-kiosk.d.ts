@@ -17,6 +17,12 @@ declare global {
     startMotionDetection?: () => void
     stopMotionDetection?: () => void
     isMotionDetectionRunning?: () => unknown
+    getAudioVolume?: (stream: number) => unknown
+    setAudioVolume?: (level: number, stream: number) => void
+    playSound?: (url: string, loop: boolean, stream?: number) => void
+    stopSound?: () => void
+    textToSpeech?: (text: string) => void
+    stopTextToSpeech?: () => void
   }
 
   interface Window {

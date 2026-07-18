@@ -11,6 +11,7 @@ import { useUIStore } from '../../store/ui'
 import { startRepeatingSound } from '../../lib/sound/SoundManager'
 import { ALARM_TEST_DURATION_MS, useAlarmTestStore } from '../../store/alarmTest'
 import { alarmApi } from '../../api/backend'
+import { startKioskAlarmSound } from '../../lib/sound/KioskAlarmSound'
 
 export function CriticalEventOverlay({ alerts, shortcuts }: { alerts: CriticalAlert[]; shortcuts?: ActionShortcut[] }) {
   const [minimizedFor, setMinimizedFor] = useState<string | null>(null)
@@ -39,8 +40,14 @@ export function CriticalEventOverlay({ alerts, shortcuts }: { alerts: CriticalAl
       cooldownMs: 0,
       volume: 1,
       boost: preset === 'siren' ? 1.8 : 1.5,
+      force: true,
     })
-    return startRepeatingSound(sound, repeatMs)
+    const stopWebAudio = startRepeatingSound(sound, repeatMs)
+    const stopNativeAudio = startKioskAlarmSound(window.fully, window.location, currentKind)
+    return () => {
+      stopWebAudio()
+      stopNativeAudio()
+    }
   }, [signature, currentKind, play])
 
   useEffect(() => {
@@ -90,14 +97,23 @@ export function CriticalEventOverlay({ alerts, shortcuts }: { alerts: CriticalAl
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
         >
-          {/* Pulsazione rossa intermittente (§11): solo opacity, spenta con reduced-motion. */}
+          {/* Flash d'emergenza ad alta visibilità: due impulsi morbidi per ciclo,
+              sempre sotto 3 flash/s e disattivato con reduced-motion. */}
           {!reduceMotion && (
-            <motion.div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0 bg-[#ff2038]"
-              animate={{ opacity: [0, 0.14, 0] }}
-              transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
-            />
+            <>
+              <motion.div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 bg-[#ff2038]"
+                animate={{ opacity: [0.02, 0.34, 0.02, 0.22, 0.02] }}
+                transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut', times: [0, 0.16, 0.38, 0.58, 1] }}
+              />
+              <motion.div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 bg-white"
+                animate={{ opacity: [0, 0.16, 0, 0.1, 0] }}
+                transition={{ duration: 1.6, repeat: Infinity, ease: 'easeOut', times: [0, 0.12, 0.24, 0.52, 1] }}
+              />
+            </>
           )}
           <motion.div
             className="flex w-full max-w-[720px] flex-col items-center text-center"

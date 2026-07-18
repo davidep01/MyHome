@@ -32,6 +32,11 @@ export interface FullyKioskCapabilities {
   battery: boolean
   plugged: boolean
   tts: boolean
+  ttsStop: boolean
+  audioVolumeRead: boolean
+  audioVolumeWrite: boolean
+  soundPlayback: boolean
+  soundStop: boolean
   camshot: boolean
   screensaverControl: boolean
   restart: boolean
@@ -55,6 +60,12 @@ export interface FullyKioskBridge {
   isPlugged: () => boolean | null
   /** Pronuncia un testo con il TTS del tablet (annunci dalla regia). */
   say: (text: string) => boolean
+  stopSpeech: () => boolean
+  /** Volume Android 0..100 per stream (4 = allarme, 9 = TTS). */
+  getAudioVolume: (stream: number) => number | null
+  setAudioVolume: (level: number, stream: number) => boolean
+  playSound: (url: string, loop?: boolean, stream?: number) => boolean
+  stopSound: () => boolean
   /** Foto singola dalla fotocamera del tablet: data URL JPEG, o null. */
   getCamshotDataUrl: () => string | null
   startScreensaver: () => boolean
@@ -168,6 +179,11 @@ export function createFullyKioskBridge(
     battery: has('getBatteryLevel'),
     plugged: has('isPlugged'),
     tts: has('textToSpeech'),
+    ttsStop: has('stopTextToSpeech'),
+    audioVolumeRead: has('getAudioVolume'),
+    audioVolumeWrite: has('setAudioVolume'),
+    soundPlayback: has('playSound'),
+    soundStop: has('stopSound'),
     camshot: has('getCamshotJpgBase64'),
     screensaverControl: has('startScreensaver') && has('stopScreensaver'),
     restart: has('restartApp'),
@@ -233,6 +249,23 @@ export function createFullyKioskBridge(
       if (typeof text !== 'string' || !text.trim() || text.length > 300) return false
       return invoke('textToSpeech', text.trim()).ok
     },
+    stopSpeech: () => invoke('stopTextToSpeech').ok,
+    getAudioVolume: (stream) => {
+      if (!Number.isInteger(stream) || stream < 0 || stream > 10) return null
+      const result = invoke('getAudioVolume', stream)
+      const value = result.ok ? finiteNumber(result.value) : null
+      return value !== null && value >= 0 && value <= 100 ? Math.round(value) : null
+    },
+    setAudioVolume: (level, stream) => {
+      if (!Number.isFinite(level) || !Number.isInteger(stream) || stream < 0 || stream > 10) return false
+      return invoke('setAudioVolume', Math.round(clamp(level, 0, 100)), stream).ok
+    },
+    playSound: (url, loop = false, stream = 4) => {
+      if (typeof url !== 'string' || !url.trim() || url.length > 2_048) return false
+      if (!Number.isInteger(stream) || stream < 0 || stream > 10) return false
+      return invoke('playSound', url.trim(), Boolean(loop), stream).ok
+    },
+    stopSound: () => invoke('stopSound').ok,
     getCamshotDataUrl: () => {
       const result = invoke('getCamshotJpgBase64')
       if (!result.ok || typeof result.value !== 'string' || !result.value) return null

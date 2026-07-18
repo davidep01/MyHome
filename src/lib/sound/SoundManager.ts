@@ -23,6 +23,7 @@ interface PlayOptions {
   boost?: number       // perceptual gain compensation for urgent signals
   cooldownMs?: number  // suppress repeats of the same key within this window
   key?: string         // cooldown bucket (defaults to the preset)
+  force?: boolean      // critical alarms bypass the user's notification mute
 }
 
 interface Tone {
@@ -107,7 +108,7 @@ class SoundManager {
   }
 
   play(preset: SoundPreset, opts: PlayOptions = {}) {
-    if (preset === 'none' || this.muted) return
+    if (preset === 'none' || (this.muted && !opts.force)) return
     const key = opts.key ?? preset
     const now = Date.now()
     const cooldown = opts.cooldownMs ?? 3000

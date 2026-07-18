@@ -1,7 +1,7 @@
 import type { HassEntities, HassEntity } from 'home-assistant-js-websocket'
 import { useEntityStore } from '../store/entities'
 import { useDoorbellEvents } from '../store/doorbellEvents'
-import { useAlarmTestStore } from '../store/alarmTest'
+import { alarmTestNeedsSync, useAlarmTestStore } from '../store/alarmTest'
 import { alarmApi, haApi, type AlarmTestRemoteState } from './backend'
 
 /**
@@ -25,6 +25,7 @@ type HaStreamEvent =
   | ({ type: 'alarm-test' } & AlarmTestRemoteState)
 
 const PROXY_POLL_MS = 4000
+const ALARM_TEST_SYNC_MS = 1_500
 /** Delta coalescing window: many SSE frames → one store update. */
 const FLUSH_MS = 50
 
@@ -33,6 +34,8 @@ let proxyPollTimer: ReturnType<typeof setInterval> | null = null
 let proxyPollInFlight: Promise<void> | null = null
 let proxyPollAbort: AbortController | null = null
 let manuallyClosed = false
+let alarmSyncTimer: ReturnType<typeof setInterval> | null = null
+let alarmSyncInFlight: Promise<void> | null = null
 
 // ── Delta coalescing ─────────────────────────────────────────────────────────
 // The WS-backed stream can push several frames per second on a busy HA; batch
@@ -98,23 +101,45 @@ function applyStreamEvent(event: HaStreamEvent): void {
 
 // ── REST poll fallback (via backend proxy) ───────────────────────────────────
 
+function pollAlarmTest(): Promise<void> {
+  if (alarmSyncInFlight) return alarmSyncInFlight
+  const task = alarmApi.testStatus()
+    .then((remote) => {
+      const store = useAlarmTestStore.getState()
+      if (alarmTestNeedsSync(store.testId, remote)) store.sync(remote)
+    })
+    .catch(() => {})
+    .finally(() => {
+      if (alarmSyncInFlight === task) alarmSyncInFlight = null
+    })
+  alarmSyncInFlight = task
+  return task
+}
+
+function startAlarmTestSync(): void {
+  if (alarmSyncTimer) return
+  void pollAlarmTest()
+  alarmSyncTimer = setInterval(() => { void pollAlarmTest() }, ALARM_TEST_SYNC_MS)
+}
+
+function stopAlarmTestSync(): void {
+  if (alarmSyncTimer) clearInterval(alarmSyncTimer)
+  alarmSyncTimer = null
+}
+
 function pollProxyStates(): Promise<void> {
   if (proxyPollInFlight) return proxyPollInFlight
   const controller = new AbortController()
   proxyPollAbort = controller
   const task = (async () => {
     try {
-      const [states, alarmTest] = await Promise.all([
-        haApi.states(controller.signal) as Promise<HassEntity[]>,
-        alarmApi.testStatus().catch(() => null),
-      ])
+      const states = await haApi.states(controller.signal) as HassEntity[]
       if (controller.signal.aborted) return
       const next = states.reduce<HassEntities>((acc, entity) => {
         acc[entity.entity_id] = entity
         return acc
       }, {})
       useEntityStore.getState().setEntities(next)
-      if (alarmTest) useAlarmTestStore.getState().sync(alarmTest)
       useEntityStore.getState().setConnectionStatus('connected')
     } catch (error) {
       if (controller.signal.aborted) return
@@ -131,6 +156,7 @@ function pollProxyStates(): Promise<void> {
 
 export async function connectHAProxy(): Promise<void> {
   manuallyClosed = false
+  startAlarmTestSync()
   if (proxyPollTimer) return
   useEntityStore.getState().setConnectionStatus('connecting')
   proxyPollTimer = setInterval(() => {
@@ -159,6 +185,7 @@ export function disconnectHAProxy() {
  */
 export async function connectHAStream(): Promise<void> {
   manuallyClosed = false
+  startAlarmTestSync()
   const disabled = typeof localStorage !== 'undefined' && localStorage.getItem('myhome.haStream') === 'off'
   if (typeof EventSource === 'undefined' || disabled) {
     await connectHAProxy()
@@ -201,6 +228,7 @@ export async function connectHAStream(): Promise<void> {
 
 export function disconnectHAStream() {
   manuallyClosed = true
+  stopAlarmTestSync()
   resetDeltaBuffer()
   if (eventSource) { eventSource.close(); eventSource = null }
   disconnectHAProxy()
