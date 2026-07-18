@@ -10,6 +10,7 @@ import { useEntityStore } from '../../store/entities'
 import { tokens } from '../../design/tokens'
 import { TEMP_UNIT } from '../../lib/units'
 import { cn } from '../../lib/utils'
+import { temperatureTone } from '../widgets/utils/getRingColorScale'
 import {
   formatClimateTemp,
   getClimateModes,
@@ -27,16 +28,6 @@ const MODE_ICONS: Record<string, ElementType> = {
   heat_cool: Sparkles,
   dry: Droplets,
   fan_only: Fan,
-}
-
-const TONE_COLORS: Record<string, string> = {
-  heating: tokens.accent.orange,
-  cooling: tokens.accent.blue,
-  drying: '#0891b2',
-  fan: tokens.accent.green,
-  idle: 'var(--ink-secondary)',
-  off: 'var(--ink-secondary)',
-  unavailable: 'var(--ink-secondary)',
 }
 
 function listAttr(entity: HassEntity, key: string): string[] {
@@ -81,7 +72,8 @@ export function ClimateDetail({ entity }: { entity: HassEntity }) {
   const presetModes = listAttr(entity, 'preset_modes')
   const presetMode = entity.attributes?.preset_mode as string | undefined
   const visual = getClimateVisualState(entity)
-  const color = TONE_COLORS[visual.tone] ?? 'var(--ink-secondary)'
+  const displayedTemperature = dragValue ?? target
+  const color = temperatureTone(displayedTemperature).color
   const onMode = pickOnHvacMode(modes, mode)
 
   const run = (task: () => Promise<unknown>, optimistic: () => void, rollback: () => void) => {
@@ -157,7 +149,7 @@ export function ClimateDetail({ entity }: { entity: HassEntity }) {
         <div className="rounded-[18px] bg-black/[0.05] p-3">
           <p className="text-xs font-semibold text-black/45">Impostata</p>
           <p className="mt-1 text-[30px] font-semibold leading-none tabular-nums" style={{ color }}>
-            {formatClimateTemp(dragValue ?? target, TEMP_UNIT)}
+            {formatClimateTemp(displayedTemperature, TEMP_UNIT)}
           </p>
         </div>
       </div>
@@ -182,13 +174,13 @@ export function ClimateDetail({ entity }: { entity: HassEntity }) {
 
       <div className="flex flex-col items-center gap-4 pt-1">
         <RadialDial
-          value={dragValue ?? target}
+          value={displayedTemperature}
           min={min}
           max={max}
           step={step}
           color={color}
           size={236}
-          label={formatClimateTemp(dragValue ?? target, TEMP_UNIT)}
+          label={formatClimateTemp(displayedTemperature, TEMP_UNIT)}
           sublabel={`Setpoint · ambiente ${formatClimateTemp(current, TEMP_UNIT)}`}
           onChange={pending || visual.unavailable ? undefined : setDragValue}
           onTick={pending || visual.unavailable ? undefined : tick}

@@ -225,7 +225,7 @@ export function RadialDial({
         )}
       </svg>
       <div className="relative text-center pointer-events-none">
-        <div className="text-[34px] font-semibold leading-none text-[#1d1d1f] tabular-nums">{label}</div>
+        <div className="text-[34px] font-semibold leading-none tabular-nums" style={{ color }}>{label}</div>
         {sublabel && <div className="mt-1.5 text-[11px] text-black/40">{sublabel}</div>}
       </div>
     </div>

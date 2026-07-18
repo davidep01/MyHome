@@ -4,6 +4,7 @@ import { RadialDial } from '../glass/RadialDial'
 import { useEntityStore } from '../../store/entities'
 import { tokens } from '../../design/tokens'
 import { getClimateVisualState } from '../../lib/climate'
+import { temperatureTone } from '../widgets/utils/getRingColorScale'
 
 export function ClimateSummaryCard() {
   const entities = useEntityStore((s) => s.entities)
@@ -18,7 +19,7 @@ export function ClimateSummaryCard() {
   })
   const isHeating = activeZones.some((entity) => getClimateVisualState(entity).activeAction === 'heating')
   const isCooling = activeZones.some((entity) => getClimateVisualState(entity).activeAction === 'cooling')
-  const color = isHeating ? tokens.accent.orange : isCooling ? tokens.accent.blue : tokens.accent.green
+  const color = temperatureTone(average).color
 
   return (
     <GlassCard depth glow={activeZones.length ? (isHeating ? tokens.accent.orangeGlow : isCooling ? tokens.accent.blueGlow : tokens.accent.greenGlow) : undefined} className="min-h-[184px]">
