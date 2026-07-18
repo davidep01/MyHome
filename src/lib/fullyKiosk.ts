@@ -104,6 +104,7 @@ function isPrivateIpv4(hostname: string): boolean {
   return a === 10
     || a === 127
     || (a === 169 && b === 254)
+    || (a === 100 && b >= 64 && b <= 127) // CGNAT/Tailscale privata
     || (a === 172 && b >= 16 && b <= 31)
     || (a === 192 && b === 168)
 }
@@ -129,7 +130,7 @@ export function isTrustedLanLocation(location: LocationLike): boolean {
   if (!hostname) return false
   if (hostname === 'localhost' || isPrivateIpv4(hostname) || isPrivateIpv6(hostname)) return true
   if (!hostname.includes('.')) return true
-  return hostname.endsWith('.local') || hostname.endsWith('.lan') || hostname.endsWith('.home.arpa')
+  return hostname.endsWith('.local') || hostname.endsWith('.lan') || hostname.endsWith('.home.arpa') || hostname.endsWith('.ts.net')
 }
 
 export function fullyKioskAvailability(

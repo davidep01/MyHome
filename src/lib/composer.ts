@@ -4,9 +4,10 @@ import { dateKeyForLocalDate, isWasteCollectionSensor, wastePickups } from './wa
  * Composer di rilevanza — il cuore della home a strati (DOMINICA M1).
  *
  * Funzione PURA e deterministica: dato lo stato delle entità, decide cosa
- * merita la zona "Adesso" e quali anomalie mostrare nell'header. Niente ML:
- * regole di classe spiegabili, tie-break stabile per entity_id (due schermi
- * compongono la stessa identica home).
+ * merita la zona "Adesso" e quali anomalie mostrare nell'header. Il punteggio
+ * contestuale resta spiegabile (sicurezza, urgenza, presenza, recency,
+ * azionabilità e preferenze) e il tie-break stabile garantisce che due kiosk
+ * con gli stessi dati compongano la stessa identica home.
  *
  * L'isteresi (dwell minimo, max swap rate) è separata in `applyHysteresis`,
  * anch'essa pura: il chiamante conserva lo stato tra i tick.
@@ -20,6 +21,7 @@ export interface ComposerEntity {
 }
 
 export type HeroPriority = 0 | 1 | 2 | 3 | 4
+export type HeroVisualSize = 'S' | 'M' | 'L' | 'XL'
 
 export interface HeroSlot {
   /** Identità stabile per l'isteresi (entity_id o chiave sintetica di gruppo). */
@@ -31,6 +33,10 @@ export interface HeroSlot {
   group?: { label: string; entityIds: string[] }
   /** Spiegabilità: perché questa card è qui. */
   reason: string
+  /** Punteggio contestuale usato nell'ordinamento, utile anche al debug UI. */
+  score?: number
+  /** Ingombro consigliato per il canvas 11\"; il renderer può adattarlo. */
+  visualSize?: HeroVisualSize
 }
 
 export interface AlertChip {
@@ -82,9 +88,75 @@ function isNight(now: Date): boolean {
   return h >= 22 || h < 6
 }
 
-/** Ordinamento deterministico: priorità, poi recency, poi entity_id. */
-function bySlotOrder(a: { priority: number; changed: number; key: string }, b: typeof a): number {
+interface RankedCandidate extends HeroSlot {
+  changed: number
+  score: number
+  visualSize: HeroVisualSize
+}
+
+const SCORE_BASE: Record<HeroPriority, number> = {
+  0: 10_000,
+  1: 760,
+  2: 620,
+  3: 460,
+  4: 300,
+}
+
+const ACTIONABLE_DOMAINS = new Set([
+  'alarm_control_panel', 'siren', 'lock', 'cover', 'valve', 'light', 'switch',
+  'input_boolean', 'climate', 'media_player', 'vacuum', 'lawn_mower', 'fan',
+  'humidifier', 'water_heater',
+])
+
+const AREA_DEDUPE_DOMAINS = new Set(['media_player', 'climate', 'vacuum', 'lawn_mower', 'fan', 'humidifier'])
+
+function visualSizeFor(slot: HeroSlot): HeroVisualSize {
+  if (slot.priority === 0) return 'L'
+  if (slot.group) return 'M'
+  const domain = slot.entityId ? domainOf(slot.entityId) : ''
+  if (domain === 'camera' || domain === 'media_player' || domain === 'climate' || domain === 'alarm_control_panel') return 'L'
+  if (domain === 'light' || domain === 'switch' || domain === 'input_boolean' || domain === 'scene' || domain === 'button') return 'S'
+  return 'M'
+}
+
+function recencyScore(changed: number, nowMs: number): number {
+  if (changed <= 0) return 0
+  const ageMinutes = Math.max(0, (nowMs - changed) / 60_000)
+  if (ageMinutes <= 5) return 110
+  if (ageMinutes <= 30) return 80
+  if (ageMinutes <= 120) return 45
+  if (ageMinutes <= 360) return 20
+  return 0
+}
+
+function contextualScore(
+  slot: HeroSlot & { changed: number },
+  opts: { now: Date; areaNameOf?: (entityId: string) => string | undefined; occupiedAreas: Set<string>; pinned: boolean },
+): number {
+  if (slot.priority === 0) return SCORE_BASE[0] + recencyScore(slot.changed, opts.now.getTime())
+  const domain = slot.entityId ? domainOf(slot.entityId) : slot.group ? 'light' : ''
+  const area = slot.entityId ? opts.areaNameOf?.(slot.entityId) : undefined
+  const hour = opts.now.getHours()
+  const ageMinutes = slot.changed > 0 ? Math.max(0, (opts.now.getTime() - slot.changed) / 60_000) : 0
+  let score = SCORE_BASE[slot.priority] + recencyScore(slot.changed, opts.now.getTime())
+
+  if (ACTIONABLE_DOMAINS.has(domain)) score += 45
+  if (area && opts.occupiedAreas.has(area)) score += 70
+  if (domain === 'climate') score += 45
+  if (domain === 'media_player' && (hour >= 17 || hour < 1)) score += 55
+  if (slot.reason.includes('Apertura aperta')) score += Math.min(100, Math.round(ageMinutes / 5))
+  if (slot.reason.includes('oggi')) score += 120
+  else if (slot.reason.includes('domani')) score += 70
+  else if (slot.reason.includes('2 giorni')) score += 30
+  if (opts.pinned) score += 5_000
+
+  return score
+}
+
+/** Ordinamento deterministico: sicurezza, score contestuale, recency, entity_id. */
+function bySlotOrder(a: RankedCandidate, b: RankedCandidate): number {
   if (a.priority !== b.priority) return a.priority - b.priority
+  if (a.score !== b.score) return b.score - a.score
   if (a.changed !== b.changed) return b.changed - a.changed
   return a.key.localeCompare(b.key)
 }
@@ -118,7 +190,9 @@ export function composeHome(entities: ComposerEntity[], opts: ComposeOptions): C
     occupancyByArea.set(area, sensors)
   }
   const quietAreas = new Set<string>()
+  const occupiedAreas = new Set<string>()
   for (const [area, sensors] of occupancyByArea) {
+    if (sensors.some((sensor) => sensor.state === 'on')) occupiedAreas.add(area)
     if (sensors.every((sensor) => {
       const changed = changedMs(sensor)
       return sensor.state === 'off' && changed > 0 && now.getTime() - changed >= UNOCCUPIED_ROOM_MS
@@ -312,19 +386,52 @@ export function composeHome(entities: ComposerEntity[], opts: ComposeOptions): C
     candidates.push({ key: e.entity_id, entityId: e.entity_id, priority: 4, reason: 'In evidenza', changed: changedMs(e) })
   }
 
-  const sorted = candidates
+  const ranked: RankedCandidate[] = candidates.map((candidate) => ({
+    ...candidate,
+    score: contextualScore(candidate, {
+      now,
+      areaNameOf,
+      occupiedAreas,
+      pinned: Boolean(candidate.entityId && heroPref(candidate.entityId) === 'always'),
+    }),
+    visualSize: visualSizeFor(candidate),
+  }))
+
+  const sorted = ranked
     .filter((c) => !(c.entityId && banned.has(c.entityId)))
     .sort(bySlotOrder)
   const isPinned = (c: { entityId?: string }) => Boolean(c.entityId && heroPref(c.entityId) === 'always')
   // P0 sempre davanti; poi i pinned (presenza garantita); poi il resto.
-  const ordered = [
+  const orderedWithRedundancy = [
     ...sorted.filter((c) => c.priority === 0),
     ...sorted.filter((c) => c.priority !== 0 && isPinned(c)),
     ...sorted.filter((c) => c.priority !== 0 && !isPinned(c)),
   ]
-  const hero = ordered
-    .slice(0, maxHero)
-    .map((c): HeroSlot => ({ key: c.key, priority: c.priority, entityId: c.entityId, group: c.group, reason: c.reason }))
+  // Evita card quasi duplicate nella stessa stanza (per esempio due player o
+  // due climate): conserva quella più rilevante. P0 e card fissate non vengono
+  // mai eliminate dal dedupe.
+  const seenAreaDomains = new Set<string>()
+  const ordered = orderedWithRedundancy.filter((candidate) => {
+    if (candidate.priority === 0 || isPinned(candidate) || !candidate.entityId) return true
+    const domain = domainOf(candidate.entityId)
+    const area = areaNameOf?.(candidate.entityId)
+    if (!area || !AREA_DEDUPE_DOMAINS.has(domain)) return true
+    const bucket = `${area}:${domain}`
+    if (seenAreaDomains.has(bucket)) return false
+    seenAreaDomains.add(bucket)
+    return true
+  })
+  const selected = ordered.slice(0, maxHero)
+  const hero = selected
+    .map((c): HeroSlot => ({
+      key: c.key,
+      priority: c.priority,
+      entityId: c.entityId,
+      group: c.group,
+      reason: c.reason,
+      score: c.score,
+      visualSize: selected.length === 1 ? 'XL' : c.visualSize,
+    }))
 
   return { hero, alerts, quiet: hero.length === 0 }
 }

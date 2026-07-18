@@ -130,12 +130,14 @@ describe('composeHome', () => {
       }),
     ], { now: DAY })
 
-    expect(out.hero).toEqual([{
+    expect(out.hero).toHaveLength(1)
+    expect(out.hero[0]).toMatchObject({
       key: 'sensor.waste_collection_schedule_rifiuti',
       entityId: 'sensor.waste_collection_schedule_rifiuti',
       priority: 3,
       reason: 'Ritiro rifiuti tra 2 giorni',
-    }])
+      visualSize: 'XL',
+    })
   })
 
   it('tratta sirena e apertura notturna come priorità immediate', () => {
@@ -166,6 +168,44 @@ describe('composeHome', () => {
     const many = Array.from({ length: 10 }, (_, i) => e(`media_player.p${i}`, 'playing'))
     const out = composeHome(many, { now: DAY, maxHero: 4 })
     expect(out.hero).toHaveLength(4)
+  })
+
+  it('premia il contesto di presenza senza superare le classi di sicurezza', () => {
+    const areaNameOf = (id: string) => id.includes('studio') ? 'Studio' : id.includes('garage') ? 'Garage' : undefined
+    const out = composeHome([
+      e('binary_sensor.studio_presenza', 'on', { device_class: 'occupancy' }),
+      e('switch.studio_scrivania', 'on', {}, '2026-06-10T12:00:00Z'),
+      e('switch.garage_presa', 'on', {}, '2026-06-10T14:00:00Z'),
+      e('alarm_control_panel.casa', 'triggered', {}, '2026-06-10T10:00:00Z'),
+    ], { now: DAY, areaNameOf })
+
+    expect(out.hero.map((slot) => slot.key)).toEqual([
+      'alarm_control_panel.casa',
+      'switch.studio_scrivania',
+      'switch.garage_presa',
+    ])
+    expect(out.hero[1].score).toBeGreaterThan(out.hero[2].score ?? 0)
+  })
+
+  it('deduplica i player attivi nella stessa stanza mantenendo il più rilevante', () => {
+    const areaNameOf = () => 'Salotto'
+    const out = composeHome([
+      e('media_player.apple_tv', 'playing', {}, '2026-06-10T14:00:00Z'),
+      e('media_player.soundbar', 'playing', {}, '2026-06-10T13:00:00Z'),
+    ], { now: DAY, areaNameOf })
+
+    expect(out.hero.map((slot) => slot.key)).toEqual(['media_player.apple_tv'])
+  })
+
+  it('assegna ingombri adatti alle card e usa XL quando Adesso ha un solo contenuto', () => {
+    const single = composeHome([e('media_player.tv', 'playing')], { now: DAY })
+    expect(single.hero[0].visualSize).toBe('XL')
+
+    const multiple = composeHome([
+      e('media_player.tv', 'playing'),
+      e('switch.presa', 'on'),
+    ], { now: DAY })
+    expect(multiple.hero.map((slot) => slot.visualSize)).toEqual(['L', 'S'])
   })
 
   it("override 'never': l'entità non entra mai nell'Adesso (nemmeno nel gruppo luci)", () => {

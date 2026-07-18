@@ -26,14 +26,17 @@ export function NowSection({
 
   const renderSlot = (slot: HeroSlot, cameraStrip = false) => {
     const index = hero.findIndex((candidate) => candidate.key === slot.key)
-    const big = !cameraStrip && index === 0 && slot.priority <= 2 && hero.length > 1
-    const featured = !cameraStrip && (big || hero.length === 1)
+    const size = cameraStrip ? 'M' : (slot.visualSize ?? 'M')
+    const span = cameraStrip ? ''
+      : size === 'XL' ? 'sm:col-span-2 lg:col-span-3'
+        : size === 'L' ? 'sm:col-span-2 lg:col-span-2'
+          : ''
 
     return (
       <div
         key={slot.key}
         title={slot.reason}
-        className={cn('card-enter h-full min-w-0', featured && 'sm:col-span-2')}
+        className={cn('card-enter h-full min-w-0', span)}
         style={{ '--enter-i': Math.min(index, 8) } as CSSProperties}
       >
         <WidgetErrorBoundary>
@@ -43,7 +46,7 @@ export function NowSection({
               className="h-full"
             />
           ) : slot.entityId ? (
-            <EntityCard entity={makeRoomEntity(slot.entityId, entities, overrides)} size={featured ? 'L' : 'M'} />
+            <EntityCard entity={makeRoomEntity(slot.entityId, entities, overrides)} size={size} />
           ) : null}
         </WidgetErrorBoundary>
       </div>
@@ -53,7 +56,7 @@ export function NowSection({
   return (
     <section className="shrink-0 space-y-3.5">
       {regular.length > 0 && (
-        <div className="grid auto-rows-[190px] grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid auto-rows-[190px] grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
           {regular.map((slot) => renderSlot(slot))}
         </div>
       )}
