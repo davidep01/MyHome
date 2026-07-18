@@ -21,6 +21,8 @@ import { numericState } from './utils/formatWidgetValue'
 import { mediaProgressPct } from './utils/mediaProgress'
 import type { WidgetVisualSize } from './types'
 import { HoldDangerAction } from '../controls/HoldDangerAction'
+import { isWasteCollectionSensor } from '../../lib/wasteCollection'
+import { WasteCollectionCard } from './WasteCollectionCard'
 
 interface Props {
   entity: RoomEntity
@@ -334,6 +336,19 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
 
   const showSlider = size !== 'S' && mapped.percent !== undefined && mapped.isActive
     && (mapped.family === 'light' || mapped.family === 'fan' || mapped.family === 'humidifier')
+
+  if (entity && isWasteCollectionSensor(entity)) {
+    return (
+      <WasteCollectionCard
+        entity={entity}
+        size={size}
+        className={cn(className, feedbackClass)}
+        isEditing={isEditing}
+        isDragging={isDragging}
+        onClick={() => setSelectedEntity(entityId)}
+      />
+    )
+  }
 
   return (
     <WidgetCardShell

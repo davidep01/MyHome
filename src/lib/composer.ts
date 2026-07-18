@@ -1,3 +1,5 @@
+import { dateKeyForLocalDate, isWasteCollectionSensor, wastePickups } from './wasteCollection'
+
 /**
  * Composer di rilevanza — il cuore della home a strati (DOMINICA M1).
  *
@@ -92,6 +94,7 @@ export function composeHome(entities: ComposerEntity[], opts: ComposeOptions): C
   const maxHero = opts.maxHero ?? 6
   const night = isNight(now)
   const heroPref = (id: string) => heroOf?.(id)
+  const todayKey = dateKeyForLocalDate(now)
 
   const candidates: (HeroSlot & { changed: number })[] = []
   const alerts: AlertChip[] = []
@@ -221,6 +224,25 @@ export function composeHome(entities: ComposerEntity[], opts: ComposeOptions): C
       case 'input_boolean': {
         if (e.state === 'on') {
           candidates.push({ key: e.entity_id, entityId: e.entity_id, priority: 4, reason: 'Dispositivo attivo', changed: changedMs(e) })
+        }
+        break
+      }
+      case 'sensor': {
+        if (isWasteCollectionSensor(e)) {
+          const next = wastePickups(e.attributes, todayKey, 1)[0]
+          if (next && next.daysUntil <= 2) {
+            candidates.push({
+              key: e.entity_id,
+              entityId: e.entity_id,
+              priority: 3,
+              reason: next.daysUntil === 0
+                ? 'Ritiro rifiuti oggi'
+                : next.daysUntil === 1
+                  ? 'Ritiro rifiuti domani'
+                  : 'Ritiro rifiuti tra 2 giorni',
+              changed: changedMs(e),
+            })
+          }
         }
         break
       }

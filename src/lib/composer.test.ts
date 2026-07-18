@@ -121,6 +121,23 @@ describe('composeHome', () => {
     ])
   })
 
+  it('porta in evidenza la raccolta rifiuti quando il prossimo ritiro è vicino', () => {
+    const out = composeHome([
+      e('sensor.waste_collection_schedule_rifiuti', 'General waste collection in 2 days', {
+        '2026-06-12': 'General waste collection',
+        '2026-06-13': 'Organic waste',
+        friendly_name: 'Waste Collection Schedule Rifiuti',
+      }),
+    ], { now: DAY })
+
+    expect(out.hero).toEqual([{
+      key: 'sensor.waste_collection_schedule_rifiuti',
+      entityId: 'sensor.waste_collection_schedule_rifiuti',
+      priority: 3,
+      reason: 'Ritiro rifiuti tra 2 giorni',
+    }])
+  })
+
   it('tratta sirena e apertura notturna come priorità immediate', () => {
     const out = composeHome([
       e('binary_sensor.porta', 'on', { device_class: 'door' }),
