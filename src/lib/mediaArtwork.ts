@@ -5,6 +5,51 @@ const ARTWORK_ATTRIBUTES = [
   'app_icon',
 ] as const
 
+// Identità del contenuto, volutamente senza posizione/volume: quei valori
+// cambiano spesso durante la riproduzione e non devono riscaricare la cover.
+const ARTWORK_REVISION_ATTRIBUTES = [
+  ...ARTWORK_ATTRIBUTES,
+  'media_content_id',
+  'media_content_type',
+  'media_title',
+  'media_artist',
+  'media_album_name',
+  'media_series_title',
+  'media_season',
+  'media_episode',
+  'app_id',
+  'app_name',
+  'source',
+] as const
+
+/**
+ * Revisione compatta della cover derivata dagli attributi che identificano il
+ * contenuto. Alcuni player (Apple TV in particolare) riutilizzano lo stesso
+ * URL mentre cambiano immagine: questa chiave fa invalidare browser, colore
+ * dominante e cache del proxy appena HA invia il relativo delta push.
+ */
+export function mediaArtworkRevision(attributes?: Record<string, unknown>): string | undefined {
+  if (!attributes) return undefined
+  const signature = ARTWORK_REVISION_ATTRIBUTES
+    .map((key) => {
+      const value = attributes[key]
+      return typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean'
+        ? `${key}:${String(value)}`
+        : ''
+    })
+    .filter(Boolean)
+    .join('\u001f')
+  if (!signature) return undefined
+
+  // FNV-1a a 32 bit: deterministico, piccolo e sufficiente come cache key.
+  let hash = 0x811c9dc5
+  for (let index = 0; index < signature.length; index += 1) {
+    hash ^= signature.charCodeAt(index)
+    hash = Math.imul(hash, 0x01000193)
+  }
+  return (hash >>> 0).toString(36)
+}
+
 /**
  * Apple TV can expose a browser-incompatible HEIC image through HA while also
  * embedding the original Apple Music artwork template in the `cache` query.

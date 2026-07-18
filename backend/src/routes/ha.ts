@@ -67,10 +67,15 @@ const ENTITY_ID = /^[a-z0-9_]+\.[a-z0-9_]+$/
 const SAFE_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif'])
 const MAX_PROXY_IMAGE_BYTES = 5 * 1_024 * 1_024
 const WEBRTC_SESSION_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+const IMAGE_REVISION = /^[a-z0-9_-]{1,64}$/i
 
 // Cache media (§16): copertine/artwork esterni riusati da tutti i client —
 // N kiosk non diventano N fetch verso l'esterno, con memoria prevedibile.
 const externalImageCache = new ByteLru({ maxEntries: 120, maxTotalBytes: 24 * 1_024 * 1_024, ttlMs: 6 * 60 * 60 * 1_000 })
+
+function imageCacheKey(source: string, revision?: string): string {
+  return revision ? `${source}\u0000${revision}` : source
+}
 
 function validNotificationDismissPayload(value: unknown): value is Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false
@@ -504,9 +509,13 @@ haRouter.get('/media', async (c) => {
 haRouter.get('/image', async (c) => {
   const source = c.req.query('url')
   const sourceEntityId = c.req.query('entity')
+  const revision = c.req.query('revision')
   if (!source || source.length > 2_048) return c.json({ error: 'URL immagine non valido' }, 400)
   if (sourceEntityId !== undefined && !ENTITY_ID.test(sourceEntityId)) {
     return c.json({ error: 'Entità immagine non valida' }, 400)
+  }
+  if (revision !== undefined && !IMAGE_REVISION.test(revision)) {
+    return c.json({ error: 'Revisione immagine non valida' }, 400)
   }
 
   const ha = await getHAConfig()
@@ -557,7 +566,11 @@ haRouter.get('/image', async (c) => {
     }
   }
 
-  const cached = externalImageCache.get(source)
+  // Apple TV e altre integrazioni possono mantenere identico l'URL pur
+  // cambiando i byte della cover. La revisione deriva dal delta media push:
+  // tutti i kiosk la condividono, ma una nuova traccia non eredita byte stale.
+  const cacheKey = imageCacheKey(source, revision)
+  const cached = externalImageCache.get(cacheKey)
   if (cached) {
     const body = new ArrayBuffer(cached.bytes.byteLength)
     new Uint8Array(body).set(cached.bytes)
@@ -579,7 +592,7 @@ haRouter.get('/image', async (c) => {
     if (!response.ok || !contentType || bytes.byteLength === 0) {
       return c.json({ error: 'Immagine esterna non disponibile' }, 502)
     }
-    externalImageCache.set(source, { bytes, contentType })
+    externalImageCache.set(cacheKey, { bytes, contentType })
     const body = new ArrayBuffer(bytes.byteLength)
     new Uint8Array(body).set(bytes)
     return imageResponse(body, contentType)
@@ -593,6 +606,8 @@ haRouter.get('/image', async (c) => {
     return c.json({ error: 'Immagine esterna non disponibile' }, 502)
   }
 })
+
+export const haImageInternals = { imageCacheKey, validRevision: (value: string) => IMAGE_REVISION.test(value) }
 
 // Timeline di casa: logbook HA filtrato server-side alle classi significative
 // (presenze, allarme, serrature, automazioni) — il resto è rumore per il muro.

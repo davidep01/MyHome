@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { embeddedMediaArtwork, resolveMediaArtwork } from './mediaArtwork'
+import { embeddedMediaArtwork, mediaArtworkRevision, resolveMediaArtwork } from './mediaArtwork'
 
 describe('resolveMediaArtwork', () => {
   it('prefers the canonical Home Assistant entity picture', () => {
@@ -22,5 +22,39 @@ describe('resolveMediaArtwork', () => {
 
   it('ignores empty and non-string values', () => {
     expect(resolveMediaArtwork({ entity_picture: ' ', media_image_url: 42 })).toBeUndefined()
+  })
+
+  it('changes the artwork revision when pushed media metadata changes', () => {
+    const first = mediaArtworkRevision({
+      entity_picture: 'https://example.test/current.jpg',
+      media_title: 'Primo episodio',
+      media_content_id: 'episode-1',
+    })
+    const next = mediaArtworkRevision({
+      entity_picture: 'https://example.test/current.jpg',
+      media_title: 'Secondo episodio',
+      media_content_id: 'episode-2',
+    })
+
+    expect(first).toBeTruthy()
+    expect(next).toBeTruthy()
+    expect(next).not.toBe(first)
+  })
+
+  it('does not invalidate the artwork for progress-only push updates', () => {
+    const first = mediaArtworkRevision({
+      entity_picture: 'https://example.test/current.jpg',
+      media_title: 'Film',
+      media_position: 12,
+      media_position_updated_at: '2026-07-18T12:00:00Z',
+    })
+    const next = mediaArtworkRevision({
+      entity_picture: 'https://example.test/current.jpg',
+      media_title: 'Film',
+      media_position: 13,
+      media_position_updated_at: '2026-07-18T12:00:01Z',
+    })
+
+    expect(next).toBe(first)
   })
 })

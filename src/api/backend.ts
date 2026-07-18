@@ -430,10 +430,10 @@ export const haApi = {
   cameraProxyUrl: (entityId: string) => `/api/ha/camera-proxy/${encodeURIComponent(entityId)}`,
   cameraStreamUrl: (entityId: string) => `/api/ha/camera-stream/${encodeURIComponent(entityId)}`,
   mediaUrl: (path: string) => `/api/ha/media?path=${encodeURIComponent(path)}`,
-  /** CSP-safe image URL for HA-relative and public HTTPS artwork. */
-  imageUrl: (source: string, entityId?: string) => source.startsWith('data:') || source.startsWith('blob:')
+  /** CSP-safe image URL; revision invalidates artwork reused by media players. */
+  imageUrl: (source: string, entityId?: string, revision?: string) => source.startsWith('data:') || source.startsWith('blob:')
     ? source
-    : `/api/ha/image?url=${encodeURIComponent(source)}${entityId ? `&entity=${encodeURIComponent(entityId)}` : ''}`,
+    : `/api/ha/image?url=${encodeURIComponent(source)}${entityId ? `&entity=${encodeURIComponent(entityId)}` : ''}${revision ? `&revision=${encodeURIComponent(revision)}` : ''}`,
   /** Suonata di prova: rimbalza via SSE su tutti i client (tablet incluso). */
   doorbellTest: (doorbellId: string) =>
     request<{ ok: boolean }>('/ha/doorbell-test', { method: 'POST', body: JSON.stringify({ doorbellId }) }),

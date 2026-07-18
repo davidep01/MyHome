@@ -34,10 +34,10 @@ const KIOSK_HERO_LIMIT = 4
 const IDLE: ComposedHomeView = { hero: [], alerts: [], quiet: true }
 
 /**
- * Composizione live della home: ricalcolo throttled a 1Hz sul flusso entità
- * (letto imperativamente dallo store a ogni tick), con isteresi (dwell 45s,
- * max 1 swap/30s, P0 immediato). Il setState avviene solo quando la
- * composizione cambia davvero: a casa quieta la home non ri-renderizza.
+ * Composizione live della home: ogni delta push dello store avvia subito il
+ * ricalcolo; il tick a 1Hz resta soltanto per scadenze temporali e isteresi
+ * (dwell 45s, max 1 swap/30s, P0 immediato). Il setState avviene solo quando
+ * la composizione cambia davvero: a casa quieta la home non ri-renderizza.
  */
 export function useComposedHome(cfg?: KioskCurationConfig): ComposedHomeView {
   const haHidden = useHAHiddenEntities()
@@ -85,8 +85,14 @@ export function useComposedHome(cfg?: KioskCurationConfig): ComposedHomeView {
     }
 
     compute()
+    const unsubscribe = useEntityStore.subscribe((state, previous) => {
+      if (state.entities !== previous.entities) compute()
+    })
     const id = setInterval(compute, TICK_MS)
-    return () => clearInterval(id)
+    return () => {
+      unsubscribe()
+      clearInterval(id)
+    }
   }, [haHidden, areaNameOf, areaIdOf, hiddenEntities, deviceOverrides])
 
   return view

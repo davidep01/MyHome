@@ -22,6 +22,7 @@ import type { WidgetVisualSize } from './types'
 import { HoldDangerAction } from '../controls/HoldDangerAction'
 import { isWasteCollectionSensor } from '../../lib/wasteCollection'
 import { WasteCollectionCard } from './WasteCollectionCard'
+import { mediaArtworkRevision } from '../../lib/mediaArtwork'
 
 interface Props {
   entity: RoomEntity
@@ -74,8 +75,9 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
 
   // ── Card dinamiche: copertina per i media, live feed per le camere ─────────
   const isMediaCard = MEDIA_FAMILIES.has(mapped.family)
+  const artworkRevision = isMediaCard ? mediaArtworkRevision(entity?.attributes) : undefined
   const artworkUrl = isMediaCard && mapped.artwork
-    ? haApi.imageUrl(mapped.artwork, entityId)
+    ? haApi.imageUrl(mapped.artwork, entityId, artworkRevision)
     : undefined
   const visibleArtworkUrl = failedArtworkUrl === artworkUrl ? undefined : artworkUrl
   const dominant = useDominantColor(artworkUrl)

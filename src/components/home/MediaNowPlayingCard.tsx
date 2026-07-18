@@ -5,7 +5,7 @@ import { useHAService } from '../../hooks/useHAService'
 import { useHaptic } from '../../hooks/useHaptic'
 import { haApi } from '../../api/backend'
 import { tokens } from '../../design/tokens'
-import { resolveMediaArtwork } from '../../lib/mediaArtwork'
+import { mediaArtworkRevision, resolveMediaArtwork } from '../../lib/mediaArtwork'
 
 export function MediaNowPlayingCard() {
   const entity = useEntityStore((s) => Object.values(s.entities).find((item) => item.entity_id.startsWith('media_player.') && item.state === 'playing'))
@@ -17,7 +17,9 @@ export function MediaNowPlayingCard() {
   const title = (entity.attributes?.media_title as string | undefined) ?? (entity.attributes?.friendly_name as string | undefined) ?? 'In riproduzione'
   const artist = (entity.attributes?.media_artist ?? entity.attributes?.app_name) as string | undefined
   const pictureRelative = resolveMediaArtwork(entity.attributes)
-  const pictureUrl = pictureRelative ? haApi.imageUrl(pictureRelative, entity.entity_id) : undefined
+  const pictureUrl = pictureRelative
+    ? haApi.imageUrl(pictureRelative, entity.entity_id, mediaArtworkRevision(entity.attributes))
+    : undefined
 
   const toggle = () => {
     light()
