@@ -21,6 +21,7 @@ declare global {
     setAudioVolume?: (level: number, stream: number) => void
     playSound?: (url: string, loop: boolean, stream?: number) => void
     stopSound?: () => void
+    isMusicActive?: () => unknown
     textToSpeech?: (text: string) => void
     stopTextToSpeech?: () => void
   }

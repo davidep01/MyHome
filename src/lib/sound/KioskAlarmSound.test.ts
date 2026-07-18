@@ -9,24 +9,31 @@ describe('Fully Kiosk emergency audio', () => {
     vi.unstubAllGlobals()
   })
 
-  it('loops the native siren on the Android alarm stream and restores volume', () => {
+  it('wakes the kiosk and loops the native siren on the Android media stream', () => {
     const setAudioVolume = vi.fn<(level: number, stream: number) => void>()
     const playSound = vi.fn<(url: string, loop: boolean, stream?: number) => void>()
     const stopSound = vi.fn<() => void>()
+    const turnScreenOn = vi.fn<() => void>()
     const stop = startKioskAlarmSound({
       getAudioVolume: (stream) => stream === 4 ? 45 : stream === 3 ? 35 : 60,
       setAudioVolume,
       playSound,
       stopSound,
+      turnScreenOn,
+      isMusicActive: () => true,
       stopTextToSpeech: vi.fn(),
     }, location, 'intrusion')
 
+    expect(turnScreenOn).toHaveBeenCalledOnce()
     expect(setAudioVolume).toHaveBeenCalledWith(100, 4)
     expect(setAudioVolume).toHaveBeenCalledWith(100, 3)
-    expect(playSound).toHaveBeenCalledWith('http://192.168.1.40:3001/alarm-siren.wav?v=2', true, 4)
+    expect(setAudioVolume).toHaveBeenCalledWith(100, 9)
+    expect(playSound).toHaveBeenCalledWith('http://192.168.1.40:3001/alarm-siren.wav?v=3', true, 3)
 
     stop()
-    expect(stopSound).toHaveBeenCalledOnce()
+    // Una pulizia preventiva elimina player nativi rimasti attivi; la seconda
+    // chiamata è il cleanup della simulazione corrente.
+    expect(stopSound).toHaveBeenCalledTimes(2)
     expect(setAudioVolume).toHaveBeenCalledWith(45, 4)
     expect(setAudioVolume).toHaveBeenCalledWith(35, 3)
     expect(setAudioVolume).toHaveBeenCalledWith(60, 9)
@@ -44,6 +51,26 @@ describe('Fully Kiosk emergency audio', () => {
     expect(textToSpeech).toHaveBeenCalledTimes(1)
     vi.advanceTimersByTime(12_000)
     expect(textToSpeech).toHaveBeenCalledTimes(3)
+    stop()
+  })
+
+  it('retries and announces when native playback cannot be verified', () => {
+    vi.useFakeTimers()
+    const playSound = vi.fn<(url: string, loop: boolean, stream?: number) => void>()
+    const textToSpeech = vi.fn<(text: string) => void>()
+    const stop = startKioskAlarmSound({
+      setAudioVolume: vi.fn(),
+      playSound,
+      stopSound: vi.fn(),
+      isMusicActive: () => false,
+      textToSpeech,
+      stopTextToSpeech: vi.fn(),
+    }, location, 'siren')
+
+    expect(playSound).toHaveBeenCalledTimes(1)
+    vi.advanceTimersByTime(1_500)
+    expect(playSound).toHaveBeenCalledTimes(2)
+    expect(textToSpeech).toHaveBeenCalledWith('Attenzione. Sirena di emergenza attiva.')
     stop()
   })
 

@@ -96,12 +96,14 @@ describe('Fully Kiosk capability bridge', () => {
       setAudioVolume,
       playSound,
       stopSound,
+      isMusicActive: () => 'true',
     }, LAN_LOCATION)
 
     expect(bridge?.getAudioVolume(4)).toBe(62)
     expect(bridge?.setAudioVolume(140, 4)).toBe(true)
     expect(bridge?.playSound('http://homeassistant/alarm-siren.wav', true, 4)).toBe(true)
     expect(bridge?.stopSound()).toBe(true)
+    expect(bridge?.isMusicActive()).toBe(true)
     expect(setAudioVolume).toHaveBeenCalledWith(100, 4)
     expect(playSound).toHaveBeenCalledWith('http://homeassistant/alarm-siren.wav', true, 4)
     expect(stopSound).toHaveBeenCalledOnce()

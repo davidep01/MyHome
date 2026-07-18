@@ -37,6 +37,7 @@ export interface FullyKioskCapabilities {
   audioVolumeWrite: boolean
   soundPlayback: boolean
   soundStop: boolean
+  musicActive: boolean
   camshot: boolean
   screensaverControl: boolean
   restart: boolean
@@ -66,6 +67,8 @@ export interface FullyKioskBridge {
   setAudioVolume: (level: number, stream: number) => boolean
   playSound: (url: string, loop?: boolean, stream?: number) => boolean
   stopSound: () => boolean
+  /** true quando il player audio nativo di Android sta emettendo. */
+  isMusicActive: () => boolean | null
   /** Foto singola dalla fotocamera del tablet: data URL JPEG, o null. */
   getCamshotDataUrl: () => string | null
   startScreensaver: () => boolean
@@ -185,6 +188,7 @@ export function createFullyKioskBridge(
     audioVolumeWrite: has('setAudioVolume'),
     soundPlayback: has('playSound'),
     soundStop: has('stopSound'),
+    musicActive: has('isMusicActive'),
     camshot: has('getCamshotJpgBase64'),
     screensaverControl: has('startScreensaver') && has('stopScreensaver'),
     restart: has('restartApp'),
@@ -267,6 +271,10 @@ export function createFullyKioskBridge(
       return invoke('playSound', url.trim(), Boolean(loop), stream).ok
     },
     stopSound: () => invoke('stopSound').ok,
+    isMusicActive: () => {
+      const result = invoke('isMusicActive')
+      return result.ok ? booleanValue(result.value) : null
+    },
     getCamshotDataUrl: () => {
       const result = invoke('getCamshotJpgBase64')
       if (!result.ok || typeof result.value !== 'string' || !result.value) return null
