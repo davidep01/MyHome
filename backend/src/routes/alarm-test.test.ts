@@ -5,7 +5,10 @@ import { stopSharedAlarmTest, subscribeHaStream, type HaStreamEvent } from '../l
 const desktop = { 'Content-Type': 'application/json', 'X-MyHome-Client': 'desktop' }
 
 function lastAlarmEvent(events: HaStreamEvent[]) {
-  return events.findLast((event) => event.type === 'alarm-test')
+  for (let index = events.length - 1; index >= 0; index -= 1) {
+    if (events[index].type === 'alarm-test') return events[index]
+  }
+  return undefined
 }
 
 afterEach(() => {
@@ -20,7 +23,7 @@ describe.sequential('shared alarm test', () => {
     const unsubscribeSecond = subscribeHaStream((event) => second.push(event))
 
     const late: HaStreamEvent[] = []
-    let unsubscribeLate = () => undefined
+    let unsubscribeLate: () => void = () => {}
     try {
       const start = await app.request('/api/alarm/test', {
         method: 'POST',
