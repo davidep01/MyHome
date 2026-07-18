@@ -52,7 +52,12 @@ export function GlassSheet({
 }: GlassSheetProps) {
   const isCenter = side === 'center'
   const panelRef = useRef<HTMLDivElement>(null)
+  const onCloseRef = useRef(onClose)
   const titleId = useId()
+
+  // I call-site passano spesso callback inline. Manteniamo l'ultima callback
+  // senza riavviare il focus trap a ogni render live di Home Assistant.
+  useEffect(() => { onCloseRef.current = onClose }, [onClose])
 
   useEffect(() => {
     if (!open) return
@@ -68,7 +73,7 @@ export function GlassSheet({
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.preventDefault()
-        onClose()
+        onCloseRef.current()
         return
       }
       if (event.key !== 'Tab') return
@@ -98,7 +103,7 @@ export function GlassSheet({
       document.removeEventListener('keydown', handleKeyDown)
       if (previous?.isConnected) previous.focus({ preventScroll: true })
     }
-  }, [onClose, open])
+  }, [open])
 
   // Offset del tocco rispetto al centro viewport, catturato all'apertura.
   // In perf-lite si torna al semplice fade+scale (meno movimento su GPU deboli).
