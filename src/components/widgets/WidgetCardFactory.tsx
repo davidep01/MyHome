@@ -1,6 +1,5 @@
 import { ChevronDown, ChevronUp, Home, Minus, Pause, Play, Plus, Square } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { ElementType } from 'react'
 import { haApi, type RoomEntity } from '../../api/backend'
 import { useHAEntity } from '../../hooks/useHAEntity'
 import { useHAService } from '../../hooks/useHAService'
@@ -63,6 +62,7 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
   const setSelectedEntity = useUIStore((s) => s.setSelectedEntity)
   const [pendingAction, setPendingAction] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
+  const [failedArtworkUrl, setFailedArtworkUrl] = useState<string | null>(null)
   const busyRef = useRef(false)
   const brightnessOriginRef = useRef<{ state: string; brightness?: number } | null>(null)
 
@@ -77,6 +77,7 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
   const artworkUrl = isMediaCard && mapped.artwork
     ? haApi.imageUrl(mapped.artwork, entityId)
     : undefined
+  const visibleArtworkUrl = failedArtworkUrl === artworkUrl ? undefined : artworkUrl
   const dominant = useDominantColor(artworkUrl)
   const mediaAccent = dominant ?? mapped.accentColor
   // Il live nel corpo card ha senso da M in su: su S resta l'icona animata.
@@ -367,12 +368,18 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
       className={cn(className, feedbackClass)}
       onClick={() => setSelectedEntity(entityId)}
       media={liveCamera ? (
-        <>
-          <CameraStream entityId={entityId} fit="cover" badge className="h-full w-full" />
-          {/* Scrim funzionale: il nome resta leggibile su qualunque frame. */}
-          <span className="camera-card-scrim absolute inset-x-0 bottom-0 h-16" />
-        </>
-      ) : undefined}
+          <>
+            <CameraStream entityId={entityId} fit="cover" badge className="h-full w-full" />
+            {/* Scrim funzionale: il nome resta leggibile su qualunque frame. */}
+            <span className="camera-card-scrim absolute inset-x-0 bottom-0 h-16" />
+          </>
+        ) : visibleArtworkUrl ? (
+          <ArtworkBackdrop
+            url={visibleArtworkUrl}
+            title={mapped.title}
+            onError={() => setFailedArtworkUrl(visibleArtworkUrl)}
+          />
+        ) : undefined}
     >
       {liveCamera ? (
         <div className="mt-auto min-w-0 pt-2">
@@ -383,30 +390,30 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
         </div>
       ) : (
         <>
-          <div className="flex items-start justify-between gap-2">
-            {artworkUrl
-              ? <ArtworkThumb url={artworkUrl} size={size} Icon={mapped.Icon} accentColor={mediaAccent} active={mapped.isActive} title={mapped.title} />
-              : <WidgetCardIcon Icon={mapped.Icon} size={size} accentColor={mapped.accentColor} active={mapped.isActive} />}
+          <div className={cn('flex items-start gap-2', visibleArtworkUrl ? 'justify-end' : 'justify-between')}>
+            {!visibleArtworkUrl && <WidgetCardIcon Icon={mapped.Icon} size={size} accentColor={mapped.accentColor} active={mapped.isActive} />}
             {trailing && <div className="flex shrink-0 items-center gap-1.5">{trailing}</div>}
           </div>
 
-          <WidgetCardIdentity
-            title={mapped.title}
-            state={actionError ?? (size === 'S' && mapped.value !== undefined ? undefined : mapped.state || undefined)}
-            stateColor={actionError ? '#b42318'
-              : mapped.stateAccent ? mapped.accentColor
-              : isMediaCard && mapped.isActive && dominant ? dominant
-              : undefined}
-            value={mapped.value}
-            unit={mapped.unit}
-            size={size}
-            active={mapped.isActive}
-            singleLineTitle={showSlider && size === 'M'}
-          />
+          <div className={cn(visibleArtworkUrl && 'ml-auto mt-auto w-[62%] min-w-0 text-right')}>
+            <WidgetCardIdentity
+              title={mapped.title}
+              state={actionError ?? (size === 'S' && mapped.value !== undefined ? undefined : mapped.state || undefined)}
+              stateColor={actionError ? '#b42318'
+                : mapped.stateAccent ? mapped.accentColor
+                : isMediaCard && mapped.isActive && dominant ? dominant
+                : undefined}
+              value={mapped.value}
+              unit={mapped.unit}
+              size={size}
+              active={mapped.isActive}
+              singleLineTitle={showSlider && size === 'M'}
+            />
 
-          {size !== 'S' && mapped.mediaProgress && (
-            <MediaProgressBar progress={mapped.mediaProgress} color={mediaAccent} />
-          )}
+            {size !== 'S' && mapped.mediaProgress && (
+              <MediaProgressBar progress={mapped.mediaProgress} color={mediaAccent} />
+            )}
+          </div>
 
           {showSlider && (
             <div className="mt-1.5">
@@ -426,35 +433,24 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
   )
 }
 
-/**
- * Copertina al posto del puck icona (§9.4): quadrata, raggio interno, si
- * degrada all'icona animata se l'immagine non arriva. Il colore dominante
- * della copertina diventa l'accent della card mentre suona.
- */
-function ArtworkThumb({
-  url, size, Icon, accentColor, active, title,
+/** Copertina full-bleed: immagine a sinistra, dissolvenza bianca verso i controlli. */
+function ArtworkBackdrop({
+  url, title, onError,
 }: {
   url: string
-  size: WidgetVisualSize
-  Icon: ElementType
-  accentColor: string
-  active: boolean
   title: string
+  onError: () => void
 }) {
-  // Il fallimento è per-URL: una copertina nuova riprova da sola, senza effect.
-  const [failedUrl, setFailedUrl] = useState<string | null>(null)
-  if (failedUrl === url) return <WidgetCardIcon Icon={Icon} size={size} accentColor={accentColor} active={active} />
-  const box = size === 'S' ? 34 : size === 'M' ? 44 : 52
   return (
-    <img
-      src={url}
-      alt={`Copertina: ${title}`}
-      width={box}
-      height={box}
-      className="widget-card-artwork shrink-0 rounded-[11px] object-cover"
-      style={{ width: box, height: box }}
-      onError={() => setFailedUrl(url)}
-    />
+    <div className="media-card-artwork absolute inset-0">
+      <img
+        src={url}
+        alt={`Copertina: ${title}`}
+        className="h-full w-full object-cover object-center"
+        onError={onError}
+      />
+      <span className="media-card-artwork-fade absolute inset-0" />
+    </div>
   )
 }
 
