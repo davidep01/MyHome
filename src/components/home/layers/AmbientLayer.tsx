@@ -15,6 +15,7 @@ import {
   photoOrientation,
   type PhotoOrientation,
 } from '../../../lib/screensaverPhoto'
+import { AmbientAIRecap } from './AmbientAIRecap'
 
 const DEFAULT_IDLE_SECONDS = 180
 const DEFAULT_SLIDE_SECONDS = 20
@@ -219,8 +220,9 @@ function AmbientContent({ slideSeconds }: { slideSeconds: number }) {
           </span>
         )}
       </div>
+      <AmbientAIRecap />
       {photos.length > 1 && (
-        <span aria-hidden="true" className="absolute bottom-[max(22px,env(safe-area-inset-bottom))] left-[max(24px,env(safe-area-inset-left))] z-10 text-[11px] font-semibold tabular-nums text-white/45">
+        <span aria-hidden="true" className="absolute left-[max(24px,env(safe-area-inset-left))] top-[max(22px,env(safe-area-inset-top))] z-10 text-[11px] font-semibold tabular-nums text-white/45 max-sm:left-auto max-sm:right-[max(24px,env(safe-area-inset-right))]">
           {visibleIndex + 1} / {photos.length}
         </span>
       )}

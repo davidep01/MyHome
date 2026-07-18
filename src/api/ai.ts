@@ -39,6 +39,7 @@ async function postJSON<T>(path: string, body: unknown): Promise<T> {
 }
 
 export const aiApi = {
+  recap: (context: AIContextEntity[]) => postAI('recap', { context }),
   chat: (prompt: string, context: AIContextEntity[], history: AITurn[] = []) =>
     postAI('chat', { prompt, context, history }),
   suggest: (context: AIContextEntity[]) => postAI('suggest', { context }),
