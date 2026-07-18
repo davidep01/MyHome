@@ -1,13 +1,10 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { CalendarDays, Clock } from 'lucide-react'
-import { useEntityStore } from '../../../store/entities'
 import { AnimatedCard } from '../../anim/AnimatedCard'
 import { LiveDot } from '../../anim/LiveDot'
 import { calendarApi, type WidgetSize } from '../../../api/backend'
-import { entityName } from '../../widgets/utils/mapEntityToWidgetCard'
-
-interface Evt { id: string; title: string; start: number; end: number; ongoing: boolean; allDay: boolean; calendar: string; location?: string }
+import { calendarEventsFromBackend } from '../../../lib/calendarEvents'
 
 function formatWhen(start: number, ongoing: boolean, allDay: boolean): string {
   if (ongoing) return 'In corso'
@@ -24,9 +21,8 @@ function formatWhen(start: number, ongoing: boolean, allDay: boolean): string {
   return d.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' }) + ` ${time}`
 }
 
-/** Upcoming events merged from HA calendar entities and the configured ICS link. */
+/** Upcoming events from the calendar link configured in the S.I.M.I. backend. */
 export function CalendarWidget({ size }: { size: WidgetSize }) {
-  const entities = useEntityStore((s) => s.entities)
   const showList = size === 'lg' || size === 'wide'
   const linkedCalendar = useQuery({
     queryKey: ['calendar-events'],
@@ -36,52 +32,11 @@ export function CalendarWidget({ size }: { size: WidgetSize }) {
     retry: 1,
   })
 
-  const events = useMemo<Evt[]>(() => {
+  const events = useMemo(() => {
     // React Query supplies a stable clock tick whenever this feed refreshes.
     const now = linkedCalendar.dataUpdatedAt
-    const homeAssistantEvents: Evt[] = Object.values(entities)
-      .filter((e) => e.entity_id.startsWith('calendar.'))
-      .map((e) => {
-        const a = e.attributes ?? {}
-        const startRaw = (a.start_time as string | undefined) ?? (a.start as string | undefined)
-        const endRaw = (a.end_time as string | undefined) ?? (a.end as string | undefined)
-        const start = startRaw ? new Date(startRaw.replace(' ', 'T')).getTime() : NaN
-        const end = endRaw ? new Date(endRaw.replace(' ', 'T')).getTime() : start + 60 * 60_000
-        const allDay = typeof startRaw === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(startRaw)
-        return {
-          id: e.entity_id,
-          title: (a.message as string | undefined) ?? 'Evento',
-          start,
-          end,
-          ongoing: e.state === 'on',
-          allDay,
-          calendar: entityName(e),
-          location: a.location as string | undefined,
-        }
-      })
-      .filter((e) => Number.isFinite(e.start))
-
-    const linkedEvents: Evt[] = (linkedCalendar.data?.events ?? [])
-      .map((event) => {
-        const start = Date.parse(event.start)
-        const end = Date.parse(event.end)
-        return {
-          ...event,
-          start,
-          end,
-          ongoing: start <= now && end > now,
-        }
-      })
-      .filter((event) => Number.isFinite(event.start) && Number.isFinite(event.end) && event.end >= now)
-
-    const unique = new Map<string, Evt>()
-    for (const event of [...linkedEvents, ...homeAssistantEvents]) {
-      const key = `${event.title.toLocaleLowerCase('it')}|${event.start}`
-      if (!unique.has(key)) unique.set(key, event)
-    }
-    return [...unique.values()]
-      .sort((a, b) => Number(b.ongoing) - Number(a.ongoing) || a.start - b.start)
-  }, [entities, linkedCalendar.data?.events, linkedCalendar.dataUpdatedAt])
+    return calendarEventsFromBackend(linkedCalendar.data?.events ?? [], now)
+  }, [linkedCalendar.data?.events, linkedCalendar.dataUpdatedAt])
 
   const next = events[0]
 
