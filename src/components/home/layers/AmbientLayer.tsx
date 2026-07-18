@@ -244,6 +244,7 @@ function AmbientPhoto({
   const [orientation, setOrientation] = useState<PhotoOrientation>('unknown')
   const movement = centeredKenBurnsMove(index, orientation)
   const duration = slideSeconds + 1
+  const vertical = orientation === 'portrait' || orientation === 'unknown'
 
   return (
     <motion.div
@@ -253,24 +254,26 @@ function AmbientPhoto({
       exit={{ opacity: 0 }}
       transition={{ duration: reduceMotion ? 0.15 : Math.min(2.8, slideSeconds / 4) }}
     >
-      {/* Il fondale riempie sempre il display. È volutamente sfocato perché la
-          foto principale possa restare intera anche quando è verticale. */}
-      <motion.img
-        src={src}
-        alt=""
-        aria-hidden="true"
-        draggable={false}
-        decoding="async"
-        className="absolute inset-[-5%] h-[110%] w-[110%] transform-gpu object-cover object-center opacity-75 blur-2xl will-change-transform"
-        animate={{
-          scale: reduceMotion ? 1.08 : movement.backdropScale,
-          x: reduceMotion ? 0 : movement.x,
-          y: reduceMotion ? 0 : movement.y,
-        }}
-        transition={{ scale: { duration, ease: 'linear' }, x: { duration, ease: 'linear' }, y: { duration, ease: 'linear' } }}
-      />
-      {/* La foto leggibile usa contain: nessun bordo destro o volto viene
-          tagliato. Il lieve zoom parte sotto il 100% e termina al centro. */}
+      {/* Solo le foto verticali hanno un duplicato cover con blur gaussiano:
+          riempie i lati mentre l'immagine principale resta interamente visibile. */}
+      {vertical && (
+        <motion.img
+          src={src}
+          alt=""
+          aria-hidden="true"
+          draggable={false}
+          decoding="async"
+          className="absolute inset-[-5%] h-[110%] w-[110%] transform-gpu object-cover object-center opacity-75 blur-[32px] will-change-transform"
+          animate={{
+            scale: reduceMotion ? 1.08 : movement.backdropScale,
+            x: reduceMotion ? 0 : movement.x,
+            y: reduceMotion ? 0 : movement.y,
+          }}
+          transition={{ scale: { duration, ease: 'linear' }, x: { duration, ease: 'linear' }, y: { duration, ease: 'linear' } }}
+        />
+      )}
+      {/* Orizzontali e quadrate: cover a pieno schermo. Verticali: contain
+          sopra il fondale sfocato, senza tagliare bordi o volti. */}
       <motion.img
         src={src}
         alt=""
@@ -278,7 +281,7 @@ function AmbientPhoto({
         draggable={false}
         decoding="async"
         onLoad={(event) => setOrientation(photoOrientation(event.currentTarget.naturalWidth, event.currentTarget.naturalHeight))}
-        className="absolute inset-0 h-full w-full transform-gpu object-contain object-center will-change-transform"
+        className={`absolute inset-0 h-full w-full transform-gpu object-center will-change-transform ${vertical ? 'object-contain' : 'object-cover'}`}
         animate={{
           scale: reduceMotion ? 1 : movement.foregroundScale,
           x: reduceMotion ? 0 : movement.x,

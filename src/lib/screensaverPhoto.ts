@@ -16,9 +16,9 @@ export function photoOrientation(width: number, height: number): PhotoOrientatio
 }
 
 /**
- * Every movement ends at the optical centre. The main photo starts slightly
- * smaller than the viewport, so the whole frame remains visible throughout;
- * a blurred cover layer keeps the physical screen completely filled.
+ * Every movement ends at the optical centre. Vertical photos stay entirely
+ * visible above a blurred cover layer; horizontal and square photos use cover
+ * and start slightly overscanned, so the physical display is always filled.
  */
 export function centeredKenBurnsMove(index: number, orientation: PhotoOrientation): CenteredKenBurnsMove {
   const direction = index % 2 === 0 ? -1 : 1
@@ -34,7 +34,7 @@ export function centeredKenBurnsMove(index: number, orientation: PhotoOrientatio
     return {
       x: [`${direction * 0.65}%`, '0%'],
       y: [`${direction * -0.5}%`, '0%'],
-      foregroundScale: [0.97, 1],
+      foregroundScale: [1.035, 1],
       backdropScale: [1.08, 1.14],
     }
   }
@@ -42,7 +42,7 @@ export function centeredKenBurnsMove(index: number, orientation: PhotoOrientatio
     return {
       x: [`${direction * 0.8}%`, '0%'],
       y: [`${direction * 0.35}%`, '0%'],
-      foregroundScale: [0.97, 1],
+      foregroundScale: [1.045, 1],
       backdropScale: [1.08, 1.14],
     }
   }

@@ -22,4 +22,10 @@ describe('screensaver photo composition', () => {
     expect(centeredKenBurnsMove(0, 'portrait').x).toEqual(['0%', '0%'])
     expect(centeredKenBurnsMove(1, 'portrait').x).toEqual(['0%', '0%'])
   })
+
+  it('keeps horizontal and square cover photos overscanned until centered', () => {
+    expect(centeredKenBurnsMove(0, 'landscape').foregroundScale).toEqual([1.045, 1])
+    expect(centeredKenBurnsMove(0, 'square').foregroundScale).toEqual([1.035, 1])
+    expect(centeredKenBurnsMove(0, 'portrait').foregroundScale).toEqual([0.965, 1])
+  })
 })
