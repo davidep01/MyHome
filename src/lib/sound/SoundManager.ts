@@ -6,23 +6,63 @@
  * unlocked on the first user interaction; until then nothing plays (the visual
  * alert is the fallback).
  */
-export type SoundPreset = 'dingdong' | 'chime' | 'alert' | 'soft' | 'none'
+export type SoundPreset = 'dingdong' | 'chime' | 'alert' | 'siren' | 'soft' | 'none'
 
 const MUTE_KEY = 'myhome.sound.muted'
 const VOL_KEY = 'myhome.sound.volume'
 
+/** Starts immediately and returns an idempotent stop for overlay cleanup. */
+export function startRepeatingSound(play: () => void, repeatMs: number): () => void {
+  play()
+  const timer = setInterval(play, repeatMs)
+  return () => clearInterval(timer)
+}
+
 interface PlayOptions {
   volume?: number      // 0..1, multiplied by the global volume
+  boost?: number       // perceptual gain compensation for urgent signals
   cooldownMs?: number  // suppress repeats of the same key within this window
   key?: string         // cooldown bucket (defaults to the preset)
 }
 
-// note = [frequency Hz, startOffset s, duration s]
-const PRESETS: Record<Exclude<SoundPreset, 'none'>, [number, number, number][]> = {
-  dingdong: [[659.25, 0, 0.5], [523.25, 0.28, 0.7]],
-  chime: [[523.25, 0, 0.35], [659.25, 0.16, 0.35], [783.99, 0.32, 0.55]],
-  alert: [[880, 0, 0.18], [880, 0.24, 0.18]],
-  soft: [[587.33, 0, 0.6]],
+interface Tone {
+  frequency: number
+  endFrequency?: number
+  offset: number
+  duration: number
+  level?: number
+  wave?: OscillatorType
+}
+
+const PRESETS: Record<Exclude<SoundPreset, 'none'>, Tone[]> = {
+  // Due battenti principali + armoniche: emerge meglio dagli speaker piccoli.
+  dingdong: [
+    { frequency: 783.99, offset: 0, duration: 0.48, level: 0.82, wave: 'triangle' },
+    { frequency: 1567.98, offset: 0, duration: 0.32, level: 0.18 },
+    { frequency: 659.25, offset: 0.3, duration: 0.78, level: 0.9, wave: 'triangle' },
+    { frequency: 1318.5, offset: 0.3, duration: 0.5, level: 0.16 },
+  ],
+  chime: [
+    { frequency: 523.25, offset: 0, duration: 0.35 },
+    { frequency: 659.25, offset: 0.16, duration: 0.35 },
+    { frequency: 783.99, offset: 0.32, duration: 0.55 },
+  ],
+  alert: [
+    { frequency: 920, offset: 0, duration: 0.22, wave: 'square' },
+    { frequency: 690, offset: 0.27, duration: 0.22, wave: 'square' },
+    { frequency: 920, offset: 0.54, duration: 0.22, wave: 'square' },
+    { frequency: 690, offset: 0.81, duration: 0.3, wave: 'square' },
+  ],
+  // Sweep alternati senza pause percettibili: volutamente insistente.
+  siren: [
+    { frequency: 720, endFrequency: 1180, offset: 0, duration: 0.48, level: 0.72, wave: 'sawtooth' },
+    { frequency: 1180, endFrequency: 720, offset: 0.48, duration: 0.48, level: 0.72, wave: 'sawtooth' },
+    { frequency: 720, endFrequency: 1180, offset: 0.96, duration: 0.48, level: 0.72, wave: 'sawtooth' },
+    { frequency: 1180, endFrequency: 720, offset: 1.44, duration: 0.48, level: 0.72, wave: 'sawtooth' },
+    { frequency: 360, endFrequency: 590, offset: 0, duration: 0.96, level: 0.22, wave: 'square' },
+    { frequency: 590, endFrequency: 360, offset: 0.96, duration: 0.96, level: 0.22, wave: 'square' },
+  ],
+  soft: [{ frequency: 587.33, offset: 0, duration: 0.6 }],
 }
 
 class SoundManager {
@@ -79,21 +119,35 @@ class SoundManager {
     if (!ctx) return
     if (ctx.state === 'suspended') ctx.resume().catch(() => {})
 
-    const gain = Math.min(1, Math.max(0, (opts.volume ?? 1) * this.volume))
+    const gain = Math.min(1, Math.max(0, (opts.volume ?? 1) * this.volume * (opts.boost ?? 1)))
     const t0 = ctx.currentTime
-    for (const [freq, off, dur] of PRESETS[preset]) {
+    const limiter = ctx.createDynamicsCompressor()
+    limiter.threshold.setValueAtTime(-16, t0)
+    limiter.knee.setValueAtTime(8, t0)
+    limiter.ratio.setValueAtTime(10, t0)
+    limiter.attack.setValueAtTime(0.003, t0)
+    limiter.release.setValueAtTime(0.18, t0)
+    limiter.connect(ctx.destination)
+
+    for (const tone of PRESETS[preset]) {
       const osc = ctx.createOscillator()
       const env = ctx.createGain()
-      osc.type = 'sine'
-      osc.frequency.value = freq
-      const start = t0 + off
+      osc.type = tone.wave ?? 'sine'
+      const start = t0 + tone.offset
+      osc.frequency.setValueAtTime(tone.frequency, start)
+      if (tone.endFrequency !== undefined) {
+        osc.frequency.linearRampToValueAtTime(tone.endFrequency, start + tone.duration)
+      }
       env.gain.setValueAtTime(0, start)
-      env.gain.linearRampToValueAtTime(gain * 0.9, start + 0.02)
-      env.gain.exponentialRampToValueAtTime(0.0001, start + dur)
-      osc.connect(env).connect(ctx.destination)
+      env.gain.linearRampToValueAtTime(gain * (tone.level ?? 0.82), start + 0.012)
+      env.gain.setValueAtTime(gain * (tone.level ?? 0.82), start + Math.max(0.012, tone.duration - 0.045))
+      env.gain.exponentialRampToValueAtTime(0.0001, start + tone.duration)
+      osc.connect(env).connect(limiter)
       osc.start(start)
-      osc.stop(start + dur + 0.05) // self-cleanup
+      osc.stop(start + tone.duration + 0.05) // self-cleanup
     }
+    const tailMs = Math.max(...PRESETS[preset].map((tone) => tone.offset + tone.duration)) * 1_000 + 120
+    window.setTimeout(() => limiter.disconnect(), tailMs)
   }
 }
 

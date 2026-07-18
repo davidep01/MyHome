@@ -6,9 +6,10 @@ import { useDoorbellEvents } from '../store/doorbellEvents'
 import { normalizeDoorbells, DOORBELL_ACTIVE_STATES } from '../lib/doorbell'
 import { uid } from '../lib/uid'
 import type { DoorbellDevice } from '../api/backend'
-import type { SoundPreset } from '../lib/sound/SoundManager'
+import { startRepeatingSound, type SoundPreset } from '../lib/sound/SoundManager'
 
 const AUTO_DISMISS_MS = 30_000
+const RING_REPEAT_MS = 3_000
 
 interface ActiveRing {
   device: DoorbellDevice
@@ -55,7 +56,6 @@ export function useDoorbells(deviceOverride?: DoorbellDevice[]) {
       type: 'press',
       message: 'Suonata di prova',
     })
-    play((device.sound as SoundPreset) ?? 'dingdong', { volume: device.volume ?? 1, key: device.id, cooldownMs: 0 })
     if (timerRef.current) clearTimeout(timerRef.current)
     timerRef.current = setTimeout(() => setActive(null), AUTO_DISMISS_MS)
     // devices identity changes on every layout refetch — react only to the ring
@@ -88,13 +88,24 @@ export function useDoorbells(deviceOverride?: DoorbellDevice[]) {
         type: 'press',
         message: d.location,
       })
-      play((d.sound as SoundPreset) ?? 'dingdong', { volume: d.volume ?? 1, key: d.id, cooldownMs: 4000 })
-
       if (timerRef.current) clearTimeout(timerRef.current)
       timerRef.current = setTimeout(() => setActive(null), AUTO_DISMISS_MS)
       break // one ring at a time
     }
   }, [entities, devices, play, pushEvent])
+
+  // Il richiamo continua per l'intera vita dell'overlay: scadenza automatica,
+  // pulsante Chiudi/Ignora/Visto o una nuova suonata fermano sempre il timer.
+  useEffect(() => {
+    if (!active) return
+    const ring = () => play((active.device.sound as SoundPreset) ?? 'dingdong', {
+      volume: active.device.volume ?? 1,
+      boost: 1.5,
+      key: `doorbell:${active.device.id}:${active.ringAt}`,
+      cooldownMs: 0,
+    })
+    return startRepeatingSound(ring, RING_REPEAT_MS)
+  }, [active, play])
 
   useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current) }, [])
 

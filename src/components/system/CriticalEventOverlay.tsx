@@ -8,6 +8,7 @@ import { visibleShortcuts } from '../../lib/actionShortcuts'
 import { ShortcutActionButton } from '../controls/ShortcutActionButton'
 import { useSoundNotifications } from '../../hooks/useSoundNotifications'
 import { useUIStore } from '../../store/ui'
+import { startRepeatingSound } from '../../lib/sound/SoundManager'
 
 export function CriticalEventOverlay({ alerts, shortcuts }: { alerts: CriticalAlert[]; shortcuts?: ActionShortcut[] }) {
   const [minimizedFor, setMinimizedFor] = useState<string | null>(null)
@@ -24,12 +25,21 @@ export function CriticalEventOverlay({ alerts, shortcuts }: { alerts: CriticalAl
   )
   const minimized = Boolean(signature) && minimizedFor === signature
   const current = alerts[0]
+  const currentKind = current?.kind
 
   useEffect(() => {
-    if (!signature) return
+    if (!signature || !currentKind) return
     markKioskActivity()
-    play('alert', { key: `critical:${signature}`, cooldownMs: 4_000, volume: 1 })
-  }, [signature, play])
+    const preset = currentKind === 'siren' || currentKind === 'intrusion' ? 'siren' : 'alert'
+    const repeatMs = preset === 'siren' ? 1_900 : 3_200
+    const sound = () => play(preset, {
+      key: `critical:${signature}`,
+      cooldownMs: 0,
+      volume: 1,
+      boost: preset === 'siren' ? 1.8 : 1.5,
+    })
+    return startRepeatingSound(sound, repeatMs)
+  }, [signature, currentKind, play])
 
   useEffect(() => {
     if (current && !minimized) focusRef.current?.focus()
