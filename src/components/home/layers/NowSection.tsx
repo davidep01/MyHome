@@ -28,9 +28,9 @@ export function NowSection({
     const index = hero.findIndex((candidate) => candidate.key === slot.key)
     const size = cameraStrip ? 'M' : (slot.visualSize ?? 'M')
     const span = cameraStrip ? ''
-      : size === 'XL' ? 'sm:col-span-2 lg:col-span-3'
-        : size === 'L' ? 'sm:col-span-2 lg:col-span-2'
-          : ''
+      : size === 'XL' ? 'sm:col-span-2 lg:col-span-6'
+        : size === 'L' ? 'sm:col-span-2 lg:col-span-3'
+          : 'lg:col-span-2'
 
     return (
       <div
@@ -54,15 +54,18 @@ export function NowSection({
   }
 
   return (
-    <section className="shrink-0 space-y-3.5">
+    <section className={cn(
+      'grid h-full min-h-0 gap-3.5 overflow-hidden',
+      regular.length > 0 && cameraTrio.length === 3 && 'grid-rows-2',
+    )}>
       {regular.length > 0 && (
-        <div className="grid auto-rows-[190px] grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid h-full min-h-0 auto-rows-[minmax(0,1fr)] grid-flow-row-dense grid-cols-1 gap-3.5 overflow-hidden sm:grid-cols-2 lg:grid-cols-6">
           {regular.map((slot) => renderSlot(slot))}
         </div>
       )}
       {cameraTrio.length === 3 && (
         <div
-          className="grid auto-rows-[190px] grid-cols-1 gap-3.5 sm:grid-cols-3"
+          className="grid h-full min-h-0 grid-cols-3 gap-3.5 overflow-hidden"
           aria-label="Videocamere in evidenza"
         >
           {cameraTrio.map((slot) => renderSlot(slot, true))}

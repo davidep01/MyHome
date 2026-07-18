@@ -28,6 +28,9 @@ export interface KioskCurationConfig {
 }
 
 const TICK_MS = 1000
+// Su un tablet 11" quattro slot sono il massimo che mantiene "Adesso" entro
+// due righe, lasciando sempre visibili header e Stanze senza scroll verticale.
+const KIOSK_HERO_LIMIT = 4
 const IDLE: ComposedHomeView = { hero: [], alerts: [], quiet: true }
 
 /**
@@ -63,8 +66,15 @@ export function useComposedHome(cfg?: KioskCurationConfig): ComposedHomeView {
         areaNameOf,
         heroOf: (id) => deviceOverrides?.[id]?.hero,
         now: new Date(),
+        maxHero: KIOSK_HERO_LIMIT,
       })
-      const { hero, state } = applyHysteresis(memory.current.hero, raw.hero, memory.current.state, Date.now())
+      const { hero, state } = applyHysteresis(
+        memory.current.hero,
+        raw.hero,
+        memory.current.state,
+        Date.now(),
+        KIOSK_HERO_LIMIT,
+      )
       const insights = computeInsights(visible, { areaIdOf, nowMs: Date.now() })
 
       const next: ComposedHomeView = { hero, alerts: [...raw.alerts, ...insights], quiet: hero.length === 0 }

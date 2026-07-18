@@ -155,3 +155,12 @@ export function sameLayout(a: Layout, b: Layout): boolean {
     return Boolean(other) && item.x === other!.x && item.y === other!.y && item.w === other!.w && item.h === other!.h
   })
 }
+
+/** Altezza naturale della griglia in pixel, prima dell'eventuale fit kiosk. */
+export function layoutPixelHeight(layout: Layout, rowHeight: number, rowGap: number): number {
+  if (layout.length === 0) return 0
+  const rows = Math.max(...layout.map((item) => item.y + item.h))
+  const safeRowHeight = Math.max(1, rowHeight)
+  const safeGap = Math.max(0, rowGap)
+  return rows * safeRowHeight + Math.max(0, rows - 1) * safeGap
+}

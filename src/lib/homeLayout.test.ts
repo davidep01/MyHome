@@ -4,6 +4,7 @@ import {
   HOME_COLS,
   SIZE_WH,
   buildLayout,
+  layoutPixelHeight,
   orderFromLayout,
   positionsFromLayout,
   sameLayout,
@@ -35,6 +36,17 @@ describe('SIZE_WH', () => {
       lg: { w: 4, h: 4 },
       wide: { w: 8, h: 2 },
     })
+  })
+})
+
+describe('layoutPixelHeight', () => {
+  it('calcola l altezza naturale comprese le intercapedini tra righe', () => {
+    const layout: Layout = [
+      { i: 'a', x: 0, y: 0, w: 4, h: 2 },
+      { i: 'b', x: 0, y: 2, w: 4, h: 4 },
+    ]
+    expect(layoutPixelHeight(layout, 64, 14)).toBe(6 * 64 + 5 * 14)
+    expect(layoutPixelHeight([], 64, 14)).toBe(0)
   })
 })
 

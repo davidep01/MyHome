@@ -1,11 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type RefObject } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import type { Layout } from 'react-grid-layout/legacy'
 import 'react-grid-layout/css/styles.css'
 import { GripVertical, LayoutGrid, Pencil, Plus, Save, WifiOff, X } from 'lucide-react'
 import { HomeGridCanvas } from './HomeGridCanvas'
 import { WidgetPicker } from './WidgetPicker'
-import { buildLayout, orderFromLayout, positionsFromLayout, sameLayout } from '../../../lib/homeLayout'
+import { buildLayout, layoutPixelHeight, orderFromLayout, positionsFromLayout, sameLayout } from '../../../lib/homeLayout'
 import { useTabletLayout, useSaveTabletLayout } from '../../../hooks/useTabletLayout'
 import { useClock } from '../../../hooks/useClock'
 import { useTimeOfDay } from '../../../hooks/useTimeOfDay'
@@ -25,6 +25,27 @@ const SIZE_ORDER: WidgetSize[] = ['sm', 'md', 'lg', 'wide']
 interface Draft {
   widgets: HomeWidget[]
   layout: Layout
+}
+
+function useElementHeight(ref: RefObject<HTMLElement | null>): number {
+  const [height, setHeight] = useState(0)
+  useEffect(() => {
+    const element = ref.current
+    if (!element) return
+    const measure = () => {
+      const next = Math.floor(element.getBoundingClientRect().height)
+      setHeight((current) => current === next ? current : next)
+    }
+    measure()
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure)
+    observer?.observe(element)
+    window.addEventListener('resize', measure)
+    return () => {
+      observer?.disconnect()
+      window.removeEventListener('resize', measure)
+    }
+  }, [ref])
+  return height
 }
 
 /** True when two widget sets carry the same tiles with the same binding + size. */
@@ -109,6 +130,8 @@ export function KioskWidgetHome() {
   const [draft, setDraft] = useState<Draft | null>(null)
   const [pickerOpen, setPickerOpen] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
+  const gridViewportRef = useRef<HTMLDivElement>(null)
+  const gridViewportHeight = useElementHeight(gridViewportRef)
 
   const savedWidgets = useMemo(() => data?.widgets ?? [], [data?.widgets])
   const savedLayout = useMemo(() => buildLayout(savedWidgets, data?.layout.items), [savedWidgets, data?.layout.items])
@@ -120,6 +143,10 @@ export function KioskWidgetHome() {
   const activeWidgets = editing ? draft.widgets : savedWidgets
   const activeLayout = editing ? draft.layout : savedLayout
   const dirty = editing ? (!sameWidgets(draft.widgets, savedWidgets) || !sameLayout(draft.layout, savedLayout)) : false
+  const naturalGridHeight = layoutPixelHeight(activeLayout, data?.layout.rowHeight ?? 64, GRID_GAP[1])
+  const fitScale = !editing && gridViewportHeight > 0 && naturalGridHeight > gridViewportHeight
+    ? gridViewportHeight / naturalGridHeight
+    : 1
 
   const beginEdit = () => {
     if (!canEdit) return
@@ -261,7 +288,10 @@ export function KioskWidgetHome() {
           </div>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1">
+        <div
+          ref={gridViewportRef}
+          className={cn('min-h-0 flex-1', editing ? 'overflow-y-auto overscroll-contain pr-1' : 'overflow-hidden')}
+        >
           {editing && activeWidgets.length === 0 ? (
             <button
               type="button"
@@ -272,26 +302,34 @@ export function KioskWidgetHome() {
               <span className="text-base font-semibold">Aggiungi il primo widget</span>
             </button>
           ) : (
-            <HomeGridCanvas
-              className={cn('relative pb-10', editing && 'kiosk-layout-editing')}
-              widgets={activeWidgets}
-              layout={activeLayout}
-              rowHeight={data.layout.rowHeight}
-              gap={GRID_GAP}
-              editMode={editing}
-              isDraggable={editing}
-              draggableCancel="button, input, select, textarea, a"
-              publicConfig={data}
-              onDrag={(_, __, ___, ____, event) => event.stopPropagation()}
-              onDragStop={(nextLayout) => draft && setDraft({ ...draft, layout: buildLayout(draft.widgets, positionsFromLayout(nextLayout, draft.widgets)) })}
-              renderOverlay={(widget) => (
-                <TileEditOverlay
-                  widget={widget}
-                  onRemove={() => removeWidget(widget.id)}
-                  onSizeChange={(size) => setWidgetSize(widget.id, size)}
-                />
-              )}
-            />
+            <div
+              style={fitScale < 1 ? {
+                width: `${100 / fitScale}%`,
+                transform: `scale(${fitScale})`,
+                transformOrigin: 'top left',
+              } : undefined}
+            >
+              <HomeGridCanvas
+                className={cn('relative', editing && 'kiosk-layout-editing pb-10')}
+                widgets={activeWidgets}
+                layout={activeLayout}
+                rowHeight={data.layout.rowHeight}
+                gap={GRID_GAP}
+                editMode={editing}
+                isDraggable={editing}
+                draggableCancel="button, input, select, textarea, a"
+                publicConfig={data}
+                onDrag={(_, __, ___, ____, event) => event.stopPropagation()}
+                onDragStop={(nextLayout) => draft && setDraft({ ...draft, layout: buildLayout(draft.widgets, positionsFromLayout(nextLayout, draft.widgets)) })}
+                renderOverlay={(widget) => (
+                  <TileEditOverlay
+                    widget={widget}
+                    onRemove={() => removeWidget(widget.id)}
+                    onSizeChange={(size) => setWidgetSize(widget.id, size)}
+                  />
+                )}
+              />
+            </div>
           )}
         </div>
       </div>

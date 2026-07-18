@@ -57,19 +57,21 @@ export function LayeredHome() {
   }
 
   return (
-    <div className="h-full overflow-y-auto overscroll-y-contain [-webkit-overflow-scrolling:touch]">
+    <div className="h-full overflow-hidden">
       <div
-        className="mx-auto flex min-h-full w-full max-w-[1440px] flex-col gap-4 sm:gap-5 xl:gap-6"
+        className="mx-auto grid h-full w-full max-w-[1440px] grid-rows-[auto_minmax(0,1fr)_auto] gap-[clamp(10px,1.8vh,20px)] overflow-hidden"
         style={{
-          paddingTop: 'calc(clamp(16px, 2vw, 24px) + env(safe-area-inset-top))',
+          paddingTop: 'calc(clamp(10px, 2vh, 20px) + env(safe-area-inset-top))',
           paddingRight: 'calc(clamp(16px, 2vw, 28px) + env(safe-area-inset-right))',
-          paddingBottom: 'calc(28px + env(safe-area-inset-bottom))',
+          paddingBottom: 'calc(clamp(10px, 2vh, 20px) + env(safe-area-inset-bottom))',
           paddingLeft: 'calc(clamp(16px, 2vw, 28px) + env(safe-area-inset-left))',
         }}
       >
         <StatusHeader userName={layout?.userName} alerts={composed.alerts} onAlertTap={openAlert} onAlertAction={runAlertAction} onClockTap={() => setTimelineOpen(true)} />
 
-        {composed.quiet ? <QuietSection /> : <NowSection hero={composed.hero} overrides={layout?.deviceOverrides} />}
+        <div className="min-h-0 overflow-hidden">
+          {composed.quiet ? <QuietSection /> : <NowSection hero={composed.hero} overrides={layout?.deviceOverrides} />}
+        </div>
 
         <RoomsRow
           hiddenEntities={layout?.hiddenEntities}
@@ -107,21 +109,21 @@ function QuietSection() {
     && Number.isFinite(Number.parseFloat(entity.state))))
 
   return (
-    <section className="grid shrink-0 grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-3">
+    <section className="grid h-full min-h-0 grid-cols-1 gap-3.5 overflow-hidden sm:grid-cols-2 xl:grid-cols-3">
       <AnimatedCard
         depth
         ambient="drift"
         index={1}
         ambientColor="rgba(41,151,255,0.19)"
         noPadding
-        className={cn('min-h-[272px] sm:col-span-2', hasEnergy ? 'xl:col-span-2' : 'xl:col-span-3')}
+        className={cn('min-h-0 sm:col-span-2', hasEnergy ? 'xl:col-span-2' : 'xl:col-span-3')}
       >
         <div className="h-full overflow-hidden p-[14px]"><WeatherWidget /></div>
       </AnimatedCard>
       {hasEnergy && <div className="min-w-0 sm:col-span-2 xl:col-span-1 [&>*]:h-full">
         <EnergyCard />
       </div>}
-      {hasScenes && <AnimatedCard depth ambient="drift" ambientColor="rgba(99,102,241,0.16)" index={3} className="flex min-h-[120px] items-center overflow-hidden sm:col-span-2 sm:min-w-0 xl:col-span-3">
+      {hasScenes && <AnimatedCard depth ambient="drift" ambientColor="rgba(99,102,241,0.16)" index={3} className="flex min-h-0 items-center overflow-hidden sm:col-span-2 sm:min-w-0 xl:col-span-3">
         <SceneRow />
       </AnimatedCard>}
     </section>
