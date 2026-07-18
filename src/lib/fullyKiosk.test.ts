@@ -3,6 +3,7 @@ import {
   adaptiveBrightnessFor,
   createFullyKioskBridge,
   ensureFullyEventBindings,
+  ensureFullyAlarmAudioSetting,
   FULLY_KIOSK_EVENTS,
   fullyKioskAvailability,
   isTrustedLanLocation,
@@ -107,6 +108,18 @@ describe('Fully Kiosk capability bridge', () => {
     expect(setAudioVolume).toHaveBeenCalledWith(100, 4)
     expect(playSound).toHaveBeenCalledWith('http://homeassistant/alarm-siren.wav', true, 4)
     expect(stopSound).toHaveBeenCalledOnce()
+  })
+
+  it('enables Fully autoplay for the persistent static alarm element', () => {
+    const setBooleanSetting = vi.fn<(key: string, value: boolean) => void>()
+    const bridge = createFullyKioskBridge({
+      getBooleanSetting: () => 'false',
+      setBooleanSetting,
+    }, LAN_LOCATION)
+    if (!bridge) throw new Error('bridge unavailable')
+
+    expect(ensureFullyAlarmAudioSetting(bridge)).toBe(true)
+    expect(setBooleanSetting).toHaveBeenCalledWith('autoplayAudio', true)
   })
 
   it('registers each supported event only once', () => {

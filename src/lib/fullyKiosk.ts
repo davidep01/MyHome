@@ -38,6 +38,8 @@ export interface FullyKioskCapabilities {
   soundPlayback: boolean
   soundStop: boolean
   musicActive: boolean
+  settingsRead: boolean
+  settingsWrite: boolean
   camshot: boolean
   screensaverControl: boolean
   restart: boolean
@@ -69,6 +71,8 @@ export interface FullyKioskBridge {
   stopSound: () => boolean
   /** true quando il player audio nativo di Android sta emettendo. */
   isMusicActive: () => boolean | null
+  getBooleanSetting: (key: string) => boolean | null
+  setBooleanSetting: (key: string, value: boolean) => boolean
   /** Foto singola dalla fotocamera del tablet: data URL JPEG, o null. */
   getCamshotDataUrl: () => string | null
   startScreensaver: () => boolean
@@ -189,6 +193,8 @@ export function createFullyKioskBridge(
     soundPlayback: has('playSound'),
     soundStop: has('stopSound'),
     musicActive: has('isMusicActive'),
+    settingsRead: has('getBooleanSetting'),
+    settingsWrite: has('setBooleanSetting'),
     camshot: has('getCamshotJpgBase64'),
     screensaverControl: has('startScreensaver') && has('stopScreensaver'),
     restart: has('restartApp'),
@@ -275,6 +281,15 @@ export function createFullyKioskBridge(
       const result = invoke('isMusicActive')
       return result.ok ? booleanValue(result.value) : null
     },
+    getBooleanSetting: (key) => {
+      if (!/^[a-z][a-z0-9]{0,63}$/i.test(key)) return null
+      const result = invoke('getBooleanSetting', key)
+      return result.ok ? booleanValue(result.value) : null
+    },
+    setBooleanSetting: (key, value) => {
+      if (!/^[a-z][a-z0-9]{0,63}$/i.test(key)) return false
+      return invoke('setBooleanSetting', key, Boolean(value)).ok
+    },
     getCamshotDataUrl: () => {
       const result = invoke('getCamshotJpgBase64')
       if (!result.ok || typeof result.value !== 'string' || !result.value) return null
@@ -291,6 +306,13 @@ export function createFullyKioskBridge(
       return result.ok && typeof result.value === 'string' && result.value.trim() ? result.value.trim() : null
     },
   }
+}
+
+/** Fully documents that Autoplay Audio only works for static <audio> tags. */
+export function ensureFullyAlarmAudioSetting(bridge: FullyKioskBridge): boolean {
+  if (!bridge.capabilities.settingsWrite) return false
+  if (bridge.getBooleanSetting('autoplayAudio') === true) return true
+  return bridge.setBooleanSetting('autoplayAudio', true)
 }
 
 /** Maps camera luma or hardware lux to a comfortable 0..255 screen level. */

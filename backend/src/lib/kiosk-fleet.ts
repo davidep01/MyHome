@@ -15,6 +15,10 @@ export interface KioskHeartbeat {
   screensaver?: boolean
   page?: string
   memoryMb?: number
+  fully?: 'available' | 'unavailable' | 'blocked'
+  nativeAudio?: boolean
+  audioChannel?: 'initializing' | 'ready' | 'needs-interaction' | 'error'
+  audioPlaying?: boolean
 }
 
 export interface KioskDeviceStatus extends KioskHeartbeat {
@@ -64,7 +68,7 @@ export function resetKioskFleet(): void {
 
 // ── Comandi remoti (§4.5/§12) ────────────────────────────────────────────────
 
-export const KIOSK_COMMANDS = ['reload', 'screenOn', 'screenOff', 'brightness', 'say', 'screensaverStart', 'screensaverStop', 'restart'] as const
+export const KIOSK_COMMANDS = ['reload', 'screenOn', 'screenOff', 'brightness', 'say', 'screensaverStart', 'screensaverStop', 'audioTest', 'restart'] as const
 export type KioskCommandName = typeof KIOSK_COMMANDS[number]
 
 export interface KioskCommand {

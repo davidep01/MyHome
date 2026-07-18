@@ -492,6 +492,10 @@ export interface KioskHeartbeatPayload {
   screensaver?: boolean
   page?: string
   memoryMb?: number
+  fully?: 'available' | 'unavailable' | 'blocked'
+  nativeAudio?: boolean
+  audioChannel?: 'initializing' | 'ready' | 'needs-interaction' | 'error'
+  audioPlaying?: boolean
 }
 
 export interface KioskDeviceStatus extends KioskHeartbeatPayload {

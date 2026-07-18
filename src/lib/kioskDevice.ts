@@ -1,4 +1,5 @@
 import { createFullyKioskBridge } from './fullyKiosk'
+import { testKioskAlarmChannel } from './sound/KioskAlarmChannel'
 import { uid } from './uid'
 
 const DEVICE_ID_KEY = 'myhome.kioskDeviceId'
@@ -16,7 +17,7 @@ export function getKioskDeviceId(): string {
   return stored
 }
 
-export type KioskCommandName = 'reload' | 'screenOn' | 'screenOff' | 'brightness' | 'say' | 'screensaverStart' | 'screensaverStop' | 'restart'
+export type KioskCommandName = 'reload' | 'screenOn' | 'screenOff' | 'brightness' | 'say' | 'screensaverStart' | 'screensaverStop' | 'audioTest' | 'restart'
 
 /**
  * Esegue un comando dalla regia (§4.5/§12) sul tablet corrente via Fully.
@@ -25,6 +26,10 @@ export type KioskCommandName = 'reload' | 'screenOn' | 'screenOff' | 'brightness
 export function executeKioskCommand(command: KioskCommandName, value?: number | string): void {
   if (command === 'reload') {
     window.location.reload()
+    return
+  }
+  if (command === 'audioTest') {
+    testKioskAlarmChannel()
     return
   }
   const bridge = createFullyKioskBridge(window.fully, window.location)

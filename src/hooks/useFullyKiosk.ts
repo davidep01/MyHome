@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import {
   adaptiveBrightnessFor,
   createFullyKioskBridge,
+  ensureFullyAlarmAudioSetting,
   ensureFullyEventBindings,
   FULLY_KIOSK_EVENT,
   fullyKioskAvailability,
@@ -61,6 +62,9 @@ export function useFullyKiosk(options: UseFullyKioskOptions = {}): void {
       screenOn: bridge.getScreenOn(),
       motionRunning: bridge.isMotionRunning(),
     })
+    // Impostazione Fully applicata immediatamente: il canale statico della
+    // sirena può così partire senza un gesto anche dopo reload o riavvio.
+    ensureFullyAlarmAudioSetting(bridge)
 
     let emergency = useFullyKioskStore.getState().emergencyActive
 

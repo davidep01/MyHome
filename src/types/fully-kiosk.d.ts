@@ -22,6 +22,8 @@ declare global {
     playSound?: (url: string, loop: boolean, stream?: number) => void
     stopSound?: () => void
     isMusicActive?: () => unknown
+    getBooleanSetting?: (key: string) => unknown
+    setBooleanSetting?: (key: string, value: boolean) => void
     textToSpeech?: (text: string) => void
     stopTextToSpeech?: () => void
   }

@@ -75,7 +75,8 @@ Sul tablet:
 1. Imposta come Start URL l'indirizzo LAN completo, per esempio `http://192.168.1.20:3001/kiosk`.
 2. In **Advanced Web Settings** abilita **JavaScript Interface**.
 3. Nella **JavaScript Interface URL Whitelist** inserisci soltanto l'origine di MyHome, con schema, IP e porta esatti (per esempio `http://192.168.1.20:3001/*`). Non usare `*` e non autorizzare siti esterni.
-4. Concedi a Fully il permesso fotocamera se vuoi il wake-on-approach. MyHome usa `getAverageLuma()` quando disponibile e ripiega sul sensore luce Android; in assenza di entrambi il kiosk continua a funzionare con luminosità invariata.
+4. In **Web Content Settings** abilita **Autoplay Audio**. MyHome mantiene una singola tag `<audio>` statica dedicata agli allarmi, come richiesto da Fully; se l'opzione è spenta il tablet mostra un pulsante rosso da toccare una volta per armare il canale.
+5. Concedi a Fully il permesso fotocamera se vuoi il wake-on-approach. MyHome usa `getAverageLuma()` quando disponibile e ripiega sul sensore luce Android; in assenza di entrambi il kiosk continua a funzionare con luminosità invariata.
 
 Non è necessario abilitare **Remote Admin**. L'interfaccia JavaScript di Fully è privilegiata e va limitata a pagine fidate, come raccomandato nella [documentazione ufficiale di Fully Kiosk Browser](https://www.fully-kiosk.com/en/). MyHome la ignora inoltre se la pagina non è caricata da un indirizzo riconoscibile come locale (IP privato, host LAN a etichetta singola, `.local`, `.lan` o `.home.arpa`).
 

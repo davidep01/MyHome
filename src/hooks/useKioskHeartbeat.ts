@@ -3,6 +3,7 @@ import { kioskApi } from '../api/backend'
 import { createFullyKioskBridge } from '../lib/fullyKiosk'
 import { getKioskDeviceId } from '../lib/kioskDevice'
 import { useFullyKioskStore } from '../store/fullyKiosk'
+import { useKioskAudioStore } from '../store/kioskAudio'
 
 const HEARTBEAT_MS = 60_000
 
@@ -15,6 +16,8 @@ export function useKioskHeartbeat(): void {
   useEffect(() => {
     const send = () => {
       const bridge = createFullyKioskBridge(window.fully, window.location)
+      const fully = useFullyKioskStore.getState()
+      const audio = useKioskAudioStore.getState()
       const memory = (performance as { memory?: { usedJSHeapSize?: number } }).memory?.usedJSHeapSize
       void kioskApi.heartbeat({
         deviceId: getKioskDeviceId(),
@@ -25,10 +28,24 @@ export function useKioskHeartbeat(): void {
         screensaver: useFullyKioskStore.getState().screensaverActive,
         page: window.location.pathname,
         memoryMb: typeof memory === 'number' ? Math.round(memory / 1_048_576) : undefined,
+        fully: fully.availability,
+        nativeAudio: fully.capabilities.soundPlayback,
+        audioChannel: audio.status,
+        audioPlaying: audio.playing,
       }).catch(() => undefined)
     }
     send()
     const timer = window.setInterval(send, HEARTBEAT_MS)
-    return () => window.clearInterval(timer)
+    const removeAudioListener = useKioskAudioStore.subscribe((state, previous) => {
+      if (state.status !== previous.status || state.playing !== previous.playing) send()
+    })
+    const removeFullyListener = useFullyKioskStore.subscribe((state, previous) => {
+      if (state.availability !== previous.availability || state.capabilities.soundPlayback !== previous.capabilities.soundPlayback) send()
+    })
+    return () => {
+      window.clearInterval(timer)
+      removeAudioListener()
+      removeFullyListener()
+    }
   }, [])
 }

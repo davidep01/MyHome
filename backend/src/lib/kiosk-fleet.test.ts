@@ -7,10 +7,25 @@ beforeEach(() => resetKioskFleet())
 
 describe('kiosk fleet heartbeat', () => {
   it('registra e lista con stato online', () => {
-    expect(recordKioskHeartbeat({ deviceId: 'tab-1', battery: 80 }, 1_000)).toBe(true)
+    expect(recordKioskHeartbeat({
+      deviceId: 'tab-1',
+      battery: 80,
+      fully: 'available',
+      nativeAudio: true,
+      audioChannel: 'ready',
+      audioPlaying: true,
+    }, 1_000)).toBe(true)
     const devices = listKioskDevices(2_000)
     expect(devices).toHaveLength(1)
-    expect(devices[0]).toMatchObject({ deviceId: 'tab-1', battery: 80, online: true })
+    expect(devices[0]).toMatchObject({
+      deviceId: 'tab-1',
+      battery: 80,
+      fully: 'available',
+      nativeAudio: true,
+      audioChannel: 'ready',
+      audioPlaying: true,
+      online: true,
+    })
   })
 
   it('marca offline oltre la finestra', () => {
@@ -37,6 +52,7 @@ describe('parseKioskCommand', () => {
   it('accetta i comandi semplici', () => {
     expect(parseKioskCommand({ target: 'all', command: 'reload' })).toEqual({ target: 'all', command: 'reload' })
     expect(parseKioskCommand({ target: 'tab-1', command: 'screenOff' })).toEqual({ target: 'tab-1', command: 'screenOff' })
+    expect(parseKioskCommand({ target: 'tab-1', command: 'audioTest' })).toEqual({ target: 'tab-1', command: 'audioTest' })
   })
 
   it('valida brightness', () => {

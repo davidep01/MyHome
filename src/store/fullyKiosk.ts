@@ -26,6 +26,8 @@ export const EMPTY_FULLY_KIOSK_CAPABILITIES: FullyKioskCapabilities = {
   soundPlayback: false,
   soundStop: false,
   musicActive: false,
+  settingsRead: false,
+  settingsWrite: false,
   camshot: false,
   screensaverControl: false,
   restart: false,

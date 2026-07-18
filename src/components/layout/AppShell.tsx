@@ -22,6 +22,7 @@ import { CriticalEventOverlay } from '../system/CriticalEventOverlay'
 import { useCriticalAlerts } from '../../hooks/useCriticalAlerts'
 import { useEmergencyMode } from '../../hooks/useEmergencyMode'
 import { useKioskHeartbeat } from '../../hooks/useKioskHeartbeat'
+import { KioskAlarmAudioChannel } from '../system/KioskAlarmAudioChannel'
 import { useTimeOfDay } from '../../hooks/useTimeOfDay'
 import { BRAND_NAME } from '../../lib/brand'
 import { FullscreenCameraOverlay } from '../system/FullscreenCameraOverlay'
@@ -254,6 +255,7 @@ function KioskShell() {
 
       <DoorbellAlert kiosk doorbells={layout?.doorbells ?? []} vision={layout?.ai?.doorbellVision === true} />
       {fullscreenCameraId && <FullscreenCameraOverlay entityId={fullscreenCameraId} doorbells={layout?.doorbells} />}
+      <KioskAlarmAudioChannel active={criticalAlerts.length > 0} />
       <CriticalEventOverlay alerts={criticalAlerts} shortcuts={layout?.alarm?.shortcuts} />
     </div>
   )

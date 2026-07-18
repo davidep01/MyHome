@@ -156,6 +156,8 @@ function KioskFleetCard() {
                     d.brightness !== undefined && `Luminosità ${Math.round((d.brightness / 255) * 100)}%`,
                     d.screensaver && 'Screensaver attivo',
                     d.memoryMb !== undefined && `${d.memoryMb} MB usati`,
+                    d.fully === 'available' ? `Fully ${d.nativeAudio ? 'audio nativo' : 'senza player audio'}` : d.fully && `Fully ${d.fully === 'blocked' ? 'bloccato' : 'non disponibile'}`,
+                    d.audioChannel && `Canale allarme ${d.audioChannel === 'ready' ? 'pronto' : d.audioChannel === 'needs-interaction' ? 'da attivare sul tablet' : d.audioChannel}`,
                   ].filter(Boolean).join(' · ') || 'Nessun dato dal dispositivo'}
                 </p>
                 <div className="flex flex-wrap gap-2">
@@ -169,6 +171,7 @@ function KioskFleetCard() {
                     if (text?.trim()) send(d.deviceId, 'say', text.trim().slice(0, 200))
                   }} />
                   <FleetButton label="Screensaver" onClick={() => send(d.deviceId, d.screensaver ? 'screensaverStop' : 'screensaverStart')} />
+                  <FleetButton label="Prova audio" onClick={() => send(d.deviceId, 'audioTest')} />
                   <FleetButton label="Riavvia" danger onClick={() => {
                     if (window.confirm('Riavviare l’app del tablet? Il kiosk ricomparirà da solo.')) send(d.deviceId, 'restart')
                   }} />
