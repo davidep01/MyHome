@@ -21,9 +21,15 @@ const SECURITY_BINARY_CLASSES = new Set([
 ])
 const ACTIVE_STATES = new Set(['on', 'open', 'opening', 'closing', 'playing', 'cleaning', 'mowing', 'triggered'])
 const MAX_DETAIL_ENTITIES = 36
+const MAX_SELECTED_DETAIL_ENTITIES = 100
 const MAX_RECENT_CHANGES = 6
 const RECENT_CHANGE_MAX_AGE_MS = 10 * 60_000
 const LIVE_SENSOR_CLASSES = new Set(['temperature', 'humidity', 'carbon_dioxide', 'aqi', 'pm25', 'volatile_organic_compounds'])
+const RECAP_DEVICE_DOMAINS = new Set([
+  'alarm_control_panel', 'binary_sensor', 'climate', 'cover', 'fan', 'humidifier',
+  'lawn_mower', 'light', 'lock', 'media_player', 'person', 'sensor', 'siren',
+  'switch', 'vacuum', 'valve', 'water_heater',
+])
 
 function clean(value: unknown, fallback: string, maxLength = 120): string {
   if (typeof value !== 'string') return fallback
@@ -128,6 +134,21 @@ function signatureOf(context: AIContextEntity[]): string {
   return (hash >>> 0).toString(36)
 }
 
+/** Devices useful for a home-status recap; diagnostics and action-only entities stay out. */
+export function isScreensaverRecapCandidate(entity: HassEntity): boolean {
+  if (entity.attributes?.entity_category === 'diagnostic') return false
+  return RECAP_DEVICE_DOMAINS.has(entity.entity_id.split('.')[0]) || isWasteCollectionSensor(entity)
+}
+
+export function filterScreensaverRecapEntities(
+  entities: HassEntities,
+  selectedEntityIds?: readonly string[],
+): HassEntities {
+  if (selectedEntityIds === undefined) return entities
+  const selected = new Set(selectedEntityIds)
+  return Object.fromEntries(Object.entries(entities).filter(([entityId]) => selected.has(entityId)))
+}
+
 function changeDescription(previous: HassEntity, current: HassEntity): string | null {
   const domain = current.entity_id.split('.')[0]
   const deviceClass = String(current.attributes?.device_class ?? '')
@@ -205,10 +226,14 @@ export function buildScreensaverRecapInput(
   entities: HassEntities,
   now = new Date(),
   recentChanges: ScreensaverRecentChange[] = [],
+  selectedEntityIds?: readonly string[],
 ): ScreensaverRecapInput {
-  const all = Object.values(entities)
+  const scopedEntities = filterScreensaverRecapEntities(entities, selectedEntityIds)
+  const all = Object.values(scopedEntities)
   if (all.length === 0) {
-    return { context: [], localText: 'In attesa degli ultimi aggiornamenti della casa.', signature: 'empty' }
+    return selectedEntityIds !== undefined
+      ? { context: [], localText: 'Nessun dispositivo selezionato per il recap AI.', signature: 'empty-selection' }
+      : { context: [], localText: 'In attesa degli ultimi aggiornamenti della casa.', signature: 'empty' }
   }
 
   const todayKey = dateKeyForLocalDate(now)
@@ -241,10 +266,10 @@ export function buildScreensaverRecapInput(
   ]
 
   const details = all
-    .map((entity) => ({ entity, priority: priorityOf(entity) }))
+    .map((entity) => ({ entity, priority: priorityOf(entity) ?? (selectedEntityIds !== undefined ? 5 : null) }))
     .filter((entry): entry is { entity: HassEntity; priority: number } => entry.priority !== null)
     .sort((left, right) => left.priority - right.priority || changedAt(right.entity) - changedAt(left.entity))
-    .slice(0, MAX_DETAIL_ENTITIES)
+    .slice(0, selectedEntityIds !== undefined ? MAX_SELECTED_DETAIL_ENTITIES : MAX_DETAIL_ENTITIES)
     .map(({ entity }) => ({
       entity_id: entity.entity_id,
       name: nameOf(entity),

@@ -294,9 +294,10 @@ export function validateConfigPatch(input: unknown): Result {
     let screensaver: NonNullable<AppConfig['kiosk']>['screensaver'] | undefined
     if (input.kiosk.screensaver !== undefined) {
       const raw = input.kiosk.screensaver
-      if (!isRecord(raw) || !onlyKeys(raw, ['enabled', 'idleSeconds', 'slideSeconds', 'brightness', 'source', 'sourceUrl'])) {
+      if (!isRecord(raw) || !onlyKeys(raw, ['enabled', 'idleSeconds', 'slideSeconds', 'brightness', 'source', 'sourceUrl', 'recapEntityIds'])) {
         return { ok: false, error: 'Configurazione screensaver non valida' }
       }
+      const recapEntityIds = raw.recapEntityIds === undefined ? undefined : entityIdList(raw.recapEntityIds, 100)
       if (
         (raw.enabled !== undefined && typeof raw.enabled !== 'boolean')
         || (raw.idleSeconds !== undefined && !integerInRange(raw.idleSeconds, 30, 3_600))
@@ -304,6 +305,7 @@ export function validateConfigPatch(input: unknown): Result {
         || (raw.brightness !== undefined && !integerInRange(raw.brightness, 0, 255))
         || (raw.source !== undefined && raw.source !== 'local' && raw.source !== 'google')
         || (raw.sourceUrl !== undefined && raw.sourceUrl !== '' && !isAllowedScreensaverSourceUrl(raw.sourceUrl))
+        || (raw.recapEntityIds !== undefined && recapEntityIds === null)
       ) return { ok: false, error: 'Configurazione screensaver non valida' }
       screensaver = {
         ...(typeof raw.enabled === 'boolean' ? { enabled: raw.enabled } : {}),
@@ -312,6 +314,7 @@ export function validateConfigPatch(input: unknown): Result {
         ...(typeof raw.brightness === 'number' ? { brightness: raw.brightness } : {}),
         ...(raw.source === 'local' || raw.source === 'google' ? { source: raw.source } : {}),
         ...(isAllowedScreensaverSourceUrl(raw.sourceUrl) ? { sourceUrl: raw.sourceUrl } : {}),
+        ...(recapEntityIds ? { recapEntityIds } : {}),
       }
     }
     value.kiosk = {

@@ -81,6 +81,8 @@ export interface KioskSettings {
     source?: 'local' | 'google'
     /** Link pubblico dell'album Google Foto (photos.app.goo.gl / photos.google.com). */
     sourceUrl?: string
+    /** Entità incluse nel recap AI; undefined = selezione automatica. */
+    recapEntityIds?: string[]
   }
 }
 

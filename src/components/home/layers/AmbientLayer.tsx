@@ -143,14 +143,23 @@ export function AmbientLayer({
           exit={{ opacity: 0 }}
           transition={{ duration: 0.6, ease: [0.32, 0.72, 0, 1] }}
         >
-          <AmbientContent slideSeconds={settings?.slideSeconds ?? DEFAULT_SLIDE_SECONDS} />
+          <AmbientContent
+            slideSeconds={settings?.slideSeconds ?? DEFAULT_SLIDE_SECONDS}
+            recapEntityIds={settings?.recapEntityIds}
+          />
         </motion.div>
       )}
     </AnimatePresence>
   )
 }
 
-function AmbientContent({ slideSeconds }: { slideSeconds: number }) {
+function AmbientContent({
+  slideSeconds,
+  recapEntityIds,
+}: {
+  slideSeconds: number
+  recapEntityIds?: string[]
+}) {
   const { time, date } = useClock()
   const { data: weather } = useCurrentWeather()
   const lastLux = useThemeStore((s) => s.lastLux)
@@ -220,7 +229,7 @@ function AmbientContent({ slideSeconds }: { slideSeconds: number }) {
           </span>
         )}
       </div>
-      <AmbientAIRecap />
+      <AmbientAIRecap entityIds={recapEntityIds} />
       {photos.length > 1 && (
         <span aria-hidden="true" className="absolute left-[max(24px,env(safe-area-inset-left))] top-[max(22px,env(safe-area-inset-top))] z-10 text-[11px] font-semibold tabular-nums text-white/45 max-sm:left-auto max-sm:right-[max(24px,env(safe-area-inset-right))]">
           {visibleIndex + 1} / {photos.length}

@@ -1,7 +1,7 @@
 import { useId, useMemo, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
-  Bell, CalendarDays, Cloud, Gauge, Images, LayoutGrid, MonitorSmartphone, Newspaper, Pencil, Plus, RefreshCw, Save, ScanFace, Siren, Sparkles, SunMoon, Trash2, Volume2, VolumeX,
+  Bell, CalendarDays, Check, Cloud, Gauge, Images, LayoutGrid, MonitorSmartphone, Newspaper, Pencil, Plus, RefreshCw, Save, ScanFace, Search, Siren, Sparkles, SunMoon, Trash2, Volume2, VolumeX,
 } from 'lucide-react'
 import { GlassCard } from '../components/glass/GlassCard'
 import { GlassSheet } from '../components/glass/GlassSheet'
@@ -18,6 +18,7 @@ import type { SoundPreset } from '../lib/sound/SoundManager'
 import { ShortcutsEditor } from '../components/controls/ShortcutsEditor'
 import { cn } from '../lib/utils'
 import { ALARM_TEST_DURATION_MS, type AlarmTestScenario, useAlarmTestStore } from '../store/alarmTest'
+import { isScreensaverRecapCandidate } from '../lib/screensaverRecap'
 
 /**
  * Regia — Funzioni: una card per feature distintiva, ognuna col suo STATO
@@ -681,6 +682,27 @@ function KioskCard() {
   const screensaverEnabled = screensaver?.enabled !== false
   const photoSource = screensaver?.source ?? 'local'
   const [sourceUrlDraft, setSourceUrlDraft] = useState<string | null>(null)
+  const [recapQuery, setRecapQuery] = useState('')
+  const [recapDraft, setRecapDraft] = useState<string[] | null>(null)
+  const recapEntityIds = screensaver?.recapEntityIds
+  const customRecap = recapEntityIds !== undefined
+  const recapCandidates = useMemo(() => Object.values(entities)
+    .filter(isScreensaverRecapCandidate)
+    .sort((left, right) => {
+      const leftName = String(left.attributes?.friendly_name ?? left.entity_id)
+      const rightName = String(right.attributes?.friendly_name ?? right.entity_id)
+      return leftName.localeCompare(rightName, 'it') || left.entity_id.localeCompare(right.entity_id)
+    }), [entities])
+  const matchingRecapCandidates = useMemo(() => {
+    const query = recapQuery.trim().toLowerCase()
+    const selected = new Set(recapDraft ?? recapEntityIds ?? [])
+    return recapCandidates.filter((entity) => {
+      if (!query) return true
+      const name = String(entity.attributes?.friendly_name ?? entity.entity_id).toLowerCase()
+      return name.includes(query) || entity.entity_id.toLowerCase().includes(query)
+    }).sort((left, right) => Number(selected.has(right.entity_id)) - Number(selected.has(left.entity_id)))
+  }, [recapCandidates, recapDraft, recapEntityIds, recapQuery])
+  const filteredRecapCandidates = matchingRecapCandidates.slice(0, 80)
 
   const saveKiosk = (kiosk: NonNullable<typeof config>['kiosk'], successText: string) => {
     setMessage(null)
@@ -857,6 +879,119 @@ function KioskCard() {
           >
             <RefreshCw size={14} className={cn(photos.isFetching && 'animate-spin')} aria-hidden="true" />
           </button>
+        </div>
+        <div className="space-y-2.5 rounded-[12px] border border-black/8 bg-white/55 p-3">
+          <div className="flex items-center gap-2">
+            <Sparkles size={15} className="text-[#0066cc]" aria-hidden="true" />
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold text-[#1d1d1f]">Dispositivi del recap AI</p>
+              <p className="text-[10px] text-black/40">
+                {customRecap ? `${recapEntityIds.length} selezionati` : 'Selezione automatica dei dispositivi informativi'}
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2" role="group" aria-label="Modalità selezione dispositivi recap AI">
+            <button
+              type="button"
+              disabled={readOnly || isPending}
+              aria-pressed={!customRecap}
+              onClick={() => {
+                setRecapDraft(null)
+                setRecapQuery('')
+                saveScreensaver({ recapEntityIds: undefined }, 'Selezione automatica del recap AI attivata.')
+              }}
+              className={cn('min-h-11 rounded-[11px] text-xs font-semibold transition', !customRecap ? 'bg-[#0066cc] text-white' : 'bg-black/[0.06] text-black/55')}
+            >
+              Automatica
+            </button>
+            <button
+              type="button"
+              disabled={readOnly || isPending}
+              aria-pressed={customRecap}
+              onClick={() => setRecapDraft([...(recapEntityIds ?? [])])}
+              className={cn('min-h-11 rounded-[11px] text-xs font-semibold transition', customRecap ? 'bg-[#0066cc] text-white' : 'bg-black/[0.06] text-black/55')}
+            >
+              Personalizza
+            </button>
+          </div>
+          {recapDraft !== null && (
+            <div className="space-y-2">
+              <div className="relative">
+                <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-black/35" aria-hidden="true" />
+                <input
+                  type="search"
+                  value={recapQuery}
+                  onChange={(event) => setRecapQuery(event.target.value)}
+                  placeholder="Cerca dispositivo o entity_id…"
+                  className="min-h-11 w-full rounded-full border border-black/10 bg-white py-2 pl-9 pr-3 text-sm text-[#1d1d1f] outline-none focus:border-[#0066cc]"
+                  aria-label="Cerca dispositivi per il recap AI"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="flex-1 text-[10px] font-semibold text-black/45">{recapDraft.length}/100 selezionati</span>
+                <button
+                  type="button"
+                  onClick={() => setRecapDraft([])}
+                  className="min-h-9 rounded-full bg-black/[0.06] px-3 text-[10px] font-semibold text-black/50"
+                >
+                  Azzera
+                </button>
+              </div>
+              <div className="max-h-[280px] space-y-1 overflow-y-auto pr-1">
+                {filteredRecapCandidates.length === 0 && (
+                  <p className="py-4 text-center text-xs text-black/40">Nessun dispositivo corrispondente.</p>
+                )}
+                {filteredRecapCandidates.map((entity) => {
+                  const checked = recapDraft.includes(entity.entity_id)
+                  const limitReached = !checked && recapDraft.length >= 100
+                  return (
+                    <button
+                      key={entity.entity_id}
+                      type="button"
+                      disabled={readOnly || isPending || limitReached}
+                      aria-pressed={checked}
+                      onClick={() => setRecapDraft(checked
+                        ? recapDraft.filter((entityId) => entityId !== entity.entity_id)
+                        : [...recapDraft, entity.entity_id])}
+                      className={cn('flex min-h-11 w-full items-center gap-2 rounded-[10px] px-3 py-2 text-left transition disabled:opacity-40', checked ? 'bg-[#0066cc]/12' : 'bg-black/[0.04]')}
+                    >
+                      <span className={cn('flex h-4 w-4 shrink-0 items-center justify-center rounded border', checked ? 'border-[#0066cc] bg-[#0066cc] text-white' : 'border-black/25')}>
+                        {checked && <Check size={11} aria-hidden="true" />}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-xs font-medium text-[#1d1d1f]">{String(entity.attributes?.friendly_name ?? entity.entity_id)}</span>
+                        <span className="block truncate font-mono text-[9px] text-black/35">{entity.entity_id}</span>
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+              {matchingRecapCandidates.length > filteredRecapCandidates.length && (
+                <p className="text-center text-[10px] text-black/35">Mostrati i primi 80 risultati; usa la ricerca per restringere.</p>
+              )}
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  disabled={readOnly || isPending}
+                  onClick={() => {
+                    saveScreensaver({ recapEntityIds: recapDraft }, 'Dispositivi del recap AI aggiornati.')
+                    setRecapDraft(null)
+                    setRecapQuery('')
+                  }}
+                  className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-[11px] bg-[#0066cc] px-3 text-xs font-semibold text-white disabled:opacity-40"
+                >
+                  <Save size={13} aria-hidden="true" /> Salva selezione
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setRecapDraft(null); setRecapQuery('') }}
+                  className="min-h-11 rounded-[11px] bg-black/[0.06] px-3 text-xs font-semibold text-black/50"
+                >
+                  Annulla
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
       <div className="space-y-1.5">

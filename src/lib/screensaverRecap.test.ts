@@ -121,4 +121,44 @@ describe('screensaver recap context', () => {
     expect(input.localText).not.toContain('Adesso:')
     expect(input.context.some((entry) => entry.entity_id.startsWith('sensor.recap_evento_'))).toBe(false)
   })
+
+  it('builds aggregates and AI context only from explicitly selected devices', () => {
+    const all = entities(
+      entity('light.cucina', 'on', { friendly_name: 'Cucina' }),
+      entity('light.camera', 'on', { friendly_name: 'Camera' }),
+      entity('sensor.temperatura', '22.5', {
+        friendly_name: 'Temperatura',
+        device_class: 'temperature',
+        unit_of_measurement: '°C',
+      }),
+    )
+    const input = buildScreensaverRecapInput(
+      all,
+      new Date('2026-07-18T14:00:00Z'),
+      [],
+      ['light.cucina', 'sensor.temperatura'],
+    )
+
+    expect(input.context).toContainEqual({ entity_id: 'sensor.recap_luci_accese', name: 'Luci accese', state: '1' })
+    expect(input.context).toContainEqual(expect.objectContaining({ entity_id: 'light.cucina' }))
+    expect(input.context).toContainEqual(expect.objectContaining({ entity_id: 'sensor.temperatura' }))
+    expect(input.context.some((entry) => entry.entity_id === 'light.camera')).toBe(false)
+    expect(input.localText).toContain('Cucina')
+    expect(input.localText).not.toContain('Camera')
+  })
+
+  it('supports an intentionally empty recap selection', () => {
+    const input = buildScreensaverRecapInput(
+      entities(entity('light.cucina', 'on')),
+      new Date(),
+      [],
+      [],
+    )
+
+    expect(input).toEqual({
+      context: [],
+      localText: 'Nessun dispositivo selezionato per il recap AI.',
+      signature: 'empty-selection',
+    })
+  })
 })

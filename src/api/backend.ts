@@ -157,6 +157,8 @@ export interface KioskSettings {
     /** Sorgente foto: cartella locale (default) o album pubblico Google Foto. */
     source?: 'local' | 'google'
     sourceUrl?: string
+    /** Entità incluse nel recap AI; undefined = selezione automatica. */
+    recapEntityIds?: string[]
   }
 }
 

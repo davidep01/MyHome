@@ -33,3 +33,25 @@ describe('calendar feed configuration', () => {
     expect(normalizeCalendarFeedUrl('https://calendar.example.com/family.ics#fragment')).toBeNull()
   })
 })
+
+describe('screensaver AI recap selection', () => {
+  it('accepts an explicit device allowlist, including an empty selection', () => {
+    expect(validateConfigPatch({
+      kiosk: { screensaver: { recapEntityIds: ['light.cucina', 'sensor.temperatura'] } },
+    })).toMatchObject({
+      ok: true,
+      value: { kiosk: { screensaver: { recapEntityIds: ['light.cucina', 'sensor.temperatura'] } } },
+    })
+    expect(validateConfigPatch({ kiosk: { screensaver: { recapEntityIds: [] } } })).toMatchObject({
+      ok: true,
+      value: { kiosk: { screensaver: { recapEntityIds: [] } } },
+    })
+  })
+
+  it('rejects invalid or oversized recap selections', () => {
+    expect(validateConfigPatch({ kiosk: { screensaver: { recapEntityIds: ['not-an-entity'] } } })).toMatchObject({ ok: false })
+    expect(validateConfigPatch({
+      kiosk: { screensaver: { recapEntityIds: Array.from({ length: 101 }, (_, index) => `sensor.item_${index}`) } },
+    })).toMatchObject({ ok: false })
+  })
+})

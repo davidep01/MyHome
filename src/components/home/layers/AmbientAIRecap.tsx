@@ -5,6 +5,7 @@ import { aiApi } from '../../../api/ai'
 import {
   buildScreensaverRecapInput,
   collectScreensaverRecentChanges,
+  filterScreensaverRecapEntities,
   type ScreensaverRecentChange,
 } from '../../../lib/screensaverRecap'
 import { useEntityStore } from '../../../store/entities'
@@ -15,8 +16,14 @@ const AI_DEBOUNCE_MS = 4_000
 const AI_MIN_INTERVAL_MS = 20_000
 const AI_MAX_WAIT_MS = 30_000
 
-export function AmbientAIRecap() {
-  const [input, setInput] = useState(() => buildScreensaverRecapInput(useEntityStore.getState().entities))
+export function AmbientAIRecap({ entityIds }: { entityIds?: string[] }) {
+  const selectionKey = entityIds?.join('\u0000') ?? 'automatic'
+  const [input, setInput] = useState(() => buildScreensaverRecapInput(
+    useEntityStore.getState().entities,
+    new Date(),
+    [],
+    entityIds,
+  ))
   const [aiInput, setAiInput] = useState(input)
   const [updatedAt, setUpdatedAt] = useState(() => Date.now())
   const recentChanges = useRef<ScreensaverRecentChange[]>([])
@@ -25,10 +32,14 @@ export function AmbientAIRecap() {
   const aiPendingSince = useRef<number | null>(null)
 
   useEffect(() => {
+    const selectedEntityIds = selectionKey === 'automatic'
+      ? undefined
+      : selectionKey ? selectionKey.split('\u0000') : []
+    recentChanges.current = []
     let refreshTimer: ReturnType<typeof setTimeout> | null = null
     const refresh = () => {
       const now = new Date()
-      const next = buildScreensaverRecapInput(useEntityStore.getState().entities, now, recentChanges.current)
+      const next = buildScreensaverRecapInput(useEntityStore.getState().entities, now, recentChanges.current, selectedEntityIds)
       setInput((current) => {
         if (current.signature === next.signature && current.localText === next.localText) return current
         latestInput.current = next
@@ -44,7 +55,10 @@ export function AmbientAIRecap() {
     refresh()
     const unsubscribe = useEntityStore.subscribe((state, previous) => {
       if (state.entities === previous.entities) return
-      const changes = collectScreensaverRecentChanges(previous.entities, state.entities)
+      const changes = collectScreensaverRecentChanges(
+        filterScreensaverRecapEntities(previous.entities, selectedEntityIds),
+        filterScreensaverRecapEntities(state.entities, selectedEntityIds),
+      )
       if (changes.length > 0) {
         recentChanges.current = [...changes.reverse(), ...recentChanges.current].slice(0, 12)
       }
@@ -56,7 +70,7 @@ export function AmbientAIRecap() {
       window.clearInterval(interval)
       if (refreshTimer) window.clearTimeout(refreshTimer)
     }
-  }, [])
+  }, [selectionKey])
 
   useEffect(() => {
     latestInput.current = input
