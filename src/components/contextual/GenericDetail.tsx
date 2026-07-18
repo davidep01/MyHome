@@ -313,7 +313,7 @@ export function GenericDetail({ entity }: { entity: HassEntity }) {
 
       {domain === 'camera' && (
         <div className="h-[220px] overflow-hidden rounded-[16px]">
-          <CameraStream entityId={entity.entity_id} fit="cover" />
+          <CameraStream entityId={entity.entity_id} fit="cover" badge />
         </div>
       )}
 
@@ -572,7 +572,9 @@ function AttributesCard({ entity }: { entity: HassEntity }) {
   return (
     <div className="rounded-[16px] bg-black/[0.04] p-4">
       <p className="text-2xl font-semibold text-[#1d1d1f]">
-        {stateLabel(entity.state)}
+        {entity.entity_id.startsWith('camera.') && entity.state !== 'unavailable'
+          ? 'Disponibile'
+          : stateLabel(entity.state)}
         {entity.attributes?.unit_of_measurement ? <span className="ml-1 text-base font-semibold text-black/40">{String(entity.attributes.unit_of_measurement)}</span> : null}
       </p>
       {rows.length > 0 && (

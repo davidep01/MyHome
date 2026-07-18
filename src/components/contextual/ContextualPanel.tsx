@@ -24,6 +24,11 @@ export function ContextualPanel({ entityId }: { entityId: string }) {
   const meta = domainMeta[domain] ?? { Icon: Cpu, color: tokens.accent.blue }
   const Icon = meta.Icon
   const name = entityName(entity)
+  const displayState = !entity
+    ? 'Non disponibile'
+    : domain === 'camera' && entity.state !== 'unavailable'
+      ? 'Disponibile'
+      : stateLabel(entity.state)
 
   return (
     <div className="flex flex-col">
@@ -35,7 +40,7 @@ export function ContextualPanel({ entityId }: { entityId: string }) {
         <div className="min-w-0 flex-1">
           <h2 className="truncate text-base font-semibold text-black/90">{name}</h2>
           <p className="truncate text-xs text-black/40">
-            {!entity ? 'Non disponibile' : stateLabel(entity.state)}
+            {displayState}
           </p>
         </div>
         <button

@@ -7,7 +7,13 @@ import { Video } from 'lucide-react'
 import { useHAEntity } from '../../hooks/useHAEntity'
 import { useActiveWhenVisible } from '../../hooks/useActiveWhenVisible'
 import { haApi } from '../../api/backend'
-import { getCameraPreviewEntityId, getCameraStreamUrl, getCameraProxyUrl, toProxiedHlsUrl } from '../../api/ha-rest'
+import {
+  getCameraPreviewEntityId,
+  getCameraStreamUrl,
+  getCameraProxyUrl,
+  isCameraPreviewAvailable,
+  toProxiedHlsUrl,
+} from '../../api/ha-rest'
 import { cn } from '../../lib/utils'
 import { entityName } from './utils/mapEntityToWidgetCard'
 
@@ -67,6 +73,8 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
   const [retryKey, setRetryKey] = useState(0)
   const unavailable = !entity || entity.state === 'unavailable'
   const previewEntityId = getCameraPreviewEntityId(entityId)
+  const previewEntity = useHAEntity(previewEntityId)
+  const previewAvailable = isCameraPreviewAvailable(entityId, previewEntityId, previewEntity?.attributes)
   const cameraLabel = entityName(entity)
   const mjpegLoadedRef = useRef(false)
   /** Primo frame MJPEG arrivato (in gara: il MJPEG vince e l'HLS si spegne). */
@@ -97,13 +105,18 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
     mjpegLoadedRef.current = false
 
     // 0 — placeholder istantaneo: l'ultima immagine disponibile, mai schermo nero.
-    setPlaceholder(`${getCameraProxyUrl(previewEntityId)}?_t=${Date.now()}`)
+    setPlaceholder(previewAvailable ? `${getCameraProxyUrl(previewEntityId)}?_t=${Date.now()}` : '')
 
     const clearStallTimer = () => {
       if (stallTimer) clearTimeout(stallTimer)
       stallTimer = null
     }
-    const goSnapshot = () => { if (!cancelled && !settled) { settled = true; setMode('snapshot') } }
+    const goSnapshot = () => {
+      if (!cancelled && !settled) {
+        settled = true
+        setMode(previewAvailable ? 'snapshot' : 'error')
+      }
+    }
     const reconnect = () => {
       if (cancelled) return
       settled = true
@@ -350,7 +363,7 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
         streamVideo.load()
       }
     }
-  }, [entityId, previewEntityId, preferLive, unavailable, active, retryKey, muted])
+  }, [entityId, previewEntityId, previewAvailable, preferLive, unavailable, active, retryKey, muted])
 
   // ── Snapshot polling — solo quando nessun flusso live è disponibile ──
   useEffect(() => {

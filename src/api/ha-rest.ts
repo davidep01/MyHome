@@ -23,6 +23,20 @@ export function getCameraPreviewEntityId(entityId: string): string {
 }
 
 /**
+ * Ring creates the companion snapshot entity before the first still image is
+ * actually available. Requesting it in that state makes HA answer 500, even
+ * though the native WebRTC live view is healthy.
+ */
+export function isCameraPreviewAvailable(
+  entityId: string,
+  previewEntityId: string,
+  previewAttributes?: Record<string, unknown>,
+): boolean {
+  if (previewEntityId === entityId) return true
+  return previewAttributes?.timestamp !== undefined && previewAttributes.timestamp !== null
+}
+
+/**
  * Rewrites an HA HLS url (`/api/hls/<token>/playlist.m3u8`) to route through the
  * backend proxy (`/api/ha/hls/...`), keeping it same-origin so the browser's HLS
  * player isn't blocked by CORS. Relative segment URLs resolve back through here.
