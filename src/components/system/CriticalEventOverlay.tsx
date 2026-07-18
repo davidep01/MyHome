@@ -9,10 +9,12 @@ import { ShortcutActionButton } from '../controls/ShortcutActionButton'
 import { useSoundNotifications } from '../../hooks/useSoundNotifications'
 import { useUIStore } from '../../store/ui'
 import { startRepeatingSound } from '../../lib/sound/SoundManager'
+import { ALARM_TEST_DURATION_MS, useAlarmTestStore } from '../../store/alarmTest'
 
 export function CriticalEventOverlay({ alerts, shortcuts }: { alerts: CriticalAlert[]; shortcuts?: ActionShortcut[] }) {
   const [minimizedFor, setMinimizedFor] = useState<string | null>(null)
   const setSelectedEntity = useUIStore((state) => state.setSelectedEntity)
+  const stopAlarmTest = useAlarmTestStore((state) => state.stop)
   const { play } = useSoundNotifications()
   const reduceMotion = useReducedMotion()
   const focusRef = useRef<HTMLButtonElement | null>(null)
@@ -48,6 +50,10 @@ export function CriticalEventOverlay({ alerts, shortcuts }: { alerts: CriticalAl
   if (!current) return null
 
   const openControl = () => {
+    if (current.test) {
+      stopAlarmTest()
+      return
+    }
     setMinimizedFor(signature)
     setSelectedEntity(current.entityId)
   }
@@ -106,7 +112,7 @@ export function CriticalEventOverlay({ alerts, shortcuts }: { alerts: CriticalAl
             >
               <ShieldAlert size={48} strokeWidth={1.6} aria-hidden="true" />
             </motion.div>
-            <p className="text-sm font-bold uppercase tracking-[0.18em] text-white/65">Emergenza casa</p>
+            <p className="text-sm font-bold uppercase tracking-[0.18em] text-white/65">{current.test ? 'Simulazione S.I.M.I.' : 'Emergenza casa'}</p>
             <h2 id="critical-title" className="mt-3 text-[clamp(36px,7vw,72px)] font-semibold leading-[0.98] tracking-[-0.035em]">
               {current.title}
             </h2>
@@ -124,7 +130,7 @@ export function CriticalEventOverlay({ alerts, shortcuts }: { alerts: CriticalAl
             {emergencyActions.length > 0 && (
               <div className="mt-7 flex w-full max-w-[580px] flex-wrap gap-3">
                 {emergencyActions.map((shortcut) => (
-                  <ShortcutActionButton key={shortcut.id} shortcut={shortcut} />
+                  <ShortcutActionButton key={shortcut.id} shortcut={shortcut} disabled={current.test} />
                 ))}
               </div>
             )}
@@ -135,7 +141,7 @@ export function CriticalEventOverlay({ alerts, shortcuts }: { alerts: CriticalAl
                 onClick={openControl}
                 className="min-h-[56px] flex-1 rounded-full bg-white px-6 text-base font-bold text-[#7d0617] shadow-xl transition active:scale-[0.97]"
               >
-                Apri controllo
+                {current.test ? 'Termina test' : 'Apri controllo'}
               </button>
               <button
                 type="button"
@@ -146,7 +152,9 @@ export function CriticalEventOverlay({ alerts, shortcuts }: { alerts: CriticalAl
               </button>
             </div>
             <p className="mt-5 text-xs leading-relaxed text-white/55">
-              L’avviso resta visibile finché il sensore non torna in sicurezza.
+              {current.test
+                ? `Il test termina automaticamente dopo ${ALARM_TEST_DURATION_MS / 1_000} secondi o con “Termina test”.`
+                : 'L’avviso resta visibile finché il sensore non torna in sicurezza.'}
             </p>
           </motion.div>
         </motion.section>

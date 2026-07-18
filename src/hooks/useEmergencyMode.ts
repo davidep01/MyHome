@@ -26,7 +26,9 @@ export function useEmergencyMode(alerts: CriticalAlert[], photoEnabled: boolean)
   // Una sola foto per ATTIVAZIONE: changedAt distingue due allarmi successivi
   // della stessa entità (l'id da solo resterebbe identico per sempre).
   const shotFor = useRef<string | null>(null)
-  const alertId = criticalAlertEventKey(alerts[0])
+  // Le simulazioni verificano UI, wake e audio, ma non devono mai acquisire
+  // immagini né entrare nella coda persistente delle foto d'emergenza.
+  const alertId = criticalAlertEventKey(alerts.find((alert) => !alert.test))
   useEffect(() => {
     if (!alertId) {
       shotFor.current = null

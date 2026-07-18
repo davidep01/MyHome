@@ -16,6 +16,8 @@ export interface CriticalAlert {
   instruction: string
   priority: number
   changedAt: string
+  /** Runtime-only simulation: never represents a real Home Assistant event. */
+  test?: boolean
 }
 
 /** Stable for one activation, different when the same sensor triggers again. */

@@ -26,7 +26,7 @@ const DOMAIN_ICON: Record<string, LucideIcon> = {
  * 900ms — mai tap — per ciò che apre casa o fa rumore. Blocco dei doppi
  * comandi via stato pending, esito ✓/errore visibile sul bottone stesso.
  */
-export function ShortcutActionButton({ shortcut, onDone }: { shortcut: ActionShortcut; onDone?: () => void }) {
+export function ShortcutActionButton({ shortcut, onDone, disabled = false }: { shortcut: ActionShortcut; onDone?: () => void; disabled?: boolean }) {
   const [phase, setPhase] = useState<'idle' | 'holding' | 'pending' | 'done' | 'failed'>('idle')
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const { heavy, light } = useHaptic()
@@ -41,6 +41,7 @@ export function ShortcutActionButton({ shortcut, onDone }: { shortcut: ActionSho
   const fallbackIcon = DOMAIN_ICON[shortcutDomain(shortcut)] ?? Power
 
   const execute = () => {
+    if (disabled) return
     setPhase('pending')
     if (needsHold) heavy()
     else light()
@@ -59,7 +60,7 @@ export function ShortcutActionButton({ shortcut, onDone }: { shortcut: ActionSho
   const busy = phase === 'pending' || phase === 'done'
 
   const start = () => {
-    if (busy || timer.current) return
+    if (disabled || busy || timer.current) return
     if (!needsHold) {
       execute()
       return
@@ -95,8 +96,8 @@ export function ShortcutActionButton({ shortcut, onDone }: { shortcut: ActionSho
         event.preventDefault()
         cancel()
       }}
-      disabled={busy}
-      aria-label={needsHold ? `Tieni premuto per: ${shortcut.label}` : shortcut.label}
+      disabled={disabled || busy}
+      aria-label={disabled ? `Test: ${shortcut.label}, azione disabilitata` : needsHold ? `Tieni premuto per: ${shortcut.label}` : shortcut.label}
       className={cn(
         'relative flex min-h-[52px] min-w-0 flex-1 touch-none select-none items-center justify-center gap-2 overflow-hidden rounded-full px-4 text-base font-semibold backdrop-blur transition',
         phase === 'done' ? 'bg-[#30d158]/25 text-[#7ee2a8]'
@@ -104,6 +105,7 @@ export function ShortcutActionButton({ shortcut, onDone }: { shortcut: ActionSho
             : 'bg-white/15 text-white',
         phase === 'holding' && 'scale-[0.98]',
         phase === 'pending' && 'opacity-70',
+        disabled && 'opacity-55',
       )}
     >
       {phase === 'holding' && (
@@ -113,7 +115,8 @@ export function ShortcutActionButton({ shortcut, onDone }: { shortcut: ActionSho
         ? <Check size={18} className="relative shrink-0" aria-hidden="true" />
         : <DynamicIcon name={shortcut.icon} fallback={fallbackIcon} size={18} className="relative shrink-0" aria-hidden="true" />}
       <span className="relative truncate">
-        {phase === 'failed' ? `Riprova — ${shortcut.label}`
+        {disabled ? `Test · ${shortcut.label}`
+          : phase === 'failed' ? `Riprova — ${shortcut.label}`
           : phase === 'pending' ? `${shortcut.label}…`
             : phase === 'done' ? shortcut.label
               : needsHold ? `Tieni premuto: ${shortcut.label}` : shortcut.label}

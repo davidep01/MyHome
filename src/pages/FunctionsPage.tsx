@@ -17,6 +17,7 @@ import { canAddKnownFace, MAX_KNOWN_FACES } from '../lib/knownFaces'
 import type { SoundPreset } from '../lib/sound/SoundManager'
 import { ShortcutsEditor } from '../components/controls/ShortcutsEditor'
 import { cn } from '../lib/utils'
+import { ALARM_TEST_DURATION_MS, type AlarmTestScenario, useAlarmTestStore } from '../store/alarmTest'
 
 /**
  * Regia — Funzioni: una card per feature distintiva, ognuna col suo STATO
@@ -908,6 +909,10 @@ function EmergencyCard() {
   const { data: config } = useDashboardConfig()
   const { mutate: update, isPending } = useUpdateConfig()
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null)
+  const [testScenario, setTestScenario] = useState<AlarmTestScenario>('intrusion')
+  const alarmTest = useAlarmTestStore((state) => state.alert)
+  const startAlarmTest = useAlarmTestStore((state) => state.start)
+  const stopAlarmTest = useAlarmTestStore((state) => state.stop)
   const readOnly = config?.storage?.writable === false
   const photoOn = config?.alarm?.photo === true
 
@@ -928,6 +933,46 @@ function EmergencyCard() {
       <p className="text-[12px] text-black/40">
         Con un allarme attivo il tablet accende lo schermo alla massima luminosità e mostra l’avviso a tutto schermo.
       </p>
+      <div className="space-y-3 rounded-[14px] border border-red-500/15 bg-red-500/[0.055] p-3">
+        <div>
+          <p className="text-sm font-semibold text-[#1d1d1f]">Pannello test allarme</p>
+          <p className="mt-0.5 text-[11px] leading-relaxed text-black/45">
+            Prova overlay, audio e pulsanti per {ALARM_TEST_DURATION_MS / 1_000} secondi. È una simulazione locale: non arma HASS, non attiva dispositivi e non scatta fotografie.
+          </p>
+        </div>
+        <div className="grid grid-cols-3 gap-2" role="group" aria-label="Scenario del test allarme">
+          {([
+            ['intrusion', 'Intrusione'],
+            ['siren', 'Sirena'],
+            ['smoke', 'Fumo'],
+          ] as const).map(([scenario, label]) => (
+            <button
+              key={scenario}
+              type="button"
+              aria-pressed={testScenario === scenario}
+              disabled={Boolean(alarmTest)}
+              onClick={() => setTestScenario(scenario)}
+              className={cn(
+                'min-h-11 rounded-[11px] px-2 text-xs font-semibold transition disabled:opacity-45',
+                testScenario === scenario ? 'bg-[#a8071a] text-white' : 'bg-white/70 text-black/60',
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={() => alarmTest ? stopAlarmTest() : startAlarmTest(testScenario)}
+          className={cn(
+            'flex min-h-12 w-full items-center justify-center gap-2 rounded-[12px] text-sm font-bold text-white transition active:scale-[0.98]',
+            alarmTest ? 'bg-black/65' : 'bg-[#a8071a]',
+          )}
+        >
+          <Siren size={17} aria-hidden="true" />
+          {alarmTest ? 'Termina test in corso' : 'Avvia test allarme'}
+        </button>
+      </div>
       <div className="flex items-center justify-between gap-3 rounded-[10px] bg-black/[0.035] px-3 py-2.5">
         <div className="min-w-0">
           <p className="text-sm text-[#1d1d1f]">Foto dal tablet all’allarme</p>
