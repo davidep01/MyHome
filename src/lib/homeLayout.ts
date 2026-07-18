@@ -14,7 +14,7 @@ import type { DashboardPosition, HomeWidget, WidgetSize } from '../api/backend'
 export const HOME_COLS = 8
 export const HOME_ROW_HEIGHT = 64
 
-/** Grid footprint (cols=8, rowHeight≈64) for each widget size — iOS-like proportions. */
+/** Canonical S/M/L/XL footprints on the 8-column magnetic grid. */
 export const SIZE_WH: Record<WidgetSize, { w: number; h: number }> = {
   sm: { w: 2, h: 2 },
   md: { w: 4, h: 2 },
@@ -68,12 +68,22 @@ function firstFreeSlot(occupied: Set<string>, widget: HomeWidget): { x: number; 
  * otherwise pack the rest into the first free slot. Deterministic and
  * collision-free — mirrors the backend `normalizeHomePositions`.
  */
-export function buildLayout(widgets: HomeWidget[], saved: HomePositions = {}): Layout {
+export function buildLayout(widgets: HomeWidget[], saved: HomePositions = {}, priorityId?: string): Layout {
   const occupied = new Set<string>()
   const layout: LayoutItem[] = []
   const missing: HomeWidget[] = []
+  const widgetIndex = new Map(widgets.map((widget, index) => [widget.id, index]))
+  const placementOrder = [...widgets].sort((left, right) => {
+    if (left.id === priorityId) return -1
+    if (right.id === priorityId) return 1
+    const leftPos = saved[left.id]
+    const rightPos = saved[right.id]
+    return (leftPos?.y ?? 0) - (rightPos?.y ?? 0)
+      || (leftPos?.x ?? 0) - (rightPos?.x ?? 0)
+      || (widgetIndex.get(left.id) ?? 0) - (widgetIndex.get(right.id) ?? 0)
+  })
 
-  widgets.forEach((widget) => {
+  placementOrder.forEach((widget) => {
     const item = widgetLayoutItem(widget, saved[widget.id])
     if (saved[widget.id] && fits(occupied, item)) {
       layout.push(item)
@@ -90,7 +100,29 @@ export function buildLayout(widgets: HomeWidget[], saved: HomePositions = {}): L
     occupy(occupied, item)
   })
 
-  return layout
+  const compacted = compactVertically(layout)
+  const byId = new Map(compacted.map((item) => [item.i, item]))
+  return widgets.map((widget) => byId.get(widget.id)).filter(Boolean) as Layout
+}
+
+/**
+ * Pull every tile upward until it touches the grid edge or another tile.
+ * X never changes: the result feels magnetic without unexpectedly swapping
+ * columns, and mirrors react-grid-layout's vertical compaction while dragging.
+ */
+export function compactVertically(layout: Layout): Layout {
+  const occupied = new Set<string>()
+  const compacted = new Map<string, LayoutItem>()
+  const ordered = [...layout].sort((a, b) => a.y - b.y || a.x - b.x || a.i.localeCompare(b.i))
+
+  for (const source of ordered) {
+    const item = { ...source }
+    while (item.y > 0 && fits(occupied, { ...item, y: item.y - 1 })) item.y -= 1
+    occupy(occupied, item)
+    compacted.set(item.i, item)
+  }
+
+  return layout.map((item) => compacted.get(item.i) ?? item)
 }
 
 /**

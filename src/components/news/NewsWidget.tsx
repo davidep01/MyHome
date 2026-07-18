@@ -1,6 +1,7 @@
 import { ExternalLink } from 'lucide-react'
 import { useNews } from '../../hooks/useNews'
 import { tokens } from '../../design/tokens'
+import type { WidgetSize } from '../../api/backend'
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime()
@@ -11,7 +12,7 @@ function timeAgo(dateStr: string): string {
   return `${Math.floor(hrs / 24)}g fa`
 }
 
-export function NewsWidget() {
+export function NewsWidget({ size = 'md' }: { size?: WidgetSize }) {
   const { data: articles, isLoading, error } = useNews()
 
   if (isLoading) {
@@ -30,17 +31,20 @@ export function NewsWidget() {
     )
   }
 
+  const limit = size === 'sm' ? 1 : size === 'md' ? 2 : size === 'lg' ? 4 : 2
+  const expanded = size === 'lg' || size === 'wide'
+
   return (
-    <div className="flex flex-col gap-2 overflow-y-auto">
-      {articles.map((article) => (
+    <div className={size === 'wide' ? 'grid h-full grid-cols-2 gap-2 overflow-hidden' : 'flex h-full flex-col gap-2 overflow-hidden'}>
+      {articles.slice(0, limit).map((article) => (
         <a
           key={article.id}
           href={article.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="group flex gap-3 rounded-[14px] bg-black/5 p-3 hover:bg-black/8 transition-colors"
+          className="group flex min-h-0 gap-3 rounded-[14px] bg-black/5 p-3 transition-colors hover:bg-black/8"
         >
-          {article.urlToImage && (
+          {expanded && article.urlToImage && (
             <img
               src={article.urlToImage}
               alt=""

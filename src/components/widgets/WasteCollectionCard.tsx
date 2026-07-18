@@ -175,6 +175,14 @@ export function WasteCollectionCard({
       <div className="mt-auto min-w-0 space-y-1.5 pt-2">
         <WasteDayRow pickup={today} label="Oggi" />
         <WasteDayRow pickup={tomorrow} label="Domani" />
+        {size === 'L' && pickups.filter((pickup) => pickup.daysUntil > 1).slice(0, 2).map((pickup) => (
+          <div key={pickup.dateKey} className="flex items-center gap-2 border-t border-black/[0.05] pt-1.5">
+            <span className="w-[48px] shrink-0 text-[11px] font-semibold text-black/40">Tra {pickup.daysUntil}g</span>
+            <div className="flex min-w-0 gap-1 overflow-hidden">
+              {pickup.items.slice(0, 3).map((item) => <WasteKindBadge key={item.key} item={item} compact />)}
+            </div>
+          </div>
+        ))}
       </div>
     </WidgetCardShell>
   )

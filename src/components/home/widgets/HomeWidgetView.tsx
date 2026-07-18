@@ -58,20 +58,20 @@ export function HomeWidgetView({ widget, publicConfig }: { widget: HomeWidget; p
 
   switch (widget.type) {
     case 'clock': return <ClockWidget size={widget.size} userName={config?.userName} />
-    case 'status': return <StatusWidget />
+    case 'status': return <StatusWidget size={widget.size} />
     case 'security': return <SecurityWidget size={widget.size} />
-    case 'system': return <SystemStatusWidget />
-    case 'insight': return <QuickInsightWidget />
+    case 'system': return <SystemStatusWidget size={widget.size} />
+    case 'insight': return <QuickInsightWidget size={widget.size} />
     case 'calendar': return <CalendarWidget size={widget.size} />
     case 'news':
-      return <AnimatedCard depth ambient="drift" ambientColor="rgba(239,68,68,0.16)" index={3} className="h-full overflow-hidden"><NewsWidget /></AnimatedCard>
-    case 'people': return <PeopleCard className="h-full" />
+      return <AnimatedCard depth ambient="drift" ambientColor="rgba(239,68,68,0.16)" index={3} className="h-full overflow-hidden"><NewsWidget size={widget.size} /></AnimatedCard>
+    case 'people': return <PeopleCard size={widget.size} className="h-full" />
     case 'quickStats':
-      return <AnimatedCard depth ambient="drift" ambientColor="rgba(16,185,129,0.16)" index={4} className="flex h-full items-center"><QuickStats /></AnimatedCard>
+      return <AnimatedCard depth ambient="drift" ambientColor="rgba(16,185,129,0.16)" index={4} className="h-full" contentClassName="w-full justify-center"><QuickStats size={widget.size} /></AnimatedCard>
     case 'scenes':
-      return <AnimatedCard depth ambient="drift" ambientColor="rgba(99,102,241,0.16)" index={5} className="flex h-full items-center overflow-hidden"><SceneRow /></AnimatedCard>
+      return <AnimatedCard depth ambient="drift" ambientColor="rgba(99,102,241,0.16)" index={5} className="h-full overflow-hidden" contentClassName="w-full justify-center"><SceneRow size={widget.size} /></AnimatedCard>
     case 'weather':
-      return <AnimatedCard depth ambient="drift" index={2} ambientColor="rgba(41,151,255,0.19)" noPadding className="h-full"><div className="h-full overflow-hidden p-[14px]"><WeatherWidget /></div></AnimatedCard>
+      return <AnimatedCard depth ambient="drift" index={2} ambientColor="rgba(41,151,255,0.19)" noPadding className="h-full"><div className="h-full overflow-hidden p-[14px]"><WeatherWidget size={widget.size} /></div></AnimatedCard>
     case 'sensor':
       return roomEntity
         ? <EntityCard entity={roomEntity} size={visualSize} />
@@ -82,7 +82,7 @@ export function HomeWidgetView({ widget, publicConfig }: { widget: HomeWidget; p
         : <MissingWidget text="Camera non impostata" />
     case 'group': {
       const group = config?.groups?.find((g) => g.id === widget.groupId)
-      return group ? <GroupCard group={group} className="h-full" /> : <MissingWidget text="Gruppo non impostato" />
+      return group ? <GroupCard group={group} size={visualSize} className="h-full" /> : <MissingWidget text="Gruppo non impostato" />
     }
     case 'entity':
       return roomEntity ? <EntityCard entity={roomEntity} size={visualSize} /> : <MissingWidget text="Dispositivo non impostato" />

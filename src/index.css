@@ -426,6 +426,15 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
 .kiosk-layout-editing .react-grid-item.react-draggable-dragging {
   z-index: 60;
   filter: drop-shadow(0 16px 26px rgba(0, 0, 0, 0.16));
+  transition: none !important;
+}
+
+.kiosk-layout-editing .react-grid-item:not(.react-draggable-dragging) {
+  transition: transform 220ms var(--spring), width 220ms var(--spring), height 220ms var(--spring);
+}
+
+.home-widget-tile {
+  container-type: size;
 }
 
 @media (prefers-reduced-motion: reduce) {

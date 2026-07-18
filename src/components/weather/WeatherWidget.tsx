@@ -2,10 +2,11 @@ import { CloudSun, Droplets, Wind, Thermometer } from 'lucide-react'
 import { useCurrentWeather, useWeatherForecast } from '../../hooks/useWeather'
 import { tokens } from '../../design/tokens'
 import { WeatherIcon } from './WeatherIcon'
+import type { WidgetSize } from '../../api/backend'
 
 const DAYS = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab']
 
-export function WeatherWidget() {
+export function WeatherWidget({ size = 'md' }: { size?: WidgetSize }) {
   const { data: current, isLoading: loadingCurrent, error } = useCurrentWeather()
   const { data: forecast } = useWeatherForecast()
 
@@ -19,7 +20,7 @@ export function WeatherWidget() {
 
   if (!current) {
     return (
-      <div className="flex h-full min-h-[220px] flex-col items-center justify-center gap-3 text-center">
+      <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
         <div className="flex h-14 w-14 items-center justify-center rounded-[18px] bg-gradient-to-br from-sky-400/18 to-amber-300/25 text-sky-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
           <CloudSun size={27} strokeWidth={1.7} aria-hidden="true" />
         </div>
@@ -34,23 +35,28 @@ export function WeatherWidget() {
     )
   }
 
+  const compact = size === 'sm'
+  const showDetails = size !== 'sm'
+  const showForecast = size === 'lg'
+  const forecastLimit = 4
+
   return (
-    <div className="flex flex-col gap-4 h-full">
+    <div className="flex h-full flex-col gap-4">
       {/* Current */}
       <div className="flex items-start justify-between">
         <div>
           <div className="flex items-end gap-1">
-            <span className="text-4xl font-light text-[#1d1d1f]">{current.temp}°</span>
+            <span className={compact ? 'text-3xl font-light text-[#1d1d1f]' : size === 'wide' ? 'text-6xl font-light text-[#1d1d1f]' : 'text-4xl font-light text-[#1d1d1f]'}>{current.temp}°</span>
             <span className="text-sm text-black/40 mb-1.5">C</span>
           </div>
           <p className="text-sm capitalize text-black/60 mt-0.5">{current.description}</p>
-          <p className="text-xs text-black/30 mt-0.5">{current.city}</p>
+          {!compact && <p className="mt-0.5 text-xs text-black/30">{current.city}</p>}
         </div>
-        <WeatherIcon code={current.icon} size={54} label={current.description} className="-mr-1 mt-0 text-[#0066cc]" />
+        <WeatherIcon code={current.icon} size={compact ? 42 : size === 'wide' ? 72 : 54} label={current.description} className="-mr-1 mt-0 text-[#0066cc]" />
       </div>
 
       {/* Details */}
-      <div className="flex gap-3">
+      {showDetails && <div className="flex flex-wrap gap-3">
         <div className="flex items-center gap-1.5">
           <Droplets size={12} style={{ color: tokens.accent.blue }} />
           <span className="text-xs text-black/50">{current.humidity}%</span>
@@ -63,12 +69,12 @@ export function WeatherWidget() {
           <Thermometer size={12} className="text-black/30" />
           <span className="text-xs text-black/50">Percepita {current.feels_like}°</span>
         </div>
-      </div>
+      </div>}
 
       {/* Forecast */}
-      {forecast && forecast.length > 0 && (
-        <div className="flex gap-2 overflow-x-auto pb-1">
-          {forecast.map((day) => {
+      {showForecast && forecast && forecast.length > 0 && (
+        <div className="grid min-h-0 grid-cols-4 gap-2 overflow-hidden pb-1">
+          {forecast.slice(0, forecastLimit).map((day) => {
             const d = new Date(day.dt * 1000)
             return (
               <div

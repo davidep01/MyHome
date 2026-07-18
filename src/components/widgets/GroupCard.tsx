@@ -9,6 +9,7 @@ import { useHAService } from '../../hooks/useHAService'
 import { useHaptic } from '../../hooks/useHaptic'
 import { useActionFeedback } from '../../hooks/useActionFeedback'
 import type { EntityGroup } from '../../api/backend'
+import type { WidgetVisualSize } from './types'
 import { cn } from '../../lib/utils'
 import {
   entityDomain,
@@ -20,7 +21,7 @@ import {
 import { HoldDangerAction } from '../controls/HoldDangerAction'
 import { widgetTones } from './utils/getRingColorScale'
 
-export function GroupCard({ group, className }: { group: EntityGroup; className?: string }) {
+export function GroupCard({ group, size = 'M', className }: { group: EntityGroup; size?: WidgetVisualSize; className?: string }) {
   const entities = useEntityStore((s) => s.entities)
   const setOptimisticState = useEntityStore((s) => s.setOptimisticState)
   const { call } = useHAService()
@@ -96,6 +97,7 @@ export function GroupCard({ group, className }: { group: EntityGroup; className?
       ? capability.onLabel
       : capability.offLabel ?? capability.onLabel
     : ''
+  const expanded = size === 'L'
 
   return (
     <GlassCard
@@ -154,7 +156,7 @@ export function GroupCard({ group, className }: { group: EntityGroup; className?
                 : anyActive
                   ? domain === 'cover' || domain === 'valve' ? <ChevronDown size={14} aria-hidden="true" /> : <Home size={14} aria-hidden="true" />
                   : domain === 'cover' || domain === 'valve' ? <ChevronUp size={14} aria-hidden="true" /> : <Play size={14} aria-hidden="true" />}
-            {pending ? 'Attendi…' : actionLabel}
+            {size !== 'S' && (pending ? 'Attendi…' : actionLabel)}
           </button>
         )}
       </div>
@@ -169,6 +171,20 @@ export function GroupCard({ group, className }: { group: EntityGroup; className?
           <span className="truncate">{status}</span>
         </p>
       </div>
+      {expanded && members.length > 0 && (
+        <div className="min-h-0 space-y-1.5 overflow-hidden">
+          {members.slice(0, 5).map(({ id, entity }) => {
+            const memberActive = groupMemberActive(entityDomain(id), entity.state)
+            return (
+              <div key={id} className="flex items-center gap-2 rounded-[10px] bg-black/[0.035] px-2.5 py-2 text-xs">
+                <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: memberActive ? activeTone.color : 'rgba(0,0,0,0.18)' }} />
+                <span className="min-w-0 flex-1 truncate font-semibold text-black/65">{String(entity.attributes?.friendly_name ?? id.split('.')[1])}</span>
+                <span className="shrink-0 text-black/35">{entity.state}</span>
+              </div>
+            )
+          })}
+        </div>
+      )}
     </GlassCard>
   )
 }

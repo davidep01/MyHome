@@ -52,9 +52,9 @@ describe('buildLayout', () => {
     }
   })
 
-  it('honours a saved position that still fits', () => {
+  it('honours saved columns and magnetically removes vertical gaps', () => {
     const widgets = [widget('a'), widget('b')]
-    const layout = buildLayout(widgets, { a: { x: 2, y: 0, w: 2, h: 2 }, b: { x: 0, y: 0, w: 2, h: 2 } })
+    const layout = buildLayout(widgets, { a: { x: 2, y: 8, w: 2, h: 2 }, b: { x: 0, y: 4, w: 2, h: 2 } })
     expect(layout.find((i) => i.i === 'a')).toMatchObject({ x: 2, y: 0 })
     expect(layout.find((i) => i.i === 'b')).toMatchObject({ x: 0, y: 0 })
   })
@@ -62,6 +62,18 @@ describe('buildLayout', () => {
   it('relocates a widget whose saved position collides', () => {
     const widgets = [widget('a'), widget('b')]
     const layout = buildLayout(widgets, { a: { x: 0, y: 0, w: 2, h: 2 }, b: { x: 0, y: 0, w: 2, h: 2 } })
+    expect(hasOverlap(layout)).toBe(false)
+  })
+
+  it('keeps the resized tile anchored and magnetically reflows colliding neighbours', () => {
+    const widgets = [widget('neighbour'), widget('resized', 'md')]
+    const layout = buildLayout(widgets, {
+      neighbour: { x: 2, y: 0, w: 2, h: 2 },
+      resized: { x: 0, y: 0, w: 4, h: 2 },
+    }, 'resized')
+
+    expect(layout.find((item) => item.i === 'resized')).toMatchObject({ x: 0, y: 0, w: 4, h: 2 })
+    expect(layout.find((item) => item.i === 'neighbour')).not.toMatchObject({ x: 2, y: 0 })
     expect(hasOverlap(layout)).toBe(false)
   })
 

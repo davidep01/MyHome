@@ -6,33 +6,36 @@ import type { WidgetSize, WidgetType } from '../../../api/backend'
 export { SIZE_WH } from '../../../lib/homeLayout'
 
 export const SIZE_LABEL: Record<WidgetSize, string> = {
-  sm: 'Piccolo', md: 'Medio', lg: 'Grande', wide: 'Largo',
+  sm: 'S · Piccolo', md: 'M · Medio', lg: 'L · Grande', wide: 'XL · Extra large',
 }
+
+const ALL_SIZES: WidgetSize[] = ['sm', 'md', 'lg', 'wide']
 
 export interface WidgetMeta {
   label: string
   Icon: React.ElementType
   sizes: WidgetSize[]
+  defaultSize: WidgetSize
   /** what the widget must be bound to */
   needs?: 'entity' | 'group' | 'sensor' | 'camera'
 }
 
 export const WIDGET_META: Record<WidgetType, WidgetMeta> = {
-  clock: { label: 'Orologio', Icon: Clock, sizes: ['sm', 'md'] },
-  weather: { label: 'Meteo', Icon: CloudSun, sizes: ['md', 'lg'] },
-  quickStats: { label: 'Riepilogo casa', Icon: Gauge, sizes: ['wide', 'md'] },
-  scenes: { label: 'Scene', Icon: Sparkles, sizes: ['wide'] },
-  status: { label: 'Stato casa', Icon: ShieldCheck, sizes: ['sm', 'md'] },
-  people: { label: 'Persone', Icon: Users, sizes: ['sm', 'md'] },
-  security: { label: 'Accessi', Icon: Bell, sizes: ['sm', 'md', 'lg'] },
-  system: { label: 'Sistema', Icon: Cpu, sizes: ['sm', 'md'] },
-  insight: { label: 'Insight', Icon: Lightbulb, sizes: ['md', 'wide'] },
-  news: { label: 'News', Icon: Newspaper, sizes: ['md', 'lg', 'wide'] },
-  calendar: { label: 'Calendario', Icon: CalendarDays, sizes: ['sm', 'md', 'lg'] },
-  entity: { label: 'Dispositivo', Icon: ToggleRight, sizes: ['sm', 'md'], needs: 'entity' },
-  group: { label: 'Gruppo', Icon: Layers, sizes: ['sm', 'md'], needs: 'group' },
-  sensor: { label: 'Sensore', Icon: Activity, sizes: ['sm', 'md'], needs: 'sensor' },
-  camera: { label: 'Videocamera', Icon: Video, sizes: ['md', 'lg'], needs: 'camera' },
+  clock: { label: 'Orologio', Icon: Clock, sizes: ALL_SIZES, defaultSize: 'md' },
+  weather: { label: 'Meteo', Icon: CloudSun, sizes: ALL_SIZES, defaultSize: 'md' },
+  quickStats: { label: 'Riepilogo casa', Icon: Gauge, sizes: ALL_SIZES, defaultSize: 'md' },
+  scenes: { label: 'Scene', Icon: Sparkles, sizes: ALL_SIZES, defaultSize: 'wide' },
+  status: { label: 'Stato casa', Icon: ShieldCheck, sizes: ALL_SIZES, defaultSize: 'sm' },
+  people: { label: 'Persone', Icon: Users, sizes: ALL_SIZES, defaultSize: 'md' },
+  security: { label: 'Accessi', Icon: Bell, sizes: ALL_SIZES, defaultSize: 'md' },
+  system: { label: 'Sistema', Icon: Cpu, sizes: ALL_SIZES, defaultSize: 'md' },
+  insight: { label: 'Insight', Icon: Lightbulb, sizes: ALL_SIZES, defaultSize: 'md' },
+  news: { label: 'News', Icon: Newspaper, sizes: ALL_SIZES, defaultSize: 'lg' },
+  calendar: { label: 'Calendario', Icon: CalendarDays, sizes: ALL_SIZES, defaultSize: 'md' },
+  entity: { label: 'Dispositivo', Icon: ToggleRight, sizes: ALL_SIZES, defaultSize: 'sm', needs: 'entity' },
+  group: { label: 'Gruppo', Icon: Layers, sizes: ALL_SIZES, defaultSize: 'md', needs: 'group' },
+  sensor: { label: 'Sensore', Icon: Activity, sizes: ALL_SIZES, defaultSize: 'sm', needs: 'sensor' },
+  camera: { label: 'Videocamera', Icon: Video, sizes: ALL_SIZES, defaultSize: 'lg', needs: 'camera' },
 }
 
 export const WIDGET_ORDER: WidgetType[] = [

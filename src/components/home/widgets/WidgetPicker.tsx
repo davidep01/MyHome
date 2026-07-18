@@ -22,7 +22,7 @@ function makeWidget(type: WidgetType, opts?: { entityId?: string; groupId?: stri
   return {
     id: uid('w'),
     type,
-    size: WIDGET_META[type].sizes[0],
+    size: WIDGET_META[type].defaultSize,
     ...(opts?.entityId ? { entityId: opts.entityId } : {}),
     ...(opts?.groupId ? { groupId: opts.groupId } : {}),
   }

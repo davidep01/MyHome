@@ -1,5 +1,32 @@
 import { describe, expect, it } from 'vitest'
-import { MAX_HOME_WIDGETS, mergeHomeConfig, parseHomeWidgets } from './home-layout.js'
+import { HOME_SIZE_WH, MAX_HOME_WIDGETS, mergeHomeConfig, normalizeHomePositions, parseHomeWidgets } from './home-layout.js'
+
+describe('HOME_SIZE_WH', () => {
+  it('espone le quattro dimensioni canoniche S, M, L e XL', () => {
+    expect(HOME_SIZE_WH).toEqual({
+      sm: { w: 2, h: 2 },
+      md: { w: 4, h: 2 },
+      lg: { w: 4, h: 4 },
+      wide: { w: 8, h: 2 },
+    })
+  })
+})
+
+describe('normalizeHomePositions', () => {
+  it('compatta verticalmente le tile mantenendo la colonna scelta', () => {
+    const widgets = [
+      { id: 'left', type: 'status' as const, size: 'sm' as const },
+      { id: 'right', type: 'status' as const, size: 'sm' as const },
+    ]
+    expect(normalizeHomePositions(widgets, {
+      left: { x: 0, y: 8, w: 2, h: 2 },
+      right: { x: 4, y: 12, w: 2, h: 2 },
+    })).toEqual({
+      left: { x: 0, y: 0, w: 2, h: 2 },
+      right: { x: 4, y: 0, w: 2, h: 2 },
+    })
+  })
+})
 
 describe('parseHomeWidgets', () => {
   it('accetta una lista valida di widget', () => {

@@ -121,7 +121,7 @@ export function WidgetCardIcon({
   active?: boolean
 }) {
   const cfg = getWidgetSizeConfig(size)
-  const box = size === 'S' ? 34 : size === 'M' ? 38 : 44
+  const box = size === 'S' ? 34 : size === 'M' ? 38 : size === 'L' ? 44 : 48
   return (
     <span
       className={cn('widget-card-icon flex shrink-0 items-center justify-center rounded-full', active && 'widget-card-icon-active')}

@@ -41,7 +41,7 @@ export function CalendarWidget({ size }: { size: WidgetSize }) {
   const next = events[0]
 
   return (
-    <AnimatedCard depth ambient="drift" ambientColor="rgba(124,58,237,0.19)" index={7} contentClassName="gap-2">
+    <AnimatedCard depth ambient="drift" ambientColor="rgba(124,58,237,0.19)" index={7} className="h-full" contentClassName="gap-2">
       <div className="flex items-center gap-2">
         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black/[0.05] text-[#7c3aed]">
           <CalendarDays size={18} />
@@ -66,7 +66,7 @@ export function CalendarWidget({ size }: { size: WidgetSize }) {
           {linkedCalendar.isError ? 'Il link non risponde. Nuovo tentativo automatico tra poco.' : 'Nessun evento in programma.'}
         </p>
       ) : showList ? (
-        <div className="mt-1 min-h-0 flex-1 space-y-1.5 overflow-hidden">
+        <div className={size === 'wide' ? 'mt-1 grid min-h-0 flex-1 grid-cols-2 gap-x-4 gap-y-1.5 overflow-hidden' : 'mt-1 min-h-0 flex-1 space-y-1.5 overflow-hidden'}>
           {events.slice(0, 4).map((e) => (
             <div key={e.id} className="flex items-center gap-2">
               <span className="h-7 w-1 shrink-0 rounded-full" style={{ background: e.ongoing ? '#7c3aed' : 'rgba(124,58,237,0.3)' }} />

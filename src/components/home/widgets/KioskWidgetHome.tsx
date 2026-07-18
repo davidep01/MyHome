@@ -2,10 +2,9 @@ import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import type { Layout } from 'react-grid-layout/legacy'
 import 'react-grid-layout/css/styles.css'
-import { GripVertical, LayoutGrid, Maximize2, Pencil, Plus, Save, WifiOff, X } from 'lucide-react'
+import { GripVertical, LayoutGrid, Pencil, Plus, Save, WifiOff, X } from 'lucide-react'
 import { HomeGridCanvas } from './HomeGridCanvas'
 import { WidgetPicker } from './WidgetPicker'
-import { WIDGET_META } from './widgetCatalog'
 import { buildLayout, orderFromLayout, positionsFromLayout, sameLayout } from '../../../lib/homeLayout'
 import { useTabletLayout, useSaveTabletLayout } from '../../../hooks/useTabletLayout'
 import { useClock } from '../../../hooks/useClock'
@@ -21,6 +20,7 @@ import { BRAND_EXPANDED, BRAND_NAME } from '../../../lib/brand'
 
 const GRID_GAP = [14, 14] as const
 const SIZE_SHORT: Record<WidgetSize, string> = { sm: 'S', md: 'M', lg: 'L', wide: 'XL' }
+const SIZE_ORDER: WidgetSize[] = ['sm', 'md', 'lg', 'wide']
 
 interface Draft {
   widgets: HomeWidget[]
@@ -137,9 +137,9 @@ export function KioskWidgetHome() {
   }
 
   /** Re-pack after any change: keep current x/y, re-derive footprints from size. */
-  const repack = (widgets: HomeWidget[], layout: Layout): Draft => ({
+  const repack = (widgets: HomeWidget[], layout: Layout, priorityId?: string): Draft => ({
     widgets,
-    layout: buildLayout(widgets, positionsFromLayout(layout)),
+    layout: buildLayout(widgets, positionsFromLayout(layout), priorityId),
   })
 
   const addWidget = (widget: HomeWidget) => {
@@ -154,14 +154,12 @@ export function KioskWidgetHome() {
     setDraft(repack(draft.widgets.filter((w) => w.id !== id), draft.layout))
   }
 
-  const resizeWidget = (id: string) => {
+  const setWidgetSize = (id: string, size: WidgetSize) => {
     if (!draft) return
     const widget = draft.widgets.find((w) => w.id === id)
-    if (!widget) return
-    const sizes = WIDGET_META[widget.type].sizes
-    const next = sizes[(sizes.indexOf(widget.size) + 1) % sizes.length]
+    if (!widget || widget.size === size) return
     tapHaptic()
-    setDraft(repack(draft.widgets.map((w) => (w.id === id ? { ...w, size: next } : w)), draft.layout))
+    setDraft(repack(draft.widgets.map((w) => (w.id === id ? { ...w, size } : w)), draft.layout, id))
   }
 
   const save = () => {
@@ -290,7 +288,7 @@ export function KioskWidgetHome() {
                 <TileEditOverlay
                   widget={widget}
                   onRemove={() => removeWidget(widget.id)}
-                  onResize={() => resizeWidget(widget.id)}
+                  onSizeChange={(size) => setWidgetSize(widget.id, size)}
                 />
               )}
             />
@@ -311,13 +309,12 @@ export function KioskWidgetHome() {
 
 /** Per-tile controls in edit mode: drag surface, remove and resize. */
 function TileEditOverlay({
-  widget, onRemove, onResize,
+  widget, onRemove, onSizeChange,
 }: {
   widget: HomeWidget
   onRemove: () => void
-  onResize: () => void
+  onSizeChange: (size: WidgetSize) => void
 }) {
-  const resizable = WIDGET_META[widget.type].sizes.length > 1
   return (
     <>
       <div className="pointer-events-none absolute inset-0 rounded-[18px] bg-white/10 ring-2 ring-[#0066cc]/40" />
@@ -331,22 +328,33 @@ function TileEditOverlay({
         type="button"
         onClick={onRemove}
         aria-label="Rimuovi widget"
-        className="tap-target pointer-events-auto absolute -right-2 -top-2 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-red-500 text-white shadow-lg transition active:scale-90"
+        className="pointer-events-auto absolute right-2 top-2 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-red-500 text-white shadow-lg transition active:scale-90"
       >
         <X size={17} aria-hidden="true" />
       </button>
-      {resizable && (
-        <button
-          type="button"
-          onClick={onResize}
-          aria-label={`Cambia dimensione widget (attuale ${SIZE_SHORT[widget.size]})`}
-          className="pointer-events-auto absolute bottom-2 right-2 z-20 flex min-h-9 items-center gap-1 rounded-full bg-white/95 px-3 text-sm font-semibold text-black/70 shadow-lg transition active:scale-90"
-        >
-          <Maximize2 size={14} aria-hidden="true" /> {SIZE_SHORT[widget.size]}
-        </button>
-      )}
-      <div className="pointer-events-none absolute bottom-2 left-1/2 z-10 flex h-8 w-12 -translate-x-1/2 items-center justify-center rounded-full bg-white/95 text-black/45 shadow-lg">
-        <GripVertical size={18} aria-hidden="true" />
+      <div
+        className="pointer-events-auto absolute bottom-2 left-1/2 z-20 flex -translate-x-1/2 items-center rounded-full bg-white/95 p-1 shadow-lg ring-1 ring-black/[0.05]"
+        role="group"
+        aria-label="Dimensione tile"
+      >
+        {SIZE_ORDER.map((size) => (
+          <button
+            key={size}
+            type="button"
+            onClick={() => onSizeChange(size)}
+            aria-label={`Dimensione ${SIZE_SHORT[size]}`}
+            aria-pressed={widget.size === size}
+            className={cn(
+              'flex h-8 min-w-8 items-center justify-center rounded-full px-2 text-[11px] font-bold transition active:scale-90',
+              widget.size === size ? 'bg-[#0066cc] text-white shadow-sm' : 'text-black/45 hover:bg-black/[0.05]',
+            )}
+          >
+            {SIZE_SHORT[size]}
+          </button>
+        ))}
+      </div>
+      <div className="pointer-events-none absolute left-2 top-2 z-10 flex h-8 items-center gap-1 rounded-full bg-white/95 px-2.5 text-[11px] font-semibold text-black/45 shadow-lg">
+        <GripVertical size={15} aria-hidden="true" /> Trascina
       </div>
     </>
   )

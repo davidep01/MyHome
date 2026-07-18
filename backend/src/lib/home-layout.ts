@@ -164,6 +164,26 @@ function occupy(occupied: Set<string>, item: HomePosition): void {
   cellsFor(item).forEach((cell) => occupied.add(cell))
 }
 
+function compactVertically(
+  widgets: HomeWidget[],
+  positions: Record<string, HomePosition>,
+): Record<string, HomePosition> {
+  const occupied = new Set<string>()
+  const compacted: Record<string, HomePosition> = {}
+  const orderIndex = new Map(widgets.map((widget, index) => [widget.id, index]))
+  const ordered = Object.entries(positions).sort(([leftId, left], [rightId, right]) => (
+    left.y - right.y || left.x - right.x || (orderIndex.get(leftId) ?? 0) - (orderIndex.get(rightId) ?? 0)
+  ))
+
+  for (const [id, source] of ordered) {
+    const item = { ...source }
+    while (item.y > 0 && fits(occupied, { ...item, y: item.y - 1 })) item.y -= 1
+    occupy(occupied, item)
+    compacted[id] = item
+  }
+  return compacted
+}
+
 function positionFor(widget: HomeWidget, raw?: HomePosition | null): HomePosition {
   const wh = HOME_SIZE_WH[widget.size]
   return {
@@ -220,7 +240,7 @@ export function normalizeHomePositions(
     occupy(occupied, item)
   }
 
-  return positions
+  return compactVertically(widgets, positions)
 }
 
 function cleanLayoutVersion(value: unknown, fallback: number): number {

@@ -36,6 +36,14 @@ export const WIDGET_SIZE_CONFIG: Record<WidgetVisualSize, WidgetSizeConfig> = {
     valueClass: 'text-[36px]',
     titleClass: 'text-[17px]',
   },
+  XL: {
+    size: 'XL',
+    minHeight: 136,
+    paddingClass: 'p-4',
+    icon: 24,
+    valueClass: 'text-[36px]',
+    titleClass: 'text-[17px]',
+  },
 }
 
 export function getWidgetSizeConfig(size: WidgetVisualSize = 'M') {
@@ -45,6 +53,7 @@ export function getWidgetSizeConfig(size: WidgetVisualSize = 'M') {
 export function widgetVisualSizeFromHomeSize(size?: WidgetSize): WidgetVisualSize {
   if (size === 'sm') return 'S'
   if (size === 'lg') return 'L'
+  if (size === 'wide') return 'XL'
   return 'M'
 }
 
