@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { HassEntities, HassEntity } from 'home-assistant-js-websocket'
-import { buildScreensaverRecapInput } from './screensaverRecap'
+import { buildScreensaverRecapInput, collectScreensaverRecentChanges } from './screensaverRecap'
 
 function entity(id: string, state: string, attributes: Record<string, unknown> = {}, changed = '2026-07-18T12:00:00Z'): HassEntity {
   return {
@@ -53,5 +53,72 @@ describe('screensaver recap context', () => {
       localText: 'In attesa degli ultimi aggiornamenti della casa.',
       signature: 'empty',
     })
+  })
+
+  it('includes live temperature sensors even when no climate zone is active', () => {
+    const first = buildScreensaverRecapInput(entities(
+      entity('sensor.temperatura_cucina', '21.4', {
+        friendly_name: 'Temperatura cucina',
+        device_class: 'temperature',
+        unit_of_measurement: '°C',
+      }),
+    ))
+    const next = buildScreensaverRecapInput(entities(
+      entity('sensor.temperatura_cucina', '22.1', {
+        friendly_name: 'Temperatura cucina',
+        device_class: 'temperature',
+        unit_of_measurement: '°C',
+      }),
+    ))
+
+    expect(next.context).toContainEqual(expect.objectContaining({
+      entity_id: 'sensor.temperatura_cucina',
+      state: '22,1 °C',
+    }))
+    expect(next.localText).toContain('Temperatura cucina 22,1 °C')
+    expect(next.signature).not.toBe(first.signature)
+  })
+
+  it('turns meaningful Home Assistant transitions into recent live events', () => {
+    const before = entities(entity('light.cucina', 'off', { friendly_name: 'Luce cucina' }))
+    const after = entities(entity('light.cucina', 'on', { friendly_name: 'Luce cucina', brightness: 204 }))
+    const changedAt = new Date('2026-07-18T14:00:00Z').getTime()
+    const changes = collectScreensaverRecentChanges(before, after, changedAt)
+    const input = buildScreensaverRecapInput(after, new Date('2026-07-18T14:01:00Z'), changes)
+
+    expect(changes).toEqual([expect.objectContaining({ description: 'Luce cucina si è accesa', changedAt })])
+    expect(input.localText).toContain('Adesso: Luce cucina si è accesa')
+    expect(input.context).toContainEqual(expect.objectContaining({
+      entity_id: 'sensor.recap_evento_1',
+      state: 'Luce cucina si è accesa',
+    }))
+  })
+
+  it('ignores insignificant temperature jitter in the recent-event feed', () => {
+    const attributes = {
+      friendly_name: 'Temperatura camera',
+      device_class: 'temperature',
+      unit_of_measurement: '°C',
+    }
+    const changes = collectScreensaverRecentChanges(
+      entities(entity('sensor.temperatura_camera', '21.40', attributes)),
+      entities(entity('sensor.temperatura_camera', '21.49', attributes)),
+    )
+
+    expect(changes).toEqual([])
+  })
+
+  it('expires old events instead of leaving a fixed recap on screen', () => {
+    const current = entities(entity('light.cucina', 'off', { friendly_name: 'Luce cucina' }))
+    const changedAt = new Date('2026-07-18T14:00:00Z').getTime()
+    const input = buildScreensaverRecapInput(current, new Date('2026-07-18T14:11:00Z'), [{
+      entityId: 'light.cucina',
+      name: 'Luce cucina',
+      description: 'Luce cucina si è spenta',
+      changedAt,
+    }])
+
+    expect(input.localText).not.toContain('Adesso:')
+    expect(input.context.some((entry) => entry.entity_id.startsWith('sensor.recap_evento_'))).toBe(false)
   })
 })
