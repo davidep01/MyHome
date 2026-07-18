@@ -12,56 +12,56 @@ export interface RingTone {
 
 export const widgetTones = {
   neutral: {
-    color: 'rgba(29,29,31,0.62)',
-    bg: 'rgba(0,0,0,0.05)',
-    glow: 'rgba(0,0,0,0.10)',
+    color: 'var(--ink-secondary)',
+    bg: 'var(--fill-subtle)',
+    glow: 'var(--hairline-strong)',
   },
   /** Lampadine accese — l'ambra alla HomeKit, l'unica eccezione "calda". */
   light: {
-    color: '#b45309',
+    color: 'var(--offline-amber)',
     bg: 'rgba(234,179,8,0.15)',
     glow: 'rgba(234,179,8,0.30)',
   },
   /** Freddo / azione — l'accento blu unico del design system. */
   cool: {
-    color: '#0066cc',
+    color: 'var(--cold-blue)',
     bg: 'rgba(0,102,204,0.12)',
     glow: 'rgba(0,102,204,0.26)',
   },
   heat: {
-    color: '#c2410c',
+    color: 'var(--alert-orange)',
     bg: 'rgba(249,115,22,0.14)',
     glow: 'rgba(249,115,22,0.30)',
   },
   ok: {
-    color: '#15803d',
+    color: 'var(--ok-green)',
     bg: 'rgba(21,128,61,0.12)',
     glow: 'rgba(21,128,61,0.22)',
   },
   warning: {
-    color: '#b45309',
+    color: 'var(--offline-amber)',
     bg: 'rgba(245,158,11,0.14)',
     glow: 'rgba(245,158,11,0.26)',
   },
   critical: {
-    color: '#dc2626',
+    color: 'var(--danger-red)',
     bg: 'rgba(220,38,38,0.13)',
     glow: 'rgba(220,38,38,0.34)',
   },
   /** Energia/consumi: ambra calda, non viola. */
   energy: {
-    color: '#b45309',
+    color: 'var(--offline-amber)',
     bg: 'rgba(245,158,11,0.14)',
     glow: 'rgba(245,158,11,0.26)',
   },
   water: {
-    color: '#0891b2',
+    color: 'var(--state-water)',
     bg: 'rgba(8,145,178,0.12)',
     glow: 'rgba(8,145,178,0.24)',
   },
   /** Media/scene: l'accento blu — il viola non è un colore di MyHome. */
   media: {
-    color: '#0066cc',
+    color: 'var(--action-blue)',
     bg: 'rgba(0,102,204,0.12)',
     glow: 'rgba(0,102,204,0.26)',
   },

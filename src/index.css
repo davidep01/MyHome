@@ -20,6 +20,12 @@
   --canvas-page:       #f5f5f7;
   --canvas-card:       rgba(255, 255, 255, 0.72);
   --canvas-card-hover: rgba(255, 255, 255, 0.88);
+  --surface-solid:     #ffffff;
+  --surface-elevated:  #ffffff;
+  --fill-subtle:       rgba(0, 0, 0, 0.045);
+  --fill-muted:        rgba(0, 0, 0, 0.08);
+  --fill-strong:       rgba(0, 0, 0, 0.13);
+  --fill-emphasis:     rgba(0, 0, 0, 0.20);
   --glass-blur:        20px;
   --hairline:          rgba(0, 0, 0, 0.08);
   --hairline-strong:   rgba(0, 0, 0, 0.12);
@@ -28,6 +34,7 @@
   --ink:               #1d1d1f;
   --ink-secondary:     rgba(29, 29, 31, 0.60);
   --ink-tertiary:      rgba(29, 29, 31, 0.42);
+  --ink-quaternary:    rgba(29, 29, 31, 0.28);
   --on-accent:         #ffffff;
   --on-dark:           #ffffff;
   --on-dark-link:      #2997ff;
@@ -44,6 +51,7 @@
   --alert-orange:      #c2410c;
   --danger-red:        #dc2626;
   --offline-amber:     #b45309;
+  --state-water:       #0891b2;
 
   /* State tints (card backgrounds) */
   --hot-tint:          rgba(220, 38, 38, 0.12);
@@ -57,6 +65,19 @@
   --glow-cold:         0 0 24px 0 rgba(0, 102, 204, 0.28);
   --glow-light:        0 0 24px 0 rgba(234, 179, 8, 0.30);
   --focus-ring:        0 0 0 3px rgba(0, 102, 204, 0.35);
+
+  /* Theme-aware component materials. */
+  --widget-base:       rgba(255, 255, 255, 0.44);
+  --widget-fill:       rgba(255, 255, 255, 0.78);
+  --widget-control:    rgba(255, 255, 255, 0.65);
+  --widget-icon-idle:  rgba(0, 0, 0, 0.05);
+  --widget-icon-ink:   rgba(29, 29, 31, 0.40);
+  --artwork-fade-0:    rgba(255, 255, 255, 0.02);
+  --artwork-fade-1:    rgba(255, 255, 255, 0.08);
+  --artwork-fade-2:    rgba(255, 255, 255, 0.42);
+  --artwork-fade-3:    rgba(255, 255, 255, 0.88);
+  --artwork-fade-4:    rgba(255, 255, 255, 0.98);
+  --glass-depth-shadow: inset 0 1px 0 rgba(255,255,255,0.85), inset 0 0 0 0.5px rgba(255,255,255,0.22), inset 0 -14px 22px -16px rgba(17,21,28,0.10), 0 7px 18px -12px rgba(17,21,28,0.16);
 
   /* Radius */
   --radius-card:  18px;
@@ -80,6 +101,63 @@
   --grid-gap:     12px;
 
   color-scheme: light;
+}
+
+/* Fixed per Apple HIG: Dark Mode uses semantic colors and separate base /
+   elevated surfaces, never a global dimming filter.
+   Audit by HIG Compliance Auditor (Omraj Kumar). */
+html.dark {
+  --color-background: #000000;
+  --color-foreground: #f5f5f7;
+  --color-primary: #0a84ff;
+  --color-primary-on-dark: #64b5ff;
+
+  --canvas-page:       #000000;
+  --canvas-card:       rgba(28, 28, 30, 0.78);
+  --canvas-card-hover: rgba(44, 44, 46, 0.92);
+  --surface-solid:     #1c1c1e;
+  --surface-elevated:  #2c2c2e;
+  --fill-subtle:       rgba(255, 255, 255, 0.055);
+  --fill-muted:        rgba(255, 255, 255, 0.09);
+  --fill-strong:       rgba(255, 255, 255, 0.14);
+  --fill-emphasis:     rgba(255, 255, 255, 0.21);
+  --hairline:          rgba(255, 255, 255, 0.10);
+  --hairline-strong:   rgba(255, 255, 255, 0.16);
+
+  --ink:               #f5f5f7;
+  --ink-secondary:     rgba(235, 235, 245, 0.68);
+  --ink-tertiary:      rgba(235, 235, 245, 0.46);
+  --ink-quaternary:    rgba(235, 235, 245, 0.30);
+  --action-blue:       #0a84ff;
+  --action-blue-dark:  #64b5ff;
+  --hot-red:           #ff6961;
+  --cold-blue:         #64b5ff;
+  --ok-green:          #30d158;
+  --alert-orange:      #ff9f0a;
+  --danger-red:        #ff453a;
+  --offline-amber:     #ffd60a;
+  --state-water:       #64d2ff;
+
+  --hot-tint:          rgba(255, 69, 58, 0.18);
+  --cold-tint:         rgba(10, 132, 255, 0.18);
+  --light-on-tint:     rgba(255, 214, 10, 0.16);
+  --ok-tint:           rgba(48, 209, 88, 0.16);
+  --alert-tint:        rgba(255, 159, 10, 0.18);
+  --focus-ring:        0 0 0 3px rgba(10, 132, 255, 0.48);
+
+  --widget-base:       rgba(28, 28, 30, 0.72);
+  --widget-fill:       rgba(44, 44, 46, 0.82);
+  --widget-control:    rgba(255, 255, 255, 0.11);
+  --widget-icon-idle:  rgba(255, 255, 255, 0.07);
+  --widget-icon-ink:   rgba(235, 235, 245, 0.50);
+  --artwork-fade-0:    rgba(0, 0, 0, 0.02);
+  --artwork-fade-1:    rgba(0, 0, 0, 0.10);
+  --artwork-fade-2:    rgba(18, 18, 20, 0.48);
+  --artwork-fade-3:    rgba(28, 28, 30, 0.90);
+  --artwork-fade-4:    rgba(28, 28, 30, 0.99);
+  --glass-depth-shadow: inset 0 1px 0 rgba(255,255,255,0.12), inset 0 0 0 0.5px rgba(255,255,255,0.06), inset 0 -14px 22px -16px rgba(0,0,0,0.48), 0 10px 24px -14px rgba(0,0,0,0.72);
+
+  color-scheme: dark;
 }
 
 /* ============================================================================
@@ -191,6 +269,9 @@ a,
   backdrop-filter: none;
   background: rgba(248, 248, 250, 0.94);
 }
+.dark.perf-lite .glass {
+  background: rgba(28, 28, 30, 0.96);
+}
 .perf-lite .glass-border::before { display: none; }
 
 @media (prefers-reduced-transparency: reduce) {
@@ -200,6 +281,7 @@ a,
     background: rgba(248, 248, 250, 0.94);
   }
   .glass-border::before { display: none; }
+  html.dark .glass { background: rgba(28, 28, 30, 0.96); }
 }
 
 /* ============================================================================
@@ -223,6 +305,13 @@ html.kiosk-mode body {
     radial-gradient(circle at 94% 12%, rgba(168,85,247,.10) 0%, transparent 31%),
     radial-gradient(circle at 68% 105%, rgba(249,115,22,.10) 0%, transparent 38%),
     #f5f5f7;
+}
+html.dark .kiosk-color-canvas {
+  background:
+    radial-gradient(circle at 8% 0%, rgba(10,132,255,.16) 0%, transparent 34%),
+    radial-gradient(circle at 94% 12%, rgba(191,90,242,.12) 0%, transparent 31%),
+    radial-gradient(circle at 68% 105%, rgba(255,159,10,.08) 0%, transparent 38%),
+    #000;
 }
 
 /* Mesh ambientale: due soli layer compositi, sopra il canvas e sotto popup/
@@ -292,11 +381,11 @@ html.kiosk-idle .kiosk-root::after {
 }
 
 html.kiosk-mode.dark .kiosk-root::after {
-  background: rgba(0, 0, 0, 0.10);
+  background: rgba(0, 0, 0, 0);
 }
 
 html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
-  background: rgba(0, 0, 0, 0.16);
+  background: rgba(0, 0, 0, 0.08);
 }
 
 @keyframes kiosk-micro-shift {
@@ -374,12 +463,12 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
    la gerarchia funzionale dei colori.
    ------------------------------------------------------------------------- */
 .widget-card-shell {
-  background: rgba(255,255,255,0.44);
+  background: var(--widget-base);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   backdrop-filter: blur(20px) saturate(180%);
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.85),            /* il bordo alto prende la luce */
-    inset 0 0 0 0.5px rgba(0,0,0,0.06);              /* hairline */
+    inset 0 1px 0 color-mix(in srgb, var(--ink) 15%, transparent),
+    inset 0 0 0 0.5px var(--hairline);
   transform: translateZ(0);
   /* Isolate each card's layout/paint: with dozens of cards in the grid the
      browser can skip re-layout/repaint of untouched siblings (kiosk GPUs). */
@@ -387,7 +476,7 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
 }
 
 .widget-card-fill {
-  background: rgba(255,255,255,0.78);
+  background: var(--widget-fill);
   opacity: 0;
   transition: opacity 240ms cubic-bezier(0.32,0.72,0,1);
 }
@@ -409,11 +498,11 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
 }
 .media-card-artwork-fade {
   background: linear-gradient(90deg,
-    rgba(255,255,255,0.02) 0%,
-    rgba(255,255,255,0.08) 28%,
-    rgba(255,255,255,0.42) 48%,
-    rgba(255,255,255,0.88) 72%,
-    rgba(255,255,255,0.98) 100%);
+    var(--artwork-fade-0) 0%,
+    var(--artwork-fade-1) 28%,
+    var(--artwork-fade-2) 48%,
+    var(--artwork-fade-3) 72%,
+    var(--artwork-fade-4) 100%);
 }
 
 /* Card camera: scrim funzionale in basso — il nome resta leggibile sul video.
@@ -455,8 +544,8 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
 
 /* Bottoncino di controllo (±, play, ↑■↓): pillola di vetro con hairline. */
 .widget-card-control {
-  background: rgba(255,255,255,0.65);
-  box-shadow: inset 0 0 0 0.5px rgba(0,0,0,0.10);
+  background: var(--widget-control);
+  box-shadow: inset 0 0 0 0.5px var(--hairline);
 }
 
 /* Knob dello slider inline: disco bianco con contatto minimo. */
@@ -483,7 +572,7 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
 .perf-lite .widget-card-shell {
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
-  background: rgba(255,255,255,0.78);
+  background: var(--widget-fill);
 }
 .perf-lite .widget-card-tint { opacity: .24; }
 .perf-lite .widget-card-shell.widget-card-active .widget-card-tint { opacity: .68; }
@@ -491,7 +580,7 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
   .widget-card-shell {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
-    background: rgba(255,255,255,0.82);
+    background: var(--widget-fill);
   }
 }
 
@@ -513,7 +602,7 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
 
 /* Interruttore iOS delle card: visivo 32px, tocco ≥44 via ::before. */
 .widget-card-toggle {
-  background: rgba(0,0,0,0.13);
+  background: var(--fill-strong);
   box-shadow: inset 0 1px 2px rgba(0,0,0,0.10);
 }
 .widget-card-toggle::before {
@@ -721,6 +810,9 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
   mask-composite: exclude;
   pointer-events: none;
 }
+html.dark .glass-border::before {
+  background: linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.07) 44%, rgba(0,0,0,0.36) 100%);
+}
 
 /* ============================================================================
    Refined Liquid Glass Slider (brightness, blind, volume)
@@ -731,7 +823,7 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
   height: 32px;
   border-radius: var(--radius-pill);
   /* inset groove: same as design system card background, inset shadow */
-  background: #ececef;
+  background: var(--fill-strong);
   box-shadow:
     inset 0 1px 2px rgba(0,0,0,0.10),
     inset 0 0 0 1px rgba(0,0,0,0.04);
@@ -805,7 +897,7 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
   width: 48px;
   height: 30px;
   border-radius: 999px;
-  background: rgba(0,0,0,0.14);
+  background: var(--fill-strong);
   position: relative;
   flex: none;
   transition: background var(--dur) var(--spring);
@@ -862,20 +954,102 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
 .press-card:active { transform: scale(0.985); }
 
 /* ============================================================================
-   Night dimming — driven by useAutoTheme (ambient light on tablet,
-   prefers-color-scheme, or manual). MyHome deliberately keeps one coherent light
-   glass palette and adds a soft scrim so a wall tablet is not blinding at night.
-   This is brightness behaviour, not a second partially-themed color system.
+   Dual-appearance compatibility layer
+
+   Legacy Tailwind neutral utilities are translated to the semantic palette in
+   Dark Mode. New components must use the variables directly; this bridge keeps
+   existing cards coherent while they are migrated incrementally.
+   Fixed per Apple HIG: labels and fills adapt independently, without filtering
+   photos, video, gradients or state colors.
+   Audit by HIG Compliance Auditor (Omraj Kumar).
    ============================================================================ */
-html.dark::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: rgba(8, 6, 20, 0.46);
-  mix-blend-mode: multiply;
-  pointer-events: none;
-  z-index: 80;
-}
+html.dark [class~="text-[#1d1d1f]"],
+html.dark [class~="text-[#1d1d1f]/80"],
+html.dark [class~="text-black/90"],
+html.dark [class~="text-black/85"],
+html.dark [class~="text-black/80"] { color: var(--ink); }
+
+html.dark [class~="text-black/75"],
+html.dark [class~="text-black/70"],
+html.dark [class~="text-black/65"],
+html.dark [class~="text-black/60"],
+html.dark [class~="text-black/55"],
+html.dark [class~="text-black/50"] { color: var(--ink-secondary); }
+
+html.dark [class~="text-black/45"],
+html.dark [class~="text-black/40"],
+html.dark [class~="text-black/35"],
+html.dark [class~="text-black/30"] { color: var(--ink-tertiary); }
+
+html.dark [class~="text-black/25"],
+html.dark [class~="text-black/20"] { color: var(--ink-quaternary); }
+
+html.dark [class~="hover:text-[#1d1d1f]"]:hover { color: var(--ink); }
+html.dark [class~="hover:text-black/75"]:hover,
+html.dark [class~="hover:text-black/70"]:hover,
+html.dark [class~="hover:text-black/60"]:hover { color: var(--ink-secondary); }
+html.dark [class~="placeholder:text-black/35"]::placeholder { color: var(--ink-tertiary); }
+
+html.dark [class~="bg-[#f5f5f7]"] { background-color: var(--canvas-page); }
+html.dark [class~="bg-black/[0.02]"],
+html.dark [class~="bg-black/[0.025]"],
+html.dark [class~="bg-black/[0.035]"],
+html.dark [class~="bg-black/[0.04]"],
+html.dark [class~="bg-black/[0.045]"],
+html.dark [class~="bg-black/[0.05]"],
+html.dark [class~="bg-black/[0.06]"],
+html.dark [class~="bg-black/[0.07]"],
+html.dark [class~="bg-black/5"],
+html.dark [class~="bg-black/6"],
+html.dark [class~="bg-black/8"] { background-color: var(--fill-subtle); }
+
+html.dark [class~="bg-black/10"],
+html.dark [class~="bg-black/12"] { background-color: var(--fill-muted); }
+html.dark [class~="bg-black/14"],
+html.dark [class~="bg-black/15"],
+html.dark [class~="bg-black/16"] { background-color: var(--fill-strong); }
+html.dark [class~="bg-black/20"],
+html.dark [class~="bg-black/25"] { background-color: var(--fill-emphasis); }
+
+html.dark [class~="hover:bg-black/5"]:hover,
+html.dark [class~="hover:bg-black/10"]:hover,
+html.dark [class~="hover:bg-black/12"]:hover,
+html.dark [class~="hover:bg-black/14"]:hover { background-color: var(--fill-strong); }
+html.dark [class~="focus:bg-black/12"]:focus { background-color: var(--fill-strong); }
+
+html.dark [class~="bg-white"],
+html.dark [class~="bg-white/55"],
+html.dark [class~="bg-white/70"],
+html.dark [class~="bg-white/72"],
+html.dark [class~="bg-white/80"],
+html.dark [class~="bg-white/92"],
+html.dark [class~="bg-white/95"] { background-color: var(--surface-solid); }
+html.dark [class~="hover:bg-white"]:hover,
+html.dark [class~="focus:bg-white"]:focus { background-color: var(--surface-elevated); }
+
+html.dark [class~="border-black/[0.06]"],
+html.dark [class~="border-black/8"],
+html.dark [class~="border-black/10"] { border-color: var(--hairline); }
+html.dark [class~="border-black/15"],
+html.dark [class~="border-black/20"],
+html.dark [class~="border-black/25"] { border-color: var(--hairline-strong); }
+html.dark [class~="ring-black/5"],
+html.dark [class~="ring-white"] { --tw-ring-color: var(--hairline-strong); }
+
+html.dark [class~="text-[#0066cc]"] { color: var(--action-blue); }
+html.dark [class~="bg-[#0066cc]"] { background-color: var(--action-blue); }
+html.dark [class~="border-[#0066cc]"] { border-color: var(--action-blue); }
+html.dark [class~="text-green-700"] { color: var(--ok-green); }
+html.dark [class~="text-orange-700"] { color: var(--alert-orange); }
+html.dark [class~="text-red-700"],
+html.dark [class~="text-red-600"] { color: var(--danger-red); }
+
+/* Media/critical controls deliberately keep white overlays over imagery. */
+html.dark .critical-screen [class~="bg-white"] { background-color: #fff; }
+html.dark .critical-screen [class~="text-[#7d0617]"] { color: #7d0617; }
+html.dark [role="switch"] [class~="bg-white"],
+html.dark .widget-card-toggle [class~="bg-white"] { background-color: #fff; }
+html.dark [class~="bg-black/35"] [class~="bg-white/70"] { background-color: rgba(255,255,255,.70); }
 
 /* ============================================================================
    Ambient kiosk animations — always-on, slow, GPU-cheap (transform/opacity only).
@@ -909,13 +1083,13 @@ html.dark::before {
    ============================================================================ */
 ::-webkit-scrollbar { width: 9px; height: 9px; }
 ::-webkit-scrollbar-thumb {
-  background: rgba(0,0,0,0.14);
+  background: var(--fill-strong);
   border-radius: 999px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0,0,0,0.22);
+  background: var(--fill-emphasis);
   background-clip: padding-box;
 }
 

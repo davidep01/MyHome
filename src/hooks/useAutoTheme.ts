@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useThemeStore } from '../store/theme'
+import { applyDarkAppearance } from '../lib/themeAppearance'
 
 /** Minimal Generic Sensor API type (not in lib.dom). */
 interface AmbientLightSensorLike {
@@ -13,10 +14,6 @@ type Ctor = new (opts?: { frequency?: number }) => AmbientLightSensorLike
 const DARK_LUX = 20   // below → dark
 const LIGHT_LUX = 45  // above → light (dead zone 20–45 = hysteresis, no change)
 const DEBOUNCE_MS = 3000
-
-function applyDark(dark: boolean) {
-  document.documentElement.classList.toggle('dark', dark)
-}
 
 /**
  * Resolves the active theme and applies a `dark` class on <html>.
@@ -38,7 +35,7 @@ export function useAutoTheme() {
     // Manual override — sensor and prefers are ignored entirely.
     if (themeMode === 'light' || themeMode === 'dark') {
       const dark = themeMode === 'dark'
-      applyDark(dark)
+      applyDarkAppearance(dark)
       patch({ effectiveDark: dark, source: 'manual', sensorState: 'disabled', lastLux: null })
       return
     }
@@ -49,7 +46,7 @@ export function useAutoTheme() {
     // Desktop, or tablet without sensor → follow the OS color scheme.
     const followPrefers = (state: 'disabled' | 'unsupported' | 'permission_denied' | 'error') => {
       const upd = () => {
-        applyDark(prefers.matches)
+        applyDarkAppearance(prefers.matches)
         patch({ effectiveDark: prefers.matches, source: 'prefers', sensorState: state })
       }
       upd()
@@ -80,7 +77,7 @@ export function useAutoTheme() {
         if (pendingTarget !== target) { pendingTarget = target; pendingSince = Date.now(); return }
         if (Date.now() - pendingSince >= DEBOUNCE_MS) {
           pendingTarget = null
-          applyDark(target === 'dark')
+          applyDarkAppearance(target === 'dark')
           patch({ effectiveDark: target === 'dark' })
         }
       })

@@ -43,7 +43,7 @@ export function ConnectionOverlay() {
       {show && down && (
         <motion.div
           className="fixed inset-0 z-[90] flex flex-col items-center justify-center gap-6 px-8 text-center"
-          style={{ background: 'rgba(245,245,247,0.86)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' }}
+          style={{ background: 'var(--canvas-card-hover)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}

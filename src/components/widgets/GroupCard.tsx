@@ -81,7 +81,7 @@ export function GroupCard({ group, className }: { group: EntityGroup; className?
           : presentationType === 'switch' ? widgetTones.ok
             : widgetTones.light
   const accent = anyActive ? activeTone.bg : widgetTones.neutral.bg
-  const iconColor = anyActive ? activeTone.color : 'rgba(29,29,31,0.40)'
+  const iconColor = anyActive ? activeTone.color : 'var(--widget-icon-ink)'
   const missing = total - availableMembers.length
   const status = error
     ?? (pending ? 'Invio comando…'
@@ -103,7 +103,7 @@ export function GroupCard({ group, className }: { group: EntityGroup; className?
       className={cn('flex h-full min-h-[104px] flex-col justify-between gap-3', feedbackClass, className)}
       aria-busy={pending}
       style={anyActive ? {
-        background: `linear-gradient(145deg, ${activeTone.bg}, rgba(255,255,255,0.66) 70%)`,
+        background: `linear-gradient(145deg, ${activeTone.bg}, color-mix(in srgb, var(--surface-solid) 72%, transparent) 70%)`,
       } : undefined}
     >
       <div className="flex items-start justify-between gap-3">

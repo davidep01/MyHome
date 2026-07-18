@@ -35,7 +35,7 @@ const MODE_ICONS: Record<string, ElementType> = {
 function toneStyle(tone: string) {
   if (tone === 'heating') {
     return {
-      accent: '#c2410c',
+      accent: 'var(--alert-orange)',
       iconBg: 'rgba(194,65,12,0.12)',
       cardBg: 'rgba(249,115,22,0.10)',
       border: 'rgba(194,65,12,0.20)',
@@ -44,7 +44,7 @@ function toneStyle(tone: string) {
   }
   if (tone === 'cooling') {
     return {
-      accent: '#0066cc',
+      accent: 'var(--cold-blue)',
       iconBg: 'rgba(0,102,204,0.10)',
       cardBg: 'rgba(0,102,204,0.09)',
       border: 'rgba(0,102,204,0.20)',
@@ -53,7 +53,7 @@ function toneStyle(tone: string) {
   }
   if (tone === 'drying') {
     return {
-      accent: '#0891b2',
+      accent: 'var(--state-water)',
       iconBg: 'rgba(8,145,178,0.10)',
       cardBg: 'rgba(8,145,178,0.08)',
       border: 'rgba(8,145,178,0.18)',
@@ -62,7 +62,7 @@ function toneStyle(tone: string) {
   }
   if (tone === 'fan') {
     return {
-      accent: '#15803d',
+      accent: 'var(--ok-green)',
       iconBg: 'rgba(21,128,61,0.10)',
       cardBg: 'rgba(21,128,61,0.08)',
       border: 'rgba(21,128,61,0.18)',
@@ -70,8 +70,8 @@ function toneStyle(tone: string) {
     }
   }
   return {
-    accent: 'rgba(29,29,31,0.55)',
-    iconBg: 'rgba(0,0,0,0.05)',
+    accent: 'var(--ink-secondary)',
+    iconBg: 'var(--fill-subtle)',
     cardBg: undefined,
     border: undefined,
     glow: undefined,

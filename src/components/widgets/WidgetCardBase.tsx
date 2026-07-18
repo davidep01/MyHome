@@ -128,8 +128,8 @@ export function WidgetCardIcon({
       style={{
         width: box,
         height: box,
-        background: active ? `color-mix(in srgb, ${accentColor} 15%, transparent)` : 'rgba(0,0,0,0.05)',
-        color: active ? accentColor : 'rgba(29,29,31,0.40)',
+        background: active ? `color-mix(in srgb, ${accentColor} 15%, transparent)` : 'var(--widget-icon-idle)',
+        color: active ? accentColor : 'var(--widget-icon-ink)',
       }}
     >
       <Icon size={cfg.icon} />
@@ -179,7 +179,7 @@ export function WidgetCardIdentity({
       {state && (
         <p
           className="mt-0.5 truncate text-[13px] font-normal leading-snug"
-          style={{ color: stateColor ?? 'rgba(29,29,31,0.50)' }}
+          style={{ color: stateColor ?? 'var(--ink-secondary)' }}
         >
           {state}
         </p>

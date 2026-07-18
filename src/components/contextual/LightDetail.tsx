@@ -82,7 +82,7 @@ export function LightDetail({ entity }: { entity: HassEntity }) {
   return (
     <div className={cn('flex flex-col gap-3', feedbackClass)} aria-busy={pending}>
       {/* Big toggle row */}
-      <div className="flex items-center justify-between rounded-[11px] px-4 py-3" style={{ background: 'rgba(0,0,0,0.04)' }}>
+      <div className="flex items-center justify-between rounded-[11px] px-4 py-3" style={{ background: 'var(--fill-subtle)' }}>
         <div className="flex items-center gap-3">
           <div className={cn('flex h-10 w-10 items-center justify-center rounded-full transition-all', isOn ? 'bg-yellow-500/20' : 'bg-black/8')}>
             <Lightbulb size={22} className={isOn ? 'text-yellow-500' : 'text-black/30'} aria-hidden="true" />
@@ -109,7 +109,7 @@ export function LightDetail({ entity }: { entity: HassEntity }) {
       </div>
 
       {/* Brightness slider */}
-      <div className="rounded-[11px] p-4" style={{ background: 'rgba(0,0,0,0.04)' }}>
+      <div className="rounded-[11px] p-4" style={{ background: 'var(--fill-subtle)' }}>
         <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: 'var(--ink-tertiary)' }}>
           Luminosità — {brightness}%
         </p>
@@ -124,7 +124,7 @@ export function LightDetail({ entity }: { entity: HassEntity }) {
       </div>
 
       {/* Presets */}
-      <div className="rounded-[11px] p-4" style={{ background: 'rgba(0,0,0,0.04)' }}>
+      <div className="rounded-[11px] p-4" style={{ background: 'var(--fill-subtle)' }}>
         <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: 'var(--ink-tertiary)' }}>
           Preset
         </p>
@@ -139,7 +139,7 @@ export function LightDetail({ entity }: { entity: HassEntity }) {
               className="rounded-[8px] py-2.5 text-xs font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0066cc] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
               style={brightness === p.pct
                 ? { background: 'rgba(234,179,8,0.16)', color: '#7a5b08' }
-                : { background: 'rgba(0,0,0,0.05)', color: 'var(--ink-secondary)' }}
+                : { background: 'var(--fill-subtle)', color: 'var(--ink-secondary)' }}
             >
               {p.label}
             </button>

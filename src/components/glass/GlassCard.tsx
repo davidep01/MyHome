@@ -13,8 +13,7 @@ interface GlassCardProps extends HTMLMotionProps<'div'> {
 
 // Inset top light + glass thickness + a gentle float off the parchment. Box-shadow
 // only (no overlay), so it can't sit over card content.
-const LG_DEPTH_SHADOW =
-  'inset 0 1px 0 rgba(255,255,255,0.85), inset 0 0 0 0.5px rgba(255,255,255,0.22), inset 0 -14px 22px -16px rgba(17,21,28,0.10), 0 7px 18px -12px rgba(17,21,28,0.16)'
+const LG_DEPTH_SHADOW = 'var(--glass-depth-shadow)'
 
 export function GlassCard({
   children,

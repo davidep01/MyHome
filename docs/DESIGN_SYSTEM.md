@@ -1,6 +1,6 @@
 # MyHome — Design System
 
-> Versione: 1.0 · Ultimo aggiornamento: maggio 2026
+> Versione: 1.1 · Ultimo aggiornamento: luglio 2026
 
 ---
 
@@ -8,7 +8,7 @@
 
 Dashboard domotica **semplice, funzionale e visivamente coerente**.  
 Il design deve sparire: l'interfaccia serve i dispositivi, non si mette in mostra.  
-Ispirazione primaria: **Apple Liquid Glass** — superfici chiare, tipografia pulita, interazioni fisiche.
+Ispirazione primaria: **Apple Liquid Glass** — superfici semantiche, tipografia pulita, interazioni fisiche. Light e Dark sono due appearance complete dello stesso design.
 
 ---
 
@@ -19,21 +19,32 @@ I colori funzionali (rosso caldo, blu freddo, verde OK, arancio alert) esistono 
 
 ### Canvas e superfici
 
-| Token | Hex | Uso |
-|---|---|---|
-| `canvas-page` | `#f5f5f7` | Background dell'intera app (parchment Apple) |
-| `canvas-card` | `rgba(255,255,255,0.72)` + `blur(20px)` | Card frosted glass |
-| `canvas-card-hover` | `rgba(255,255,255,0.88)` | Card in hover |
-| `hairline` | `rgba(0,0,0,0.08)` | Bordi card |
-| `hairline-strong` | `rgba(0,0,0,0.12)` | Bordi in evidenza |
+| Token | Light | Dark | Uso |
+|---|---|---|---|
+| `canvas-page` | `#f5f5f7` | `#000000` | Base dell'app |
+| `canvas-card` | bianco 72% | `#1c1c1e` 78% | Card/materiale frosted |
+| `surface-solid` | `#ffffff` | `#1c1c1e` | Input e superfici opache |
+| `surface-elevated` | `#ffffff` | `#2c2c2e` | Sheet e controlli elevati |
+| `hairline` | nero 8% | bianco 10% | Bordi card |
+| `hairline-strong` | nero 12% | bianco 16% | Bordi in evidenza |
 
 ### Testo
 
-| Token | Valore | Uso |
-|---|---|---|
-| `ink` | `#1d1d1f` | Tutti i testi primari |
-| `ink-secondary` | `rgba(29,29,31,0.60)` | Sottotitoli, label |
-| `ink-tertiary` | `rgba(29,29,31,0.42)` | Metadati, placeholder, micro-info |
+| Token | Light | Dark | Uso |
+|---|---|---|---|
+| `ink` | `#1d1d1f` | `#f5f5f7` | Testi primari |
+| `ink-secondary` | ink 60% | label chiara 68% | Sottotitoli, label |
+| `ink-tertiary` | ink 42% | label chiara 46% | Metadati e placeholder |
+| `ink-quaternary` | ink 28% | label chiara 30% | Disabled e micro-info |
+
+### Contratto Light / Dark
+
+- Dark Mode non usa `filter`, `opacity`, `mix-blend-mode` o pseudo-elementi fullscreen per scurire la UI.
+- Canvas, superfici, fill, hairline e testo cambiano tramite token semantici; layout, spaziatura e gerarchia restano identici.
+- Foto, stream video, artwork, gradienti immersivi e colori di stato conservano luminosità e gamut originali.
+- Ogni nuova card o controllo deve essere verificato in entrambe le appearance, incluso hover/focus, disabled, errore e stato attivo.
+- Nei componenti usare `var(--ink)`, `var(--canvas-card)`, `var(--fill-subtle)` e i token TypeScript; non introdurre nuovi `text-black/*`, `bg-white` o hex neutri.
+- `theme-color` del browser segue l'appearance (`#f5f5f7` / `#000000`) e `color-scheme` rende nativi anche input e select.
 
 ### Accento e stato
 

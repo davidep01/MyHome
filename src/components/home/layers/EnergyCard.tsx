@@ -44,7 +44,7 @@ export function EnergyCard() {
     <GlassCard
       depth
       className="flex min-h-[200px] flex-col justify-between"
-      style={{ background: 'linear-gradient(145deg, rgba(245,158,11,0.16), rgba(255,255,255,0.66) 72%)' }}
+      style={{ background: 'linear-gradient(145deg, rgba(245,158,11,0.16), color-mix(in srgb, var(--surface-solid) 72%, transparent) 72%)' }}
     >
       <div className="flex items-center gap-2">
         <div className="flex h-9 w-9 items-center justify-center rounded-[11px] bg-amber-500/12 text-amber-600">

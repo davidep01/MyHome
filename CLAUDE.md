@@ -16,13 +16,14 @@
 - **Italiano nell'UI**, sempre. Tono conciso.
 - **Ottimismo obbligatorio** per ogni azione verso HA: UI aggiorna subito, rollback se HA fallisce.
 - **Target primario = tablet a muro** (Fully Kiosk, Android). Ogni scelta UX si valuta prima lì: touch ≥ 44×44px, niente hover-only, performance su GPU mid-range.
+- **Due appearance, un solo sistema.** Ogni modifica UI deve essere progettata e verificata sia in Light sia in Dark Mode. Usare esclusivamente i token semantici di `src/index.css` / `src/design/tokens.ts`: niente nuovi neutri hardcoded (`text-black/*`, `bg-white`, `#1d1d1f`) e mai filtri/scrim globali per simulare la notte. Foto, video e colori funzionali non vanno alterati dal tema.
 - **Verifica prima di dire "fatto".** `npm run lint`, `npm test`, `npm run build:all` e `npm run --prefix backend typecheck` devono passare. Non dichiarare completato senza output di verifica.
 
 ---
 
 ## 1. Cos'è S.I.M.I.
 
-Dashboard domotica personale per **Home Assistant**, estetica **Apple "Liquid Glass"** (vetro smerigliato su parchment `#f5f5f7`, zero ombre decorative, un solo accento blu). Due contesti d'uso:
+Dashboard domotica personale per **Home Assistant**, estetica **Apple "Liquid Glass"** con due appearance native: Light su parchment `#f5f5f7`, Dark su base nera con superfici elevate `#1c1c1e`, zero ombre decorative e un solo accento blu. Non sono due prodotti: condividono gerarchia, layout e semantica.
 
 | Contesto | Dispositivo | Shell | Scopo |
 |---|---|---|---|
