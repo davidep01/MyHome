@@ -22,10 +22,11 @@ export interface WastePickup {
 
 const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/
 const DAY_MS = 24 * 60 * 60 * 1_000
+const IGNORED_WASTE_ITEMS = [/^grass clippings?$/i]
 
 const WASTE_KINDS: Array<{ match: RegExp; kind: WasteKind }> = [
   { match: /general waste(?: collection)?|indifferenziat|secco residuo/i, kind: { key: 'general', label: 'Indifferenziato', icon: 'general', color: '#ffffff', background: '#1d1d1f' } },
-  { match: /grass clippings|sfalci|potature/i, kind: { key: 'garden', label: 'Sfalci e potature', icon: 'garden', color: '#ffffff', background: '#218739' } },
+  { match: /sfalci|potature/i, kind: { key: 'garden', label: 'Sfalci e potature', icon: 'garden', color: '#ffffff', background: '#218739' } },
   { match: /organic waste|organico|umido/i, kind: { key: 'organic', label: 'Organico', icon: 'organic', color: '#ffffff', background: '#7a9a20' } },
   { match: /napkins|pannolin/i, kind: { key: 'napkins', label: 'Pannolini', icon: 'napkins', color: '#ffffff', background: '#7c3aed' } },
   { match: /plastic(?:.*metal)?|plastica(?:.*metall)?|metalli?/i, kind: { key: 'plastic', label: 'Plastica', icon: 'plastic', color: '#5f4600', background: '#ffd60a' } },
@@ -62,7 +63,7 @@ export function wasteItemsFromText(value: unknown): WasteKind[] {
   const seen = new Set<string>()
   return value.split(',').flatMap((part): WasteKind[] => {
     const raw = part.trim()
-    if (!raw) return []
+    if (!raw || IGNORED_WASTE_ITEMS.some((pattern) => pattern.test(raw))) return []
     const known = WASTE_KINDS.find(({ match }) => match.test(raw))?.kind
     const kind = known ?? {
       key: raw.toLocaleLowerCase('it').replace(/[^a-z0-9]+/gi, '-'),

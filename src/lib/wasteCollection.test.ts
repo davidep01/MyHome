@@ -32,10 +32,15 @@ describe('Waste Collection Schedule adapter', () => {
 
   it('translates the collection types exposed by the integration', () => {
     expect(wasteItemsFromText('Grass clippings, Napkins, Organic waste').map((item) => item.label)).toEqual([
-      'Sfalci e potature',
       'Pannolini',
       'Organico',
     ])
+  })
+
+  it('removes the Grass clipping test event from items and pickups', () => {
+    expect(wasteItemsFromText('Grass clipping')).toEqual([])
+    expect(wasteItemsFromText('Grass clippings')).toEqual([])
+    expect(wastePickups({ '2026-07-18': 'Grass clippings' }, '2026-07-18')).toEqual([])
   })
 
   it('assigns a distinct icon and the requested collection color to each main material', () => {
