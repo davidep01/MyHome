@@ -7,9 +7,12 @@ export interface WasteEntityLike {
 export interface WasteKind {
   key: string
   label: string
+  icon: WasteIconKey
   color: string
   background: string
 }
+
+export type WasteIconKey = 'general' | 'plastic' | 'glass' | 'paper' | 'organic' | 'garden' | 'napkins' | 'other'
 
 export interface WastePickup {
   dateKey: string
@@ -21,13 +24,13 @@ const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/
 const DAY_MS = 24 * 60 * 60 * 1_000
 
 const WASTE_KINDS: Array<{ match: RegExp; kind: WasteKind }> = [
-  { match: /general waste(?: collection)?|indifferenziat/i, kind: { key: 'general', label: 'Indifferenziato', color: '#475569', background: 'rgba(100,116,139,0.15)' } },
-  { match: /grass clippings|sfalci|potature/i, kind: { key: 'garden', label: 'Sfalci e potature', color: '#15803d', background: 'rgba(34,197,94,0.14)' } },
-  { match: /organic waste|organico/i, kind: { key: 'organic', label: 'Organico', color: '#65a30d', background: 'rgba(132,204,22,0.15)' } },
-  { match: /napkins|pannolin/i, kind: { key: 'napkins', label: 'Pannolini', color: '#7c3aed', background: 'rgba(124,58,237,0.13)' } },
-  { match: /plastic.*metal|plastica.*metall/i, kind: { key: 'plastic', label: 'Plastica e metalli', color: '#b45309', background: 'rgba(245,158,11,0.15)' } },
-  { match: /glass|vetro/i, kind: { key: 'glass', label: 'Vetro', color: '#0891b2', background: 'rgba(8,145,178,0.14)' } },
-  { match: /paper.*cardboard|carta.*cartone/i, kind: { key: 'paper', label: 'Carta e cartone', color: '#0066cc', background: 'rgba(0,102,204,0.13)' } },
+  { match: /general waste(?: collection)?|indifferenziat|secco residuo/i, kind: { key: 'general', label: 'Indifferenziato', icon: 'general', color: '#ffffff', background: '#1d1d1f' } },
+  { match: /grass clippings|sfalci|potature/i, kind: { key: 'garden', label: 'Sfalci e potature', icon: 'garden', color: '#ffffff', background: '#218739' } },
+  { match: /organic waste|organico|umido/i, kind: { key: 'organic', label: 'Organico', icon: 'organic', color: '#ffffff', background: '#7a9a20' } },
+  { match: /napkins|pannolin/i, kind: { key: 'napkins', label: 'Pannolini', icon: 'napkins', color: '#ffffff', background: '#7c3aed' } },
+  { match: /plastic(?:.*metal)?|plastica(?:.*metall)?|metalli?/i, kind: { key: 'plastic', label: 'Plastica', icon: 'plastic', color: '#5f4600', background: '#ffd60a' } },
+  { match: /glass|vetro/i, kind: { key: 'glass', label: 'Vetro', icon: 'glass', color: '#ffffff', background: '#248a3d' } },
+  { match: /paper(?:.*cardboard)?|cardboard|carta(?:.*cartone)?|cartone/i, kind: { key: 'paper', label: 'Carta', icon: 'paper', color: '#1d1d1f', background: '#ffffff' } },
 ]
 
 function titleCase(value: string): string {
@@ -64,8 +67,9 @@ export function wasteItemsFromText(value: unknown): WasteKind[] {
     const kind = known ?? {
       key: raw.toLocaleLowerCase('it').replace(/[^a-z0-9]+/gi, '-'),
       label: titleCase(raw),
-      color: '#475569',
-      background: 'rgba(100,116,139,0.13)',
+      icon: 'other' as const,
+      color: '#334155',
+      background: '#e2e8f0',
     }
     if (seen.has(kind.key)) return []
     seen.add(kind.key)

@@ -37,4 +37,15 @@ describe('Waste Collection Schedule adapter', () => {
       'Organico',
     ])
   })
+
+  it('assigns a distinct icon and the requested collection color to each main material', () => {
+    const [plastic, glass, paper, general] = wasteItemsFromText(
+      'Plastic and metals, Glass, Paper and cardboard, General waste collection',
+    )
+
+    expect({ icon: plastic.icon, background: plastic.background }).toEqual({ icon: 'plastic', background: '#ffd60a' })
+    expect({ icon: glass.icon, background: glass.background }).toEqual({ icon: 'glass', background: '#248a3d' })
+    expect({ icon: paper.icon, background: paper.background }).toEqual({ icon: 'paper', background: '#ffffff' })
+    expect({ icon: general.icon, background: general.background }).toEqual({ icon: 'general', background: '#1d1d1f' })
+  })
 })
