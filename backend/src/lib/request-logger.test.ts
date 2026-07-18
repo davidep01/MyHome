@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { safeRequestLogPath } from './request-logger.js'
+import { isQuietRequest, safeRequestLogPath } from './request-logger.js'
 
 describe('safe request logging', () => {
   it('never records query strings containing signed media parameters', () => {
@@ -13,5 +13,13 @@ describe('safe request logging', () => {
     expect(value).toBe('/api/ha/hls/[redacted]')
     expect(value).not.toContain('secret')
     expect(safeRequestLogPath('http://myhome.local/api/ha/hls%2Fsigned-secret')).toBe('/api/ha/hls/[redacted]')
+  })
+})
+
+describe('quiet request logging', () => {
+  it('silenzia soltanto la lettura frequente dello stato test allarme', () => {
+    expect(isQuietRequest('GET', '/api/alarm/test')).toBe(true)
+    expect(isQuietRequest('POST', '/api/alarm/test')).toBe(false)
+    expect(isQuietRequest('GET', '/api/alarm/photos')).toBe(false)
   })
 })

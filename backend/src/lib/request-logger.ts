@@ -25,12 +25,19 @@ function elapsed(startedAt: number): string {
   return duration < 1_000 ? `${duration}ms` : `${Math.round(duration / 1_000)}s`
 }
 
+/** Endpoint di sincronizzazione frequente: i 2xx sono attesi e non utili nel log. */
+export function isQuietRequest(method: string, path: string): boolean {
+  return method === 'GET' && path === '/api/alarm/test'
+}
+
 /** Minimal request logger that cannot persist signed URLs or query secrets. */
 export const safeRequestLogger: MiddlewareHandler = async (c, next) => {
   const method = c.req.method
   const path = safeRequestLogPath(c.req.url)
-  console.log(`<-- ${method} ${path}`)
+  const quiet = isQuietRequest(method, path)
+  if (!quiet) console.log(`<-- ${method} ${path}`)
   const startedAt = Date.now()
   await next()
-  console.log(`--> ${method} ${path} ${c.res.status} ${elapsed(startedAt)}`)
+  // Gli errori restano sempre visibili, anche per gli endpoint ad alta frequenza.
+  if (!quiet || c.res.status >= 400) console.log(`--> ${method} ${path} ${c.res.status} ${elapsed(startedAt)}`)
 }

@@ -17,6 +17,11 @@ import {
 import { cn } from '../../lib/utils'
 import { entityName } from './utils/mapEntityToWidgetCard'
 import { useUIStore } from '../../store/ui'
+import { cameraWebRtcHealth } from '../../lib/cameraWebRtcHealth'
+import {
+  createSerialIceCandidateSender,
+  type SerialIceCandidateSender,
+} from '../../lib/serialIceCandidateSender'
 
 interface CameraStreamProps {
   entityId: string
@@ -97,6 +102,7 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
     let peer: RTCPeerConnection | null = null
     let eventSource: EventSource | null = null
     let webRtcSessionId: string | null = null
+    let localCandidateSender: SerialIceCandidateSender | null = null
     let webRtcWatchdog: ReturnType<typeof setTimeout> | null = null
     let liveWatchdog: ReturnType<typeof setTimeout> | null = null
     let stallTimer: ReturnType<typeof setTimeout> | null = null
@@ -158,6 +164,8 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
       webRtcWatchdog = null
       eventSource?.close()
       eventSource = null
+      localCandidateSender?.stop()
+      localCandidateSender = null
       peer?.close()
       peer = null
       if (webRtcSessionId) {
@@ -262,6 +270,7 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
     const startWebRtc = async () => {
       const video = streamVideo
       if (!video || typeof RTCPeerConnection === 'undefined') return startFallback()
+      if (!cameraWebRtcHealth.canAttempt(entityId)) return startFallback()
       try {
         const capabilities = await haApi.cameraCapabilities(entityId)
         if (cancelled || settled) return
@@ -278,6 +287,7 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
         const firstFrame = () => {
           if (cancelled || settled) return
           settled = true
+          cameraWebRtcHealth.recordSuccess(entityId)
           if (webRtcWatchdog) clearTimeout(webRtcWatchdog)
           setMode('webrtc')
           stopWatchingPlayback = watchPlayback(video)
@@ -295,7 +305,7 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
           if (!event.candidate?.candidate) return
           const candidate = event.candidate.toJSON()
           if (!webRtcSessionId) pendingLocalCandidates.push(candidate)
-          else void haApi.cameraWebRtcCandidate(webRtcSessionId, candidate).catch(() => {})
+          else localCandidateSender?.enqueue(candidate)
         }
         peer.onconnectionstatechange = () => {
           if (!peer || cancelled) return
@@ -315,8 +325,15 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
           return
         }
         webRtcSessionId = session.sessionId
+        localCandidateSender = createSerialIceCandidateSender(
+          (candidate) => haApi.cameraWebRtcCandidate(session.sessionId, candidate),
+          () => {
+            cameraWebRtcHealth.recordFailure(entityId)
+            if (!cancelled && !settled) startFallback()
+          },
+        )
         for (const candidate of pendingLocalCandidates.splice(0)) {
-          void haApi.cameraWebRtcCandidate(session.sessionId, candidate).catch(() => {})
+          localCandidateSender.enqueue(candidate)
         }
 
         let signalChain = Promise.resolve()

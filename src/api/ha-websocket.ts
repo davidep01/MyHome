@@ -185,7 +185,6 @@ export function disconnectHAProxy() {
  */
 export async function connectHAStream(): Promise<void> {
   manuallyClosed = false
-  startAlarmTestSync()
   const disabled = typeof localStorage !== 'undefined' && localStorage.getItem('myhome.haStream') === 'off'
   if (typeof EventSource === 'undefined' || disabled) {
     await connectHAProxy()
@@ -205,6 +204,14 @@ export async function connectHAStream(): Promise<void> {
     connectHAProxy().catch(() => {})
   }
   const fallback = setTimeout(() => { if (!gotData) toPoll() }, 6000)
+
+  es.addEventListener('ready', () => {
+    // Il backend idrata sempre un test attivo quando registra il subscriber;
+    // finché SSE è vivo il polling REST ogni 1,5 s sarebbe solo duplicato.
+    gotData = true
+    clearTimeout(fallback)
+    stopAlarmTestSync()
+  })
 
   es.addEventListener('states', (event) => {
     gotData = true
