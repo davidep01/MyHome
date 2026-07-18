@@ -23,6 +23,7 @@ import { HoldDangerAction } from '../controls/HoldDangerAction'
 import { isWasteCollectionSensor } from '../../lib/wasteCollection'
 import { WasteCollectionCard } from './WasteCollectionCard'
 import { mediaArtworkRevision } from '../../lib/mediaArtwork'
+import { shouldRenderCameraStream } from './utils/cameraCardStream'
 
 interface Props {
   entity: RoomEntity
@@ -82,9 +83,9 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
   const visibleArtworkUrl = failedArtworkUrl === artworkUrl ? undefined : artworkUrl
   const dominant = useDominantColor(artworkUrl)
   const mediaAccent = dominant ?? mapped.accentColor
-  // Il live nel corpo card ha senso da M in su: su S resta l'icona animata.
-  const liveCamera = (mapped.family === 'camera' || mapped.family === 'doorbell')
-    && size !== 'S' && !unavailable
+  // Il live riempie qualsiasi footprint S/M/L/XL; CameraStream sospende da sé
+  // le tile fuori viewport o coperte dal full screen.
+  const liveCamera = shouldRenderCameraStream(mapped.family, size, unavailable)
 
   /** One in-flight command per card: optimistic start, visible rollback, no double submit. */
   const perform = (
