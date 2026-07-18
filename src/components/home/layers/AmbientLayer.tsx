@@ -10,6 +10,11 @@ import { WeatherIcon } from '../../weather/WeatherIcon'
 import { screensaverApi, type KioskSettings } from '../../../api/backend'
 import { KIOSK_ACTIVITY_EVENT, reportKioskScreensaver } from '../../../lib/kioskActivity'
 import { BRAND_EXPANDED, BRAND_NAME } from '../../../lib/brand'
+import {
+  centeredKenBurnsMove,
+  photoOrientation,
+  type PhotoOrientation,
+} from '../../../lib/screensaverPhoto'
 
 const DEFAULT_IDLE_SECONDS = 180
 const DEFAULT_SLIDE_SECONDS = 20
@@ -144,12 +149,6 @@ export function AmbientLayer({
   )
 }
 
-const PHOTO_MOVES: { scale: number[]; x: string[]; y: string[] }[] = [
-  { scale: [1.03, 1.12], x: ['-1.5%', '1.5%'], y: ['-0.8%', '0.8%'] },
-  { scale: [1.12, 1.03], x: ['1.4%', '-1.4%'], y: ['1%', '-1%'] },
-  { scale: [1.04, 1.13], x: ['0.5%', '-1.5%'], y: ['1.2%', '-0.7%'] },
-]
-
 function AmbientContent({ slideSeconds }: { slideSeconds: number }) {
   const { time, date } = useClock()
   const { data: weather } = useCurrentWeather()
@@ -184,34 +183,17 @@ function AmbientContent({ slideSeconds }: { slideSeconds: number }) {
   const dim = lastLux != null && lastLux < 5
   const visibleIndex = photos.length ? photoIndex % photos.length : 0
   const photo = photos[visibleIndex]
-  const movement = PHOTO_MOVES[visibleIndex % PHOTO_MOVES.length]
 
   return (
     <>
       <AnimatePresence initial={false}>
         {photo && (
-          <motion.img
+          <AmbientPhoto
             key={photo.url}
             src={photo.url}
-            alt=""
-            aria-hidden="true"
-            draggable={false}
-            decoding="async"
-            className="absolute inset-[-5%] h-[110%] w-[110%] transform-gpu object-cover will-change-transform"
-            initial={{ opacity: 0, scale: reduceMotion ? 1.03 : movement.scale[0] }}
-            animate={{
-              opacity: 1,
-              scale: reduceMotion ? 1.03 : movement.scale,
-              x: reduceMotion ? 0 : movement.x,
-              y: reduceMotion ? 0 : movement.y,
-            }}
-            exit={{ opacity: 0 }}
-            transition={{
-              opacity: { duration: reduceMotion ? 0.15 : Math.min(2.8, slideSeconds / 4) },
-              scale: { duration: slideSeconds + 1, ease: 'linear' },
-              x: { duration: slideSeconds + 1, ease: 'linear' },
-              y: { duration: slideSeconds + 1, ease: 'linear' },
-            }}
+            index={visibleIndex}
+            slideSeconds={slideSeconds}
+            reduceMotion={Boolean(reduceMotion)}
           />
         )}
       </AnimatePresence>
@@ -243,5 +225,65 @@ function AmbientContent({ slideSeconds }: { slideSeconds: number }) {
         </span>
       )}
     </>
+  )
+}
+
+function AmbientPhoto({
+  src,
+  index,
+  slideSeconds,
+  reduceMotion,
+}: {
+  src: string
+  index: number
+  slideSeconds: number
+  reduceMotion: boolean
+}) {
+  const [orientation, setOrientation] = useState<PhotoOrientation>('unknown')
+  const movement = centeredKenBurnsMove(index, orientation)
+  const duration = slideSeconds + 1
+
+  return (
+    <motion.div
+      className="absolute inset-0 overflow-hidden bg-[#070709]"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: reduceMotion ? 0.15 : Math.min(2.8, slideSeconds / 4) }}
+    >
+      {/* Il fondale riempie sempre il display. È volutamente sfocato perché la
+          foto principale possa restare intera anche quando è verticale. */}
+      <motion.img
+        src={src}
+        alt=""
+        aria-hidden="true"
+        draggable={false}
+        decoding="async"
+        className="absolute inset-[-5%] h-[110%] w-[110%] transform-gpu object-cover object-center opacity-75 blur-2xl will-change-transform"
+        animate={{
+          scale: reduceMotion ? 1.08 : movement.backdropScale,
+          x: reduceMotion ? 0 : movement.x,
+          y: reduceMotion ? 0 : movement.y,
+        }}
+        transition={{ scale: { duration, ease: 'linear' }, x: { duration, ease: 'linear' }, y: { duration, ease: 'linear' } }}
+      />
+      {/* La foto leggibile usa contain: nessun bordo destro o volto viene
+          tagliato. Il lieve zoom parte sotto il 100% e termina al centro. */}
+      <motion.img
+        src={src}
+        alt=""
+        aria-hidden="true"
+        draggable={false}
+        decoding="async"
+        onLoad={(event) => setOrientation(photoOrientation(event.currentTarget.naturalWidth, event.currentTarget.naturalHeight))}
+        className="absolute inset-0 h-full w-full transform-gpu object-contain object-center will-change-transform"
+        animate={{
+          scale: reduceMotion ? 1 : movement.foregroundScale,
+          x: reduceMotion ? 0 : movement.x,
+          y: reduceMotion ? 0 : movement.y,
+        }}
+        transition={{ scale: { duration, ease: 'linear' }, x: { duration, ease: 'linear' }, y: { duration, ease: 'linear' } }}
+      />
+    </motion.div>
   )
 }
