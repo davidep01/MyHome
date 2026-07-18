@@ -1,4 +1,4 @@
-import { Baby, BottleWine, CupSoda, Leaf, Newspaper, Recycle, Trash2, type LucideIcon } from 'lucide-react'
+import { BottleWine, CupSoda, Leaf, Newspaper, Recycle, Trash2, type LucideIcon } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import type { HassEntity } from 'home-assistant-js-websocket'
 import {
@@ -53,7 +53,6 @@ const WASTE_ICONS: Record<WasteIconKey, LucideIcon> = {
   paper: Newspaper,
   organic: Leaf,
   garden: Leaf,
-  napkins: Baby,
   other: Recycle,
 }
 

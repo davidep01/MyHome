@@ -12,7 +12,7 @@ export interface WasteKind {
   background: string
 }
 
-export type WasteIconKey = 'general' | 'plastic' | 'glass' | 'paper' | 'organic' | 'garden' | 'napkins' | 'other'
+export type WasteIconKey = 'general' | 'plastic' | 'glass' | 'paper' | 'organic' | 'garden' | 'other'
 
 export interface WastePickup {
   dateKey: string
@@ -22,13 +22,17 @@ export interface WastePickup {
 
 const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/
 const DAY_MS = 24 * 60 * 60 * 1_000
-const IGNORED_WASTE_ITEMS = [/^grass clippings?$/i]
+const IGNORED_WASTE_ITEMS = [
+  /^grass clippings?$/i,
+  /napkins?/i,
+  /pannolin/i,
+  /pannolon/i,
+]
 
 const WASTE_KINDS: Array<{ match: RegExp; kind: WasteKind }> = [
   { match: /general waste(?: collection)?|indifferenziat|secco residuo/i, kind: { key: 'general', label: 'Indifferenziato', icon: 'general', color: '#ffffff', background: '#1d1d1f' } },
   { match: /sfalci|potature/i, kind: { key: 'garden', label: 'Sfalci e potature', icon: 'garden', color: '#ffffff', background: '#218739' } },
   { match: /organic waste|organico|umido/i, kind: { key: 'organic', label: 'Organico', icon: 'organic', color: '#ffffff', background: '#7a9a20' } },
-  { match: /napkins|pannolin/i, kind: { key: 'napkins', label: 'Pannolini', icon: 'napkins', color: '#ffffff', background: '#7c3aed' } },
   { match: /plastic(?:.*metal)?|plastica(?:.*metall)?|metalli?/i, kind: { key: 'plastic', label: 'Plastica', icon: 'plastic', color: '#5f4600', background: '#ffd60a' } },
   { match: /glass|vetro/i, kind: { key: 'glass', label: 'Vetro', icon: 'glass', color: '#ffffff', background: '#248a3d' } },
   { match: /paper(?:.*cardboard)?|cardboard|carta(?:.*cartone)?|cartone/i, kind: { key: 'paper', label: 'Carta', icon: 'paper', color: '#1d1d1f', background: '#ffffff' } },

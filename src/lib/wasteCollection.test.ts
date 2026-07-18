@@ -32,7 +32,6 @@ describe('Waste Collection Schedule adapter', () => {
 
   it('translates the collection types exposed by the integration', () => {
     expect(wasteItemsFromText('Grass clippings, Napkins, Organic waste').map((item) => item.label)).toEqual([
-      'Pannolini',
       'Organico',
     ])
   })
@@ -41,6 +40,14 @@ describe('Waste Collection Schedule adapter', () => {
     expect(wasteItemsFromText('Grass clipping')).toEqual([])
     expect(wasteItemsFromText('Grass clippings')).toEqual([])
     expect(wastePickups({ '2026-07-18': 'Grass clippings' }, '2026-07-18')).toEqual([])
+  })
+
+  it('excludes pannolini and napkins from every waste pickup', () => {
+    expect(wasteItemsFromText('Pannolini')).toEqual([])
+    expect(wasteItemsFromText('Napkins')).toEqual([])
+    expect(wasteItemsFromText('Pannoloni')).toEqual([])
+    expect(wastePickups({ '2026-07-18': 'Pannolini' }, '2026-07-18')).toEqual([])
+    expect(wasteItemsFromText('Pannolini, Plastic and metals').map((item) => item.label)).toEqual(['Plastica'])
   })
 
   it('assigns a distinct icon and the requested collection color to each main material', () => {
