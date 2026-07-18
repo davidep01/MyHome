@@ -16,6 +16,7 @@ import { shouldRecognizeDoorbell } from '../../lib/doorbellRecognition'
 import { entityName } from '../widgets/utils/mapEntityToWidgetCard'
 import { visibleShortcuts } from '../../lib/actionShortcuts'
 import { ShortcutActionButton } from '../controls/ShortcutActionButton'
+import { useUIStore } from '../../store/ui'
 
 type Recog = { status: 'scanning' | 'done' | 'error'; name?: string; known?: boolean }
 type Tone = 'scan' | 'known' | 'unknown' | 'none' | 'error'
@@ -64,10 +65,16 @@ export function DoorbellAlert({ kiosk = false, doorbells, vision = false }: { ki
   const camera = entities[cameraEntityId]
   const hasCamera = Boolean(camera) && camera?.state !== 'unavailable'
   const [recog, setRecog] = useState<Recog | null>(null)
+  const setFullscreenCamera = useUIStore((s) => s.setFullscreenCamera)
 
   useEffect(() => {
-    if (ringing) markKioskActivity()
-  }, [ringing, ringAt])
+    if (ringing) {
+      // Il campanello ha priorità sul live aperto manualmente e ne riusa il
+      // budget WebRTC invece di lasciare due sessioni Ring contemporanee.
+      setFullscreenCamera(null)
+      markKioskActivity()
+    }
+  }, [ringing, ringAt, setFullscreenCamera])
 
   const personNames = useMemo(
     () => Object.values(entities)
@@ -106,7 +113,7 @@ export function DoorbellAlert({ kiosk = false, doorbells, vision = false }: { ki
         >
           {hasCamera ? (
             <div className="absolute inset-0">
-              <CameraStream entityId={cameraEntityId} fit="contain" muted preferLive badge />
+              <CameraStream entityId={cameraEntityId} fit="contain" muted preferLive badge priority />
             </div>
           ) : (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[#111]">
@@ -197,7 +204,7 @@ export function DoorbellAlert({ kiosk = false, doorbells, vision = false }: { ki
               </div>
             )}
             {visibleShortcuts(active?.device.shortcuts).length > 0 && (
-              <div className="flex flex-wrap gap-3">
+              <div className="flex shrink-0 flex-wrap gap-3" aria-label="Azione campanello configurata">
                 {visibleShortcuts(active?.device.shortcuts).map((shortcut) => (
                   <ShortcutActionButton key={shortcut.id} shortcut={shortcut} />
                 ))}

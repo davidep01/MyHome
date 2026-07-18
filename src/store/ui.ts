@@ -33,18 +33,23 @@ interface UIStore {
   activeView: AppView
   /** Entity shown in the on-demand contextual side panel (null = default weather/news panel). */
   selectedEntityId: string | null
+  /** Camera rendered in the dedicated viewport-filling live overlay. */
+  fullscreenCameraId: string | null
   /** True while the user is arranging the custom tile layout (drag/resize). */
   editMode: boolean
   setActiveView: (view: AppView) => void
   setSelectedEntity: (entityId: string | null) => void
+  setFullscreenCamera: (entityId: string | null) => void
   setEditMode: (on: boolean) => void
 }
 
 export const useUIStore = create<UIStore>((set) => ({
   activeView: viewFromPath(window.location.pathname),
   selectedEntityId: null,
+  fullscreenCameraId: null,
   editMode: false,
-  setActiveView: (activeView) => set({ activeView, selectedEntityId: null, editMode: false }),
+  setActiveView: (activeView) => set({ activeView, selectedEntityId: null, fullscreenCameraId: null, editMode: false }),
   setSelectedEntity: (selectedEntityId) => set({ selectedEntityId }),
+  setFullscreenCamera: (fullscreenCameraId) => set({ fullscreenCameraId }),
   setEditMode: (editMode) => set({ editMode }),
 }))

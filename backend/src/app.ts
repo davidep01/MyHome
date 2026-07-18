@@ -15,6 +15,7 @@ import { authRouter } from './routes/auth.js'
 import { screensaverRouter } from './routes/screensaver.js'
 import { alarmRouter } from './routes/alarm.js'
 import { kioskRouter } from './routes/kiosk.js'
+import { calendarRouter } from './routes/calendar.js'
 import { authenticateRequest, authConfiguration } from './lib/security.js'
 import { db } from './db/client.js'
 import { safeRequestLogger } from './lib/request-logger.js'
@@ -57,6 +58,7 @@ app.route('/api/rooms', roomsRouter)
 app.route('/api/rooms/:roomId/entities', entitiesRouter)
 app.route('/api/weather', weatherRouter)
 app.route('/api/news', newsRouter)
+app.route('/api/calendar', calendarRouter)
 app.route('/api/ha', haRouter)
 app.route('/api/ai', aiRouter)
 app.route('/api/system', systemRouter)

@@ -1,4 +1,4 @@
-import type { AppConfig, DoorbellDevice } from '../api/backend'
+import type { ActionShortcut, AppConfig, DoorbellDevice } from '../api/backend'
 
 /** States considered "ringing" for binary_sensor-style doorbells. */
 export const DOORBELL_ACTIVE_STATES = ['on', 'ringing', 'detected', 'pressed']
@@ -24,4 +24,23 @@ export function normalizeDoorbells(config?: AppConfig): DoorbellDevice[] {
     }]
   }
   return []
+}
+
+/** Actions configured for the doorbell that owns a given camera live view. */
+export function cameraDoorbellShortcuts(
+  doorbells: DoorbellDevice[] | undefined,
+  cameraEntityId: string,
+): ActionShortcut[] {
+  const seen = new Set<string>()
+  const shortcuts: ActionShortcut[] = []
+  for (const doorbell of doorbells ?? []) {
+    if (doorbell.active === false || doorbell.cameraEntityId !== cameraEntityId) continue
+    for (const shortcut of doorbell.shortcuts ?? []) {
+      const key = shortcut.id || `${shortcut.entityId}:${shortcut.label}`
+      if (seen.has(key)) continue
+      seen.add(key)
+      shortcuts.push(shortcut)
+    }
+  }
+  return shortcuts
 }

@@ -16,6 +16,7 @@ import {
 } from '../../api/ha-rest'
 import { cn } from '../../lib/utils'
 import { entityName } from './utils/mapEntityToWidgetCard'
+import { useUIStore } from '../../store/ui'
 
 interface CameraStreamProps {
   entityId: string
@@ -31,6 +32,8 @@ interface CameraStreamProps {
   preferLive?: boolean
   /** Pill di stato (LIVE / FOTO) nell'angolo — per le card. */
   badge?: boolean
+  /** Stream di overlay che resta attivo mentre le anteprime dietro sono sospese. */
+  priority?: boolean
 }
 
 /**
@@ -62,10 +65,12 @@ const WEBRTC_NEGOTIATION_MS = 18_000
 const LIVE_RETRY_MS = 12_000
 const STALL_RETRY_MS = 10_000
 
-export function CameraStream({ entityId, fit = 'cover', className, muted = true, preferLive = false, badge = false }: CameraStreamProps) {
+export function CameraStream({ entityId, fit = 'cover', className, muted = true, preferLive = false, badge = false, priority = false }: CameraStreamProps) {
   const entity = useHAEntity(entityId)
   const videoRef = useRef<HTMLVideoElement>(null)
   const { ref: containerRef, active } = useActiveWhenVisible<HTMLDivElement>()
+  const fullscreenCameraId = useUIStore((s) => s.fullscreenCameraId)
+  const streamActive = active && (priority || !fullscreenCameraId)
   const [mode, setMode] = useState<Mode>('connecting')
   const [snap, setSnap] = useState('')
   const [placeholder, setPlaceholder] = useState('')
@@ -85,7 +90,7 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
   useEffect(() => {
     if (unavailable) { setMode('error'); return }
     // Fuori dallo schermo o display spento → nessun flusso attivo.
-    if (!active) { setMode('paused'); return }
+    if (!streamActive) { setMode('paused'); return }
 
     let cancelled = false
     let hls: Hls | null = null
@@ -363,7 +368,7 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
         streamVideo.load()
       }
     }
-  }, [entityId, previewEntityId, previewAvailable, preferLive, unavailable, active, retryKey, muted])
+  }, [entityId, previewEntityId, previewAvailable, preferLive, unavailable, streamActive, retryKey, muted])
 
   // ── Snapshot polling — solo quando nessun flusso live è disponibile ──
   useEffect(() => {

@@ -24,6 +24,7 @@ import { useEmergencyMode } from '../../hooks/useEmergencyMode'
 import { useKioskHeartbeat } from '../../hooks/useKioskHeartbeat'
 import { useTimeOfDay } from '../../hooks/useTimeOfDay'
 import { BRAND_NAME } from '../../lib/brand'
+import { FullscreenCameraOverlay } from '../system/FullscreenCameraOverlay'
 
 // Le viste regia sono lazy: il kiosk (percorso primario) carica solo
 // TabletDashboard; il desktop scarica ogni pagina al primo accesso.
@@ -122,6 +123,7 @@ function NotFoundPage() {
 function DesktopShell({ path }: { path: string }) {
   const activeView = useUIStore((s) => s.activeView)
   const selectedEntityId = useUIStore((s) => s.selectedEntityId)
+  const fullscreenCameraId = useUIStore((s) => s.fullscreenCameraId)
   const setSelectedEntity = useUIStore((s) => s.setSelectedEntity)
   const criticalAlerts = useCriticalAlerts()
   const { data: layout } = useTabletLayout('home')
@@ -196,6 +198,8 @@ function DesktopShell({ path }: { path: string }) {
       {/* Doorbell → fullscreen video alert */}
       <DoorbellAlert doorbells={layout?.doorbells ?? []} vision={layout?.ai?.doorbellVision === true} />
 
+      {fullscreenCameraId && <FullscreenCameraOverlay entityId={fullscreenCameraId} doorbells={layout?.doorbells} />}
+
       <CriticalEventOverlay alerts={criticalAlerts} shortcuts={layout?.alarm?.shortcuts} />
     </div>
   )
@@ -203,6 +207,7 @@ function DesktopShell({ path }: { path: string }) {
 
 function KioskShell() {
   const selectedEntityId = useUIStore((s) => s.selectedEntityId)
+  const fullscreenCameraId = useUIStore((s) => s.fullscreenCameraId)
   const setSelectedEntity = useUIStore((s) => s.setSelectedEntity)
   const { data: layout } = useTabletLayout('home')
   const criticalAlerts = useCriticalAlerts()
@@ -244,10 +249,11 @@ function KioskShell() {
       <AmbientLayer
         wakeEntityId={layout?.kiosk?.wakeEntityId}
         settings={layout?.kiosk?.screensaver}
-        forceWake={criticalAlerts.length > 0}
+        forceWake={criticalAlerts.length > 0 || Boolean(fullscreenCameraId)}
       />
 
       <DoorbellAlert kiosk doorbells={layout?.doorbells ?? []} vision={layout?.ai?.doorbellVision === true} />
+      {fullscreenCameraId && <FullscreenCameraOverlay entityId={fullscreenCameraId} doorbells={layout?.doorbells} />}
       <CriticalEventOverlay alerts={criticalAlerts} shortcuts={layout?.alarm?.shortcuts} />
     </div>
   )

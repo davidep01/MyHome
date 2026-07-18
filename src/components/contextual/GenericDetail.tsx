@@ -1,13 +1,14 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import type { HassEntity } from 'home-assistant-js-websocket'
 import {
-  ChevronDown, ChevronUp, Home, Lock, LockOpen, MapPin, Pause, Play, Power, Square,
+  ChevronDown, ChevronUp, Home, Lock, LockOpen, MapPin, Maximize2, Pause, Play, Power, Square,
 } from 'lucide-react'
 import { callService } from '../../api/ha-websocket'
 import { CameraStream } from '../widgets/CameraStream'
 import { stateLabel } from '../widgets/utils/stateLabel'
 import { entityName } from '../widgets/utils/mapEntityToWidgetCard'
 import { useEntityStore } from '../../store/entities'
+import { useUIStore } from '../../store/ui'
 import { useHaptic } from '../../hooks/useHaptic'
 import { useActionFeedback } from '../../hooks/useActionFeedback'
 import { cn } from '../../lib/utils'
@@ -22,6 +23,8 @@ import { HoldDangerAction } from '../controls/HoldDangerAction'
 export function GenericDetail({ entity }: { entity: HassEntity }) {
   const domain = entity.entity_id.split('.')[0]
   const setOptimisticState = useEntityStore((s) => s.setOptimisticState)
+  const setSelectedEntity = useUIStore((s) => s.setSelectedEntity)
+  const setFullscreenCamera = useUIStore((s) => s.setFullscreenCamera)
   const { light: hLight, medium, heavy } = useHaptic()
   const { feedbackClass, actionFailed } = useActionFeedback()
   const unavailable = entity.state === 'unavailable'
@@ -312,8 +315,19 @@ export function GenericDetail({ entity }: { entity: HassEntity }) {
       )}
 
       {domain === 'camera' && (
-        <div className="h-[220px] overflow-hidden rounded-[16px]">
+        <div className="relative h-[220px] overflow-hidden rounded-[16px]">
           <CameraStream entityId={entity.entity_id} fit="cover" badge />
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedEntity(null)
+              setFullscreenCamera(entity.entity_id)
+            }}
+            className="absolute right-3 top-3 z-20 flex min-h-11 items-center gap-2 rounded-full bg-black/55 px-4 text-sm font-semibold text-white backdrop-blur transition active:scale-95"
+            aria-label={`Apri ${entityName(entity)} a schermo intero`}
+          >
+            <Maximize2 size={17} aria-hidden="true" /> Schermo intero
+          </button>
         </div>
       )}
 

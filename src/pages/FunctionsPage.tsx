@@ -1,7 +1,7 @@
 import { useId, useMemo, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
-  Bell, Cloud, Gauge, Images, LayoutGrid, MonitorSmartphone, Newspaper, Pencil, Plus, RefreshCw, Save, ScanFace, Siren, Sparkles, SunMoon, Trash2, Volume2, VolumeX,
+  Bell, CalendarDays, Cloud, Gauge, Images, LayoutGrid, MonitorSmartphone, Newspaper, Pencil, Plus, RefreshCw, Save, ScanFace, Siren, Sparkles, SunMoon, Trash2, Volume2, VolumeX,
 } from 'lucide-react'
 import { GlassCard } from '../components/glass/GlassCard'
 import { GlassSheet } from '../components/glass/GlassSheet'
@@ -84,7 +84,8 @@ function FeatureHeader({ Icon, title, badge, tone = 'neutral' }: { Icon: React.E
 function PreferencesCard() {
   const { data: config } = useDashboardConfig()
   const { mutate: update, isPending } = useUpdateConfig()
-  const [form, setForm] = useState<{ userName: string; dashboardName: string; weatherCity: string; newsFeedUrl: string } | null>(null)
+  const queryClient = useQueryClient()
+  const [form, setForm] = useState<{ userName: string; dashboardName: string; weatherCity: string; newsFeedUrl: string; calendarFeedUrl: string } | null>(null)
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null)
   const id = useId()
 
@@ -94,6 +95,7 @@ function PreferencesCard() {
     dashboardName: config.dashboardName,
     weatherCity: config.weatherCity,
     newsFeedUrl: config.newsFeedUrl,
+    calendarFeedUrl: config.calendarFeedUrl ?? '',
   }
 
   const readOnly = config.storage?.writable === false
@@ -122,13 +124,26 @@ function PreferencesCard() {
       </div>
       {field('weatherCity', 'Città meteo', 'es. Milan,IT')}
       {field('newsFeedUrl', 'Feed RSS news', 'https://…/rss.xml', 'url')}
+      <div className="rounded-[14px] bg-violet-500/[0.07] p-3">
+        <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-violet-800/75">
+          <CalendarDays size={15} /> Calendario eventi
+        </div>
+        {field('calendarFeedUrl', 'Link pubblico iCalendar / ICS', 'webcal://… o https://…/calendar.ics')}
+        <p className="mt-2 text-[11px] leading-relaxed text-black/40">
+          Usa il link di pubblicazione in sola lettura fornito da Apple, Google, Outlook o dal tuo calendario.
+        </p>
+      </div>
       <button
         type="button"
         onClick={() => {
           if (!form) return
           setMessage(null)
           update(form, {
-            onSuccess: () => { setForm(null); setMessage({ ok: true, text: 'Preferenze salvate.' }) },
+            onSuccess: () => {
+              setForm(null)
+              void queryClient.invalidateQueries({ queryKey: ['calendar-events'] })
+              setMessage({ ok: true, text: 'Preferenze salvate.' })
+            },
             onError: () => setMessage({ ok: false, text: 'Salvataggio non riuscito. Riprova.' }),
           })
         }}

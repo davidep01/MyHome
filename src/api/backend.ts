@@ -81,6 +81,20 @@ export const screensaverApi = {
   list: () => request<ScreensaverList>('/screensaver'),
 }
 
+export interface LinkedCalendarEvent {
+  id: string
+  title: string
+  start: string
+  end: string
+  allDay: boolean
+  calendar: string
+  location?: string
+}
+
+export const calendarApi = {
+  events: () => request<{ configured: boolean; events: LinkedCalendarEvent[] }>('/calendar'),
+}
+
 // ── Config ─────────────────────────────────────────────────────────────────
 
 export interface AppConfig {
@@ -101,6 +115,8 @@ export interface AppConfig {
   weatherCity: string
   newsCategory: string
   newsFeedUrl: string
+  /** Link pubblico iCalendar/ICS mostrato nel widget Calendario. */
+  calendarFeedUrl?: string
   userName: string
   dashboardName: string
   hiddenEntities?: string[]

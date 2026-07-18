@@ -26,6 +26,8 @@ export interface AppConfig {
   weatherCity: string
   newsCategory: string
   newsFeedUrl: string
+  /** Link pubblico iCalendar/ICS mostrato nel widget Calendario. */
+  calendarFeedUrl?: string
   userName: string
   dashboardName: string
   /** HA entity IDs excluded from the auto-discovered dashboard (admin-managed). */

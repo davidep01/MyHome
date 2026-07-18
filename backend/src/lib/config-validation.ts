@@ -14,6 +14,7 @@ type Result = { ok: true; value: Partial<AppConfig> } | { ok: false; error: stri
 
 const ALLOWED_KEYS = new Set<keyof AppConfig>([
   'haUrl', 'haToken', 'weatherCity', 'newsCategory', 'newsFeedUrl', 'userName',
+  'calendarFeedUrl',
   'dashboardName', 'hiddenEntities', 'deviceOverrides', 'forceCelsius',
   'advancedMode', 'doorbell', 'doorbells', 'groups', 'home', 'dashboardLayout',
   'kiosk', 'alarm', 'ai',
@@ -60,6 +61,19 @@ export function isAllowedScreensaverSourceUrl(value: unknown): value is string {
       && SCREENSAVER_SOURCE_HOSTS.has(url.hostname.toLowerCase())
   } catch {
     return false
+  }
+}
+
+export function normalizeCalendarFeedUrl(value: unknown): string | null {
+  if (typeof value !== 'string' || value.length > 2_048) return null
+  const trimmed = value.trim()
+  if (!trimmed) return ''
+  try {
+    const url = new URL(trimmed.replace(/^webcal:\/\//i, 'https://'))
+    if (url.protocol !== 'https:' || url.username || url.password || url.hash) return null
+    return url.toString()
+  } catch {
+    return null
   }
 }
 
@@ -217,6 +231,11 @@ export function validateConfigPatch(input: unknown): Result {
       if (url.protocol !== 'https:' || url.username || url.password) throw new Error('invalid')
       value.newsFeedUrl = url.toString()
     } catch { return { ok: false, error: 'Il feed RSS deve essere un URL HTTPS valido' } }
+  }
+  if (input.calendarFeedUrl !== undefined) {
+    const calendarFeedUrl = normalizeCalendarFeedUrl(input.calendarFeedUrl)
+    if (calendarFeedUrl === null) return { ok: false, error: 'Il calendario deve essere un link iCalendar/ICS HTTPS valido' }
+    value.calendarFeedUrl = calendarFeedUrl
   }
   if (input.haUrl !== undefined) {
     if (typeof input.haUrl !== 'string') return { ok: false, error: 'URL Home Assistant non valido' }
