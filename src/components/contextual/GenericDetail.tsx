@@ -11,6 +11,7 @@ import { useEntityStore } from '../../store/entities'
 import { useHaptic } from '../../hooks/useHaptic'
 import { useActionFeedback } from '../../hooks/useActionFeedback'
 import { cn } from '../../lib/utils'
+import { isSensitiveEntityAttribute } from '../../lib/entityAttributes'
 import { HoldDangerAction } from '../controls/HoldDangerAction'
 
 /**
@@ -564,7 +565,8 @@ const NOISY_ATTRS = new Set([
 
 function AttributesCard({ entity }: { entity: HassEntity }) {
   const rows = Object.entries(entity.attributes ?? {})
-    .filter(([k, v]) => !NOISY_ATTRS.has(k) && (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean'))
+    .filter(([k, v]) => !NOISY_ATTRS.has(k) && !isSensitiveEntityAttribute(k)
+      && (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean'))
     .slice(0, 10)
 
   return (

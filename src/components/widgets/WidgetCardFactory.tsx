@@ -8,6 +8,7 @@ import { useHaptic } from '../../hooks/useHaptic'
 import { useActionFeedback } from '../../hooks/useActionFeedback'
 import { useDominantColor } from '../../hooks/useDominantColor'
 import { cn } from '../../lib/utils'
+import { linkedMediaPlayerEntityId } from '../../lib/mediaEntity'
 import { useEntityStore } from '../../store/entities'
 import { useUIStore } from '../../store/ui'
 import {
@@ -42,8 +43,16 @@ const MEDIA_FAMILIES = new Set(['media', 'speaker', 'tv'])
 const COVER_FAMILIES = new Set(['cover', 'curtain', 'gate', 'garage'])
 
 export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, isEditing, isDragging }: Props) {
-  const entity = useHAEntity(roomEntity.entityId)
-  const mapped = useMemo(() => mapEntityToWidgetCard(entity, roomEntity), [entity, roomEntity])
+  const sourceEntity = useHAEntity(roomEntity.entityId)
+  const linkedMediaId = linkedMediaPlayerEntityId(roomEntity.entityId, roomEntity.type)
+  const linkedMediaEntity = useHAEntity(linkedMediaId ?? roomEntity.entityId)
+  const entityId = linkedMediaId && linkedMediaEntity ? linkedMediaId : roomEntity.entityId
+  const entity = linkedMediaId && linkedMediaEntity ? linkedMediaEntity : sourceEntity
+  const effectiveRoomEntity = useMemo(
+    () => entityId === roomEntity.entityId ? roomEntity : { ...roomEntity, entityId },
+    [entityId, roomEntity],
+  )
+  const mapped = useMemo(() => mapEntityToWidgetCard(entity, effectiveRoomEntity), [entity, effectiveRoomEntity])
   const { call } = useHAService()
   const { light, medium, heavy } = useHaptic()
   const { feedbackClass, actionFailed } = useActionFeedback()
@@ -55,7 +64,7 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
   const busyRef = useRef(false)
   const brightnessOriginRef = useRef<{ state: string; brightness?: number } | null>(null)
 
-  const domain = serviceDomain(roomEntity.entityId)
+  const domain = serviceDomain(entityId)
   const unavailable = mapped.isUnavailable
   const on = isOnState(entity?.state)
 
@@ -64,7 +73,7 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
   // ── Card dinamiche: copertina per i media, live feed per le camere ─────────
   const isMediaCard = MEDIA_FAMILIES.has(mapped.family)
   const artworkUrl = isMediaCard && mapped.artwork
-    ? haApi.imageUrl(mapped.artwork, roomEntity.entityId)
+    ? haApi.imageUrl(mapped.artwork, entityId)
     : undefined
   const dominant = useDominantColor(artworkUrl)
   const mediaAccent = dominant ?? mapped.accentColor
@@ -104,20 +113,20 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
     const next = on ? 'off' : 'on'
     perform(
       'power',
-      () => { light(); setOptimisticState(roomEntity.entityId, next) },
-      () => call(domain, on ? 'turn_off' : 'turn_on', { entity_id: roomEntity.entityId }),
-      () => setOptimisticState(roomEntity.entityId, entity.state),
+      () => { light(); setOptimisticState(entityId, next) },
+      () => call(domain, on ? 'turn_off' : 'turn_on', { entity_id: entityId }),
+      () => setOptimisticState(entityId, entity.state),
     )
   }
 
   const activate = () => {
     if (unavailable) return
     const task = domain === 'scene' || domain === 'script'
-      ? () => call(domain, 'turn_on', { entity_id: roomEntity.entityId })
+      ? () => call(domain, 'turn_on', { entity_id: entityId })
       : domain === 'button' || domain === 'input_button'
-        ? () => call(domain, 'press', { entity_id: roomEntity.entityId })
+        ? () => call(domain, 'press', { entity_id: entityId })
         : domain === 'remote'
-          ? () => call('remote', 'toggle', { entity_id: roomEntity.entityId })
+          ? () => call('remote', 'toggle', { entity_id: entityId })
           : null
     if (!task) return
     perform('activate', medium, task)
@@ -134,9 +143,9 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
     const serviceDomain = domain === 'water_heater' ? 'water_heater' : 'climate'
     perform(
       'temperature',
-      () => { light(); setOptimisticState(roomEntity.entityId, entity.state, { temperature: next }) },
-      () => call(serviceDomain, 'set_temperature', { entity_id: roomEntity.entityId, temperature: next }),
-      () => setOptimisticState(roomEntity.entityId, entity.state, { temperature: target }),
+      () => { light(); setOptimisticState(entityId, entity.state, { temperature: next }) },
+      () => call(serviceDomain, 'set_temperature', { entity_id: entityId, temperature: next }),
+      () => setOptimisticState(entityId, entity.state, { temperature: target }),
     )
   }
 
@@ -145,9 +154,9 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
     const next = service === 'open_cover' ? 'opening' : service === 'close_cover' ? 'closing' : entity.state
     perform(
       service,
-      () => { medium(); if (service !== 'stop_cover') setOptimisticState(roomEntity.entityId, next) },
-      () => call('cover', service, { entity_id: roomEntity.entityId }),
-      () => setOptimisticState(roomEntity.entityId, entity.state),
+      () => { medium(); if (service !== 'stop_cover') setOptimisticState(entityId, next) },
+      () => call('cover', service, { entity_id: entityId }),
+      () => setOptimisticState(entityId, entity.state),
     )
   }
 
@@ -156,9 +165,9 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
     const next = service === 'open_valve' ? 'opening' : 'closing'
     perform(
       service,
-      () => { medium(); setOptimisticState(roomEntity.entityId, next) },
-      () => call('valve', service, { entity_id: roomEntity.entityId }),
-      () => setOptimisticState(roomEntity.entityId, entity.state),
+      () => { medium(); setOptimisticState(entityId, next) },
+      () => call('valve', service, { entity_id: entityId }),
+      () => setOptimisticState(entityId, entity.state),
     )
   }
 
@@ -167,9 +176,9 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
     const mowing = entity?.state === 'mowing'
     perform(
       'mower',
-      () => { medium(); setOptimisticState(roomEntity.entityId, mowing ? 'returning' : 'mowing') },
-      () => call('lawn_mower', mowing ? 'dock' : 'start_mowing', { entity_id: roomEntity.entityId }),
-      () => setOptimisticState(roomEntity.entityId, entity.state),
+      () => { medium(); setOptimisticState(entityId, mowing ? 'returning' : 'mowing') },
+      () => call('lawn_mower', mowing ? 'dock' : 'start_mowing', { entity_id: entityId }),
+      () => setOptimisticState(entityId, entity.state),
     )
   }
 
@@ -178,9 +187,9 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
     const previous = numericState(entity.attributes?.humidity)
     perform(
       'humidity',
-      () => { light(); setOptimisticState(roomEntity.entityId, entity.state, { humidity: Math.round(value) }) },
-      () => call('humidifier', 'set_humidity', { entity_id: roomEntity.entityId, humidity: Math.round(value) }),
-      () => setOptimisticState(roomEntity.entityId, entity.state, previous === undefined ? {} : { humidity: previous }),
+      () => { light(); setOptimisticState(entityId, entity.state, { humidity: Math.round(value) }) },
+      () => call('humidifier', 'set_humidity', { entity_id: entityId, humidity: Math.round(value) }),
+      () => setOptimisticState(entityId, entity.state, previous === undefined ? {} : { humidity: previous }),
     )
   }
 
@@ -190,7 +199,7 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
       state: entity.state,
       brightness: numericState(entity.attributes?.brightness),
     }
-    patchEntity(roomEntity.entityId, { attributes: { brightness: Math.round((value / 100) * 255) } })
+    patchEntity(entityId, { attributes: { brightness: Math.round((value / 100) * 255) } })
   }
 
   const commitBrightness = (value: number) => {
@@ -201,9 +210,9 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
     }
     perform(
       'brightness',
-      () => { light(); setOptimisticState(roomEntity.entityId, 'on', { brightness: Math.round((value / 100) * 255) }) },
-      () => call('light', 'turn_on', { entity_id: roomEntity.entityId, brightness_pct: Math.round(value) }),
-      () => setOptimisticState(roomEntity.entityId, original.state, original.brightness === undefined ? {} : { brightness: original.brightness }),
+      () => { light(); setOptimisticState(entityId, 'on', { brightness: Math.round((value / 100) * 255) }) },
+      () => call('light', 'turn_on', { entity_id: entityId, brightness_pct: Math.round(value) }),
+      () => setOptimisticState(entityId, original.state, original.brightness === undefined ? {} : { brightness: original.brightness }),
       () => { brightnessOriginRef.current = null },
     )
   }
@@ -213,9 +222,9 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
     const previous = numericState(entity.attributes?.percentage)
     perform(
       'fan-speed',
-      () => { light(); setOptimisticState(roomEntity.entityId, value > 0 ? 'on' : 'off', { percentage: Math.round(value) }) },
-      () => call('fan', 'set_percentage', { entity_id: roomEntity.entityId, percentage: Math.round(value) }),
-      () => setOptimisticState(roomEntity.entityId, entity.state, previous === undefined ? {} : { percentage: previous }),
+      () => { light(); setOptimisticState(entityId, value > 0 ? 'on' : 'off', { percentage: Math.round(value) }) },
+      () => call('fan', 'set_percentage', { entity_id: entityId, percentage: Math.round(value) }),
+      () => setOptimisticState(entityId, entity.state, previous === undefined ? {} : { percentage: previous }),
     )
   }
 
@@ -224,18 +233,18 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
     if (!entity || unavailable) return
     perform(
       'unlock',
-      () => { heavy(); setOptimisticState(roomEntity.entityId, 'unlocking') },
-      () => call('lock', 'unlock', { entity_id: roomEntity.entityId }),
-      () => setOptimisticState(roomEntity.entityId, entity?.state ?? 'locked'),
+      () => { heavy(); setOptimisticState(entityId, 'unlocking') },
+      () => call('lock', 'unlock', { entity_id: entityId }),
+      () => setOptimisticState(entityId, entity?.state ?? 'locked'),
     )
   }
   const lock = () => {
     if (!entity || unavailable) return
     perform(
       'lock',
-      () => { medium(); setOptimisticState(roomEntity.entityId, 'locking') },
-      () => call('lock', 'lock', { entity_id: roomEntity.entityId }),
-      () => setOptimisticState(roomEntity.entityId, entity?.state ?? 'unlocked'),
+      () => { medium(); setOptimisticState(entityId, 'locking') },
+      () => call('lock', 'lock', { entity_id: entityId }),
+      () => setOptimisticState(entityId, entity?.state ?? 'unlocked'),
     )
   }
 
@@ -244,9 +253,9 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
     const cleaning = entity.state === 'cleaning'
     perform(
       'vacuum',
-      () => { medium(); setOptimisticState(roomEntity.entityId, cleaning ? 'returning' : 'cleaning') },
-      () => call('vacuum', cleaning ? 'return_to_base' : 'start', { entity_id: roomEntity.entityId }),
-      () => setOptimisticState(roomEntity.entityId, entity.state),
+      () => { medium(); setOptimisticState(entityId, cleaning ? 'returning' : 'cleaning') },
+      () => call('vacuum', cleaning ? 'return_to_base' : 'start', { entity_id: entityId }),
+      () => setOptimisticState(entityId, entity.state),
     )
   }
 
@@ -255,9 +264,9 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
     const playing = entity.state === 'playing'
     perform(
       'media',
-      () => { medium(); setOptimisticState(roomEntity.entityId, playing ? 'paused' : 'playing') },
-      () => call('media_player', playing ? 'media_pause' : 'media_play', { entity_id: roomEntity.entityId }),
-      () => setOptimisticState(roomEntity.entityId, entity.state),
+      () => { medium(); setOptimisticState(entityId, playing ? 'paused' : 'playing') },
+      () => call('media_player', playing ? 'media_pause' : 'media_play', { entity_id: entityId }),
+      () => setOptimisticState(entityId, entity.state),
     )
   }
 
@@ -341,10 +350,10 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
       isEditing={isEditing}
       isDragging={isDragging}
       className={cn(className, feedbackClass)}
-      onClick={() => setSelectedEntity(roomEntity.entityId)}
+      onClick={() => setSelectedEntity(entityId)}
       media={liveCamera ? (
         <>
-          <CameraStream entityId={roomEntity.entityId} fit="cover" badge className="h-full w-full" />
+          <CameraStream entityId={entityId} fit="cover" badge className="h-full w-full" />
           {/* Scrim funzionale: il nome resta leggibile su qualunque frame. */}
           <span className="camera-card-scrim absolute inset-x-0 bottom-0 h-16" />
         </>

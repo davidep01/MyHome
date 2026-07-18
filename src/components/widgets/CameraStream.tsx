@@ -32,10 +32,11 @@ interface CameraStreamProps {
  * HLS è firmato dal backend (`/api/ha/camera-hls-url`) e ogni flusso passa dal
  * proxy same-origin. Catena:
  *   0. Snapshot immediato come placeholder: si vede SUBITO qualcosa.
- *   1. HLS   — `camera/stream` firmato + hls.js (in gara col MJPEG se preferLive).
- *   2. MJPEG — /camera_proxy_stream (il proxy non tronca più il flusso).
- *   3. Snapshot aggiornato ogni 2s quando nessun live è possibile.
- * (WebRTC/talk-back torneranno con un signaling proxy backend — docs/DOMINICA.md.)
+ *   1. WebRTC — signaling HA same-origin, media diretti browser↔camera.
+ *   2. HLS    — `camera/stream` firmato + hls.js (in gara col MJPEG se preferLive).
+ *   3. MJPEG  — /camera_proxy_stream (il proxy non tronca più il flusso).
+ *   4. Snapshot aggiornato ogni 2s quando nessun live è possibile.
+ * Il talk-back resta fuori scope: Home Assistant/Ring non lo espongono.
  */
 type Mode = 'connecting' | 'webrtc' | 'hls' | 'mjpeg' | 'snapshot' | 'error' | 'paused'
 
