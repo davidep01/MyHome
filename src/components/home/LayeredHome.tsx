@@ -115,7 +115,7 @@ export function LayeredHome() {
           ) : (
             <div className={cn(
               'grid h-full min-h-0 overflow-hidden',
-              cameraRowVisible ? 'grid-rows-[clamp(74px,11.5vh,108px)_minmax(0,1fr)] gap-3.5' : 'grid-rows-1',
+              cameraRowVisible ? 'grid-rows-[clamp(111px,17.25vh,162px)_minmax(0,1fr)] gap-3.5' : 'grid-rows-1',
             )}>
               {cameraRowVisible && <CameraMonitoringRow entityIds={cameraIds} overrides={layout?.deviceOverrides} compact />}
               <div className="min-h-0 overflow-hidden">

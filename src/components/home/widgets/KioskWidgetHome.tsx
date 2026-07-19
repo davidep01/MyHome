@@ -241,7 +241,7 @@ export function KioskWidgetHome() {
       ) : (
         <>
           {!editing && cameraRowVisible && (
-            <div className="h-[clamp(74px,11.5vh,108px)] shrink-0 overflow-hidden">
+            <div className="h-[clamp(111px,17.25vh,162px)] shrink-0 overflow-hidden">
               <CameraMonitoringRow entityIds={cameraIds} overrides={data.deviceOverrides} compact />
             </div>
           )}

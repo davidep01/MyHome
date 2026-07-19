@@ -446,8 +446,8 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
   overflow: hidden;
 }
 
-/* La fila globale usa metà altezza: azzera il minimo HomeKit della card senza
-   alterare le card camera grandi nelle dashboard stanza. */
+/* La fila globale ha un'altezza dedicata: azzera il minimo HomeKit della card
+   senza alterare le card camera grandi nelle dashboard stanza. */
 .camera-monitoring-row--compact [data-widget-card] {
   min-height: 0 !important;
 }
