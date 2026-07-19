@@ -20,13 +20,14 @@ import { useRoomsOverview } from '../../../hooks/useRoomsOverview'
 import { selectDashboardCameraIds } from '../../../lib/dashboardSelection'
 import { contentAwareHomeWidgets } from '../../../lib/contentAwareHome'
 import { useCameraRowVisibility } from '../../../hooks/useCameraRowVisibility'
+import { WIDGET_META } from './widgetCatalog'
 
 const GRID_GAP = [14, 14] as const
-const SIZE_SHORT: Record<WidgetSize, string> = { sm: 'S', md: 'M', lg: 'L', wide: 'XL' }
+const SIZE_SHORT: Record<WidgetSize, string> = { xs: 'XS', sm: 'S', md: 'M', lg: 'L', wide: 'XL' }
 const SIZE_FOOTPRINT: Record<WidgetSize, string> = {
-  sm: '1 slot', md: '2 slot', lg: '3 slot, 2 righe', wide: '3 slot, 1 riga',
+  xs: '1 slot, mini', sm: '1 slot', md: '2 slot', lg: '3 slot, 2 righe', wide: '3 slot, 1 riga',
 }
-const SIZE_ORDER: WidgetSize[] = ['sm', 'md', 'lg', 'wide']
+const SIZE_ORDER: WidgetSize[] = ['xs', 'sm', 'md', 'lg', 'wide']
 
 interface Draft {
   widgets: HomeWidget[]
@@ -403,7 +404,7 @@ function TileEditOverlay({
         role="group"
         aria-label="Dimensione tile"
       >
-        {SIZE_ORDER.map((size) => (
+        {SIZE_ORDER.filter((size) => WIDGET_META[widget.type].sizes.includes(size)).map((size) => (
           <button
             key={size}
             type="button"

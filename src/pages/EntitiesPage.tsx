@@ -33,6 +33,7 @@ const TYPE_OPTIONS: { value: EntityType; label: string }[] = [
 type VisibilityFilter = 'all' | 'visible' | 'hidden' | 'unavailable'
 const PAGE = 120
 const CARD_SIZE_OPTIONS: { value: WidgetVisualSize; label: string; description: string; footprint: string; className: string }[] = [
+  { value: 'XS', label: 'XS', description: 'Mini', footprint: '1 slot · ⅓ L', className: 'col-span-1 h-[90px]' },
   { value: 'S', label: 'S', description: 'Compatta', footprint: '1 slot', className: 'col-span-1 h-[154px]' },
   { value: 'M', label: 'M', description: 'Standard', footprint: '2 slot', className: 'col-span-2 h-[154px]' },
   { value: 'L', label: 'L', description: 'Alta', footprint: '3 slot · 2 righe', className: 'col-span-3 h-[260px]' },
@@ -599,12 +600,12 @@ function EntityDetail({
   return (
     <div className="space-y-4">
       {disabled && <p className="rounded-[10px] bg-orange-500/10 px-3 py-2 text-xs text-orange-700" role="status">Configurazione in sola lettura: puoi consultare l’entità, ma non modificarla.</p>}
-      {/* Quattro anteprime reali: il tap abilita una o più footprint. */}
+      {/* Cinque anteprime reali: il tap abilita una o più footprint. */}
       <div className="space-y-2">
         <div className="flex items-end justify-between gap-3">
           <div>
             <p className="text-xs font-semibold text-black/50" id={`${id}-size-label`}>Dimensione card</p>
-            <p className="mt-0.5 text-[11px] text-black/35">Tre slot per riga. Seleziona una o più footprint consentite all’autocomposer.</p>
+            <p className="mt-0.5 text-[11px] text-black/35">Tre slot per riga; tre XS impilate equivalgono a una L. Seleziona una o più footprint consentite all’autocomposer.</p>
           </div>
           <button
             type="button"

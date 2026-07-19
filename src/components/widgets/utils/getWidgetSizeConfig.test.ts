@@ -2,20 +2,20 @@ import { describe, expect, it } from 'vitest'
 import { getWidgetSizeConfig, resolveEnabledCardSize, widgetVisualSizeFromHomeSize } from './getWidgetSizeConfig'
 
 describe('home widget visual sizes', () => {
-  it('maps the four persisted sizes to four distinct presentation levels', () => {
-    expect(['sm', 'md', 'lg', 'wide'].map((size) => widgetVisualSizeFromHomeSize(size as 'sm' | 'md' | 'lg' | 'wide')))
-      .toEqual(['S', 'M', 'L', 'XL'])
+  it('maps the five persisted sizes to five distinct presentation levels', () => {
+    expect(['xs', 'sm', 'md', 'lg', 'wide'].map((size) => widgetVisualSizeFromHomeSize(size as 'xs' | 'sm' | 'md' | 'lg' | 'wide')))
+      .toEqual(['XS', 'S', 'M', 'L', 'XL'])
     expect(getWidgetSizeConfig('XL').valueClass).toBe('text-[36px]')
-    expect(['S', 'M', 'L', 'XL'].map((size) => {
-      const config = getWidgetSizeConfig(size as 'S' | 'M' | 'L' | 'XL')
+    expect(['XS', 'S', 'M', 'L', 'XL'].map((size) => {
+      const config = getWidgetSizeConfig(size as 'XS' | 'S' | 'M' | 'L' | 'XL')
       return [config.slots, config.rows]
-    })).toEqual([[1, 1], [2, 1], [3, 2], [3, 1]])
+    })).toEqual([[1, 1], [1, 1], [2, 1], [3, 2], [3, 1]])
   })
 })
 
 describe('resolve enabled card sizes', () => {
   it('forces a single enabled size', () => {
-    expect(resolveEnabledCardSize('L', { cardSizes: ['S'] })).toBe('S')
+    expect(resolveEnabledCardSize('L', { cardSizes: ['XS'] })).toBe('XS')
   })
 
   it('keeps an ideal enabled size and otherwise picks the nearest compact one', () => {

@@ -57,8 +57,8 @@ describe('screensaver AI recap selection', () => {
 })
 
 describe('device card size override', () => {
-  it('accepts the four supported preview sizes', () => {
-    for (const cardSize of ['S', 'M', 'L', 'XL']) {
+  it('accepts the five supported preview sizes', () => {
+    for (const cardSize of ['XS', 'S', 'M', 'L', 'XL']) {
       expect(validateConfigPatch({
         deviceOverrides: { 'light.sala': { cardSize } },
       })).toMatchObject({ ok: true, value: { deviceOverrides: { 'light.sala': { cardSize } } } })
@@ -73,10 +73,10 @@ describe('device card size override', () => {
 
   it('accepts multiple unique enabled sizes', () => {
     expect(validateConfigPatch({
-      deviceOverrides: { 'media_player.soggiorno': { cardSizes: ['S', 'M', 'XL'] } },
+      deviceOverrides: { 'media_player.soggiorno': { cardSizes: ['XS', 'S', 'M', 'XL'] } },
     })).toMatchObject({
       ok: true,
-      value: { deviceOverrides: { 'media_player.soggiorno': { cardSizes: ['S', 'M', 'XL'] } } },
+      value: { deviceOverrides: { 'media_player.soggiorno': { cardSizes: ['XS', 'S', 'M', 'XL'] } } },
     })
   })
 

@@ -125,6 +125,32 @@ export function WasteCollectionCard({
       : (next?.items[0]?.background ?? '#248a3d')
   const imminent = next !== undefined
 
+  if (size === 'XS') {
+    return (
+      <WidgetCardShell
+        id={entity.entity_id}
+        type="waste"
+        size={size}
+        title="Raccolta rifiuti"
+        icon={Recycle}
+        accentColor={tint}
+        isActive={imminent}
+        isEditing={isEditing}
+        isDragging={isDragging}
+        className={className}
+        onClick={onClick}
+      >
+        <div className="flex h-full min-w-0 items-center gap-2">
+          <WidgetCardIcon Icon={Recycle} size={size} accentColor={tint} active={imminent} />
+          <div className="min-w-0 flex-1 space-y-0.5">
+            <WasteDayRow pickup={today} label="Oggi" compact />
+            <WasteDayRow pickup={tomorrow} label="Domani" compact />
+          </div>
+        </div>
+      </WidgetCardShell>
+    )
+  }
+
   if (size === 'S') {
     return (
       <WidgetCardShell

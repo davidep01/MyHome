@@ -16,6 +16,16 @@ export interface WidgetSizeConfig {
 }
 
 export const WIDGET_SIZE_CONFIG: Record<WidgetVisualSize, WidgetSizeConfig> = {
+  XS: {
+    size: 'XS',
+    minHeight: 76,
+    paddingClass: 'p-2.5',
+    icon: 16,
+    valueClass: 'text-[18px]',
+    titleClass: 'text-[12px]',
+    slots: 1,
+    rows: 1,
+  },
   S: {
     size: 'S',
     minHeight: 104,
@@ -63,6 +73,7 @@ export function getWidgetSizeConfig(size: WidgetVisualSize = 'M') {
 }
 
 export function widgetVisualSizeFromHomeSize(size?: WidgetSize): WidgetVisualSize {
+  if (size === 'xs') return 'XS'
   if (size === 'sm') return 'S'
   if (size === 'lg') return 'L'
   if (size === 'wide') return 'XL'
@@ -75,7 +86,7 @@ export function widgetVisualSizeFromSpan(span: { c: number; r: number }): Widget
   return 'S'
 }
 
-const CARD_SIZE_ORDER: WidgetVisualSize[] = ['S', 'M', 'L', 'XL']
+const CARD_SIZE_ORDER: WidgetVisualSize[] = ['XS', 'S', 'M', 'L', 'XL']
 
 /**
  * Rispetta le taglie abilitate dal backend. Una singola taglia è un override

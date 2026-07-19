@@ -3,7 +3,7 @@ import type { WidgetVisualSize } from '../types'
 import { shouldRenderCameraStream } from './cameraCardStream'
 
 describe('camera card live stream sizes', () => {
-  it.each<WidgetVisualSize>(['S', 'M', 'L', 'XL'])('renders a live camera in size %s', (size) => {
+  it.each<WidgetVisualSize>(['XS', 'S', 'M', 'L', 'XL'])('renders a live camera in size %s', (size) => {
     expect(shouldRenderCameraStream('camera', size, false)).toBe(true)
     expect(shouldRenderCameraStream('doorbell', size, false)).toBe(true)
   })

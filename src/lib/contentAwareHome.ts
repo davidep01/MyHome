@@ -6,11 +6,11 @@ const MEDIUM_WIDGETS = new Set<HomeWidget['type']>([
   'weather', 'status', 'security', 'system', 'insight', 'calendar',
 ])
 
-const HOME_SIZE_FROM_CARD = { S: 'sm', M: 'md', L: 'lg', XL: 'wide' } as const
+const HOME_SIZE_FROM_CARD = { XS: 'xs', S: 'sm', M: 'md', L: 'lg', XL: 'wide' } as const
 
 function atLeast(size: WidgetSize, minimum: 'md' | 'lg'): WidgetSize {
-  if (minimum === 'md') return size === 'sm' ? 'md' : size
-  return size === 'sm' || size === 'md' ? 'lg' : size
+  if (minimum === 'md') return size === 'xs' || size === 'sm' ? 'md' : size
+  return size === 'xs' || size === 'sm' || size === 'md' ? 'lg' : size
 }
 
 function entityMinimum(

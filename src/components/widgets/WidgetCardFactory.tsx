@@ -83,7 +83,7 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
   const visibleArtworkUrl = failedArtworkUrl === artworkUrl ? undefined : artworkUrl
   const dominant = useDominantColor(artworkUrl)
   const mediaAccent = dominant ?? mapped.accentColor
-  // Il live riempie qualsiasi footprint S/M/L/XL; CameraStream sospende da sé
+  // Il live riempie qualsiasi footprint XS/S/M/L/XL; CameraStream sospende da sé
   // le tile fuori viewport o coperte dal full screen.
   const liveCamera = !isEditing && shouldRenderCameraStream(mapped.family, size, unavailable)
   const mediaCoverStyle = isMediaCard && !liveCamera
@@ -289,7 +289,7 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
     if (mapped.family === 'scene' || mapped.family === 'script') {
       return <WidgetCardControlButton disabled={busy} onClick={activate} label={`Attiva ${mapped.title}`}><Play size={15} aria-hidden="true" /></WidgetCardControlButton>
     }
-    if (size === 'S') return null
+    if (size === 'XS' || size === 'S') return null
     if (mapped.family === 'climate' || mapped.family === 'thermostat') {
       return (
         <>
@@ -339,7 +339,7 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
     return null
   })()
 
-  const showSlider = size !== 'S' && mapped.percent !== undefined && mapped.isActive
+  const showSlider = size !== 'XS' && size !== 'S' && mapped.percent !== undefined && mapped.isActive
     && (mapped.family === 'light' || mapped.family === 'fan' || mapped.family === 'humidifier')
 
   if (entity && isWasteCollectionSensor(entity)) {
@@ -391,7 +391,7 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
     >
       {liveCamera ? (
         <div className="mt-auto min-w-0 pt-2">
-          <p className="line-clamp-1 text-[15px] font-semibold leading-snug text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.55)]">
+          <p className={cn('line-clamp-1 font-semibold leading-snug text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.55)]', size === 'XS' ? 'text-[12px]' : 'text-[15px]')}>
             {mapped.title}
           </p>
           {actionError && <p className="mt-0.5 truncate text-[13px] text-red-300">{actionError}</p>}
@@ -409,6 +409,17 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
               error={actionError}
             />
           </>
+        ) : size === 'XS' ? (
+          <div className="flex h-full min-w-0 items-center gap-2">
+            <WidgetCardIcon Icon={mapped.Icon} size={size} accentColor={mapped.accentColor} active={mapped.isActive} />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[12px] font-semibold leading-tight text-[#1d1d1f] dark:text-white">{mapped.title}</p>
+              <p className="mt-0.5 truncate text-[11px] font-medium leading-tight text-black/45 dark:text-white/48" style={mapped.stateAccent ? { color: mapped.accentColor } : undefined}>
+                {actionError ?? (mapped.value !== undefined ? `${mapped.value}${mapped.unit ?? ''}` : mapped.state)}
+              </p>
+            </div>
+            {trailing && <div className="flex shrink-0 items-center">{trailing}</div>}
+          </div>
         ) : (
           <>
             <div className="flex items-start justify-between gap-2">

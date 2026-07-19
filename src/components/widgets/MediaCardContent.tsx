@@ -44,14 +44,16 @@ export function MediaCardContent({
   const position = progress ? mediaPositionAt(progress, clock) : 0
   const pct = progress && progress.duration > 0 ? Math.max(0, Math.min(100, (position / progress.duration) * 100)) : 0
   const expanded = size === 'L' || size === 'XL'
+  const mini = size === 'XS'
 
   return (
     <div className={cn(
       'ml-auto mt-auto flex w-[64%] min-w-0 flex-col text-right',
+      mini && 'w-[66%]',
       expanded && 'w-[60%]',
     )} aria-live="polite" data-media-live-content>
       <div className="mb-1 flex min-w-0 items-center justify-end gap-1.5">
-        {app && <span className="max-w-[60%] truncate rounded-full bg-black/[0.06] px-2 py-0.5 text-[9px] font-bold text-black/45 dark:bg-white/[0.09] dark:text-white/48">{app}</span>}
+        {!mini && app && <span className="max-w-[60%] truncate rounded-full bg-black/[0.06] px-2 py-0.5 text-[9px] font-bold text-black/45 dark:bg-white/[0.09] dark:text-white/48">{app}</span>}
         <span className="flex shrink-0 items-center gap-1 text-[9px] font-bold uppercase tracking-[0.06em] text-black/38 dark:text-white/42">
           <span className={cn('h-1.5 w-1.5 rounded-full', playing ? 'media-live-dot' : 'bg-black/25 dark:bg-white/28')} style={playing ? { background: accentColor } : undefined} />
           {playback}
@@ -61,16 +63,16 @@ export function MediaCardContent({
       {expanded && <p className="mb-0.5 truncate text-[10px] font-semibold text-black/38 dark:text-white/42">{deviceTitle}</p>}
       <p className={cn(
         'font-semibold leading-tight text-[#1d1d1f] dark:text-white',
-        size === 'S' ? 'line-clamp-1 text-[13px]' : size === 'M' ? 'line-clamp-1 text-[15px]' : 'line-clamp-2 text-[17px]',
+        size === 'XS' ? 'line-clamp-1 text-[11px]' : size === 'S' ? 'line-clamp-1 text-[13px]' : size === 'M' ? 'line-clamp-1 text-[15px]' : 'line-clamp-2 text-[17px]',
       )}>{error ?? title}</p>
-      {compactDetail && (
+      {!mini && compactDetail && (
         <p className={cn(
           'mt-0.5 truncate text-black/48 dark:text-white/52',
           size === 'S' ? 'text-[10px]' : 'text-[12px]',
         )}>{compactDetail}</p>
       )}
 
-      {progress && progress.duration > 0 && (
+      {!mini && progress && progress.duration > 0 && (
         <div
           className="mt-1.5"
           role="progressbar"

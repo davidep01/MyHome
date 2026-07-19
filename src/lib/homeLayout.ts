@@ -12,17 +12,19 @@ import type { DashboardPosition, HomeWidget, WidgetSize } from '../api/backend'
  * widgetCatalog.ts.
  */
 export const HOME_COLS = 3
-export const HOME_ROW_HEIGHT = 142
+export const HOME_ROW_HEIGHT = 38
 
 /**
- * Tre slot logici per riga: S ne usa uno, M due, L/XL tutta la riga.
- * L è l'unica footprint alta; XL resta panoramica e bassa.
+ * Tre slot logici per riga e sei sotto-righe verticali. Le taglie esistenti
+ * conservano le loro altezze; XS è alta 90 px e tre XS impilate, inclusi i
+ * gap, coincidono esattamente con una L da 298 px.
  */
 export const SIZE_WH: Record<WidgetSize, { w: number; h: number }> = {
-  sm: { w: 1, h: 1 },
-  md: { w: 2, h: 1 },
-  lg: { w: 3, h: 2 },
-  wide: { w: 3, h: 1 },
+  xs: { w: 1, h: 2 },
+  sm: { w: 1, h: 3 },
+  md: { w: 2, h: 3 },
+  lg: { w: 3, h: 6 },
+  wide: { w: 3, h: 3 },
 }
 
 export type HomePositions = Record<string, DashboardPosition>

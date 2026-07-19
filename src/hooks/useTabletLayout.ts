@@ -12,7 +12,11 @@ function readCachedLayout(dashboardId: string): TabletDashboardLayout | null {
   try {
     const raw = window.localStorage.getItem(cacheKey(dashboardId))
     if (!raw) return null
-    return { ...JSON.parse(raw), source: 'cache' } as TabletDashboardLayout
+    const parsed = JSON.parse(raw) as Partial<TabletDashboardLayout>
+    // La v3 introduce le sotto-righe necessarie a XS: una cache precedente
+    // avrebbe rowHeight/footprint incompatibili e produrrebbe sovrapposizioni.
+    if (parsed.schemaVersion !== 3) return null
+    return { ...parsed, source: 'cache' } as TabletDashboardLayout
   } catch {
     return null
   }

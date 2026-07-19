@@ -41,7 +41,7 @@ const SAMPLES: {
   { label: 'Interruttore giardino', Icon: Power, tone: widgetTones.ok, active: false, state: 'Spento', toggle: true },
 ]
 
-const sizes: WidgetVisualSize[] = ['S', 'M', 'L', 'XL']
+const sizes: WidgetVisualSize[] = ['XS', 'S', 'M', 'L', 'XL']
 
 export function WidgetCardPreview() {
   return (

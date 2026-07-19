@@ -2,16 +2,17 @@ import type { AppConfig, HomeConfig, HomeWidget, WidgetSize, WidgetType } from '
 
 export type HomePosition = { x: number; y: number; w: number; h: number }
 
-export const HOME_SCHEMA_VERSION = 2
+export const HOME_SCHEMA_VERSION = 3
 export const HOME_DASHBOARD_ID = 'home'
 export const HOME_COLS = 3
-export const HOME_ROW_HEIGHT = 142
+export const HOME_ROW_HEIGHT = 38
 
 export const HOME_SIZE_WH: Record<WidgetSize, { w: number; h: number }> = {
-  sm: { w: 1, h: 1 },
-  md: { w: 2, h: 1 },
-  lg: { w: 3, h: 2 },
-  wide: { w: 3, h: 1 },
+  xs: { w: 1, h: 2 },
+  sm: { w: 1, h: 3 },
+  md: { w: 2, h: 3 },
+  lg: { w: 3, h: 6 },
+  wide: { w: 3, h: 3 },
 }
 
 const DEFAULT_HOME_WIDGETS: HomeWidget[] = [
@@ -40,7 +41,8 @@ const WIDGET_TYPES = new Set<WidgetType>([
   'calendar',
 ])
 
-const WIDGET_SIZES = new Set<WidgetSize>(['sm', 'md', 'lg', 'wide'])
+const WIDGET_SIZES = new Set<WidgetSize>(['xs', 'sm', 'md', 'lg', 'wide'])
+const XS_WIDGET_TYPES = new Set<WidgetType>(['entity', 'sensor', 'camera'])
 const UPDATE_CONTEXTS = new Set<NonNullable<HomeConfig['updatedBy']>>(['desktop', 'tablet', 'migration', 'system'])
 
 export function defaultHomeWidgets(): HomeWidget[] {
@@ -67,6 +69,7 @@ export function sanitizeWidget(value: unknown): HomeWidget | null {
   if (!isObject(value)) return null
   const id = stringOrUndefined(value.id)
   if (!id || !isWidgetType(value.type) || !isWidgetSize(value.size)) return null
+  if (value.size === 'xs' && !XS_WIDGET_TYPES.has(value.type)) return null
 
   if (!/^[a-z0-9][a-z0-9_-]*$/i.test(id)) return null
   const widget: HomeWidget = { id, type: value.type, size: value.size }

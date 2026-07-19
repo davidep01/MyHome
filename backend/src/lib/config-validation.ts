@@ -142,9 +142,9 @@ function parseOverrides(value: unknown): Record<string, DeviceOverride> | null {
       ? undefined
       : Array.isArray(raw.cardSizes)
         && raw.cardSizes.length > 0
-        && raw.cardSizes.length <= 4
+        && raw.cardSizes.length <= 5
         && new Set(raw.cardSizes).size === raw.cardSizes.length
-        && raw.cardSizes.every((size) => size === 'S' || size === 'M' || size === 'L' || size === 'XL')
+        && raw.cardSizes.every((size) => size === 'XS' || size === 'S' || size === 'M' || size === 'L' || size === 'XL')
           ? raw.cardSizes as DeviceOverride['cardSizes']
           : null
     if (
@@ -152,7 +152,7 @@ function parseOverrides(value: unknown): Record<string, DeviceOverride> | null {
       || label === null
       || (raw.icon !== undefined && !isIconName(raw.icon))
       || (raw.type !== undefined && !isEntityType(raw.type))
-      || (raw.cardSize !== undefined && !['S', 'M', 'L', 'XL'].includes(String(raw.cardSize)))
+      || (raw.cardSize !== undefined && !['XS', 'S', 'M', 'L', 'XL'].includes(String(raw.cardSize)))
       || cardSizes === null
       || (raw.enabled !== undefined && typeof raw.enabled !== 'boolean')
     ) return null
@@ -161,7 +161,7 @@ function parseOverrides(value: unknown): Record<string, DeviceOverride> | null {
       ...(label !== undefined ? { label } : {}),
       ...(typeof raw.icon === 'string' ? { icon: raw.icon } : {}),
       ...(typeof raw.type === 'string' ? { type: raw.type } : {}),
-      ...(raw.cardSize === 'S' || raw.cardSize === 'M' || raw.cardSize === 'L' || raw.cardSize === 'XL' ? { cardSize: raw.cardSize } : {}),
+      ...(raw.cardSize === 'XS' || raw.cardSize === 'S' || raw.cardSize === 'M' || raw.cardSize === 'L' || raw.cardSize === 'XL' ? { cardSize: raw.cardSize } : {}),
       ...(cardSizes ? { cardSizes } : {}),
       ...(typeof raw.enabled === 'boolean' ? { enabled: raw.enabled } : {}),
     }

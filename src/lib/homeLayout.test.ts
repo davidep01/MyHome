@@ -31,11 +31,21 @@ function hasOverlap(layout: Layout): boolean {
 describe('SIZE_WH', () => {
   it('matches the canonical iOS-like footprints', () => {
     expect(SIZE_WH).toEqual({
-      sm: { w: 1, h: 1 },
-      md: { w: 2, h: 1 },
-      lg: { w: 3, h: 2 },
-      wide: { w: 3, h: 1 },
+      xs: { w: 1, h: 2 },
+      sm: { w: 1, h: 3 },
+      md: { w: 2, h: 3 },
+      lg: { w: 3, h: 6 },
+      wide: { w: 3, h: 3 },
     })
+  })
+
+  it('makes three vertical XS exactly as tall as one L', () => {
+    const gap = 14
+    const rowHeight = 38
+    const xsHeight = SIZE_WH.xs.h * rowHeight + (SIZE_WH.xs.h - 1) * gap
+    const lHeight = SIZE_WH.lg.h * rowHeight + (SIZE_WH.lg.h - 1) * gap
+    expect(xsHeight * 3 + gap * 2).toBe(lHeight)
+    expect([xsHeight, lHeight]).toEqual([90, 298])
   })
 })
 
@@ -81,10 +91,10 @@ describe('buildLayout', () => {
     const widgets = [widget('neighbour'), widget('resized', 'lg')]
     const layout = buildLayout(widgets, {
       neighbour: { x: 2, y: 0, w: 1, h: 1 },
-      resized: { x: 0, y: 0, w: 3, h: 2 },
+      resized: { x: 0, y: 0, w: 3, h: 6 },
     }, 'resized')
 
-    expect(layout.find((item) => item.i === 'resized')).toMatchObject({ x: 0, y: 0, w: 3, h: 2 })
+    expect(layout.find((item) => item.i === 'resized')).toMatchObject({ x: 0, y: 0, w: 3, h: 6 })
     expect(layout.find((item) => item.i === 'neighbour')).not.toMatchObject({ x: 2, y: 0 })
     expect(hasOverlap(layout)).toBe(false)
   })
@@ -98,7 +108,7 @@ describe('buildLayout', () => {
 describe('positionsFromLayout', () => {
   it('re-derives w/h from the widget size when widgets are supplied', () => {
     const positions = positionsFromLayout([{ i: 'a', x: 0, y: 0, w: 99, h: 99 }], [widget('a', 'md')])
-    expect(positions.a).toEqual({ x: 0, y: 0, w: 2, h: 1 })
+    expect(positions.a).toEqual({ x: 0, y: 0, w: 2, h: 3 })
   })
 
   it('drops items that are not in the widget set', () => {

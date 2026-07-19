@@ -190,7 +190,7 @@ export type WidgetType =
   | 'entity' | 'group' | 'sensor' | 'camera' | 'people'
   | 'security' | 'system' | 'insight' | 'news' | 'calendar'
 
-export type WidgetSize = 'sm' | 'md' | 'lg' | 'wide'
+export type WidgetSize = 'xs' | 'sm' | 'md' | 'lg' | 'wide'
 
 export interface HomeWidget {
   id: string
@@ -253,9 +253,9 @@ export interface DeviceOverride {
   icon?: string
   type?: EntityType
   /** Dimensione preferita della card nelle dashboard automatiche. */
-  cardSize?: 'S' | 'M' | 'L' | 'XL'
+  cardSize?: 'XS' | 'S' | 'M' | 'L' | 'XL'
   /** Dimensioni consentite: il composer sceglie la più adatta fra queste. */
-  cardSizes?: ('S' | 'M' | 'L' | 'XL')[]
+  cardSizes?: ('XS' | 'S' | 'M' | 'L' | 'XL')[]
   enabled?: boolean
 }
 
@@ -278,7 +278,7 @@ export interface DashboardPosition {
 }
 
 export interface TabletDashboardLayout {
-  schemaVersion: 1
+  schemaVersion: 3
   dashboardId: string
   widgets: HomeWidget[]
   layout: {

@@ -121,7 +121,7 @@ export function WidgetCardIcon({
   active?: boolean
 }) {
   const cfg = getWidgetSizeConfig(size)
-  const box = size === 'S' ? 34 : size === 'M' ? 38 : size === 'L' ? 44 : 48
+  const box = size === 'XS' ? 30 : size === 'S' ? 34 : size === 'M' ? 38 : size === 'L' ? 44 : 48
   return (
     <span
       className={cn('widget-card-icon flex shrink-0 items-center justify-center rounded-full', active && 'widget-card-icon-active')}
@@ -425,7 +425,7 @@ export function WidgetCardSkeleton({ size = 'M' }: { size?: WidgetVisualSize }) 
       <div className="h-9 w-9 rounded-full bg-black/[0.06] widget-anim-shimmer" />
       <div className="mt-auto space-y-2 pt-2">
         <div className="h-3.5 w-2/3 rounded-full bg-black/[0.06] widget-anim-shimmer" />
-        {size !== 'S' && <div className="h-3 w-1/2 rounded-full bg-black/[0.05] widget-anim-shimmer" />}
+        {size !== 'XS' && size !== 'S' && <div className="h-3 w-1/2 rounded-full bg-black/[0.05] widget-anim-shimmer" />}
       </div>
     </div>
   )

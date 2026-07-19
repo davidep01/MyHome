@@ -1,6 +1,6 @@
 import type { ElementType, ReactNode } from 'react'
 
-export type WidgetVisualSize = 'S' | 'M' | 'L' | 'XL'
+export type WidgetVisualSize = 'XS' | 'S' | 'M' | 'L' | 'XL'
 
 export type WidgetCardStatus =
   | 'default'

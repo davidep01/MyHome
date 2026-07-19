@@ -48,15 +48,15 @@ describe('home widget manager (auth disabled)', () => {
 
   it('adds a widget and persists it', async () => {
     const before = await getLayout()
-    const widgets = [...before.widgets, { id: 'w-new-light', type: 'entity', size: 'sm', entityId: 'light.test' }]
-    const items = { ...before.layout.items, 'w-new-light': { x: 0, y: 100, w: 1, h: 1 } }
+    const widgets = [...before.widgets, { id: 'w-new-light', type: 'entity', size: 'xs', entityId: 'light.test' }]
+    const items = { ...before.layout.items, 'w-new-light': { x: 0, y: 100, w: 1, h: 2 } }
     const res = await app.request('/api/layout/home', {
       method: 'PUT', headers: desktop,
       body: JSON.stringify({ layoutVersion: before.layoutVersion, widgets, items, order: [...before.layout.order, 'w-new-light'] }),
     })
     expect(res.status).toBe(200)
     const after = await getLayout()
-    expect(after.widgets.some((w) => w.id === 'w-new-light')).toBe(true)
+    expect(after.widgets.find((w) => w.id === 'w-new-light')?.size).toBe('xs')
     expect(after.layoutVersion).toBeGreaterThan(before.layoutVersion)
   })
 
@@ -88,7 +88,7 @@ describe('home widget manager (auth disabled)', () => {
     const body = JSON.stringify({
       layoutVersion: before.layoutVersion,
       widgets,
-      items: { ...before.layout.items, 'w-race': { x: 2, y: 100, w: 1, h: 1 } },
+      items: { ...before.layout.items, 'w-race': { x: 2, y: 100, w: 1, h: 3 } },
     })
     const [a, b] = await Promise.all([
       app.request('/api/layout/home', { method: 'PUT', headers: desktop, body }),

@@ -2,12 +2,13 @@ import { describe, expect, it } from 'vitest'
 import { HOME_SIZE_WH, MAX_HOME_WIDGETS, mergeHomeConfig, normalizeHomePositions, parseHomeWidgets } from './home-layout.js'
 
 describe('HOME_SIZE_WH', () => {
-  it('espone le quattro dimensioni canoniche S, M, L e XL', () => {
+  it('espone le cinque dimensioni canoniche XS, S, M, L e XL', () => {
     expect(HOME_SIZE_WH).toEqual({
-      sm: { w: 1, h: 1 },
-      md: { w: 2, h: 1 },
-      lg: { w: 3, h: 2 },
-      wide: { w: 3, h: 1 },
+      xs: { w: 1, h: 2 },
+      sm: { w: 1, h: 3 },
+      md: { w: 2, h: 3 },
+      lg: { w: 3, h: 6 },
+      wide: { w: 3, h: 3 },
     })
   })
 })
@@ -22,8 +23,8 @@ describe('normalizeHomePositions', () => {
       left: { x: 0, y: 8, w: 2, h: 2 },
       right: { x: 4, y: 12, w: 2, h: 2 },
     })).toEqual({
-      left: { x: 0, y: 0, w: 1, h: 1 },
-      right: { x: 2, y: 0, w: 1, h: 1 },
+      left: { x: 0, y: 0, w: 1, h: 3 },
+      right: { x: 2, y: 0, w: 1, h: 3 },
     })
   })
 })
@@ -32,10 +33,12 @@ describe('parseHomeWidgets', () => {
   it('accetta una lista valida di widget', () => {
     const widgets = parseHomeWidgets([
       { id: 'w-clock', type: 'clock', size: 'md' },
+      { id: 'w-mini', type: 'entity', size: 'xs', entityId: 'sensor.mini' },
       { id: 'w-light', type: 'entity', size: 'sm', entityId: 'light.salotto' },
     ])
     expect(widgets).toEqual([
       { id: 'w-clock', type: 'clock', size: 'md' },
+      { id: 'w-mini', type: 'entity', size: 'xs', entityId: 'sensor.mini' },
       { id: 'w-light', type: 'entity', size: 'sm', entityId: 'light.salotto' },
     ])
   })
@@ -53,6 +56,7 @@ describe('parseHomeWidgets', () => {
   it('rifiuta tipo o taglia sconosciuti (nessun drop silenzioso)', () => {
     expect(parseHomeWidgets([{ id: 'x', type: 'bogus', size: 'sm' }])).toBeNull()
     expect(parseHomeWidgets([{ id: 'x', type: 'clock', size: 'huge' }])).toBeNull()
+    expect(parseHomeWidgets([{ id: 'x', type: 'clock', size: 'xs' }])).toBeNull()
   })
 
   it('merge con nuovi widget bumpa la versione e riposiziona senza collisioni', () => {
