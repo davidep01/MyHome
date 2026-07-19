@@ -9,7 +9,11 @@ describe('home widget visual sizes', () => {
     expect(['XS', 'S', 'M', 'L', 'XL'].map((size) => {
       const config = getWidgetSizeConfig(size as 'XS' | 'S' | 'M' | 'L' | 'XL')
       return [config.slots, config.rows]
-    })).toEqual([[1, 1], [1, 1], [2, 1], [3, 2], [3, 1]])
+    })).toEqual([[1, 2], [1, 3], [2, 3], [3, 6], [3, 3]])
+  })
+
+  it('rende tre XS impilabili nella stessa altezza di una L', () => {
+    expect(getWidgetSizeConfig('XS').rows * 3).toBe(getWidgetSizeConfig('L').rows)
   })
 })
 

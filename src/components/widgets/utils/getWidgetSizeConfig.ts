@@ -11,8 +11,8 @@ export interface WidgetSizeConfig {
   titleClass: string
   /** Numero di slot orizzontali occupati nella griglia a tre colonne. */
   slots: 1 | 2 | 3
-  /** Numero di righe logiche occupate. */
-  rows: 1 | 2
+  /** Sotto-righe verticali occupate nella griglia canonica a sei righe. */
+  rows: 2 | 3 | 6
 }
 
 export const WIDGET_SIZE_CONFIG: Record<WidgetVisualSize, WidgetSizeConfig> = {
@@ -24,7 +24,7 @@ export const WIDGET_SIZE_CONFIG: Record<WidgetVisualSize, WidgetSizeConfig> = {
     valueClass: 'text-[18px]',
     titleClass: 'text-[12px]',
     slots: 1,
-    rows: 1,
+    rows: 2,
   },
   S: {
     size: 'S',
@@ -34,7 +34,7 @@ export const WIDGET_SIZE_CONFIG: Record<WidgetVisualSize, WidgetSizeConfig> = {
     valueClass: 'text-[22px]',
     titleClass: 'text-[13px]',
     slots: 1,
-    rows: 1,
+    rows: 3,
   },
   M: {
     size: 'M',
@@ -44,7 +44,7 @@ export const WIDGET_SIZE_CONFIG: Record<WidgetVisualSize, WidgetSizeConfig> = {
     valueClass: 'text-[28px]',
     titleClass: 'text-[15px]',
     slots: 2,
-    rows: 1,
+    rows: 3,
   },
   L: {
     size: 'L',
@@ -54,7 +54,7 @@ export const WIDGET_SIZE_CONFIG: Record<WidgetVisualSize, WidgetSizeConfig> = {
     valueClass: 'text-[36px]',
     titleClass: 'text-[17px]',
     slots: 3,
-    rows: 2,
+    rows: 6,
   },
   XL: {
     size: 'XL',
@@ -64,7 +64,7 @@ export const WIDGET_SIZE_CONFIG: Record<WidgetVisualSize, WidgetSizeConfig> = {
     valueClass: 'text-[36px]',
     titleClass: 'text-[17px]',
     slots: 3,
-    rows: 1,
+    rows: 3,
   },
 }
 

@@ -7,7 +7,7 @@ import { EntityCard } from '../../widgets/WidgetGrid'
 import { WidgetErrorBoundary } from '../widgets/WidgetErrorBoundary'
 import { CameraMonitoringRow } from './CameraMonitoringRow'
 import { makeRoomEntity } from './makeRoomEntity'
-import { resolveEnabledCardSize } from '../../widgets/utils/getWidgetSizeConfig'
+import { getWidgetSizeConfig, resolveEnabledCardSize } from '../../widgets/utils/getWidgetSizeConfig'
 
 /** Dashboard kiosk di una stanza: stessa grammatica della Home, dati limitati all'area. */
 export function RoomDashboard({
@@ -33,10 +33,11 @@ export function RoomDashboard({
     >
       {hasCameras && <CameraMonitoringRow entityIds={cameraIds} overrides={overrides} fillEmpty={false} />}
       {deviceIds.length > 0 ? (
-        <div className="grid h-full min-h-0 grid-flow-row-dense auto-rows-[minmax(0,1fr)] grid-cols-3 gap-3.5 overflow-hidden">
+        <div className="grid h-full min-h-0 grid-flow-row-dense grid-cols-3 grid-rows-[repeat(6,minmax(0,1fr))] auto-rows-[minmax(0,1fr)] gap-3.5 overflow-hidden">
           {deviceIds.map((entityId, index) => {
             const size = resolveEnabledCardSize('M', overrides?.[entityId])
-            const span = size === 'L' ? 'col-span-3 row-span-2'
+            const rows = getWidgetSizeConfig(size).rows
+            const span = size === 'L' ? 'col-span-3'
               : size === 'XL' ? 'col-span-3'
                 : size === 'M' ? 'col-span-2'
                   : 'col-span-1'
@@ -44,7 +45,10 @@ export function RoomDashboard({
               <div
                 key={entityId}
                 className={`card-enter h-full min-h-0 min-w-0 overflow-hidden [&_[data-widget-card]]:!min-h-0 ${span}`}
-                style={{ '--enter-i': Math.min(index, 8) } as CSSProperties}
+                style={{
+                  '--enter-i': Math.min(index, 8),
+                  gridRow: `span ${rows} / span ${rows}`,
+                } as CSSProperties}
               >
                 <WidgetErrorBoundary>
                   <EntityCard entity={makeRoomEntity(entityId, entities, overrides)} size={size} />

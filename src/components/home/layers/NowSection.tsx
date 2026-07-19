@@ -7,7 +7,7 @@ import { makeRoomEntity } from './makeRoomEntity'
 import type { HeroSlot } from '../../../lib/composer'
 import type { DeviceOverride } from '../../../api/backend'
 import { cn } from '../../../lib/utils'
-import { resolveEnabledCardSize } from '../../widgets/utils/getWidgetSizeConfig'
+import { getWidgetSizeConfig, resolveEnabledCardSize } from '../../widgets/utils/getWidgetSizeConfig'
 
 /**
  * Strato 2 — "Adesso": le card scelte dal composer per rilevanza.
@@ -28,7 +28,8 @@ export function NowSection({
     const size = slot.entityId
       ? resolveEnabledCardSize(slot.visualSize ?? 'M', overrides?.[slot.entityId])
       : slot.visualSize ?? 'M'
-    const span = size === 'L' ? 'sm:col-span-3 sm:row-span-2'
+    const rows = getWidgetSizeConfig(size).rows
+    const span = size === 'L' ? 'sm:col-span-3'
       : size === 'XL' ? 'sm:col-span-3'
         : size === 'M' ? 'sm:col-span-2'
           : 'sm:col-span-1'
@@ -38,7 +39,10 @@ export function NowSection({
         key={slot.key}
         title={slot.reason}
         className={cn('card-enter h-full min-h-0 min-w-0 overflow-hidden [&_[data-widget-card]]:!min-h-0', span)}
-        style={{ '--enter-i': Math.min(index, 8) } as CSSProperties}
+        style={{
+          '--enter-i': Math.min(index, 8),
+          gridRow: `span ${rows} / span ${rows}`,
+        } as CSSProperties}
       >
         <WidgetErrorBoundary>
           {slot.group ? (
@@ -55,7 +59,7 @@ export function NowSection({
   }
 
   return (
-    <section className={cn('grid h-full min-h-0 auto-rows-[minmax(0,1fr)] grid-flow-row-dense grid-cols-1 gap-3.5 overflow-hidden sm:grid-cols-3')}>
+    <section className={cn('grid h-full min-h-0 grid-flow-row-dense grid-cols-1 grid-rows-[repeat(6,minmax(0,1fr))] auto-rows-[minmax(0,1fr)] gap-3.5 overflow-hidden sm:grid-cols-3')}>
       {hero.map((slot) => renderSlot(slot))}
     </section>
   )
