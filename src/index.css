@@ -435,6 +435,21 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
 
 .home-widget-tile {
   container-type: size;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Il contenuto non può oltrepassare la footprint assegnata dal composer. */
+.home-widget-tile > .card-enter,
+.home-widget-tile [data-widget-card] {
+  min-height: 0 !important;
+  overflow: hidden;
+}
+
+/* La fila globale usa metà altezza: azzera il minimo HomeKit della card senza
+   alterare le card camera grandi nelle dashboard stanza. */
+.camera-monitoring-row--compact [data-widget-card] {
+  min-height: 0 !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

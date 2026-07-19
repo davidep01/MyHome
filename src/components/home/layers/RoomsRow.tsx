@@ -18,7 +18,7 @@ export interface RoomTarget {
  * Strato 3 — Stanze: l'inventario completo dietro un tap. Ogni chip mostra il
  * glifo della stanza; quando la stanza "fa" qualcosa, il glifo lascia il posto
  * all'icona animata dell'attività dominante (musica, calore, luci…) con un
- * piccolo pop. "Spazi" apre il catalogo zoom-out.
+ * piccolo pop. Il pulsante griglia apre il catalogo zoom-out.
  */
 export function RoomsRow({
   hiddenEntities,
@@ -67,20 +67,6 @@ export function RoomsRow({
 
   return (
     <section className="shrink-0">
-      <div className="mb-2 flex items-center justify-between px-1">
-        <p className="text-[13px] font-semibold uppercase tracking-[0.08em] text-black/35 dark:text-white/38">Stanze</p>
-        {onZoomOut && (
-          <button
-            type="button"
-            onClick={onZoomOut}
-            className="tap-target flex items-center gap-1.5 rounded-full px-2 text-[13px] font-semibold text-[#0066cc] transition active:scale-95"
-            aria-label="Apri la panoramica degli spazi"
-          >
-            <LayoutGrid size={14} />
-            Spazi
-          </button>
-        )}
-      </div>
       <div className="relative -mx-1">
         <div
           ref={scrollerRef}
@@ -88,6 +74,17 @@ export function RoomsRow({
           className="flex snap-x snap-proximity scroll-px-1 gap-2 overflow-x-auto overscroll-x-contain px-1 pb-1 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           aria-label="Stanze della casa, scorri orizzontalmente per visualizzarle tutte"
         >
+          {onZoomOut && (
+            <button
+              type="button"
+              onClick={onZoomOut}
+              className="tap-target flex min-h-[48px] min-w-[48px] shrink-0 snap-start items-center justify-center rounded-full border border-black/8 bg-white/72 text-[#0066cc] backdrop-blur-xl transition active:scale-95 dark:border-white/10 dark:bg-white/[0.08]"
+              aria-label="Apri la panoramica delle stanze"
+              title="Panoramica stanze"
+            >
+              <LayoutGrid size={18} aria-hidden="true" />
+            </button>
+          )}
           {activeRoomKey && onHome && (
             <button
               type="button"

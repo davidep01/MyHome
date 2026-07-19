@@ -22,6 +22,7 @@ import { selectDashboardCameraIds } from '../../lib/dashboardSelection'
 import { useRoomsOverview } from '../../hooks/useRoomsOverview'
 import { CameraMonitoringRow } from './layers/CameraMonitoringRow'
 import { RoomDashboard } from './layers/RoomDashboard'
+import { useCameraRowVisibility } from '../../hooks/useCameraRowVisibility'
 
 /**
  * Home a strati (DOMINICA M1): si compone da sola, zero gestione.
@@ -49,6 +50,7 @@ export function LayeredHome() {
   const [activeRoomKey, setActiveRoomKey] = useState<string | null>(null)
   const [timelineOpen, setTimelineOpen] = useState(false)
   const [spacesOpen, setSpacesOpen] = useState(false)
+  const { cameraRowVisible, toggleCameraRow } = useCameraRowVisibility()
   const activeRoom = rooms.find((room) => room.key === activeRoomKey) ?? null
   const preferredCameraIds = useMemo(
     () => (layout?.doorbells ?? [])
@@ -103,14 +105,19 @@ export function LayeredHome() {
           onAlertTap={openAlert}
           onAlertAction={runAlertAction}
           onClockTap={() => setTimelineOpen(true)}
+          cameraRowVisible={cameraRowVisible}
+          onCameraRowToggle={toggleCameraRow}
         />
 
         <div className="min-h-0 overflow-hidden">
           {activeRoom ? (
             <RoomDashboard room={activeRoom} overrides={layout?.deviceOverrides} />
           ) : (
-            <div className="grid h-full min-h-0 grid-rows-[minmax(150px,1.15fr)_minmax(0,0.9fr)] gap-3.5 overflow-hidden">
-              <CameraMonitoringRow entityIds={cameraIds} overrides={layout?.deviceOverrides} />
+            <div className={cn(
+              'grid h-full min-h-0 overflow-hidden',
+              cameraRowVisible ? 'grid-rows-[clamp(74px,11.5vh,108px)_minmax(0,1fr)] gap-3.5' : 'grid-rows-1',
+            )}>
+              {cameraRowVisible && <CameraMonitoringRow entityIds={cameraIds} overrides={layout?.deviceOverrides} compact />}
               <div className="min-h-0 overflow-hidden">
                 {composed.quiet ? <QuietSection /> : <NowSection hero={composed.hero} overrides={layout?.deviceOverrides} />}
               </div>

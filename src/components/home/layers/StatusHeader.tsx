@@ -1,4 +1,4 @@
-import { AlertTriangle, LoaderCircle, ShieldAlert, Thermometer } from 'lucide-react'
+import { AlertTriangle, LoaderCircle, ShieldAlert, Thermometer, Video, VideoOff } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { useClock } from '../../../hooks/useClock'
 import { useTimeOfDay } from '../../../hooks/useTimeOfDay'
@@ -23,6 +23,8 @@ export function StatusHeader({
   onAlertAction,
   onClockTap,
   contextTitle,
+  cameraRowVisible,
+  onCameraRowToggle,
 }: {
   userName?: string
   alerts: HomeChip[]
@@ -33,6 +35,9 @@ export function StatusHeader({
   onClockTap?: () => void
   /** Titolo della dashboard stanza; assente nella Home generale. */
   contextTitle?: string
+  /** Comando della fila di monitoraggio globale; omesso nelle viste senza camere fisse. */
+  cameraRowVisible?: boolean
+  onCameraRowToggle?: () => void
 }) {
   const { time, date } = useClock()
   const { greeting } = useTimeOfDay()
@@ -88,6 +93,21 @@ export function StatusHeader({
             value={outdoorTemperature}
             icon={weather ? <WeatherIcon code={weather.icon} size={23} /> : <WeatherIcon code="01d" size={23} />}
           />
+          {onCameraRowToggle && (
+            <>
+              <span className="h-7 w-px bg-black/[0.08] dark:bg-white/[0.12]" aria-hidden="true" />
+              <button
+                type="button"
+                onClick={onCameraRowToggle}
+                className="flex h-12 w-12 shrink-0 items-center justify-center text-black/50 transition hover:bg-black/[0.05] active:scale-95 dark:text-white/65 dark:hover:bg-white/[0.08]"
+                aria-label={cameraRowVisible ? 'Nascondi la fila videocamere' : 'Mostra la fila videocamere'}
+                aria-pressed={cameraRowVisible}
+                title={cameraRowVisible ? 'Nascondi videocamere' : 'Mostra videocamere'}
+              >
+                {cameraRowVisible ? <Video size={18} aria-hidden="true" /> : <VideoOff size={18} aria-hidden="true" />}
+              </button>
+            </>
+          )}
           <span className="h-7 w-px bg-black/[0.08] dark:bg-white/[0.12]" aria-hidden="true" />
           <StatusTemperature
             label="Interna"

@@ -1,5 +1,5 @@
 import { ChevronDown, ChevronUp, Home, Minus, Pause, Play, Plus, Square } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type ElementType } from 'react'
 import { haApi, type RoomEntity } from '../../api/backend'
 import { useHAEntity } from '../../hooks/useHAEntity'
 import { useHAService } from '../../hooks/useHAService'
@@ -86,6 +86,7 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
   // Il live riempie qualsiasi footprint S/M/L/XL; CameraStream sospende da sé
   // le tile fuori viewport o coperte dal full screen.
   const liveCamera = shouldRenderCameraStream(mapped.family, size, unavailable)
+  const mediaCoverStyle = isMediaCard && !liveCamera
 
   /** One in-flight command per card: optimistic start, visible rollback, no double submit. */
   const perform = (
@@ -376,11 +377,13 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
             {/* Scrim funzionale: il nome resta leggibile su qualunque frame. */}
             <span className="camera-card-scrim absolute inset-x-0 bottom-0 h-16" />
           </>
-        ) : visibleArtworkUrl ? (
+        ) : mediaCoverStyle ? (
           <ArtworkBackdrop
             url={visibleArtworkUrl}
             title={mapped.title}
-            onError={() => setFailedArtworkUrl(visibleArtworkUrl)}
+            Icon={mapped.Icon}
+            accentColor={mapped.accentColor}
+            onError={visibleArtworkUrl ? () => setFailedArtworkUrl(visibleArtworkUrl) : undefined}
           />
         ) : undefined}
     >
@@ -393,12 +396,12 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
         </div>
       ) : (
         <>
-          <div className={cn('flex items-start gap-2', visibleArtworkUrl ? 'justify-end' : 'justify-between')}>
-            {!visibleArtworkUrl && <WidgetCardIcon Icon={mapped.Icon} size={size} accentColor={mapped.accentColor} active={mapped.isActive} />}
+          <div className={cn('flex items-start gap-2', mediaCoverStyle ? 'justify-end' : 'justify-between')}>
+            {!mediaCoverStyle && <WidgetCardIcon Icon={mapped.Icon} size={size} accentColor={mapped.accentColor} active={mapped.isActive} />}
             {trailing && <div className="flex shrink-0 items-center gap-1.5">{trailing}</div>}
           </div>
 
-          <div className={cn(visibleArtworkUrl && 'ml-auto mt-auto w-[62%] min-w-0 text-right')}>
+          <div className={cn(mediaCoverStyle && 'ml-auto mt-auto w-[62%] min-w-0 text-right')}>
             <WidgetCardIdentity
               title={mapped.title}
               state={actionError ?? (size === 'S' && mapped.value !== undefined ? undefined : mapped.state || undefined)}
@@ -438,20 +441,32 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
 
 /** Copertina full-bleed: immagine a sinistra, dissolvenza bianca verso i controlli. */
 function ArtworkBackdrop({
-  url, title, onError,
+  url, title, Icon, accentColor, onError,
 }: {
-  url: string
+  url?: string
   title: string
-  onError: () => void
+  Icon: ElementType
+  accentColor: string
+  onError?: () => void
 }) {
   return (
-    <div className="media-card-artwork absolute inset-0">
-      <img
-        src={url}
-        alt={`Copertina: ${title}`}
-        className="h-full w-full object-cover object-center"
-        onError={onError}
-      />
+    <div className="media-card-artwork absolute inset-0" data-media-cover-style>
+      {url ? (
+        <img
+          src={url}
+          alt={`Copertina: ${title}`}
+          className="h-full w-full object-cover object-center"
+          onError={onError}
+        />
+      ) : (
+        <div
+          className="flex h-full w-[52%] items-center justify-center"
+          style={{ background: `color-mix(in srgb, ${accentColor} 24%, var(--widget-fill))`, color: accentColor }}
+          aria-label={`Copertina non disponibile: ${title}`}
+        >
+          <Icon size={42} aria-hidden="true" />
+        </div>
+      )}
       <span className="media-card-artwork-fade absolute inset-0" />
     </div>
   )

@@ -1,4 +1,5 @@
 import { useEffect, useId, useMemo, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
 import { framerSpring } from '../../design/tokens'
@@ -155,9 +156,9 @@ export function GlassSheet({
 
   const positionClass =
     side === 'bottom'
-      ? 'fixed z-50 bottom-0 left-0 right-0 rounded-t-[28px] px-6'
+      ? '!fixed z-50 bottom-0 left-0 right-0 rounded-t-[28px] px-6'
       : side === 'right'
-        ? 'fixed z-50 top-0 right-0 bottom-0 rounded-l-[28px] pl-6'
+        ? '!fixed z-50 top-0 right-0 bottom-0 rounded-l-[28px] pl-6'
         : 'rounded-[28px] px-6'
 
   const panel = (
@@ -200,7 +201,7 @@ export function GlassSheet({
     </motion.div>
   )
 
-  return (
+  const sheet = (
     <AnimatePresence>
       {open && (
         isCenter ? (
@@ -231,4 +232,9 @@ export function GlassSheet({
       )}
     </AnimatePresence>
   )
+
+  // I fogli possono essere invocati da controlli dentro header con
+  // overflow/backdrop-filter. Il portal li ancora sempre al viewport, evitando
+  // che vengano ritagliati o dimensionati dentro la status bar.
+  return typeof document === 'undefined' ? sheet : createPortal(sheet, document.body)
 }

@@ -18,6 +18,8 @@ import { RoomsRow, type RoomTarget } from '../layers/RoomsRow'
 import { SpacesCatalog } from '../layers/SpacesCatalog'
 import { useRoomsOverview } from '../../../hooks/useRoomsOverview'
 import { selectDashboardCameraIds } from '../../../lib/dashboardSelection'
+import { contentAwareHomeWidgets } from '../../../lib/contentAwareHome'
+import { useCameraRowVisibility } from '../../../hooks/useCameraRowVisibility'
 
 const GRID_GAP = [14, 14] as const
 const SIZE_SHORT: Record<WidgetSize, string> = { sm: 'S', md: 'M', lg: 'L', wide: 'XL' }
@@ -85,6 +87,7 @@ export function KioskWidgetHome() {
   const [message, setMessage] = useState<string | null>(null)
   const [activeRoomKey, setActiveRoomKey] = useState<string | null>(null)
   const [spacesOpen, setSpacesOpen] = useState(false)
+  const { cameraRowVisible, toggleCameraRow } = useCameraRowVisibility()
   const gridViewportRef = useRef<HTMLDivElement>(null)
   const gridViewportHeight = useElementHeight(gridViewportRef)
   const entities = useEntityStore((state) => state.entities)
@@ -110,13 +113,21 @@ export function KioskWidgetHome() {
 
   const savedWidgets = useMemo(() => data?.widgets ?? [], [data?.widgets])
   const savedLayout = useMemo(() => buildLayout(savedWidgets, data?.layout.items), [savedWidgets, data?.layout.items])
+  const displayWidgets = useMemo(
+    () => contentAwareHomeWidgets(savedWidgets, entities, data?.deviceOverrides, data?.groups),
+    [savedWidgets, entities, data?.deviceOverrides, data?.groups],
+  )
+  const displayLayout = useMemo(
+    () => buildLayout(displayWidgets, data?.layout.items),
+    [displayWidgets, data?.layout.items],
+  )
 
   // Auth removed on the LAN → /status reports the admin role on every device,
   // so home customization is available directly on the wall tablet.
   const canEdit = authStatus.data?.role === 'admin'
   const editing = draft !== null && canEdit
-  const activeWidgets = editing ? draft.widgets : savedWidgets
-  const activeLayout = editing ? draft.layout : savedLayout
+  const activeWidgets = editing ? draft.widgets : displayWidgets
+  const activeLayout = editing ? draft.layout : displayLayout
   const dirty = editing ? (!sameWidgets(draft.widgets, savedWidgets) || !sameLayout(draft.layout, savedLayout)) : false
   const naturalGridHeight = layoutPixelHeight(activeLayout, data?.layout.rowHeight ?? 64, GRID_GAP[1])
   const fitScale = !editing && gridViewportHeight > 0 && naturalGridHeight > gridViewportHeight
@@ -219,6 +230,8 @@ export function KioskWidgetHome() {
         contextTitle={activeRoom?.title}
         alerts={[]}
         onAlertTap={() => undefined}
+        cameraRowVisible={cameraRowVisible}
+        onCameraRowToggle={toggleCameraRow}
       />
 
       {!editing && activeRoom ? (
@@ -227,9 +240,9 @@ export function KioskWidgetHome() {
         </div>
       ) : (
         <>
-          {!editing && (
-            <div className="h-[clamp(150px,23vh,215px)] shrink-0 overflow-hidden">
-              <CameraMonitoringRow entityIds={cameraIds} overrides={data.deviceOverrides} />
+          {!editing && cameraRowVisible && (
+            <div className="h-[clamp(74px,11.5vh,108px)] shrink-0 overflow-hidden">
+              <CameraMonitoringRow entityIds={cameraIds} overrides={data.deviceOverrides} compact />
             </div>
           )}
           <div className="flex min-h-0 flex-1 flex-col">
