@@ -4,10 +4,10 @@ import { HOME_SIZE_WH, MAX_HOME_WIDGETS, mergeHomeConfig, normalizeHomePositions
 describe('HOME_SIZE_WH', () => {
   it('espone le quattro dimensioni canoniche S, M, L e XL', () => {
     expect(HOME_SIZE_WH).toEqual({
-      sm: { w: 2, h: 2 },
-      md: { w: 4, h: 2 },
-      lg: { w: 4, h: 4 },
-      wide: { w: 8, h: 2 },
+      sm: { w: 1, h: 1 },
+      md: { w: 2, h: 1 },
+      lg: { w: 3, h: 2 },
+      wide: { w: 3, h: 1 },
     })
   })
 })
@@ -22,8 +22,8 @@ describe('normalizeHomePositions', () => {
       left: { x: 0, y: 8, w: 2, h: 2 },
       right: { x: 4, y: 12, w: 2, h: 2 },
     })).toEqual({
-      left: { x: 0, y: 0, w: 2, h: 2 },
-      right: { x: 4, y: 0, w: 2, h: 2 },
+      left: { x: 0, y: 0, w: 1, h: 1 },
+      right: { x: 2, y: 0, w: 1, h: 1 },
     })
   })
 })

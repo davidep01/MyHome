@@ -32,11 +32,11 @@ const TYPE_OPTIONS: { value: EntityType; label: string }[] = [
 
 type VisibilityFilter = 'all' | 'visible' | 'hidden' | 'unavailable'
 const PAGE = 120
-const CARD_SIZE_OPTIONS: { value: WidgetVisualSize; label: string; description: string; className: string }[] = [
-  { value: 'S', label: 'S', description: 'Compatta', className: 'h-[116px]' },
-  { value: 'M', label: 'M', description: 'Standard', className: 'h-[154px]' },
-  { value: 'L', label: 'L', description: 'Estesa', className: 'col-span-2 h-[210px]' },
-  { value: 'XL', label: 'XL', description: 'Panoramica', className: 'col-span-2 h-[158px]' },
+const CARD_SIZE_OPTIONS: { value: WidgetVisualSize; label: string; description: string; footprint: string; className: string }[] = [
+  { value: 'S', label: 'S', description: 'Compatta', footprint: '1 slot', className: 'col-span-1 h-[154px]' },
+  { value: 'M', label: 'M', description: 'Standard', footprint: '2 slot', className: 'col-span-2 h-[154px]' },
+  { value: 'L', label: 'L', description: 'Alta', footprint: '3 slot · 2 righe', className: 'col-span-3 h-[260px]' },
+  { value: 'XL', label: 'XL', description: 'Panoramica', footprint: '3 slot · 1 riga', className: 'col-span-3 h-[154px]' },
 ]
 
 /**
@@ -604,7 +604,7 @@ function EntityDetail({
         <div className="flex items-end justify-between gap-3">
           <div>
             <p className="text-xs font-semibold text-black/50" id={`${id}-size-label`}>Dimensione card</p>
-            <p className="mt-0.5 text-[11px] text-black/35">Seleziona una o più varianti consentite all’autocomposer.</p>
+            <p className="mt-0.5 text-[11px] text-black/35">Tre slot per riga. Seleziona una o più footprint consentite all’autocomposer.</p>
           </div>
           <button
             type="button"
@@ -619,7 +619,7 @@ function EntityDetail({
             Auto
           </button>
         </div>
-        <div className="grid grid-cols-2 gap-2 rounded-[20px] bg-[#f5f5f7] p-2" role="group" aria-labelledby={`${id}-size-label`}>
+        <div className="grid grid-cols-3 gap-2 rounded-[20px] bg-[#f5f5f7] p-2" role="group" aria-labelledby={`${id}-size-label`}>
           {CARD_SIZE_OPTIONS.map((option) => {
             const selected = sizeDraft.includes(option.value)
             return (
@@ -629,7 +629,7 @@ function EntityDetail({
                 disabled={disabled}
                 onClick={() => toggleSize(option.value)}
                 aria-pressed={selected}
-                aria-label={`Usa dimensione ${option.value}, ${option.description}`}
+                aria-label={`Usa dimensione ${option.value}, ${option.description}, ${option.footprint}`}
                 className={cn(
                   'relative min-w-0 rounded-[20px] p-1 text-left transition active:scale-[0.99]',
                   option.className,
@@ -640,7 +640,7 @@ function EntityDetail({
                   'absolute left-2 top-2 z-40 rounded-full px-2 py-1 text-[10px] font-bold shadow-sm',
                   selected ? 'bg-[#0066cc] text-white' : 'bg-white/90 text-black/55',
                 )}>
-                  {option.label} · {option.description}
+                  {option.label} · {option.footprint}
                 </span>
                 <span className="pointer-events-none block h-full min-h-0 overflow-hidden rounded-[18px]">
                   <EntityCard entity={makeRoomEntity(entityId, entities, overrides)} size={option.value} preview />

@@ -6,7 +6,7 @@ import type { WidgetSize, WidgetType } from '../../../api/backend'
 export { SIZE_WH } from '../../../lib/homeLayout'
 
 export const SIZE_LABEL: Record<WidgetSize, string> = {
-  sm: 'S · Piccolo', md: 'M · Medio', lg: 'L · Grande', wide: 'XL · Extra large',
+  sm: 'S · 1 slot', md: 'M · 2 slot', lg: 'L · 3 slot, alta', wide: 'XL · 3 slot, panoramica',
 }
 
 const ALL_SIZES: WidgetSize[] = ['sm', 'md', 'lg', 'wide']

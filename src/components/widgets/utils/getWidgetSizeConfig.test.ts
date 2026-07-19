@@ -6,6 +6,10 @@ describe('home widget visual sizes', () => {
     expect(['sm', 'md', 'lg', 'wide'].map((size) => widgetVisualSizeFromHomeSize(size as 'sm' | 'md' | 'lg' | 'wide')))
       .toEqual(['S', 'M', 'L', 'XL'])
     expect(getWidgetSizeConfig('XL').valueClass).toBe('text-[36px]')
+    expect(['S', 'M', 'L', 'XL'].map((size) => {
+      const config = getWidgetSizeConfig(size as 'S' | 'M' | 'L' | 'XL')
+      return [config.slots, config.rows]
+    })).toEqual([[1, 1], [2, 1], [3, 2], [3, 1]])
   })
 })
 

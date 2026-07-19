@@ -28,9 +28,10 @@ export function NowSection({
     const size = slot.entityId
       ? resolveEnabledCardSize(slot.visualSize ?? 'M', overrides?.[slot.entityId])
       : slot.visualSize ?? 'M'
-    const span = size === 'XL' ? 'sm:col-span-2 lg:col-span-6'
-        : size === 'L' ? 'sm:col-span-2 lg:col-span-3'
-          : 'lg:col-span-2'
+    const span = size === 'L' ? 'sm:col-span-3 sm:row-span-2'
+      : size === 'XL' ? 'sm:col-span-3'
+        : size === 'M' ? 'sm:col-span-2'
+          : 'sm:col-span-1'
 
     return (
       <div
@@ -54,7 +55,7 @@ export function NowSection({
   }
 
   return (
-    <section className={cn('grid h-full min-h-0 auto-rows-[minmax(0,1fr)] grid-flow-row-dense grid-cols-1 gap-3.5 overflow-hidden sm:grid-cols-2 lg:grid-cols-6')}>
+    <section className={cn('grid h-full min-h-0 auto-rows-[minmax(0,1fr)] grid-flow-row-dense grid-cols-1 gap-3.5 overflow-hidden sm:grid-cols-3')}>
       {hero.map((slot) => renderSlot(slot))}
     </section>
   )

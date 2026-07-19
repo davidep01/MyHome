@@ -23,6 +23,9 @@ import { useCameraRowVisibility } from '../../../hooks/useCameraRowVisibility'
 
 const GRID_GAP = [14, 14] as const
 const SIZE_SHORT: Record<WidgetSize, string> = { sm: 'S', md: 'M', lg: 'L', wide: 'XL' }
+const SIZE_FOOTPRINT: Record<WidgetSize, string> = {
+  sm: '1 slot', md: '2 slot', lg: '3 slot, 2 righe', wide: '3 slot, 1 riga',
+}
 const SIZE_ORDER: WidgetSize[] = ['sm', 'md', 'lg', 'wide']
 
 interface Draft {
@@ -405,7 +408,7 @@ function TileEditOverlay({
             key={size}
             type="button"
             onClick={() => onSizeChange(size)}
-            aria-label={`Dimensione ${SIZE_SHORT[size]}`}
+            aria-label={`Dimensione ${SIZE_SHORT[size]}, ${SIZE_FOOTPRINT[size]}`}
             aria-pressed={widget.size === size}
             className={cn(
               'flex h-8 min-w-8 items-center justify-center rounded-full px-2 text-[11px] font-bold transition active:scale-90',

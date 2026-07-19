@@ -2,16 +2,16 @@ import type { AppConfig, HomeConfig, HomeWidget, WidgetSize, WidgetType } from '
 
 export type HomePosition = { x: number; y: number; w: number; h: number }
 
-export const HOME_SCHEMA_VERSION = 1
+export const HOME_SCHEMA_VERSION = 2
 export const HOME_DASHBOARD_ID = 'home'
-export const HOME_COLS = 8
-export const HOME_ROW_HEIGHT = 64
+export const HOME_COLS = 3
+export const HOME_ROW_HEIGHT = 142
 
 export const HOME_SIZE_WH: Record<WidgetSize, { w: number; h: number }> = {
-  sm: { w: 2, h: 2 },
-  md: { w: 4, h: 2 },
-  lg: { w: 4, h: 4 },
-  wide: { w: 8, h: 2 },
+  sm: { w: 1, h: 1 },
+  md: { w: 2, h: 1 },
+  lg: { w: 3, h: 2 },
+  wide: { w: 3, h: 1 },
 }
 
 const DEFAULT_HOME_WIDGETS: HomeWidget[] = [

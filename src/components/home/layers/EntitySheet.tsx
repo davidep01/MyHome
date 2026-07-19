@@ -36,10 +36,13 @@ export function EntitySheet({
       side="center"
       wide
     >
-      <div className="grid w-full grid-cols-2 gap-3 auto-rows-[150px] sm:grid-cols-3 lg:grid-cols-4">
+      <div className="grid w-full grid-cols-1 gap-3 auto-rows-[150px] sm:grid-cols-3">
         {visible.map((entityId, index) => {
           const size = resolveEnabledCardSize('M', overrides?.[entityId])
-          const span = size === 'XL' ? 'col-span-2' : size === 'L' ? 'col-span-2 row-span-2' : ''
+          const span = size === 'L' ? 'sm:col-span-3 row-span-2'
+            : size === 'XL' ? 'sm:col-span-3'
+              : size === 'M' ? 'sm:col-span-2'
+                : 'sm:col-span-1'
           return (
             <div key={entityId} className={`card-enter h-full min-h-0 min-w-0 overflow-hidden [&_[data-widget-card]]:!min-h-0 ${span}`} style={{ '--enter-i': Math.min(index, 10) } as CSSProperties}>
               <WidgetErrorBoundary>

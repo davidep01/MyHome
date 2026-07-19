@@ -11,15 +11,18 @@ import type { DashboardPosition, HomeWidget, WidgetSize } from '../api/backend'
  * previous copies that lived inside WidgetHome.tsx, KioskWidgetHome.tsx and
  * widgetCatalog.ts.
  */
-export const HOME_COLS = 8
-export const HOME_ROW_HEIGHT = 64
+export const HOME_COLS = 3
+export const HOME_ROW_HEIGHT = 142
 
-/** Canonical S/M/L/XL footprints on the 8-column magnetic grid. */
+/**
+ * Tre slot logici per riga: S ne usa uno, M due, L/XL tutta la riga.
+ * L è l'unica footprint alta; XL resta panoramica e bassa.
+ */
 export const SIZE_WH: Record<WidgetSize, { w: number; h: number }> = {
-  sm: { w: 2, h: 2 },
-  md: { w: 4, h: 2 },
-  lg: { w: 4, h: 4 },
-  wide: { w: 8, h: 2 },
+  sm: { w: 1, h: 1 },
+  md: { w: 2, h: 1 },
+  lg: { w: 3, h: 2 },
+  wide: { w: 3, h: 1 },
 }
 
 export type HomePositions = Record<string, DashboardPosition>

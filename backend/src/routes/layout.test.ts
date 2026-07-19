@@ -49,7 +49,7 @@ describe('home widget manager (auth disabled)', () => {
   it('adds a widget and persists it', async () => {
     const before = await getLayout()
     const widgets = [...before.widgets, { id: 'w-new-light', type: 'entity', size: 'sm', entityId: 'light.test' }]
-    const items = { ...before.layout.items, 'w-new-light': { x: 0, y: 100, w: 2, h: 2 } }
+    const items = { ...before.layout.items, 'w-new-light': { x: 0, y: 100, w: 1, h: 1 } }
     const res = await app.request('/api/layout/home', {
       method: 'PUT', headers: desktop,
       body: JSON.stringify({ layoutVersion: before.layoutVersion, widgets, items, order: [...before.layout.order, 'w-new-light'] }),
@@ -88,7 +88,7 @@ describe('home widget manager (auth disabled)', () => {
     const body = JSON.stringify({
       layoutVersion: before.layoutVersion,
       widgets,
-      items: { ...before.layout.items, 'w-race': { x: 6, y: 100, w: 2, h: 2 } },
+      items: { ...before.layout.items, 'w-race': { x: 2, y: 100, w: 1, h: 1 } },
     })
     const [a, b] = await Promise.all([
       app.request('/api/layout/home', { method: 'PUT', headers: desktop, body }),

@@ -9,6 +9,10 @@ export interface WidgetSizeConfig {
   icon: number
   valueClass: string
   titleClass: string
+  /** Numero di slot orizzontali occupati nella griglia a tre colonne. */
+  slots: 1 | 2 | 3
+  /** Numero di righe logiche occupate. */
+  rows: 1 | 2
 }
 
 export const WIDGET_SIZE_CONFIG: Record<WidgetVisualSize, WidgetSizeConfig> = {
@@ -19,6 +23,8 @@ export const WIDGET_SIZE_CONFIG: Record<WidgetVisualSize, WidgetSizeConfig> = {
     icon: 18,
     valueClass: 'text-[22px]',
     titleClass: 'text-[13px]',
+    slots: 1,
+    rows: 1,
   },
   M: {
     size: 'M',
@@ -27,6 +33,8 @@ export const WIDGET_SIZE_CONFIG: Record<WidgetVisualSize, WidgetSizeConfig> = {
     icon: 20,
     valueClass: 'text-[28px]',
     titleClass: 'text-[15px]',
+    slots: 2,
+    rows: 1,
   },
   L: {
     size: 'L',
@@ -35,6 +43,8 @@ export const WIDGET_SIZE_CONFIG: Record<WidgetVisualSize, WidgetSizeConfig> = {
     icon: 24,
     valueClass: 'text-[36px]',
     titleClass: 'text-[17px]',
+    slots: 3,
+    rows: 2,
   },
   XL: {
     size: 'XL',
@@ -43,6 +53,8 @@ export const WIDGET_SIZE_CONFIG: Record<WidgetVisualSize, WidgetSizeConfig> = {
     icon: 24,
     valueClass: 'text-[36px]',
     titleClass: 'text-[17px]',
+    slots: 3,
+    rows: 1,
   },
 }
 

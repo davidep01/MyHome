@@ -33,10 +33,13 @@ export function RoomDashboard({
     >
       {hasCameras && <CameraMonitoringRow entityIds={cameraIds} overrides={overrides} fillEmpty={false} />}
       {deviceIds.length > 0 ? (
-        <div className="grid h-full min-h-0 grid-flow-row-dense auto-rows-[minmax(0,1fr)] grid-cols-6 gap-3.5 overflow-hidden">
+        <div className="grid h-full min-h-0 grid-flow-row-dense auto-rows-[minmax(0,1fr)] grid-cols-3 gap-3.5 overflow-hidden">
           {deviceIds.map((entityId, index) => {
             const size = resolveEnabledCardSize('M', overrides?.[entityId])
-            const span = size === 'XL' ? 'col-span-6' : size === 'L' ? 'col-span-3' : 'col-span-2'
+            const span = size === 'L' ? 'col-span-3 row-span-2'
+              : size === 'XL' ? 'col-span-3'
+                : size === 'M' ? 'col-span-2'
+                  : 'col-span-1'
             return (
               <div
                 key={entityId}
