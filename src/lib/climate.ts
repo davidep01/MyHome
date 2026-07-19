@@ -75,7 +75,15 @@ export function getClimateVisualState(entity?: HassEntity | null) {
             ? 'fan'
             : isOff
               ? 'off'
-              : 'idle'
+              : mode === 'heat'
+                ? 'heating'
+                : mode === 'cool'
+                  ? 'cooling'
+                  : mode === 'dry'
+                    ? 'drying'
+                    : mode === 'fan_only'
+                      ? 'fan'
+                      : 'idle'
 
   return {
     mode,
@@ -94,7 +102,7 @@ export function getClimateVisualState(entity?: HassEntity | null) {
           ? HVAC_ACTION_LABELS[idleAction]
           : isOff
             ? 'Spento'
-            : 'In pausa',
+            : `Modalità ${getHvacModeLabel(mode).toLocaleLowerCase('it')}`,
   }
 }
 
@@ -108,5 +116,5 @@ export function pickOnHvacMode(modes: string[], currentMode?: string | null): st
 
 export function formatClimateTemp(value: unknown, unit = '°C'): string {
   const n = Number(value)
-  return Number.isFinite(n) ? `${n.toFixed(1)}${unit}` : `--${unit}`
+  return Number.isFinite(n) ? `${n.toFixed(1).replace('.', ',')}${unit}` : `--${unit}`
 }

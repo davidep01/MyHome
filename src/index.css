@@ -515,6 +515,49 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
 }
 .widget-card-shell.widget-card-active .widget-card-tint { opacity: .9; }
 
+/* Climate card: mode color drives the ambient tint; the target ring follows
+   the requested temperature band independently from heating/cooling mode. */
+.widget-card-climate .widget-card-fill {
+  opacity: 1;
+  background: color-mix(in srgb, var(--widget-accent) 5%, var(--widget-fill));
+}
+.widget-card-climate.widget-card-active .widget-card-fill {
+  background: color-mix(in srgb, var(--widget-accent) 10%, var(--widget-fill));
+}
+.widget-card-climate .widget-card-tint { opacity: .46; }
+.widget-card-climate.widget-card-active .widget-card-tint { opacity: .72; }
+.climate-target-ring {
+  background: conic-gradient(
+    from 210deg,
+    var(--climate-target-accent) 0 var(--climate-target-progress),
+    color-mix(in srgb, var(--ink-secondary) 11%, transparent) var(--climate-target-progress) 100%
+  );
+  box-shadow: 0 5px 18px color-mix(in srgb, var(--climate-target-accent) 13%, transparent);
+}
+.climate-target-core {
+  background: color-mix(in srgb, var(--canvas-card) 94%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.7);
+}
+.widget-card-climate { container-type: inline-size; }
+@container (max-width: 180px) {
+  .widget-card-climate[data-widget-size='XS'] .climate-xs-temperature { display: none; }
+  .widget-card-climate[data-widget-size='S'] .climate-s-current,
+  .widget-card-climate[data-widget-size='S'] .climate-s-step { display: none; }
+  .widget-card-climate[data-widget-size='S'] .climate-layout-s { justify-content: center; }
+}
+@container (max-width: 300px) {
+  .widget-card-climate[data-widget-size='M'] .climate-m-step,
+  .widget-card-climate[data-widget-size='M'] .climate-m-meta { display: none; }
+  .widget-card-climate[data-widget-size='M'] .climate-layout-m { gap: .4rem; }
+}
+@container (max-width: 650px) {
+  .widget-card-climate[data-widget-size='XL'] .climate-layout-xl {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: .5rem;
+  }
+  .widget-card-climate[data-widget-size='XL'] .climate-xl-actions { display: none; }
+}
+
 /* Light card: the surface is the switch. A solid state wash replaces the
    separate toggle: warm color means on, neutral gray means off. Variables
    keep the same contrast relationship in day and night themes. */

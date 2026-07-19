@@ -24,6 +24,7 @@ import { WasteCollectionCard } from './WasteCollectionCard'
 import { mediaArtworkRevision } from '../../lib/mediaArtwork'
 import { shouldRenderCameraStream } from './utils/cameraCardStream'
 import { MediaCardContent } from './MediaCardContent'
+import { ClimateCard } from './ClimateCard'
 
 interface Props {
   entity: RoomEntity
@@ -356,6 +357,20 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
         isEditing={isEditing}
         isDragging={isDragging}
         onClick={() => setSelectedEntity(entityId)}
+      />
+    )
+  }
+
+  if (domain === 'climate' && (mapped.family === 'climate' || mapped.family === 'thermostat')) {
+    return (
+      <ClimateCard
+        entityId={entityId}
+        cardId={roomEntity.id}
+        label={mapped.title}
+        size={size}
+        className={className}
+        isEditing={isEditing}
+        isDragging={isDragging}
       />
     )
   }
