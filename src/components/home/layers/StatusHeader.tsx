@@ -1,4 +1,4 @@
-import { AlertTriangle, LoaderCircle, ShieldAlert, Thermometer, Video, VideoOff } from 'lucide-react'
+import { AlertTriangle, CarFront, HousePlug, LoaderCircle, ShieldAlert, Thermometer, Video, VideoOff, Zap } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { useClock } from '../../../hooks/useClock'
 import { useTimeOfDay } from '../../../hooks/useTimeOfDay'
@@ -10,6 +10,10 @@ import { WeatherIcon } from '../../weather/WeatherIcon'
 import { NotificationBell } from '../../notifications/NotificationCenter'
 import { BRAND_EXPANDED, BRAND_NAME } from '../../../lib/brand'
 import { externalTemperatureFromEntities, meanIndoorClimateTemperature } from '../../../lib/dashboardSelection'
+import { formatHousePower, isWallboxConnected } from '../../../lib/statusBarEnergy'
+
+const WALLBOX_STATUS_ID = 'sensor.chargesplit_domus_wallbox_status'
+const HOUSE_CONSUMPTION_ID = 'sensor.chargesplit_domus_actual_house_consumption'
 
 /**
  * Strato 1 — Stato di casa. Sempre presente, mai configurato: ora, saluto,
@@ -61,6 +65,8 @@ export function StatusHeader({
 
   const indoorTemperature = useMemo(() => meanIndoorClimateTemperature(entities), [entities])
   const outdoorTemperature = weather?.temp ?? externalTemperatureFromEntities(entities)
+  const wallboxConnected = isWallboxConnected(entities[WALLBOX_STATUS_ID])
+  const housePower = formatHousePower(entities[HOUSE_CONSUMPTION_ID])
 
   return (
     <header className="min-w-0 shrink-0 space-y-3.5">
@@ -86,7 +92,7 @@ export function StatusHeader({
 
         <div
           className="flex h-14 shrink-0 items-center overflow-hidden rounded-[18px] border border-black/[0.07] bg-white/65 shadow-sm backdrop-blur-xl dark:border-white/[0.10] dark:bg-white/[0.07]"
-          aria-label="Stato temperature e notifiche"
+          aria-label="Stato temperature, energia e notifiche"
         >
           <StatusTemperature
             label="Esterna"
@@ -114,6 +120,14 @@ export function StatusHeader({
             value={indoorTemperature}
             icon={<Thermometer size={18} className="text-orange-500" aria-hidden="true" />}
           />
+          <span className="h-7 w-px bg-black/[0.08] dark:bg-white/[0.12]" aria-hidden="true" />
+          <StatusPower value={housePower} />
+          {wallboxConnected && (
+            <>
+              <span className="h-7 w-px bg-black/[0.08] dark:bg-white/[0.12]" aria-hidden="true" />
+              <WallboxConnected />
+            </>
+          )}
           <span className="h-7 w-px bg-black/[0.08] dark:bg-white/[0.12]" aria-hidden="true" />
           <NotificationBell allowDismiss={false} variant="statusBar" />
         </div>
@@ -154,6 +168,37 @@ export function StatusHeader({
       )}
       {actionError && <p role="alert" className="text-sm font-semibold text-red-700">{actionError}</p>}
     </header>
+  )
+}
+
+function StatusPower({ value }: { value: string | null }) {
+  return (
+    <div className="flex h-full min-w-[102px] items-center gap-2 px-3">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center text-[#0066cc]">
+        <HousePlug size={19} aria-hidden="true" />
+      </span>
+      <span className="min-w-0">
+        <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-black/35 dark:text-white/38">Casa</span>
+        <span className="block whitespace-nowrap text-[16px] font-semibold leading-none tabular-nums text-[#1d1d1f] dark:text-white">{value ?? '—'}</span>
+      </span>
+    </div>
+  )
+}
+
+function WallboxConnected() {
+  return (
+    <div
+      className="flex h-full w-[58px] shrink-0 items-center justify-center"
+      aria-label="Auto elettrica collegata alla wallbox"
+      title="Auto elettrica collegata"
+    >
+      <span className="wallbox-charge-indicator relative flex h-10 w-10 items-center justify-center rounded-[13px] bg-emerald-500/12 text-emerald-600 dark:bg-emerald-400/14 dark:text-emerald-300">
+        <CarFront size={22} aria-hidden="true" />
+        <span className="wallbox-charge-bolt absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm">
+          <Zap size={10} fill="currentColor" aria-hidden="true" />
+        </span>
+      </span>
+    </div>
   )
 }
 

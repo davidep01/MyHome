@@ -7,6 +7,27 @@ import { useNotifications, type HANotification } from '../../hooks/useNotificati
 import { useHAService } from '../../hooks/useHAService'
 import { tokens, framerSpring } from '../../design/tokens'
 import { cn } from '../../lib/utils'
+import { selectNewLiveNotification } from '../../lib/liveNotification'
+
+const OFFLINE_TOAST_SESSION_KEY = 'simi.offline-notifications-announced'
+
+function readAnnouncedOfflineIds(): Set<string> {
+  if (typeof window === 'undefined') return new Set()
+  try {
+    const value = JSON.parse(window.sessionStorage.getItem(OFFLINE_TOAST_SESSION_KEY) ?? '[]')
+    return new Set(Array.isArray(value) ? value.filter((id): id is string => typeof id === 'string') : [])
+  } catch {
+    return new Set()
+  }
+}
+
+function rememberAnnouncedOfflineIds(ids: ReadonlySet<string>): void {
+  try {
+    window.sessionStorage.setItem(OFFLINE_TOAST_SESSION_KEY, JSON.stringify([...ids]))
+  } catch {
+    // Storage disabilitato: il Set in memoria mantiene comunque la deduplica.
+  }
+}
 
 const typeConfig = {
   system: {
@@ -233,6 +254,7 @@ function LiveNotificationToast({
 }) {
   const [current, setCurrent] = useState<HANotification | null>(null)
   const seenRef = useRef(new Set<string>())
+  const announcedOfflineRef = useRef(readAnnouncedOfflineIds())
   const readyRef = useRef(false)
 
   useEffect(() => {
@@ -245,9 +267,15 @@ function LiveNotificationToast({
 
   useEffect(() => {
     const nextIds = new Set(notifications.map((notification) => notification.id))
-    const added = notifications.find((notification) => !seenRef.current.has(notification.id))
+    const added = selectNewLiveNotification(notifications, seenRef.current, announcedOfflineRef.current)
     seenRef.current = nextIds
-    if (readyRef.current && added) setCurrent(added)
+    if (readyRef.current && added) {
+      if (added.type === 'offline') {
+        announcedOfflineRef.current.add(added.id)
+        rememberAnnouncedOfflineIds(announcedOfflineRef.current)
+      }
+      setCurrent(added)
+    }
   }, [notifications])
 
   useEffect(() => {
