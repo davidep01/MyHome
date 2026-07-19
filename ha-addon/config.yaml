@@ -1,6 +1,6 @@
 name: "S.I.M.I. Dashboard"
 description: "Sistema Integrato di Monitoraggio Intelligente per Home Assistant"
-version: "2.2.90"
+version: "2.2.91"
 slug: "myhome_dashboard"
 url: "https://github.com/davidep01/MyHome"
 init: false
