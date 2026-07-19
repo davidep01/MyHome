@@ -83,14 +83,14 @@ describe('composeHome', () => {
     expect(night.alerts[0]).toMatchObject({ id: 'locks', severity: 'danger' })
   })
 
-  it('conta le aperture aperte nelle chip', () => {
+  it('conta le aperture rilevate nelle chip', () => {
     const out = composeHome([
       e('binary_sensor.finestra', 'on', { device_class: 'window' }),
       e('binary_sensor.porta', 'on', { device_class: 'door' }),
       e('binary_sensor.movimento', 'on', { device_class: 'motion' }), // non è un'apertura
     ], { now: DAY })
     expect(out.alerts).toHaveLength(1)
-    expect(out.alerts[0]).toMatchObject({ id: 'openings', label: '2 aperture aperte' })
+    expect(out.alerts[0]).toMatchObject({ id: 'openings', label: '2 aperture rilevate' })
     expect(out.hero.map((slot) => slot.entityId)).toEqual([
       'binary_sensor.finestra',
       'binary_sensor.porta',

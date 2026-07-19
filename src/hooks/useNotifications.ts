@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import type { HassEntities } from 'home-assistant-js-websocket'
 import { useEntityStore } from '../store/entities'
 import { entityName } from '../components/widgets/utils/mapEntityToWidgetCard'
 
@@ -11,13 +12,12 @@ export interface HANotification {
   severity: 'critical' | 'warning' | 'info'
 }
 
-export function useNotifications(): HANotification[] {
-  const entities = useEntityStore((s) => s.entities)
+const OPENING_CLASSES = new Set(['door', 'window', 'garage_door', 'opening'])
 
-  return useMemo(() => {
-    const notifications: HANotification[] = []
+export function notificationsFromEntities(entities: HassEntities): HANotification[] {
+  const notifications: HANotification[] = []
 
-    for (const [entityId, entity] of Object.entries(entities)) {
+  for (const [entityId, entity] of Object.entries(entities)) {
       // ── HA persistent notifications ──────────────────────────────
       if (entityId.startsWith('persistent_notification.') && entity.state !== 'dismissed') {
         notifications.push({
@@ -45,6 +45,21 @@ export function useNotifications(): HANotification[] {
           message: deviceClass === 'moisture' ? 'Possibile perdita d’acqua' : 'Sensore di sicurezza attivo',
           entityId,
           severity: 'critical',
+        })
+      }
+
+      if (
+        entityId.startsWith('binary_sensor.')
+        && entity.state === 'on'
+        && OPENING_CLASSES.has(deviceClass)
+      ) {
+        notifications.push({
+          id: `opening-${entityId}`,
+          type: 'safety',
+          title: entityName(entity),
+          message: 'Porta o finestra aperta',
+          entityId,
+          severity: 'warning',
         })
       }
 
@@ -83,10 +98,14 @@ export function useNotifications(): HANotification[] {
           severity: batteryLevel < 10 ? 'critical' : 'warning',
         })
       }
-    }
+  }
 
-    // Sort: critical first, then warnings, then info
-    const order: Record<string, number> = { critical: 0, warning: 1, info: 2 }
-    return notifications.sort((a, b) => order[a.severity] - order[b.severity])
-  }, [entities])
+  // Sort: critical first, then warnings, then info
+  const order: Record<string, number> = { critical: 0, warning: 1, info: 2 }
+  return notifications.sort((a, b) => order[a.severity] - order[b.severity])
+}
+
+export function useNotifications(): HANotification[] {
+  const entities = useEntityStore((s) => s.entities)
+  return useMemo(() => notificationsFromEntities(entities), [entities])
 }

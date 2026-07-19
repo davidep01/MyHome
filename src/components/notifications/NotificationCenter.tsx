@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Bell, Wifi, Battery, AlertTriangle, CheckCircle, ShieldAlert, X } from 'lucide-react'
 import { GlassSheet } from '../glass/GlassSheet'
@@ -208,6 +209,91 @@ export function NotificationBell({
           )}
         </div>
       </GlassSheet>
+      {variant === 'statusBar' && (
+        <LiveNotificationToast
+          notifications={notifications}
+          onOpen={() => setOpen(true)}
+        />
+      )}
     </>
+  )
+}
+
+/**
+ * Mostra soltanto le notifiche nate dopo la sincronizzazione iniziale di HA.
+ * Il toast vive in un portal per non essere tagliato dall'overflow della
+ * status bar e scorre esplicitamente da destra verso sinistra.
+ */
+function LiveNotificationToast({
+  notifications,
+  onOpen,
+}: {
+  notifications: HANotification[]
+  onOpen: () => void
+}) {
+  const [current, setCurrent] = useState<HANotification | null>(null)
+  const seenRef = useRef(new Set<string>())
+  const readyRef = useRef(false)
+
+  useEffect(() => {
+    seenRef.current = new Set(notifications.map((notification) => notification.id))
+    const timer = window.setTimeout(() => { readyRef.current = true }, 1_800)
+    return () => clearTimeout(timer)
+    // La baseline va fissata una sola volta: gli aggiornamenti successivi sono live.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    const nextIds = new Set(notifications.map((notification) => notification.id))
+    const added = notifications.find((notification) => !seenRef.current.has(notification.id))
+    seenRef.current = nextIds
+    if (readyRef.current && added) setCurrent(added)
+  }, [notifications])
+
+  useEffect(() => {
+    if (!current) return
+    const timer = window.setTimeout(() => setCurrent(null), current.severity === 'critical' ? 8_000 : 5_500)
+    return () => clearTimeout(timer)
+  }, [current])
+
+  if (typeof document === 'undefined') return null
+
+  const content = (
+    <AnimatePresence initial={false}>
+      {current && (
+        <motion.button
+          key={current.id}
+          type="button"
+          onClick={() => { setCurrent(null); onOpen() }}
+          className={cn(
+            'fixed right-[max(16px,env(safe-area-inset-right))] top-[calc(max(14px,env(safe-area-inset-top))+68px)] z-[70] flex w-[min(390px,calc(100vw-32px))] items-center gap-3 overflow-hidden rounded-[18px] border bg-white/92 p-3 text-left shadow-[0_18px_50px_-20px_rgba(0,0,0,0.45)] backdrop-blur-2xl dark:bg-[#1c1c1e]/94',
+            current.severity === 'critical' ? 'border-red-500/30' : current.severity === 'warning' ? 'border-orange-500/25' : 'border-black/8 dark:border-white/10',
+          )}
+          initial={{ x: 'calc(100% + 32px)', opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          exit={{ x: 'calc(100% + 32px)', opacity: 0 }}
+          transition={framerSpring}
+          aria-label={`Notifica live: ${current.title}`}
+        >
+          <NotificationToastIcon notification={current} />
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-sm font-semibold text-[#1d1d1f] dark:text-white">{current.title}</span>
+            <span className="mt-0.5 block truncate text-xs text-black/48 dark:text-white/52">{current.message ?? 'Nuovo aggiornamento dalla casa'}</span>
+          </span>
+          <span className="shrink-0 rounded-full bg-black/[0.06] px-2 py-1 text-[9px] font-bold uppercase tracking-[0.08em] text-black/40 dark:bg-white/[0.09] dark:text-white/45">Live</span>
+        </motion.button>
+      )}
+    </AnimatePresence>
+  )
+
+  return createPortal(content, document.body)
+}
+
+function NotificationToastIcon({ notification }: { notification: HANotification }) {
+  const { Icon, color } = typeConfig[notification.type]
+  return (
+    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px]" style={{ background: `${color}20`, color }}>
+      <Icon size={18} aria-hidden="true" />
+    </span>
   )
 }

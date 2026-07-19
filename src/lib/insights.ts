@@ -34,7 +34,7 @@ export function computeInsights(entities: ComposerEntity[], opts: InsightOptions
   const { areaIdOf } = opts
   const insights: Insight[] = []
 
-  // Apertura aperta con clima in azione nella stessa area → proponi spegnimento.
+  // Porta/finestra aperta con clima in azione nella stessa area → proponi spegnimento.
   const activeClimate = entities.filter((e) =>
     e.entity_id.startsWith('climate.') && ACTIVE_HVAC.has(String(e.attributes?.hvac_action ?? '')))
   const openOpenings = entities.filter((e) =>
@@ -56,7 +56,7 @@ export function computeInsights(entities: ComposerEntity[], opts: InsightOptions
         insights.push({
           id: `climate-opening:${climate.entity_id}`,
           severity: 'warn',
-          label: heating ? 'Apertura aperta col riscaldamento acceso' : 'Apertura aperta col raffrescamento acceso',
+          label: heating ? 'Porta o finestra aperta col riscaldamento acceso' : 'Porta o finestra aperta col raffrescamento acceso',
           entityIds: [climate.entity_id, ...related.map((o) => o.entity_id)],
           action: {
             label: 'Spegni clima',

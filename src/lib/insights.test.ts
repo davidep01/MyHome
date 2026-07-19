@@ -27,7 +27,7 @@ describe('computeInsights', () => {
     ], { ...opts, areaIdOf })
     expect(out).toHaveLength(1)
     expect(out[0]).toMatchObject({
-      label: 'Apertura aperta col riscaldamento acceso',
+      label: 'Porta o finestra aperta col riscaldamento acceso',
       action: { domain: 'climate', service: 'turn_off', entityIds: ['climate.salotto'] },
     })
   })

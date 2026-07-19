@@ -289,7 +289,7 @@ export function buildScreensaverRecapInput(
   } else if (recent.length > 0) {
     localParts.push(`Adesso: ${recent[0].description}.`)
   } else if (openings.length > 0) {
-    localParts.push(`${countText(openings.length, 'apertura risulta aperta', 'aperture risultano aperte')}.`)
+    localParts.push(`${countText(openings.length, 'porta o finestra risulta aperta', 'porte o finestre risultano aperte')}.`)
   } else {
     localParts.push('La casa risulta tranquilla e senza avvisi urgenti.')
   }

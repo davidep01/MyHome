@@ -140,7 +140,7 @@ function contextualScore(
   if (ACTIONABLE_DOMAINS.has(domain)) score += 45
   if (domain === 'climate') score += 45
   if (domain === 'media_player' && (hour >= 17 || hour < 1)) score += 55
-  if (slot.reason.includes('Apertura aperta')) score += Math.min(100, Math.round(ageMinutes / 5))
+  if (slot.reason.includes('Apertura rilevata')) score += Math.min(100, Math.round(ageMinutes / 5))
   if (slot.reason.includes('oggi')) score += 120
   else if (slot.reason.includes('domani')) score += 70
   else if (slot.reason.includes('2 giorni')) score += 30
@@ -212,7 +212,7 @@ export function composeHome(entities: ComposerEntity[], opts: ComposeOptions): C
             key: e.entity_id,
             entityId: e.entity_id,
             priority: night ? 0 : 3,
-            reason: night ? 'Apertura aperta di notte' : 'Apertura aperta',
+            reason: night ? 'Apertura rilevata di notte' : 'Apertura rilevata',
             changed: changedMs(e),
           })
         }
@@ -334,7 +334,7 @@ export function composeHome(entities: ComposerEntity[], opts: ComposeOptions): C
     alerts.push({
       id: 'openings',
       severity: 'warn',
-      label: openOpenings.length === 1 ? '1 apertura aperta' : `${openOpenings.length} aperture aperte`,
+      label: openOpenings.length === 1 ? '1 apertura rilevata' : `${openOpenings.length} aperture rilevate`,
       entityIds: openOpenings.map((e) => e.entity_id).sort(),
     })
   }

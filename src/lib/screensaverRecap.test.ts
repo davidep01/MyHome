@@ -26,7 +26,7 @@ describe('screensaver recap context', () => {
       entity('media_player.tv', 'playing', { friendly_name: 'Apple TV', media_title: 'Film' }),
     ), new Date('2026-07-18T14:00:00Z'))
 
-    expect(input.localText).toContain('1 apertura risulta aperta')
+    expect(input.localText).toContain('1 porta o finestra risulta aperta')
     expect(input.localText).toContain('1 luce accesa')
     expect(input.context[5]).toMatchObject({ entity_id: 'binary_sensor.porta', name: 'Porta ingresso' })
     expect(input.context).toContainEqual(expect.objectContaining({ entity_id: 'climate.soggiorno', state: 'cool · ambiente 27 °C · obiettivo 24 °C' }))
