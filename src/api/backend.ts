@@ -256,6 +256,8 @@ export interface DeviceOverride {
   cardSize?: 'XS' | 'S' | 'M' | 'L' | 'XL'
   /** Dimensioni consentite: il composer sceglie la più adatta fra queste. */
   cardSizes?: ('XS' | 'S' | 'M' | 'L' | 'XL')[]
+  /** Per i climate: mantiene la card nella Home automatica finché il termostato non è su off. */
+  showWhenActive?: boolean
   enabled?: boolean
 }
 

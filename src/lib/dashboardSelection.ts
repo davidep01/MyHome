@@ -32,15 +32,32 @@ export function isPresenceEntity(entity: Pick<HassEntity, 'entity_id' | 'attribu
     || (domain === 'binary_sensor' && PRESENCE_CLASSES.has(String(entity.attributes?.device_class ?? '').toLowerCase()))
 }
 
-/** Media delle sole temperature ambiente realmente riportate dai climate. */
-export function meanIndoorClimateTemperature(entities: HassEntities): number | null {
-  const values = Object.values(entities).flatMap((entity) => {
+export interface IndoorClimateTemperatureSource {
+  entityId: string
+  label: string
+  value: number
+}
+
+/** Sorgenti esatte usate dalla media interna, esposte anche nel dettaglio UI. */
+export function indoorClimateTemperatureSources(entities: HassEntities): IndoorClimateTemperatureSource[] {
+  return Object.values(entities).flatMap((entity) => {
     if (!entity.entity_id.startsWith('climate.') || entity.state === 'unavailable' || entity.state === 'unknown') return []
     const value = Number(entity.attributes?.current_temperature)
-    return Number.isFinite(value) ? [value] : []
+    if (!Number.isFinite(value)) return []
+    return [{
+      entityId: entity.entity_id,
+      label: String(entity.attributes?.friendly_name ?? entity.entity_id),
+      value,
+    }]
   })
-  if (values.length === 0) return null
-  return values.reduce((sum, value) => sum + value, 0) / values.length
+    .sort((a, b) => a.label.localeCompare(b.label, 'it') || a.entityId.localeCompare(b.entityId))
+}
+
+/** Media delle sole temperature ambiente realmente riportate dai climate. */
+export function meanIndoorClimateTemperature(entities: HassEntities): number | null {
+  const sources = indoorClimateTemperatureSources(entities)
+  if (sources.length === 0) return null
+  return sources.reduce((sum, source) => sum + source.value, 0) / sources.length
 }
 
 /** Temperatura meteo da HA quando OpenWeather non è configurato. */

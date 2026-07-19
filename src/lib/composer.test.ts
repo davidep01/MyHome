@@ -226,6 +226,23 @@ describe('composeHome', () => {
     ], { now: DAY, heroOf })
     expect(out.hero[0].key).toBe('alarm_control_panel.casa')
   })
+
+  it('mantiene in Home un climate acceso quando il backend abilita showWhenActive', () => {
+    const showWhenActive = (id: string) => id === 'climate.sala'
+    const many = Array.from({ length: 6 }, (_, i) => e(`media_player.p${i}`, 'playing'))
+    const active = composeHome([
+      ...many,
+      e('climate.sala', 'heat', { hvac_action: 'idle' }),
+    ], { now: DAY, maxHero: 4, showWhenActive })
+    expect(active.hero.map((slot) => slot.key)).toContain('climate.sala')
+    expect(active.hero.find((slot) => slot.key === 'climate.sala')?.reason).toBe('Clima attivo')
+
+    const off = composeHome([
+      ...many,
+      e('climate.sala', 'off', { hvac_action: 'idle' }),
+    ], { now: DAY, maxHero: 4, showWhenActive })
+    expect(off.hero.map((slot) => slot.key)).not.toContain('climate.sala')
+  })
 })
 
 describe('applyHysteresis', () => {

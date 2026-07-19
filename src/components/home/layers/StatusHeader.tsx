@@ -1,5 +1,6 @@
-import { AlertTriangle, CarFront, HousePlug, LoaderCircle, ShieldAlert, Thermometer, Video, VideoOff, Zap } from 'lucide-react'
+import { AlertTriangle, CarFront, HousePlug, LoaderCircle, ShieldAlert, ShieldCheck, Thermometer, Video, VideoOff, Zap } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import type { HassEntity } from 'home-assistant-js-websocket'
 import { useClock } from '../../../hooks/useClock'
 import { useTimeOfDay } from '../../../hooks/useTimeOfDay'
 import { useCurrentWeather } from '../../../hooks/useWeather'
@@ -9,8 +10,11 @@ import type { HomeChip } from '../../../hooks/useComposedHome'
 import { WeatherIcon } from '../../weather/WeatherIcon'
 import { NotificationBell } from '../../notifications/NotificationCenter'
 import { BRAND_EXPANDED, BRAND_NAME } from '../../../lib/brand'
-import { externalTemperatureFromEntities, meanIndoorClimateTemperature } from '../../../lib/dashboardSelection'
+import { externalTemperatureFromEntities, indoorClimateTemperatureSources } from '../../../lib/dashboardSelection'
 import { energyWindowAt, formatPowerKw, isEnergyRisk, powerInKw, totalPowerInKw, wallboxMode } from '../../../lib/statusBarEnergy'
+import { ALARM_STATE_LABELS, isArmed } from '../../../lib/alarm'
+import { GlassSheet } from '../../glass/GlassSheet'
+import { AlarmDetail } from '../../contextual/AlarmDetail'
 import {
   CAR_CHARGING_POWER_ID,
   EnergyDetailSheet,
@@ -58,6 +62,9 @@ export function StatusHeader({
   const [actionError, setActionError] = useState<string | null>(null)
   const [wallboxOpen, setWallboxOpen] = useState(false)
   const [energyOpen, setEnergyOpen] = useState(false)
+  const [alarmOpen, setAlarmOpen] = useState(false)
+  const [selectedAlarmId, setSelectedAlarmId] = useState<string | null>(null)
+  const [indoorOpen, setIndoorOpen] = useState(false)
   const [energyAlert, setEnergyAlert] = useState<EnergyAlertPayload | null>(null)
 
   const runAction = async (chip: HomeChip) => {
@@ -73,7 +80,15 @@ export function StatusHeader({
     }
   }
 
-  const indoorTemperature = useMemo(() => meanIndoorClimateTemperature(entities), [entities])
+  const indoorSources = useMemo(() => indoorClimateTemperatureSources(entities), [entities])
+  const indoorTemperature = indoorSources.length > 0
+    ? indoorSources.reduce((sum, source) => sum + source.value, 0) / indoorSources.length
+    : null
+  const alarmEntities = useMemo(() => Object.values(entities)
+    .filter((entity) => entity.entity_id.startsWith('alarm_control_panel.') && !isIgnoredAlarm(entity))
+    .sort((a, b) => alarmEntityRank(b) - alarmEntityRank(a) || a.entity_id.localeCompare(b.entity_id)), [entities])
+  const primaryAlarmEntity = alarmEntities.find((entity) => isArmed(entity.state)) ?? alarmEntities[0] ?? null
+  const selectedAlarmEntity = alarmEntities.find((entity) => entity.entity_id === selectedAlarmId) ?? primaryAlarmEntity
   const outdoorTemperature = weather?.temp ?? externalTemperatureFromEntities(entities)
   const wallboxVisual = wallboxMode(entities[WALLBOX_STATUS_ID])
   const housePowerEntity = entities[HOUSE_CONSUMPTION_ID]
@@ -155,6 +170,7 @@ export function StatusHeader({
             label="Interna"
             value={indoorTemperature}
             icon={<Thermometer size={18} className="text-orange-500" aria-hidden="true" />}
+            onClick={() => setIndoorOpen(true)}
           />
           <span className="h-7 w-px bg-black/[0.08] dark:bg-white/[0.12]" aria-hidden="true" />
           <StatusPower value={totalPower} risk={energyRisk} onClick={() => setEnergyOpen(true)} />
@@ -162,6 +178,18 @@ export function StatusHeader({
             <>
               <span className="h-7 w-px bg-black/[0.08] dark:bg-white/[0.12]" aria-hidden="true" />
               <WallboxStatus mode={wallboxVisual} onClick={() => setWallboxOpen(true)} />
+            </>
+          )}
+          {alarmEntities.length > 0 && (
+            <>
+              <span className="h-7 w-px bg-black/[0.08] dark:bg-white/[0.12]" aria-hidden="true" />
+              <AlarmStatus
+                entities={alarmEntities}
+                onClick={() => {
+                  setSelectedAlarmId(primaryAlarmEntity?.entity_id ?? null)
+                  setAlarmOpen(true)
+                }}
+              />
             </>
           )}
           <span className="h-7 w-px bg-black/[0.08] dark:bg-white/[0.12]" aria-hidden="true" />
@@ -226,7 +254,128 @@ export function StatusHeader({
         onClose={closeEnergyAlert}
         onOpen={() => setEnergyOpen(true)}
       />
+      <GlassSheet open={indoorOpen} onClose={() => setIndoorOpen(false)} title="Temperatura interna" side="center">
+        <IndoorTemperatureDetail sources={indoorSources} average={indoorTemperature} />
+      </GlassSheet>
+      <GlassSheet open={alarmOpen} onClose={() => setAlarmOpen(false)} title="Stato allarme" side="center">
+        {selectedAlarmEntity
+          ? <div className="space-y-3">
+              {alarmEntities.length > 1 && (
+                <div className="flex rounded-full bg-black/[0.05] p-1 dark:bg-white/[0.08]" role="group" aria-label="Pannello allarme">
+                  {alarmEntities.map((entity) => (
+                    <button
+                      key={entity.entity_id}
+                      type="button"
+                      onClick={() => setSelectedAlarmId(entity.entity_id)}
+                      aria-pressed={selectedAlarmEntity.entity_id === entity.entity_id}
+                      className={cn(
+                        'min-h-10 min-w-0 flex-1 truncate rounded-full px-3 text-xs font-semibold transition',
+                        selectedAlarmEntity.entity_id === entity.entity_id
+                          ? 'bg-white text-[#1d1d1f] shadow-sm dark:bg-white/16 dark:text-white'
+                          : 'text-black/45 dark:text-white/48',
+                      )}
+                    >
+                      {String(entity.attributes?.friendly_name ?? entity.entity_id)}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <AlarmDetail entity={selectedAlarmEntity} />
+            </div>
+          : <p className="py-8 text-center text-sm text-black/45 dark:text-white/45">Allarme non disponibile</p>}
+      </GlassSheet>
     </header>
+  )
+}
+
+function alarmEntityRank(entity: HassEntity): number {
+  const text = `${entity.entity_id} ${String(entity.attributes?.friendly_name ?? '')}`.toLowerCase()
+  let score = entity.state === 'unavailable' || entity.state === 'unknown' ? -1_000 : 0
+  if (entity.attributes?.lastArmedTime || entity.attributes?.targetState) score += 200
+  if (text.includes('casa') || text.includes('home')) score += 100
+  if (text.includes('ring')) score += 50
+  return score
+}
+
+/** EZVIZ espone un pannello ausiliario che non rappresenta l'allarme di casa. */
+function isIgnoredAlarm(entity: HassEntity): boolean {
+  const text = `${entity.entity_id} ${String(entity.attributes?.friendly_name ?? '')}`.toLowerCase()
+  return text.includes('ezviz')
+}
+
+function AlarmStatus({ entities, onClick }: { entities: HassEntity[]; onClick: () => void }) {
+  const active = entities.find((entity) => isArmed(entity.state))
+  const armed = Boolean(active)
+  const disarmed = entities.every((entity) => entity.state === 'disarmed')
+  const label = active
+    ? (ALARM_STATE_LABELS[active.state] ?? active.state)
+    : disarmed ? 'Disinserito' : 'Stato non disponibile'
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex h-full w-[58px] shrink-0 items-center justify-center transition hover:bg-black/[0.05] active:scale-95 dark:hover:bg-white/[0.08]"
+      aria-label={`Allarme ${label}: apri controlli`}
+      title={`Allarme · ${label}`}
+    >
+      <span className={cn(
+        'relative flex h-10 w-10 items-center justify-center rounded-[13px]',
+        armed
+          ? 'alarm-armed-indicator bg-red-500/14 text-red-600 dark:bg-red-400/16 dark:text-red-300'
+          : disarmed
+            ? 'bg-emerald-500/14 text-emerald-600 dark:bg-emerald-400/16 dark:text-emerald-300'
+            : 'bg-black/[0.06] text-black/40 dark:bg-white/[0.08] dark:text-white/45',
+      )}>
+        <ShieldCheck size={22} aria-hidden="true" />
+        <span className={cn(
+          'absolute right-1 top-1 h-2 w-2 rounded-full ring-2 ring-white/90 dark:ring-[#1d1d1f]',
+          armed ? 'bg-red-500' : disarmed ? 'bg-emerald-500' : 'bg-black/25 dark:bg-white/30',
+        )} aria-hidden="true" />
+      </span>
+    </button>
+  )
+}
+
+function IndoorTemperatureDetail({
+  sources,
+  average,
+}: {
+  sources: ReturnType<typeof indoorClimateTemperatureSources>
+  average: number | null
+}) {
+  return (
+    <div className="space-y-4 pb-1">
+      <div className="flex items-center justify-between rounded-[18px] bg-orange-500/10 px-5 py-4 dark:bg-orange-400/12">
+        <span>
+          <span className="block text-[10px] font-bold uppercase tracking-[0.12em] text-black/40 dark:text-white/42">Media</span>
+          <span className="mt-1 block text-sm text-black/50 dark:text-white/52">{sources.length} {sources.length === 1 ? 'clima disponibile' : 'climi disponibili'}</span>
+        </span>
+        <span className="text-4xl font-semibold tabular-nums text-orange-600 dark:text-orange-300">{formatTemperature(average)}</span>
+      </div>
+      {sources.length > 0 ? (
+        <div className="space-y-2">
+          {sources.map((source) => (
+            <div key={source.entityId} className="flex min-h-14 items-center gap-3 rounded-[15px] bg-black/[0.045] px-4 dark:bg-white/[0.07]">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[11px] bg-orange-500/10 text-orange-600 dark:bg-orange-400/12 dark:text-orange-300">
+                <Thermometer size={18} aria-hidden="true" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-semibold text-[#1d1d1f] dark:text-white">{source.label}</span>
+                <span className="block truncate text-[11px] text-black/35 dark:text-white/38">{source.entityId}</span>
+              </span>
+              <span className="shrink-0 text-xl font-semibold tabular-nums text-[#1d1d1f] dark:text-white">{formatTemperature(source.value)}</span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="rounded-[15px] bg-black/[0.045] px-4 py-8 text-center text-sm text-black/45 dark:bg-white/[0.07] dark:text-white/45">
+          Nessun climate sta riportando una temperatura interna.
+        </p>
+      )}
+      <p className="px-1 text-[11px] leading-relaxed text-black/38 dark:text-white/40">
+        La media usa esclusivamente l’attributo “temperatura corrente” dei climate disponibili. Ogni variazione ricevuta da Home Assistant aggiorna subito valori e media.
+      </p>
+    </div>
   )
 }
 
@@ -282,14 +431,27 @@ function formatTemperature(value: number | null): string {
   return `${String(Math.round(value * 10) / 10).replace('.', ',')}°`
 }
 
-function StatusTemperature({ label, value, icon }: { label: string; value: number | null; icon: ReactNode }) {
-  return (
-    <div className="flex h-full min-w-[108px] items-center gap-2 px-3.5">
+function StatusTemperature({ label, value, icon, onClick }: { label: string; value: number | null; icon: ReactNode; onClick?: () => void }) {
+  const content = <>
       <span className="flex h-8 w-8 shrink-0 items-center justify-center">{icon}</span>
       <span className="min-w-0">
         <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-black/35 dark:text-white/38">{label}</span>
         <span className="block text-[19px] font-semibold leading-none tabular-nums text-[#1d1d1f] dark:text-white">{formatTemperature(value)}</span>
       </span>
+    </>
+  if (onClick) return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex h-full min-w-[108px] items-center gap-2 px-3.5 text-left transition hover:bg-black/[0.05] active:scale-[0.98] dark:hover:bg-white/[0.08]"
+      aria-label={`Apri dettaglio temperatura ${label.toLowerCase()}: ${formatTemperature(value)}`}
+    >
+      {content}
+    </button>
+  )
+  return (
+    <div className="flex h-full min-w-[108px] items-center gap-2 px-3.5">
+      {content}
     </div>
   )
 }

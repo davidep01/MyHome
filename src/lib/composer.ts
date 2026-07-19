@@ -58,6 +58,8 @@ export interface ComposeOptions {
   areaNameOf?: (entityId: string) => string | undefined
   /** Override utente dal workbench: 'always' = sempre nell'Adesso, 'never' = mai. */
   heroOf?: (entityId: string) => 'always' | 'never' | undefined
+  /** Per-climate backend override: garantisce la presenza mentre il clima è acceso. */
+  showWhenActive?: (entityId: string) => boolean
   now: Date
   maxHero?: number
 }
@@ -158,7 +160,7 @@ function bySlotOrder(a: RankedCandidate, b: RankedCandidate): number {
 }
 
 export function composeHome(entities: ComposerEntity[], opts: ComposeOptions): ComposedHome {
-  const { areaNameOf, heroOf, now } = opts
+  const { areaNameOf, heroOf, showWhenActive, now } = opts
   const maxHero = opts.maxHero ?? 6
   const night = isNight(now)
   const heroPref = (id: string) => heroOf?.(id)
@@ -174,6 +176,13 @@ export function composeHome(entities: ComposerEntity[], opts: ComposeOptions): C
 
   const banned = new Set<string>()
   for (const e of entities) if (heroPref(e.entity_id) === 'never') banned.add(e.entity_id)
+  const activeClimateOverrides = new Set(entities
+    .filter((entity) => entity.entity_id.startsWith('climate.')
+      && showWhenActive?.(entity.entity_id)
+      && entity.state !== 'off'
+      && entity.state !== 'unavailable'
+      && entity.state !== 'unknown')
+    .map((entity) => entity.entity_id))
 
   for (const e of entities) {
     const domain = domainOf(e.entity_id)
@@ -232,6 +241,14 @@ export function composeHome(entities: ComposerEntity[], opts: ComposeOptions): C
             entityId: e.entity_id,
             priority: 2,
             reason: action === 'cooling' ? 'Raffrescamento attivo' : action === 'drying' ? 'Deumidifica attiva' : 'Riscaldamento attivo',
+            changed: changedMs(e),
+          })
+        } else if (activeClimateOverrides.has(e.entity_id)) {
+          candidates.push({
+            key: e.entity_id,
+            entityId: e.entity_id,
+            priority: 2,
+            reason: 'Clima attivo',
             changed: changedMs(e),
           })
         }
@@ -370,7 +387,8 @@ export function composeHome(entities: ComposerEntity[], opts: ComposeOptions): C
   const sorted = ranked
     .filter((c) => !(c.entityId && banned.has(c.entityId)))
     .sort(bySlotOrder)
-  const isPinned = (c: { entityId?: string }) => Boolean(c.entityId && heroPref(c.entityId) === 'always')
+  const isPinned = (c: { entityId?: string }) => Boolean(c.entityId
+    && (heroPref(c.entityId) === 'always' || activeClimateOverrides.has(c.entityId)))
   // P0 sempre davanti; poi i pinned (presenza garantita); poi il resto.
   const orderedWithRedundancy = [
     ...sorted.filter((c) => c.priority === 0),

@@ -195,6 +195,8 @@ export interface DeviceOverride {
   cardSize?: 'XS' | 'S' | 'M' | 'L' | 'XL'
   /** Allowed footprints; the automatic composer picks one of these. */
   cardSizes?: ('XS' | 'S' | 'M' | 'L' | 'XL')[]
+  /** For climate entities, force the card into the automatic Home while HVAC is enabled. */
+  showWhenActive?: boolean
   /** false = hide from the dashboard (like hiddenEntities, per-entity) */
   enabled?: boolean
 }

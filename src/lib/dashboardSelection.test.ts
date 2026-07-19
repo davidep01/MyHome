@@ -3,6 +3,7 @@ import type { HassEntities, HassEntity } from 'home-assistant-js-websocket'
 import {
   isPresenceEntity,
   externalTemperatureFromEntities,
+  indoorClimateTemperatureSources,
   meanIndoorClimateTemperature,
   selectDashboardCameraIds,
   selectRoomDashboardIds,
@@ -18,11 +19,16 @@ function entities(...items: HassEntity[]): HassEntities {
 
 describe('dashboard selection', () => {
   it('calcola la media interna dai climate disponibili', () => {
-    expect(meanIndoorClimateTemperature(entities(
+    const source = entities(
       entity('climate.sala', 'heat', { current_temperature: 20 }),
       entity('climate.camera', 'heat', { current_temperature: 22 }),
       entity('climate.offline', 'unavailable', { current_temperature: 99 }),
-    ))).toBe(21)
+    )
+    expect(meanIndoorClimateTemperature(source)).toBe(21)
+    expect(indoorClimateTemperatureSources(source)).toEqual([
+      { entityId: 'climate.camera', label: 'climate.camera', value: 22 },
+      { entityId: 'climate.sala', label: 'climate.sala', value: 20 },
+    ])
   })
 
   it('usa weather o il sensore esterno come fallback meteo', () => {

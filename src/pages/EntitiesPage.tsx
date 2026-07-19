@@ -707,6 +707,32 @@ function EntityDetail({
         <p className="text-[11px] text-black/35">Auto = il composer decide per rilevanza. Sempre = card fissa in evidenza. Mai = resta solo nelle stanze.</p>
       </div>
 
+      {entityId.startsWith('climate.') && (
+        <div className="flex items-center justify-between gap-4 rounded-[16px] bg-black/[0.045] px-4 py-3">
+          <span className="min-w-0">
+            <span className="block text-xs font-semibold text-black/60">Mostra quando il clima è attivo</span>
+            <span className="mt-0.5 block text-[11px] leading-snug text-black/35">La card entra sempre nella Home automatica quando il climate non è su “off”.</span>
+          </span>
+          <button
+            type="button"
+            disabled={disabled}
+            role="switch"
+            aria-label="Mostra quando il clima è attivo"
+            aria-checked={override?.showWhenActive === true}
+            onClick={() => onPatch({ showWhenActive: override?.showWhenActive ? undefined : true })}
+            className={cn(
+              'relative h-7 w-12 shrink-0 rounded-full transition-colors disabled:opacity-40',
+              override?.showWhenActive ? 'bg-[#0066cc]' : 'bg-black/20',
+            )}
+          >
+            <span className={cn(
+              'absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition-all',
+              override?.showWhenActive ? 'left-6' : 'left-1',
+            )} aria-hidden="true" />
+          </button>
+        </div>
+      )}
+
       <div className="space-y-1.5">
         <label htmlFor={`${id}-name`} className="text-xs font-semibold text-black/50">Nome</label>
         <input

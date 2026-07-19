@@ -67,6 +67,7 @@ export function useComposedHome(cfg?: KioskCurationConfig): ComposedHomeView {
       const raw = composeHome(visible.filter((entity) => !entity.entity_id.startsWith('camera.')), {
         areaNameOf,
         heroOf: (id) => deviceOverrides?.[id]?.hero,
+        showWhenActive: (id) => deviceOverrides?.[id]?.showWhenActive === true,
         now: new Date(),
         maxHero: KIOSK_HERO_LIMIT,
       })

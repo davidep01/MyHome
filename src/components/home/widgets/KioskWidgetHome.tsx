@@ -240,7 +240,11 @@ export function KioskWidgetHome() {
 
       {!editing && activeRoom ? (
         <div className="min-h-0 flex-1 overflow-hidden">
-          <RoomDashboard room={activeRoom} overrides={data.deviceOverrides} />
+          <RoomDashboard
+            room={activeRoom}
+            overrides={data.deviceOverrides}
+            cameraStreamsEnabled={cameraRowVisible}
+          />
         </div>
       ) : (
         <>

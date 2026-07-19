@@ -13,9 +13,12 @@ import { getWidgetSizeConfig, resolveEnabledCardSize } from '../../widgets/utils
 export function RoomDashboard({
   room,
   overrides,
+  cameraStreamsEnabled = false,
 }: {
   room: RoomOverview
   overrides?: Record<string, DeviceOverride>
+  /** Le camere Ring vengono montate soltanto dopo il comando esplicito in status bar. */
+  cameraStreamsEnabled?: boolean
 }) {
   const entities = useEntityStore((state) => state.entities)
   const cameraIds = selectDashboardCameraIds(entities, {
@@ -24,7 +27,7 @@ export function RoomDashboard({
     limit: 3,
   })
   const deviceIds = selectRoomDashboardIds(room.entityIds, entities, overrides, 6)
-  const hasCameras = cameraIds.length > 0
+  const hasCameras = cameraStreamsEnabled && cameraIds.length > 0
 
   return (
     <section className={hasCameras

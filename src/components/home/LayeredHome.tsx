@@ -111,7 +111,11 @@ export function LayeredHome() {
 
         <div className="min-h-0 overflow-hidden">
           {activeRoom ? (
-            <RoomDashboard room={activeRoom} overrides={layout?.deviceOverrides} />
+            <RoomDashboard
+              room={activeRoom}
+              overrides={layout?.deviceOverrides}
+              cameraStreamsEnabled={cameraRowVisible}
+            />
           ) : (
             <div className={cn(
               'grid h-full min-h-0 overflow-hidden',

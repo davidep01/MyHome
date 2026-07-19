@@ -136,7 +136,7 @@ function parseOverrides(value: unknown): Record<string, DeviceOverride> | null {
   if (!isRecord(value) || Object.keys(value).length > 5_000) return null
   const result: Record<string, DeviceOverride> = {}
   for (const [entityId, raw] of Object.entries(value)) {
-    if (!isEntityId(entityId) || !isRecord(raw) || !onlyKeys(raw, ['hero', 'label', 'icon', 'type', 'cardSize', 'cardSizes', 'enabled'])) return null
+    if (!isEntityId(entityId) || !isRecord(raw) || !onlyKeys(raw, ['hero', 'label', 'icon', 'type', 'cardSize', 'cardSizes', 'showWhenActive', 'enabled'])) return null
     const label = raw.label === undefined ? undefined : cleanText(raw.label, 100)
     const cardSizes = raw.cardSizes === undefined
       ? undefined
@@ -154,6 +154,7 @@ function parseOverrides(value: unknown): Record<string, DeviceOverride> | null {
       || (raw.type !== undefined && !isEntityType(raw.type))
       || (raw.cardSize !== undefined && !['XS', 'S', 'M', 'L', 'XL'].includes(String(raw.cardSize)))
       || cardSizes === null
+      || (raw.showWhenActive !== undefined && typeof raw.showWhenActive !== 'boolean')
       || (raw.enabled !== undefined && typeof raw.enabled !== 'boolean')
     ) return null
     result[entityId] = {
@@ -163,6 +164,7 @@ function parseOverrides(value: unknown): Record<string, DeviceOverride> | null {
       ...(typeof raw.type === 'string' ? { type: raw.type } : {}),
       ...(raw.cardSize === 'XS' || raw.cardSize === 'S' || raw.cardSize === 'M' || raw.cardSize === 'L' || raw.cardSize === 'XL' ? { cardSize: raw.cardSize } : {}),
       ...(cardSizes ? { cardSizes } : {}),
+      ...(typeof raw.showWhenActive === 'boolean' ? { showWhenActive: raw.showWhenActive } : {}),
       ...(typeof raw.enabled === 'boolean' ? { enabled: raw.enabled } : {}),
     }
   }
