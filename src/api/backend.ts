@@ -254,6 +254,8 @@ export interface DeviceOverride {
   type?: EntityType
   /** Dimensione preferita della card nelle dashboard automatiche. */
   cardSize?: 'S' | 'M' | 'L' | 'XL'
+  /** Dimensioni consentite: il composer sceglie la più adatta fra queste. */
+  cardSizes?: ('S' | 'M' | 'L' | 'XL')[]
   enabled?: boolean
 }
 

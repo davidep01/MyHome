@@ -1,5 +1,6 @@
 import type { HassEntities } from 'home-assistant-js-websocket'
 import type { DeviceOverride, EntityGroup, HomeWidget, WidgetSize } from '../api/backend'
+import { resolveEnabledCardSize, widgetVisualSizeFromHomeSize } from '../components/widgets/utils/getWidgetSizeConfig'
 
 const MEDIUM_WIDGETS = new Set<HomeWidget['type']>([
   'weather', 'status', 'security', 'system', 'insight', 'calendar',
@@ -44,7 +45,8 @@ export function contentAwareHomeWidgets(
   groups?: EntityGroup[],
 ): HomeWidget[] {
   return widgets.map((widget) => {
-    const explicitCardSize = widget.entityId ? overrides?.[widget.entityId]?.cardSize : undefined
+    const override = widget.entityId ? overrides?.[widget.entityId] : undefined
+    const explicitCardSize = override?.cardSizes?.length ? undefined : override?.cardSize
     if (explicitCardSize) {
       const size = HOME_SIZE_FROM_CARD[explicitCardSize]
       return size === widget.size ? widget : { ...widget, size }
@@ -59,6 +61,10 @@ export function contentAwareHomeWidgets(
     } else if (widget.type === 'entity' || widget.type === 'sensor') {
       const minimum = entityMinimum(widget, entities, overrides)
       if (minimum) size = atLeast(size, minimum)
+    }
+    if (override?.cardSizes?.length) {
+      const enabledSize = resolveEnabledCardSize(widgetVisualSizeFromHomeSize(size), override)
+      size = HOME_SIZE_FROM_CARD[enabledSize]
     }
     return size === widget.size ? widget : { ...widget, size }
   })

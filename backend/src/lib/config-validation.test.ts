@@ -70,4 +70,21 @@ describe('device card size override', () => {
       deviceOverrides: { 'light.sala': { cardSize: 'XXL' } },
     })).toMatchObject({ ok: false })
   })
+
+  it('accepts multiple unique enabled sizes', () => {
+    expect(validateConfigPatch({
+      deviceOverrides: { 'media_player.soggiorno': { cardSizes: ['S', 'M', 'XL'] } },
+    })).toMatchObject({
+      ok: true,
+      value: { deviceOverrides: { 'media_player.soggiorno': { cardSizes: ['S', 'M', 'XL'] } } },
+    })
+  })
+
+  it('rejects empty, duplicate or unknown enabled sizes', () => {
+    for (const cardSizes of [[], ['S', 'S'], ['S', 'XXL']]) {
+      expect(validateConfigPatch({
+        deviceOverrides: { 'light.sala': { cardSizes } },
+      })).toMatchObject({ ok: false })
+    }
+  })
 })

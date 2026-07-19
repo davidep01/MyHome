@@ -193,6 +193,8 @@ export interface DeviceOverride {
   type?: string
   /** Preferred card footprint in automatic dashboards. */
   cardSize?: 'S' | 'M' | 'L' | 'XL'
+  /** Allowed footprints; the automatic composer picks one of these. */
+  cardSizes?: ('S' | 'M' | 'L' | 'XL')[]
   /** false = hide from the dashboard (like hiddenEntities, per-entity) */
   enabled?: boolean
 }

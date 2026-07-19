@@ -136,14 +136,24 @@ function parseOverrides(value: unknown): Record<string, DeviceOverride> | null {
   if (!isRecord(value) || Object.keys(value).length > 5_000) return null
   const result: Record<string, DeviceOverride> = {}
   for (const [entityId, raw] of Object.entries(value)) {
-    if (!isEntityId(entityId) || !isRecord(raw) || !onlyKeys(raw, ['hero', 'label', 'icon', 'type', 'cardSize', 'enabled'])) return null
+    if (!isEntityId(entityId) || !isRecord(raw) || !onlyKeys(raw, ['hero', 'label', 'icon', 'type', 'cardSize', 'cardSizes', 'enabled'])) return null
     const label = raw.label === undefined ? undefined : cleanText(raw.label, 100)
+    const cardSizes = raw.cardSizes === undefined
+      ? undefined
+      : Array.isArray(raw.cardSizes)
+        && raw.cardSizes.length > 0
+        && raw.cardSizes.length <= 4
+        && new Set(raw.cardSizes).size === raw.cardSizes.length
+        && raw.cardSizes.every((size) => size === 'S' || size === 'M' || size === 'L' || size === 'XL')
+          ? raw.cardSizes as DeviceOverride['cardSizes']
+          : null
     if (
       (raw.hero !== undefined && raw.hero !== 'always' && raw.hero !== 'never')
       || label === null
       || (raw.icon !== undefined && !isIconName(raw.icon))
       || (raw.type !== undefined && !isEntityType(raw.type))
       || (raw.cardSize !== undefined && !['S', 'M', 'L', 'XL'].includes(String(raw.cardSize)))
+      || cardSizes === null
       || (raw.enabled !== undefined && typeof raw.enabled !== 'boolean')
     ) return null
     result[entityId] = {
@@ -152,6 +162,7 @@ function parseOverrides(value: unknown): Record<string, DeviceOverride> | null {
       ...(typeof raw.icon === 'string' ? { icon: raw.icon } : {}),
       ...(typeof raw.type === 'string' ? { type: raw.type } : {}),
       ...(raw.cardSize === 'S' || raw.cardSize === 'M' || raw.cardSize === 'L' || raw.cardSize === 'XL' ? { cardSize: raw.cardSize } : {}),
+      ...(cardSizes ? { cardSizes } : {}),
       ...(typeof raw.enabled === 'boolean' ? { enabled: raw.enabled } : {}),
     }
   }

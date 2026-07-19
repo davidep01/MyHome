@@ -7,6 +7,7 @@ import { makeRoomEntity } from './makeRoomEntity'
 import type { HeroSlot } from '../../../lib/composer'
 import type { DeviceOverride } from '../../../api/backend'
 import { cn } from '../../../lib/utils'
+import { resolveEnabledCardSize } from '../../widgets/utils/getWidgetSizeConfig'
 
 /**
  * Strato 2 — "Adesso": le card scelte dal composer per rilevanza.
@@ -24,7 +25,9 @@ export function NowSection({
 
   const renderSlot = (slot: HeroSlot) => {
     const index = hero.findIndex((candidate) => candidate.key === slot.key)
-    const size = slot.entityId ? overrides?.[slot.entityId]?.cardSize ?? slot.visualSize ?? 'M' : slot.visualSize ?? 'M'
+    const size = slot.entityId
+      ? resolveEnabledCardSize(slot.visualSize ?? 'M', overrides?.[slot.entityId])
+      : slot.visualSize ?? 'M'
     const span = size === 'XL' ? 'sm:col-span-2 lg:col-span-6'
         : size === 'L' ? 'sm:col-span-2 lg:col-span-3'
           : 'lg:col-span-2'

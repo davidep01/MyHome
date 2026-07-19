@@ -6,6 +6,7 @@ import { useEntityStore } from '../../../store/entities'
 import { makeRoomEntity } from './makeRoomEntity'
 import type { DeviceOverride } from '../../../api/backend'
 import type { RoomTarget } from './RoomsRow'
+import { resolveEnabledCardSize } from '../../widgets/utils/getWidgetSizeConfig'
 
 const INITIAL_CAP = 24
 
@@ -37,7 +38,7 @@ export function EntitySheet({
     >
       <div className="grid w-full grid-cols-2 gap-3 auto-rows-[150px] sm:grid-cols-3 lg:grid-cols-4">
         {visible.map((entityId, index) => {
-          const size = overrides?.[entityId]?.cardSize ?? 'M'
+          const size = resolveEnabledCardSize('M', overrides?.[entityId])
           const span = size === 'XL' ? 'col-span-2' : size === 'L' ? 'col-span-2 row-span-2' : ''
           return (
             <div key={entityId} className={`card-enter h-full min-h-0 min-w-0 overflow-hidden [&_[data-widget-card]]:!min-h-0 ${span}`} style={{ '--enter-i': Math.min(index, 10) } as CSSProperties}>

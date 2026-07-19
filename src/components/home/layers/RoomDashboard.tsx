@@ -7,6 +7,7 @@ import { EntityCard } from '../../widgets/WidgetGrid'
 import { WidgetErrorBoundary } from '../widgets/WidgetErrorBoundary'
 import { CameraMonitoringRow } from './CameraMonitoringRow'
 import { makeRoomEntity } from './makeRoomEntity'
+import { resolveEnabledCardSize } from '../../widgets/utils/getWidgetSizeConfig'
 
 /** Dashboard kiosk di una stanza: stessa grammatica della Home, dati limitati all'area. */
 export function RoomDashboard({
@@ -34,7 +35,7 @@ export function RoomDashboard({
       {deviceIds.length > 0 ? (
         <div className="grid h-full min-h-0 grid-flow-row-dense auto-rows-[minmax(0,1fr)] grid-cols-6 gap-3.5 overflow-hidden">
           {deviceIds.map((entityId, index) => {
-            const size = overrides?.[entityId]?.cardSize ?? 'M'
+            const size = resolveEnabledCardSize('M', overrides?.[entityId])
             const span = size === 'XL' ? 'col-span-6' : size === 'L' ? 'col-span-3' : 'col-span-2'
             return (
               <div

@@ -1,4 +1,4 @@
-import type { WidgetSize } from '../../../api/backend'
+import type { DeviceOverride, WidgetSize } from '../../../api/backend'
 import type { WidgetVisualSize } from '../types'
 
 export interface WidgetSizeConfig {
@@ -61,4 +61,25 @@ export function widgetVisualSizeFromSpan(span: { c: number; r: number }): Widget
   if (span.c >= 2 && span.r >= 2) return 'L'
   if (span.c >= 2 || span.r >= 2) return 'M'
   return 'S'
+}
+
+const CARD_SIZE_ORDER: WidgetVisualSize[] = ['S', 'M', 'L', 'XL']
+
+/**
+ * Rispetta le taglie abilitate dal backend. Una singola taglia è un override
+ * esatto; con più taglie il composer conserva l'ideale, oppure usa la più
+ * vicina privilegiando quella più compatta a parità di distanza.
+ */
+export function resolveEnabledCardSize(
+  ideal: WidgetVisualSize,
+  override?: Pick<DeviceOverride, 'cardSize' | 'cardSizes'>,
+): WidgetVisualSize {
+  const enabled = override?.cardSizes?.filter((size, index, sizes) => CARD_SIZE_ORDER.includes(size) && sizes.indexOf(size) === index)
+  if (!enabled?.length) return override?.cardSize ?? ideal
+  if (enabled.includes(ideal)) return ideal
+  const idealIndex = CARD_SIZE_ORDER.indexOf(ideal)
+  return [...enabled].sort((a, b) => {
+    const distance = Math.abs(CARD_SIZE_ORDER.indexOf(a) - idealIndex) - Math.abs(CARD_SIZE_ORDER.indexOf(b) - idealIndex)
+    return distance || CARD_SIZE_ORDER.indexOf(a) - CARD_SIZE_ORDER.indexOf(b)
+  })[0]
 }

@@ -195,6 +195,7 @@ export function EntitiesPage() {
           haHidden: meta?.haHidden ?? false,
           hasOverride: Boolean(ov && Object.keys(ov).length),
           cardSize: ov?.cardSize,
+          cardSizes: ov?.cardSizes,
         }
       })
       .filter((r) => domain === 'all' || r.domain === domain)
@@ -225,6 +226,20 @@ export function EntitiesPage() {
       if (Object.keys(next).length === 0) delete out[id]
       return out
     })
+
+  /** Applica e persiste subito le scelte che richiedono una conferma esplicita. */
+  const saveOverrideNow = (id: string, patch: Partial<DeviceOverride>) => {
+    const next: DeviceOverride = { ...(overrides[id] ?? {}), ...patch }
+    ;(Object.keys(next) as (keyof DeviceOverride)[]).forEach((key) => {
+      if (next[key] === '' || next[key] === undefined) delete next[key]
+    })
+    const nextOverrides = { ...overrides, [id]: next }
+    if (Object.keys(next).length === 0) delete nextOverrides[id]
+    const payload = { hiddenEntities: hidden, deviceOverrides: nextOverrides, groups }
+    setOverrides(nextOverrides)
+    draftRef.current = payload
+    persistDraft(payload, JSON.stringify(payload))
+  }
 
   const toggleSelect = (id: string) =>
     setSelected((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n })
@@ -396,6 +411,11 @@ export function EntitiesPage() {
             meta={registry?.byId.get(editId)}
             disabled={readOnly}
             onPatch={(patch) => patchOverride(editId, patch)}
+            onSaveSizes={(sizes) => saveOverrideNow(editId, {
+              cardSize: undefined,
+              cardSizes: sizes.length ? sizes : undefined,
+            })}
+            saveState={saveState}
             onToggleHide={() => toggleHide([editId], !hidden.includes(editId))}
           />
         )}
@@ -440,6 +460,7 @@ interface RowData {
   haHidden: boolean
   hasOverride: boolean
   cardSize?: WidgetVisualSize
+  cardSizes?: WidgetVisualSize[]
 }
 
 function EntityRow({
@@ -511,7 +532,14 @@ function EntityRow({
       </div>
 
       <span className="hidden shrink-0 rounded-full bg-black/[0.06] px-2 py-0.5 text-[10px] font-semibold text-black/45 md:block">{row.domain}</span>
-      {row.cardSize && <span className="hidden h-6 min-w-6 shrink-0 items-center justify-center rounded-full bg-[#0066cc]/12 px-1.5 text-[10px] font-bold text-[#0066cc] md:flex" title={`Dimensione card ${row.cardSize}`}>{row.cardSize}</span>}
+      {(row.cardSizes?.length || row.cardSize) && (
+        <span
+          className="hidden h-6 min-w-6 shrink-0 items-center justify-center rounded-full bg-[#0066cc]/12 px-1.5 text-[10px] font-bold text-[#0066cc] md:flex"
+          title={`Dimensioni card ${(row.cardSizes?.length ? row.cardSizes : [row.cardSize]).filter(Boolean).join(', ')}`}
+        >
+          {(row.cardSizes?.length ? row.cardSizes : [row.cardSize]).filter(Boolean).join('·')}
+        </span>
+      )}
       <span className="hidden w-24 shrink-0 truncate text-xs text-black/45 lg:block">{row.areaName ?? '—'}</span>
       <span className={cn('hidden w-28 shrink-0 truncate text-right text-xs font-semibold sm:block', row.state === 'unavailable' ? 'text-orange-600' : 'text-black/55')}>
         {stateLabel(row.state)}
@@ -537,7 +565,7 @@ function EntityRow({
 // ── Dettaglio con anteprima live ─────────────────────────────────────────────
 
 function EntityDetail({
-  entityId, override, isHidden, meta, disabled, onPatch, onToggleHide,
+  entityId, override, isHidden, meta, disabled, onPatch, onSaveSizes, saveState, onToggleHide,
 }: {
   entityId: string
   override?: DeviceOverride
@@ -545,30 +573,47 @@ function EntityDetail({
   meta?: { areaName?: string; platform?: string; haHidden: boolean; category?: string }
   disabled: boolean
   onPatch: (patch: Partial<DeviceOverride>) => void
+  onSaveSizes: (sizes: WidgetVisualSize[]) => void
+  saveState: 'idle' | 'saving' | 'saved' | 'error'
   onToggleHide: () => void
 }) {
   const entities = useEntityStore((s) => s.entities)
   const overrides = useMemo(() => (override ? { [entityId]: override } : undefined), [entityId, override])
   const id = useId()
+  const configuredSizes: WidgetVisualSize[] = override?.cardSizes?.length
+    ? override.cardSizes
+    : override?.cardSize ? [override.cardSize] : []
+  const configuredSizesKey = configuredSizes.join(',')
+  const [sizeDraft, setSizeDraft] = useState<WidgetVisualSize[]>(() => configuredSizes)
+  const [sizeSaveRequested, setSizeSaveRequested] = useState(false)
+  const sizeDraftKey = sizeDraft.join(',')
+  const sizesDirty = sizeDraftKey !== configuredSizesKey
+
+  const toggleSize = (size: WidgetVisualSize) => {
+    setSizeSaveRequested(false)
+    setSizeDraft((current) => CARD_SIZE_OPTIONS
+      .map((option) => option.value)
+      .filter((candidate) => candidate === size ? !current.includes(candidate) : current.includes(candidate)))
+  }
 
   return (
     <div className="space-y-4">
       {disabled && <p className="rounded-[10px] bg-orange-500/10 px-3 py-2 text-xs text-orange-700" role="status">Configurazione in sola lettura: puoi consultare l’entità, ma non modificarla.</p>}
-      {/* Quattro anteprime reali: il tap sceglie la footprint del device. */}
+      {/* Quattro anteprime reali: il tap abilita una o più footprint. */}
       <div className="space-y-2">
         <div className="flex items-end justify-between gap-3">
           <div>
             <p className="text-xs font-semibold text-black/50" id={`${id}-size-label`}>Dimensione card</p>
-            <p className="mt-0.5 text-[11px] text-black/35">Scegli la variante abilitata nelle dashboard.</p>
+            <p className="mt-0.5 text-[11px] text-black/35">Seleziona una o più varianti consentite all’autocomposer.</p>
           </div>
           <button
             type="button"
             disabled={disabled}
-            onClick={() => onPatch({ cardSize: undefined })}
-            aria-pressed={!override?.cardSize}
+            onClick={() => { setSizeSaveRequested(false); setSizeDraft([]) }}
+            aria-pressed={sizeDraft.length === 0}
             className={cn(
               'min-h-[40px] shrink-0 rounded-full px-3 text-xs font-semibold transition',
-              !override?.cardSize ? 'bg-[#0066cc] text-white' : 'bg-black/[0.07] text-black/50',
+              sizeDraft.length === 0 ? 'bg-[#0066cc] text-white' : 'bg-black/[0.07] text-black/50',
             )}
           >
             Auto
@@ -576,13 +621,13 @@ function EntityDetail({
         </div>
         <div className="grid grid-cols-2 gap-2 rounded-[20px] bg-[#f5f5f7] p-2" role="group" aria-labelledby={`${id}-size-label`}>
           {CARD_SIZE_OPTIONS.map((option) => {
-            const selected = override?.cardSize === option.value
+            const selected = sizeDraft.includes(option.value)
             return (
               <button
                 key={option.value}
                 type="button"
                 disabled={disabled}
-                onClick={() => onPatch({ cardSize: option.value })}
+                onClick={() => toggleSize(option.value)}
                 aria-pressed={selected}
                 aria-label={`Usa dimensione ${option.value}, ${option.description}`}
                 className={cn(
@@ -603,6 +648,31 @@ function EntityDetail({
               </button>
             )
           })}
+        </div>
+        <div className="flex items-center justify-between gap-3 rounded-[14px] bg-black/[0.04] p-2 pl-3">
+          <p className="min-w-0 text-[11px] text-black/45" role="status" aria-live="polite">
+            {sizeDraft.length === 0
+              ? 'Auto: nessun vincolo di dimensione.'
+              : `Abilitate: ${sizeDraft.join(', ')}${sizeDraft.length === 1 ? ' (dimensione fissa)' : ''}.`}
+          </p>
+          <button
+            type="button"
+            disabled={disabled || saveState === 'saving' || (!sizesDirty && !(sizeSaveRequested && saveState === 'error'))}
+            onClick={() => { setSizeSaveRequested(true); onSaveSizes(sizeDraft) }}
+            className={cn(
+              'flex min-h-[42px] shrink-0 items-center gap-1.5 rounded-full px-4 text-xs font-semibold transition active:scale-95 disabled:active:scale-100',
+              sizesDirty ? 'bg-[#0066cc] text-white' : 'bg-black/[0.07] text-black/35',
+            )}
+          >
+            <Save size={14} />
+            {sizeSaveRequested && saveState === 'saving'
+              ? 'Salvataggio…'
+              : sizeSaveRequested && saveState === 'error'
+                ? 'Riprova'
+                : sizeSaveRequested && saveState === 'saved'
+                  ? 'Salvato'
+                  : 'Salva dimensioni'}
+          </button>
         </div>
       </div>
 

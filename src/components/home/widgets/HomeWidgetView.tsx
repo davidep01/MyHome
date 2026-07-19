@@ -17,7 +17,7 @@ import { QuickInsightWidget } from './QuickInsightWidget'
 import { CalendarWidget } from './CalendarWidget'
 import { AnimatedCard } from '../../anim/AnimatedCard'
 import type { EntityType, HomeWidget, RoomEntity, TabletDashboardLayout } from '../../../api/backend'
-import { widgetVisualSizeFromHomeSize } from '../../widgets/utils/getWidgetSizeConfig'
+import { resolveEnabledCardSize, widgetVisualSizeFromHomeSize } from '../../widgets/utils/getWidgetSizeConfig'
 
 type PublicWidgetConfig = Pick<TabletDashboardLayout, 'deviceOverrides' | 'groups' | 'userName'>
 
@@ -55,7 +55,7 @@ export function HomeWidgetView({ widget, publicConfig }: { widget: HomeWidget; p
   const config = publicConfig ?? fullConfig
   const roomEntity = useRoomEntity(widget.entityId, publicConfig)
   const visualSize = widget.entityId
-    ? config?.deviceOverrides?.[widget.entityId]?.cardSize ?? widgetVisualSizeFromHomeSize(widget.size)
+    ? resolveEnabledCardSize(widgetVisualSizeFromHomeSize(widget.size), config?.deviceOverrides?.[widget.entityId])
     : widgetVisualSizeFromHomeSize(widget.size)
 
   switch (widget.type) {

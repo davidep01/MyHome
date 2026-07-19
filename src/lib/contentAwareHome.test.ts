@@ -32,4 +32,16 @@ describe('content aware home widgets', () => {
     const adapted = contentAwareHomeWidgets(widgets, {} as HassEntities, { 'media_player.apple_tv': { cardSize: 'S' } })
     expect(adapted[0].size).toBe('sm')
   })
+
+  it('sceglie solo fra le dimensioni multiple abilitate', () => {
+    const widgets = [widget('media', 'entity', 'sm', 'media_player.apple_tv')]
+    const medium = contentAwareHomeWidgets(widgets, {} as HassEntities, {
+      'media_player.apple_tv': { cardSizes: ['S', 'M'] },
+    })
+    const compact = contentAwareHomeWidgets(widgets, {} as HassEntities, {
+      'media_player.apple_tv': { cardSizes: ['S'] },
+    })
+    expect(medium[0].size).toBe('md')
+    expect(compact[0].size).toBe('sm')
+  })
 })
