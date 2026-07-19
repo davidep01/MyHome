@@ -553,13 +553,23 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
   0%, 100% { transform: scale(1); filter: brightness(1); }
   50% { transform: scale(1.18); filter: brightness(1.22); }
 }
+.energy-charge-live { animation: wallbox-charge-pulse 1.8s ease-in-out infinite; }
 .wallbox-charge-indicator { animation: wallbox-charge-pulse 1.8s ease-in-out infinite; }
 .wallbox-charge-bolt { animation: wallbox-charge-bolt 1.05s ease-in-out infinite; }
+.energy-risk-indicator { animation: energy-risk-pulse 1.15s ease-in-out infinite; }
+@keyframes energy-risk-pulse {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(249, 115, 22, 0)); }
+  50% { transform: scale(1.08); filter: drop-shadow(0 0 7px rgba(249, 115, 22, .38)); }
+}
 .perf-lite .wallbox-charge-indicator,
-.perf-lite .wallbox-charge-bolt { animation: none; }
+.perf-lite .wallbox-charge-bolt,
+.perf-lite .energy-charge-live,
+.perf-lite .energy-risk-indicator { animation: none; }
 @media (prefers-reduced-motion: reduce) {
   .wallbox-charge-indicator,
-  .wallbox-charge-bolt { animation: none; }
+  .wallbox-charge-bolt,
+  .energy-charge-live,
+  .energy-risk-indicator { animation: none; }
 }
 
 /* Card camera: scrim funzionale in basso — il nome resta leggibile sul video.

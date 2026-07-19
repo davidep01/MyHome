@@ -1,5 +1,5 @@
 import { AlertTriangle, CarFront, HousePlug, LoaderCircle, ShieldAlert, Thermometer, Video, VideoOff, Zap } from 'lucide-react'
-import { useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useClock } from '../../../hooks/useClock'
 import { useTimeOfDay } from '../../../hooks/useTimeOfDay'
 import { useCurrentWeather } from '../../../hooks/useWeather'
@@ -10,7 +10,13 @@ import { WeatherIcon } from '../../weather/WeatherIcon'
 import { NotificationBell } from '../../notifications/NotificationCenter'
 import { BRAND_EXPANDED, BRAND_NAME } from '../../../lib/brand'
 import { externalTemperatureFromEntities, meanIndoorClimateTemperature } from '../../../lib/dashboardSelection'
-import { formatHousePower, isWallboxConnected } from '../../../lib/statusBarEnergy'
+import { energyWindowAt, formatHousePower, isEnergyRisk, powerInKw, wallboxMode } from '../../../lib/statusBarEnergy'
+import {
+  EnergyDetailSheet,
+  EnergyRiskToast,
+  WallboxDetailSheet,
+  type EnergyAlertPayload,
+} from './EnergyStatusDetails'
 
 const WALLBOX_STATUS_ID = 'sensor.chargesplit_domus_wallbox_status'
 const HOUSE_CONSUMPTION_ID = 'sensor.chargesplit_domus_actual_house_consumption'
@@ -43,12 +49,15 @@ export function StatusHeader({
   cameraRowVisible?: boolean
   onCameraRowToggle?: () => void
 }) {
-  const { time, date } = useClock()
+  const { time, date, now } = useClock()
   const { greeting } = useTimeOfDay()
   const { data: weather } = useCurrentWeather()
   const entities = useEntityStore((s) => s.entities)
   const [pendingAction, setPendingAction] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
+  const [wallboxOpen, setWallboxOpen] = useState(false)
+  const [energyOpen, setEnergyOpen] = useState(false)
+  const [energyAlert, setEnergyAlert] = useState<EnergyAlertPayload | null>(null)
 
   const runAction = async (chip: HomeChip) => {
     if (!onAlertAction || pendingAction) return
@@ -65,8 +74,27 @@ export function StatusHeader({
 
   const indoorTemperature = useMemo(() => meanIndoorClimateTemperature(entities), [entities])
   const outdoorTemperature = weather?.temp ?? externalTemperatureFromEntities(entities)
-  const wallboxConnected = isWallboxConnected(entities[WALLBOX_STATUS_ID])
-  const housePower = formatHousePower(entities[HOUSE_CONSUMPTION_ID])
+  const wallboxVisual = wallboxMode(entities[WALLBOX_STATUS_ID])
+  const housePowerEntity = entities[HOUSE_CONSUMPTION_ID]
+  const housePower = formatHousePower(housePowerEntity)
+  const housePowerKw = powerInKw(housePowerEntity)
+  const energyWindow = useMemo(() => energyWindowAt(now), [now])
+  const energyRisk = isEnergyRisk(housePowerKw, energyWindow)
+  const closeEnergyAlert = useCallback(() => setEnergyAlert(null), [])
+
+  useEffect(() => {
+    if (housePowerKw === null || typeof window === 'undefined') return
+    // Isteresi: un nuovo avviso è consentito solo dopo che il carico è
+    // rientrato con un margine reale, non a ogni oscillazione sul confine.
+    if (housePowerKw < 2.3) window.sessionStorage.removeItem('simi.energy-risk-alert.3')
+    if (housePowerKw < 5.3) window.sessionStorage.removeItem('simi.energy-risk-alert.6')
+    if (!energyRisk) return
+    const key = `simi.energy-risk-alert.${energyWindow.limitKw}`
+    if (window.sessionStorage.getItem(key) === 'shown') return
+    window.sessionStorage.setItem(key, 'shown')
+    const timer = window.setTimeout(() => setEnergyAlert({ powerKw: housePowerKw, window: energyWindow }), 0)
+    return () => clearTimeout(timer)
+  }, [energyRisk, energyWindow, housePowerKw])
 
   return (
     <header className="min-w-0 shrink-0 space-y-3.5">
@@ -121,11 +149,11 @@ export function StatusHeader({
             icon={<Thermometer size={18} className="text-orange-500" aria-hidden="true" />}
           />
           <span className="h-7 w-px bg-black/[0.08] dark:bg-white/[0.12]" aria-hidden="true" />
-          <StatusPower value={housePower} />
-          {wallboxConnected && (
+          <StatusPower value={housePower} risk={energyRisk} onClick={() => setEnergyOpen(true)} />
+          {wallboxVisual !== 'hidden' && (
             <>
               <span className="h-7 w-px bg-black/[0.08] dark:bg-white/[0.12]" aria-hidden="true" />
-              <WallboxConnected />
+              <WallboxStatus mode={wallboxVisual} onClick={() => setWallboxOpen(true)} />
             </>
           )}
           <span className="h-7 w-px bg-black/[0.08] dark:bg-white/[0.12]" aria-hidden="true" />
@@ -167,38 +195,74 @@ export function StatusHeader({
         </div>
       )}
       {actionError && <p role="alert" className="text-sm font-semibold text-red-700">{actionError}</p>}
+      <WallboxDetailSheet
+        open={wallboxOpen}
+        onClose={() => setWallboxOpen(false)}
+        mode={wallboxVisual}
+        entities={entities}
+        statusEntityId={WALLBOX_STATUS_ID}
+      />
+      <EnergyDetailSheet
+        open={energyOpen}
+        onClose={() => setEnergyOpen(false)}
+        entity={housePowerEntity}
+        powerKw={housePowerKw}
+        window={energyWindow}
+        risk={energyRisk}
+      />
+      <EnergyRiskToast
+        alert={energyAlert}
+        onClose={closeEnergyAlert}
+        onOpen={() => setEnergyOpen(true)}
+      />
     </header>
   )
 }
 
-function StatusPower({ value }: { value: string | null }) {
+function StatusPower({ value, risk, onClick }: { value: string | null; risk: boolean; onClick: () => void }) {
   return (
-    <div className="flex h-full min-w-[102px] items-center gap-2 px-3">
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center text-[#0066cc]">
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex h-full min-w-[102px] items-center gap-2 px-3 text-left transition hover:bg-black/[0.05] active:scale-[0.98] dark:hover:bg-white/[0.08]"
+      aria-label={`Apri consumo casa: ${value ?? 'non disponibile'}`}
+      title={risk ? 'Consumo vicino al limite disponibile' : 'Apri andamento consumi'}
+    >
+      <span className={cn('flex h-8 w-8 shrink-0 items-center justify-center', risk ? 'energy-risk-indicator text-orange-600' : 'text-[#0066cc]')}>
         <HousePlug size={19} aria-hidden="true" />
       </span>
       <span className="min-w-0">
         <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-black/35 dark:text-white/38">Casa</span>
         <span className="block whitespace-nowrap text-[16px] font-semibold leading-none tabular-nums text-[#1d1d1f] dark:text-white">{value ?? '—'}</span>
       </span>
-    </div>
+    </button>
   )
 }
 
-function WallboxConnected() {
+function WallboxStatus({ mode, onClick }: { mode: 'connected' | 'charging'; onClick: () => void }) {
+  const charging = mode === 'charging'
   return (
-    <div
+    <button
+      type="button"
+      onClick={onClick}
       className="flex h-full w-[58px] shrink-0 items-center justify-center"
-      aria-label="Auto elettrica collegata alla wallbox"
-      title="Auto elettrica collegata"
+      aria-label={charging ? 'Auto elettrica in carica: apri dettagli wallbox' : 'Auto elettrica collegata: apri dettagli wallbox'}
+      title={charging ? 'Ricarica in corso' : 'Auto elettrica collegata'}
     >
-      <span className="wallbox-charge-indicator relative flex h-10 w-10 items-center justify-center rounded-[13px] bg-emerald-500/12 text-emerald-600 dark:bg-emerald-400/14 dark:text-emerald-300">
+      <span className={cn(
+        'relative flex h-10 w-10 items-center justify-center rounded-[13px] transition active:scale-95',
+        charging
+          ? 'wallbox-charge-indicator bg-emerald-500/12 text-emerald-600 dark:bg-emerald-400/14 dark:text-emerald-300'
+          : 'bg-[#0066cc]/10 text-[#0066cc] dark:bg-[#0a84ff]/16 dark:text-[#5ac8fa]',
+      )}>
         <CarFront size={22} aria-hidden="true" />
-        <span className="wallbox-charge-bolt absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm">
-          <Zap size={10} fill="currentColor" aria-hidden="true" />
-        </span>
+        {charging && (
+          <span className="wallbox-charge-bolt absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm">
+            <Zap size={10} fill="currentColor" aria-hidden="true" />
+          </span>
+        )}
       </span>
-    </div>
+    </button>
   )
 }
 

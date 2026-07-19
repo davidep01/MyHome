@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react'
 interface ClockState {
   time: string
   date: string
+  /** Istante della minute tick, riusato da logiche dipendenti dalla fascia oraria. */
+  now: Date
 }
 
 function getClockState(): ClockState {
@@ -10,6 +12,7 @@ function getClockState(): ClockState {
   return {
     time: now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }),
     date: now.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }),
+    now,
   }
 }
 
