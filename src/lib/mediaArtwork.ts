@@ -2,6 +2,10 @@ const ARTWORK_ATTRIBUTES = [
   'entity_picture',
   'media_image_url',
   'image_url',
+  'media_thumbnail',
+  'thumbnail_url',
+  'poster_url',
+  'media_artwork',
   'app_icon',
 ] as const
 

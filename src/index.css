@@ -529,6 +529,22 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
     var(--artwork-fade-4) 100%);
 }
 
+.media-card-generated-cover {
+  background:
+    radial-gradient(circle at 18% 28%, color-mix(in srgb, var(--media-cover-accent) 82%, white) 0%, transparent 30%),
+    linear-gradient(135deg, color-mix(in srgb, var(--media-cover-accent) 76%, #111827) 0%, #111827 72%);
+}
+
+@keyframes media-live-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: .45; transform: scale(.78); }
+}
+.media-live-dot { animation: media-live-pulse 1.5s ease-in-out infinite; }
+.perf-lite .media-live-dot { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .media-live-dot { animation: none; }
+}
+
 /* Card camera: scrim funzionale in basso — il nome resta leggibile sul video.
    Non è decorazione: stessa ragione del gradiente nel modale campanello. */
 .camera-card-scrim {

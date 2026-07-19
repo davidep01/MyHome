@@ -11,6 +11,7 @@ describe('resolveMediaArtwork', () => {
 
   it('falls back to Apple TV media and app artwork attributes', () => {
     expect(resolveMediaArtwork({ media_image_url: 'https://example.test/movie.jpg' })).toBe('https://example.test/movie.jpg')
+    expect(resolveMediaArtwork({ media_thumbnail: 'https://example.test/thumb.jpg' })).toBe('https://example.test/thumb.jpg')
     expect(resolveMediaArtwork({ app_icon: 'https://example.test/tv.png' })).toBe('https://example.test/tv.png')
   })
 

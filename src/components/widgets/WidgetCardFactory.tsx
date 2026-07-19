@@ -1,5 +1,5 @@
 import { ChevronDown, ChevronUp, Home, Minus, Pause, Play, Plus, Square } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState, type ElementType } from 'react'
+import { useMemo, useRef, useState, type CSSProperties, type ElementType } from 'react'
 import { haApi, type RoomEntity } from '../../api/backend'
 import { useHAEntity } from '../../hooks/useHAEntity'
 import { useHAService } from '../../hooks/useHAService'
@@ -17,13 +17,13 @@ import {
 import { CameraStream } from './CameraStream'
 import { mapEntityToWidgetCard } from './utils/mapEntityToWidgetCard'
 import { numericState } from './utils/formatWidgetValue'
-import { mediaProgressPct } from './utils/mediaProgress'
 import type { WidgetVisualSize } from './types'
 import { HoldDangerAction } from '../controls/HoldDangerAction'
 import { isWasteCollectionSensor } from '../../lib/wasteCollection'
 import { WasteCollectionCard } from './WasteCollectionCard'
 import { mediaArtworkRevision } from '../../lib/mediaArtwork'
 import { shouldRenderCameraStream } from './utils/cameraCardStream'
+import { MediaCardContent } from './MediaCardContent'
 
 interface Props {
   entity: RoomEntity
@@ -380,9 +380,11 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
         ) : mediaCoverStyle ? (
           <ArtworkBackdrop
             url={visibleArtworkUrl}
-            title={mapped.title}
+            title={(entity?.attributes?.media_title as string | undefined) ?? mapped.title}
             Icon={mapped.Icon}
             accentColor={mapped.accentColor}
+            appName={(entity?.attributes?.app_name ?? entity?.attributes?.source) as string | undefined}
+            playing={entity?.state === 'playing'}
             onError={visibleArtworkUrl ? () => setFailedArtworkUrl(visibleArtworkUrl) : undefined}
           />
         ) : undefined}
@@ -395,20 +397,29 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
           {actionError && <p className="mt-0.5 truncate text-[13px] text-red-300">{actionError}</p>}
         </div>
       ) : (
-        <>
-          <div className={cn('flex items-start gap-2', mediaCoverStyle ? 'justify-end' : 'justify-between')}>
-            {!mediaCoverStyle && <WidgetCardIcon Icon={mapped.Icon} size={size} accentColor={mapped.accentColor} active={mapped.isActive} />}
-            {trailing && <div className="flex shrink-0 items-center gap-1.5">{trailing}</div>}
-          </div>
+        mediaCoverStyle ? (
+          <>
+            {trailing && <div className="flex shrink-0 items-center justify-end gap-1.5">{trailing}</div>}
+            <MediaCardContent
+              entity={entity}
+              deviceTitle={mapped.title}
+              size={size}
+              progress={mapped.mediaProgress}
+              accentColor={mediaAccent}
+              error={actionError}
+            />
+          </>
+        ) : (
+          <>
+            <div className="flex items-start justify-between gap-2">
+              <WidgetCardIcon Icon={mapped.Icon} size={size} accentColor={mapped.accentColor} active={mapped.isActive} />
+              {trailing && <div className="flex shrink-0 items-center gap-1.5">{trailing}</div>}
+            </div>
 
-          <div className={cn(mediaCoverStyle && 'ml-auto mt-auto w-[62%] min-w-0 text-right')}>
             <WidgetCardIdentity
               title={mapped.title}
               state={actionError ?? (size === 'S' && mapped.value !== undefined ? undefined : mapped.state || undefined)}
-              stateColor={actionError ? '#b42318'
-                : mapped.stateAccent ? mapped.accentColor
-                : isMediaCard && mapped.isActive && dominant ? dominant
-                : undefined}
+              stateColor={actionError ? '#b42318' : mapped.stateAccent ? mapped.accentColor : undefined}
               value={mapped.value}
               unit={mapped.unit}
               size={size}
@@ -416,24 +427,20 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
               singleLineTitle={showSlider && size === 'M'}
             />
 
-            {size !== 'S' && mapped.mediaProgress && (
-              <MediaProgressBar progress={mapped.mediaProgress} color={mediaAccent} />
+            {showSlider && (
+              <div className="mt-1.5">
+                <WidgetCardSlider
+                  value={mapped.percent ?? 0}
+                  color={mapped.accentColor}
+                  label={`Regola ${mapped.title}`}
+                  disabled={busy}
+                  onChange={mapped.family === 'light' ? setBrightness : undefined}
+                  onCommit={mapped.family === 'light' ? commitBrightness : mapped.family === 'fan' ? setFanSpeed : setTargetHumidity}
+                />
+              </div>
             )}
-          </div>
-
-          {showSlider && (
-            <div className="mt-1.5">
-              <WidgetCardSlider
-                value={mapped.percent ?? 0}
-                color={mapped.accentColor}
-                label={`Regola ${mapped.title}`}
-                disabled={busy}
-                onChange={mapped.family === 'light' ? setBrightness : undefined}
-                onCommit={mapped.family === 'light' ? commitBrightness : mapped.family === 'fan' ? setFanSpeed : setTargetHumidity}
-              />
-            </div>
-          )}
-        </>
+          </>
+        )
       )}
     </WidgetCardShell>
   )
@@ -441,16 +448,18 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
 
 /** Copertina full-bleed: immagine a sinistra, dissolvenza bianca verso i controlli. */
 function ArtworkBackdrop({
-  url, title, Icon, accentColor, onError,
+  url, title, Icon, accentColor, appName, playing, onError,
 }: {
   url?: string
   title: string
   Icon: ElementType
   accentColor: string
+  appName?: string
+  playing: boolean
   onError?: () => void
 }) {
   return (
-    <div className="media-card-artwork absolute inset-0" data-media-cover-style>
+    <div className="media-card-artwork absolute inset-0" data-media-cover-style data-media-cover-source={url ? 'provided' : 'generated'}>
       {url ? (
         <img
           src={url}
@@ -460,39 +469,20 @@ function ArtworkBackdrop({
         />
       ) : (
         <div
-          className="flex h-full w-[52%] items-center justify-center"
-          style={{ background: `color-mix(in srgb, ${accentColor} 24%, var(--widget-fill))`, color: accentColor }}
+          className="media-card-generated-cover flex h-full w-full items-center"
+          style={{ '--media-cover-accent': accentColor } as CSSProperties}
           aria-label={`Copertina non disponibile: ${title}`}
         >
-          <Icon size={42} aria-hidden="true" />
+          <span className="flex w-[50%] flex-col items-center justify-center gap-2 px-3 text-center" style={{ color: accentColor }}>
+            <span className="flex h-12 w-12 items-center justify-center rounded-[16px] bg-white/85 shadow-sm dark:bg-black/45">
+              <Icon size={28} aria-hidden="true" />
+            </span>
+            <span className="max-w-full truncate text-[11px] font-bold text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.4)]">{appName ?? 'Media'}</span>
+            {playing && <span className="rounded-full bg-white/20 px-2 py-0.5 text-[8px] font-bold uppercase tracking-[0.12em] text-white">Live</span>}
+          </span>
         </div>
       )}
       <span className="media-card-artwork-fade absolute inset-0" />
-    </div>
-  )
-}
-
-/** Barra sottile del progresso di riproduzione: scaleX-only, tick 1s. */
-function MediaProgressBar({
-  progress, color,
-}: {
-  progress: NonNullable<ReturnType<typeof mapEntityToWidgetCard>['mediaProgress']>
-  color: string
-}) {
-  // La percentuale si deriva in render; l'intervallo fa solo avanzare il tempo.
-  const [, tick] = useState(0)
-  useEffect(() => {
-    if (!progress.playing) return
-    const id = setInterval(() => tick((n) => n + 1), 1_000)
-    return () => clearInterval(id)
-  }, [progress.playing])
-  const pct = mediaProgressPct(progress)
-  return (
-    <div className="mt-1.5 h-[3px] w-full overflow-hidden rounded-full bg-black/10" aria-hidden="true">
-      <span
-        className="block h-full w-full origin-left rounded-full transition-transform duration-1000 ease-linear"
-        style={{ transform: `scaleX(${pct / 100})`, background: color }}
-      />
     </div>
   )
 }
