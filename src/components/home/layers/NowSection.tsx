@@ -7,7 +7,6 @@ import { makeRoomEntity } from './makeRoomEntity'
 import type { HeroSlot } from '../../../lib/composer'
 import type { DeviceOverride } from '../../../api/backend'
 import { cn } from '../../../lib/utils'
-import { groupCameraTrio } from '../../../lib/nowSectionLayout'
 
 /**
  * Strato 2 — "Adesso": le card scelte dal composer per rilevanza.
@@ -22,13 +21,11 @@ export function NowSection({
   overrides?: Record<string, DeviceOverride>
 }) {
   const entities = useEntityStore((s) => s.entities)
-  const { regular, cameraTrio } = groupCameraTrio(hero)
 
-  const renderSlot = (slot: HeroSlot, cameraStrip = false) => {
+  const renderSlot = (slot: HeroSlot) => {
     const index = hero.findIndex((candidate) => candidate.key === slot.key)
-    const size = cameraStrip ? 'M' : (slot.visualSize ?? 'M')
-    const span = cameraStrip ? ''
-      : size === 'XL' ? 'sm:col-span-2 lg:col-span-6'
+    const size = slot.visualSize ?? 'M'
+    const span = size === 'XL' ? 'sm:col-span-2 lg:col-span-6'
         : size === 'L' ? 'sm:col-span-2 lg:col-span-3'
           : 'lg:col-span-2'
 
@@ -54,23 +51,8 @@ export function NowSection({
   }
 
   return (
-    <section className={cn(
-      'grid h-full min-h-0 gap-3.5 overflow-hidden',
-      regular.length > 0 && cameraTrio.length === 3 && 'grid-rows-2',
-    )}>
-      {regular.length > 0 && (
-        <div className="grid h-full min-h-0 auto-rows-[minmax(0,1fr)] grid-flow-row-dense grid-cols-1 gap-3.5 overflow-hidden sm:grid-cols-2 lg:grid-cols-6">
-          {regular.map((slot) => renderSlot(slot))}
-        </div>
-      )}
-      {cameraTrio.length === 3 && (
-        <div
-          className="grid h-full min-h-0 grid-cols-3 gap-3.5 overflow-hidden"
-          aria-label="Videocamere in evidenza"
-        >
-          {cameraTrio.map((slot) => renderSlot(slot, true))}
-        </div>
-      )}
+    <section className={cn('grid h-full min-h-0 auto-rows-[minmax(0,1fr)] grid-flow-row-dense grid-cols-1 gap-3.5 overflow-hidden sm:grid-cols-2 lg:grid-cols-6')}>
+      {hero.map((slot) => renderSlot(slot))}
     </section>
   )
 }

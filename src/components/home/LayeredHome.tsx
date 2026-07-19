@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { StatusHeader } from './layers/StatusHeader'
 import { NowSection } from './layers/NowSection'
 import { RoomsRow, type RoomTarget } from './layers/RoomsRow'
@@ -18,12 +18,17 @@ import { useUIStore } from '../../store/ui'
 import { useActionFeedback } from '../../hooks/useActionFeedback'
 import { useEntityStore } from '../../store/entities'
 import { cn } from '../../lib/utils'
+import { selectDashboardCameraIds } from '../../lib/dashboardSelection'
+import { useRoomsOverview } from '../../hooks/useRoomsOverview'
+import { CameraMonitoringRow } from './layers/CameraMonitoringRow'
+import { RoomDashboard } from './layers/RoomDashboard'
 
 /**
  * Home a strati (DOMINICA M1): si compone da sola, zero gestione.
- *   1. StatusHeader — ora, presenza, meteo, chip-anomalia. Sempre lì.
- *   2. Adesso — card scelte per rilevanza dal composer (o Momenti se quiete).
- *   3. Stanze — l'inventario completo, un tap di distanza.
+ *   1. StatusHeader — ora, temperature, notifiche e chip-anomalia.
+ *   2. Monitoraggio — prima fila stabile di tre camere.
+ *   3. Adesso — card scelte per rilevanza dal composer (o Momenti se quiete).
+ *   4. Stanze — seleziona una dashboard kiosk dedicata, non un popup.
  * La griglia manuale resta raggiungibile con localStorage['myhome.home']='grid'.
  */
 export function LayeredHome() {
@@ -35,13 +40,37 @@ export function LayeredHome() {
   const setSelectedEntity = useUIStore((s) => s.setSelectedEntity)
   const { medium } = useHaptic()
   const { actionFailed } = useActionFeedback()
-  const [sheet, setSheet] = useState<RoomTarget | null>(null)
+  const entities = useEntityStore((state) => state.entities)
+  const { rooms } = useRoomsOverview({
+    hiddenEntities: layout?.hiddenEntities,
+    overrides: layout?.deviceOverrides,
+  })
+  const [alertSheet, setAlertSheet] = useState<RoomTarget | null>(null)
+  const [activeRoomKey, setActiveRoomKey] = useState<string | null>(null)
   const [timelineOpen, setTimelineOpen] = useState(false)
   const [spacesOpen, setSpacesOpen] = useState(false)
+  const activeRoom = rooms.find((room) => room.key === activeRoomKey) ?? null
+  const preferredCameraIds = useMemo(
+    () => (layout?.doorbells ?? [])
+      .filter((doorbell) => doorbell.active !== false && doorbell.cameraEntityId)
+      .map((doorbell) => doorbell.cameraEntityId!),
+    [layout?.doorbells],
+  )
+  const cameraIds = useMemo(() => selectDashboardCameraIds(entities, {
+    hiddenEntities: layout?.hiddenEntities,
+    overrides: layout?.deviceOverrides,
+    preferredEntityIds: preferredCameraIds,
+    limit: 3,
+  }), [entities, layout?.hiddenEntities, layout?.deviceOverrides, preferredCameraIds])
 
   const openAlert = (chip: HomeChip) => {
     if (chip.entityIds.length === 1) setSelectedEntity(chip.entityIds[0])
-    else if (chip.entityIds.length > 1) setSheet({ title: chip.label, entityIds: chip.entityIds })
+    else if (chip.entityIds.length > 1) setAlertSheet({ key: chip.id, title: chip.label, entityIds: chip.entityIds })
+  }
+
+  const openRoom = (room: RoomTarget) => {
+    setActiveRoomKey(room.key)
+    setSpacesOpen(false)
   }
 
   // Il tap sul bottone-azione del suggerimento È la conferma (mai auto-esecuzione).
@@ -67,29 +96,47 @@ export function LayeredHome() {
           paddingLeft: 'calc(clamp(16px, 2vw, 28px) + env(safe-area-inset-left))',
         }}
       >
-        <StatusHeader userName={layout?.userName} alerts={composed.alerts} onAlertTap={openAlert} onAlertAction={runAlertAction} onClockTap={() => setTimelineOpen(true)} />
+        <StatusHeader
+          userName={layout?.userName}
+          contextTitle={activeRoom?.title}
+          alerts={composed.alerts}
+          onAlertTap={openAlert}
+          onAlertAction={runAlertAction}
+          onClockTap={() => setTimelineOpen(true)}
+        />
 
         <div className="min-h-0 overflow-hidden">
-          {composed.quiet ? <QuietSection /> : <NowSection hero={composed.hero} overrides={layout?.deviceOverrides} />}
+          {activeRoom ? (
+            <RoomDashboard room={activeRoom} overrides={layout?.deviceOverrides} />
+          ) : (
+            <div className="grid h-full min-h-0 grid-rows-[minmax(150px,1.15fr)_minmax(0,0.9fr)] gap-3.5 overflow-hidden">
+              <CameraMonitoringRow entityIds={cameraIds} overrides={layout?.deviceOverrides} />
+              <div className="min-h-0 overflow-hidden">
+                {composed.quiet ? <QuietSection /> : <NowSection hero={composed.hero} overrides={layout?.deviceOverrides} />}
+              </div>
+            </div>
+          )}
         </div>
 
         <RoomsRow
           hiddenEntities={layout?.hiddenEntities}
           overrides={layout?.deviceOverrides}
-          onOpen={setSheet}
+          onOpen={openRoom}
           onZoomOut={() => setSpacesOpen(true)}
+          activeRoomKey={activeRoom?.key}
+          onHome={() => setActiveRoomKey(null)}
         />
 
-        {/* Zoom-out: il catalogo Spazi sta SOTTO l'EntitySheet — il tap su una
-            stanza apre lo sheet sopra il catalogo (drill-down, non swap). */}
+        {/* Zoom-out: il tap su una stanza chiude il catalogo e apre la relativa
+            dashboard kiosk nello stesso canvas della Home. */}
         <SpacesCatalog
           open={spacesOpen}
           hiddenEntities={layout?.hiddenEntities}
           overrides={layout?.deviceOverrides}
           onClose={() => setSpacesOpen(false)}
-          onOpenRoom={setSheet}
+          onOpenRoom={openRoom}
         />
-        <EntitySheet target={sheet} overrides={layout?.deviceOverrides} onClose={() => setSheet(null)} />
+        <EntitySheet target={alertSheet} overrides={layout?.deviceOverrides} onClose={() => setAlertSheet(null)} />
         <TimelineSheet open={timelineOpen} onClose={() => setTimelineOpen(false)} />
 
         {/* Strato 4: lo screensaver ambient è montato dal KioskShell così copre

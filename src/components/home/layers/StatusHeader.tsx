@@ -1,5 +1,5 @@
-import { AlertTriangle, LoaderCircle, ShieldAlert, Users } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { AlertTriangle, LoaderCircle, ShieldAlert, Thermometer } from 'lucide-react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { useClock } from '../../../hooks/useClock'
 import { useTimeOfDay } from '../../../hooks/useTimeOfDay'
 import { useCurrentWeather } from '../../../hooks/useWeather'
@@ -8,12 +8,12 @@ import { cn } from '../../../lib/utils'
 import type { HomeChip } from '../../../hooks/useComposedHome'
 import { WeatherIcon } from '../../weather/WeatherIcon'
 import { NotificationBell } from '../../notifications/NotificationCenter'
-import { entityName } from '../../widgets/utils/mapEntityToWidgetCard'
 import { BRAND_EXPANDED, BRAND_NAME } from '../../../lib/brand'
+import { externalTemperatureFromEntities, meanIndoorClimateTemperature } from '../../../lib/dashboardSelection'
 
 /**
  * Strato 1 — Stato di casa. Sempre presente, mai configurato: ora, saluto,
- * meteo, presenza, connessione e le chip-anomalia del composer.
+ * temperature esterna/interna, notifiche e chip-anomalia del composer.
  * L'icona dice il dominio, il colore lo stato, il testo il valore.
  */
 export function StatusHeader({
@@ -22,6 +22,7 @@ export function StatusHeader({
   onAlertTap,
   onAlertAction,
   onClockTap,
+  contextTitle,
 }: {
   userName?: string
   alerts: HomeChip[]
@@ -30,11 +31,12 @@ export function StatusHeader({
   onAlertAction?: (chip: HomeChip) => Promise<void>
   /** Tocco sull'orologio → timeline "Oggi a casa". */
   onClockTap?: () => void
+  /** Titolo della dashboard stanza; assente nella Home generale. */
+  contextTitle?: string
 }) {
   const { time, date } = useClock()
   const { greeting } = useTimeOfDay()
   const { data: weather } = useCurrentWeather()
-  const status = useEntityStore((s) => s.connectionStatus)
   const entities = useEntityStore((s) => s.entities)
   const [pendingAction, setPendingAction] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
@@ -52,59 +54,48 @@ export function StatusHeader({
     }
   }
 
-  const personsHome = useMemo(
-    () => Object.values(entities)
-      .filter((e) => e.entity_id.startsWith('person.') && e.state === 'home')
-      .map((e) => entityName(e)),
-    [entities],
-  )
-
-  const online = status === 'connected'
-  const syncing = status === 'connecting'
+  const indoorTemperature = useMemo(() => meanIndoorClimateTemperature(entities), [entities])
+  const outdoorTemperature = weather?.temp ?? externalTemperatureFromEntities(entities)
 
   return (
     <header className="min-w-0 shrink-0 space-y-3.5">
       <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-5">
-        <button type="button" onClick={onClockTap} className="min-h-11 min-w-0 max-w-full text-left transition active:scale-[0.99]" aria-label="Apri la timeline di oggi">
+        <button
+          type="button"
+          onClick={onClockTap}
+          disabled={!onClockTap}
+          className="min-h-11 min-w-0 max-w-full text-left transition enabled:active:scale-[0.99]"
+          aria-label={onClockTap ? 'Apri la timeline di oggi' : 'Ora e data correnti'}
+        >
           <div className="flex min-w-0 items-baseline gap-2.5 sm:gap-3">
-            <span className="shrink-0 text-[clamp(46px,15vw,56px)] font-light leading-none text-[#1d1d1f] tabular-nums">{time}</span>
-            <span className="min-w-0 text-sm capitalize leading-snug text-black/45 sm:text-base">{date}</span>
+            <span className="shrink-0 text-[clamp(46px,15vw,56px)] font-light leading-none text-[#1d1d1f] tabular-nums dark:text-white">{time}</span>
+            <span className="min-w-0 text-sm capitalize leading-snug text-black/45 dark:text-white/48 sm:text-base">{date}</span>
           </div>
           <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1">
             <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#0066cc]" title={BRAND_EXPANDED}>{BRAND_NAME}</span>
-            <p className="break-words text-xl font-semibold leading-tight text-[#1d1d1f]">
-              {greeting}{userName ? `, ${userName}` : ''}
+            <p className="break-words text-xl font-semibold leading-tight text-[#1d1d1f] dark:text-white">
+              {contextTitle ?? `${greeting}${userName ? `, ${userName}` : ''}`}
             </p>
           </div>
         </button>
 
-        <div className="flex min-w-0 flex-wrap items-center gap-2 sm:shrink-0 sm:justify-end sm:gap-2.5">
-          {personsHome.length > 0 && (
-            <div className="flex min-h-11 min-w-0 max-w-full items-center gap-2 rounded-full bg-emerald-500/10 px-4 text-sm font-semibold text-emerald-900/70 ring-1 ring-emerald-500/10">
-              <Users size={16} className="shrink-0 text-emerald-700/70" />
-              <span className="max-w-[min(52vw,220px)] truncate">{personsHome.join(' · ')}</span>
-            </div>
-          )}
-          {weather && (
-            <div className="flex min-h-11 shrink-0 items-center gap-2 rounded-full bg-sky-500/10 px-3.5 ring-1 ring-sky-500/10 sm:px-4">
-              <WeatherIcon code={weather.icon} size={27} />
-              <span className="text-2xl font-light text-[#1d1d1f]">{weather.temp}°</span>
-            </div>
-          )}
-          <span
-            role="status"
-            aria-label={online ? 'Online' : syncing ? 'Sincronizzazione' : 'Offline'}
-            className={cn(
-              'flex h-11 w-11 shrink-0 items-center justify-center rounded-full ring-1',
-              online ? 'bg-green-500/10 ring-green-500/10'
-                : syncing ? 'bg-orange-500/10 ring-orange-500/10'
-                  : 'bg-red-500/10 ring-red-500/10',
-            )}
-            title={online ? 'Online' : syncing ? 'Sincronizzazione' : 'Offline'}
-          >
-            <span className={cn('h-2.5 w-2.5 rounded-full', online ? 'bg-green-500' : syncing ? 'animate-pulse bg-orange-400' : 'bg-red-400')} />
-          </span>
-          <NotificationBell allowDismiss={false} />
+        <div
+          className="flex h-14 shrink-0 items-center overflow-hidden rounded-[18px] border border-black/[0.07] bg-white/65 shadow-sm backdrop-blur-xl dark:border-white/[0.10] dark:bg-white/[0.07]"
+          aria-label="Stato temperature e notifiche"
+        >
+          <StatusTemperature
+            label="Esterna"
+            value={outdoorTemperature}
+            icon={weather ? <WeatherIcon code={weather.icon} size={23} /> : <WeatherIcon code="01d" size={23} />}
+          />
+          <span className="h-7 w-px bg-black/[0.08] dark:bg-white/[0.12]" aria-hidden="true" />
+          <StatusTemperature
+            label="Interna"
+            value={indoorTemperature}
+            icon={<Thermometer size={18} className="text-orange-500" aria-hidden="true" />}
+          />
+          <span className="h-7 w-px bg-black/[0.08] dark:bg-white/[0.12]" aria-hidden="true" />
+          <NotificationBell allowDismiss={false} variant="statusBar" />
         </div>
       </div>
 
@@ -143,5 +134,22 @@ export function StatusHeader({
       )}
       {actionError && <p role="alert" className="text-sm font-semibold text-red-700">{actionError}</p>}
     </header>
+  )
+}
+
+function formatTemperature(value: number | null): string {
+  if (value === null || !Number.isFinite(value)) return '—'
+  return `${String(Math.round(value * 10) / 10).replace('.', ',')}°`
+}
+
+function StatusTemperature({ label, value, icon }: { label: string; value: number | null; icon: ReactNode }) {
+  return (
+    <div className="flex h-full min-w-[108px] items-center gap-2 px-3.5">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center">{icon}</span>
+      <span className="min-w-0">
+        <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-black/35 dark:text-white/38">{label}</span>
+        <span className="block text-[19px] font-semibold leading-none tabular-nums text-[#1d1d1f] dark:text-white">{formatTemperature(value)}</span>
+      </span>
+    </div>
   )
 }

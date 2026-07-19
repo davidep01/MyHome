@@ -5,6 +5,7 @@ import { useHAHiddenEntities } from './useHAHiddenEntities'
 import { useEntityStore } from '../store/entities'
 import { isRenderableDomain } from '../components/home/layers/makeRoomEntity'
 import type { DeviceOverride } from '../api/backend'
+import { isPresenceEntity } from '../lib/dashboardSelection'
 
 /** Ordine di presentazione dei domini dentro una stanza. */
 const DOMAIN_ORDER = ['light', 'switch', 'input_boolean', 'fan', 'humidifier', 'climate', 'cover', 'valve', 'lock', 'media_player', 'camera', 'vacuum', 'lawn_mower', 'scene', 'script', 'sensor', 'binary_sensor']
@@ -114,6 +115,7 @@ export function useRoomsOverview(cfg?: {
     const hidden = new Set([...(hiddenEntities ?? []), ...haHidden])
     const visible = Object.values(entities).filter((e) =>
       !hidden.has(e.entity_id)
+      && !isPresenceEntity(e)
       && isRenderableDomain(e.entity_id)
       && overrides?.[e.entity_id]?.enabled !== false
       && e.attributes?.entity_category !== 'diagnostic')

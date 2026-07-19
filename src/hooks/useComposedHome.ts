@@ -62,7 +62,9 @@ export function useComposedHome(cfg?: KioskCurationConfig): ComposedHomeView {
         && deviceOverrides?.[e.entity_id]?.enabled !== false
         && e.attributes?.entity_category !== 'diagnostic')
 
-      const raw = composeHome(visible, {
+      // Le camere appartengono alla prima fila fissa e non consumano gli slot
+      // dinamici del composer.
+      const raw = composeHome(visible.filter((entity) => !entity.entity_id.startsWith('camera.')), {
         areaNameOf,
         heroOf: (id) => deviceOverrides?.[id]?.hero,
         now: new Date(),

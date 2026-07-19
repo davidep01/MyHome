@@ -5,7 +5,7 @@ import { dateKeyForLocalDate, isWasteCollectionSensor, wastePickups } from './wa
  *
  * Funzione PURA e deterministica: dato lo stato delle entità, decide cosa
  * merita la zona "Adesso" e quali anomalie mostrare nell'header. Il punteggio
- * contestuale resta spiegabile (sicurezza, urgenza, presenza, recency,
+ * contestuale resta spiegabile (sicurezza, urgenza, recency,
  * azionabilità e preferenze) e il tie-break stabile garantisce che due kiosk
  * con gli stessi dati compongano la stessa identica home.
  *
@@ -64,11 +64,9 @@ export interface ComposeOptions {
 
 const OPENING_CLASSES = new Set(['door', 'window', 'garage_door', 'opening', 'gate'])
 const DANGER_CLASSES = new Set(['smoke', 'gas', 'carbon_monoxide', 'moisture', 'safety'])
-const OCCUPANCY_CLASSES = new Set(['motion', 'occupancy', 'presence'])
 const ACTIVE_HVAC = new Set(['heating', 'cooling', 'drying'])
 const BUSY_STATES = new Set(['cleaning', 'returning', 'mowing', 'opening', 'closing'])
 const ACTIVE_AUXILIARY_STATES = new Set(['on', 'active', 'running'])
-const UNOCCUPIED_ROOM_MS = 2 * 60 * 1000
 
 function domainOf(id: string): string {
   return id.split('.')[0]
@@ -131,17 +129,15 @@ function recencyScore(changed: number, nowMs: number): number {
 
 function contextualScore(
   slot: HeroSlot & { changed: number },
-  opts: { now: Date; areaNameOf?: (entityId: string) => string | undefined; occupiedAreas: Set<string>; pinned: boolean },
+  opts: { now: Date; pinned: boolean },
 ): number {
   if (slot.priority === 0) return SCORE_BASE[0] + recencyScore(slot.changed, opts.now.getTime())
   const domain = slot.entityId ? domainOf(slot.entityId) : slot.group ? 'light' : ''
-  const area = slot.entityId ? opts.areaNameOf?.(slot.entityId) : undefined
   const hour = opts.now.getHours()
   const ageMinutes = slot.changed > 0 ? Math.max(0, (opts.now.getTime() - slot.changed) / 60_000) : 0
   let score = SCORE_BASE[slot.priority] + recencyScore(slot.changed, opts.now.getTime())
 
   if (ACTIONABLE_DOMAINS.has(domain)) score += 45
-  if (area && opts.occupiedAreas.has(area)) score += 70
   if (domain === 'climate') score += 45
   if (domain === 'media_player' && (hour >= 17 || hour < 1)) score += 55
   if (slot.reason.includes('Apertura aperta')) score += Math.min(100, Math.round(ageMinutes / 5))
@@ -175,29 +171,6 @@ export function composeHome(entities: ComposerEntity[], opts: ComposeOptions): C
   const unlockedLocks: ComposerEntity[] = []
   const litByArea = new Map<string, ComposerEntity[]>()
   let unavailable = 0
-
-  // Se un'area dispone davvero di sensori presenza e tutti risultano inattivi
-  // da almeno due minuti, i controlli luce non occupano lo strato "Adesso".
-  // Le luci restano comunque raggiungibili in Stanze e un override "always"
-  // continua a vincere: niente sparizioni basate su una semplice assenza dati.
-  const occupancyByArea = new Map<string, ComposerEntity[]>()
-  for (const entity of entities) {
-    if (domainOf(entity.entity_id) !== 'binary_sensor' || !OCCUPANCY_CLASSES.has(deviceClass(entity))) continue
-    const area = areaNameOf?.(entity.entity_id)
-    if (!area) continue
-    const sensors = occupancyByArea.get(area) ?? []
-    sensors.push(entity)
-    occupancyByArea.set(area, sensors)
-  }
-  const quietAreas = new Set<string>()
-  const occupiedAreas = new Set<string>()
-  for (const [area, sensors] of occupancyByArea) {
-    if (sensors.some((sensor) => sensor.state === 'on')) occupiedAreas.add(area)
-    if (sensors.every((sensor) => {
-      const changed = changedMs(sensor)
-      return sensor.state === 'off' && changed > 0 && now.getTime() - changed >= UNOCCUPIED_ROOM_MS
-    })) quietAreas.add(area)
-  }
 
   const banned = new Set<string>()
   for (const e of entities) if (heroPref(e.entity_id) === 'never') banned.add(e.entity_id)
@@ -323,7 +296,6 @@ export function composeHome(entities: ComposerEntity[], opts: ComposeOptions): C
       case 'light': {
         if (e.state === 'on' && !banned.has(e.entity_id)) {
           const area = areaNameOf?.(e.entity_id) ?? 'Casa'
-          if (quietAreas.has(area) && heroPref(e.entity_id) !== 'always') break
           const list = litByArea.get(area) ?? []
           list.push(e)
           litByArea.set(area, list)
@@ -390,8 +362,6 @@ export function composeHome(entities: ComposerEntity[], opts: ComposeOptions): C
     ...candidate,
     score: contextualScore(candidate, {
       now,
-      areaNameOf,
-      occupiedAreas,
       pinned: Boolean(candidate.entityId && heroPref(candidate.entityId) === 'always'),
     }),
     visualSize: visualSizeFor(candidate),

@@ -11,34 +11,12 @@ function e(id: string, state: string, attributes: Record<string, unknown> = {}, 
 const opts: InsightOptions = { nowMs: NOW }
 
 describe('computeInsights', () => {
-  it('luci accese e casa vuota da ≥30min → propone Spegni tutte', () => {
-    const out = computeInsights([
+  it('non usa persone o tracker per dedurre che la casa sia vuota', () => {
+    expect(computeInsights([
       e('person.davide', 'not_home', {}, 45 * 60 * 1000),
-      e('light.salotto', 'on'),
-      e('light.cucina', 'on'),
-    ], opts)
-    expect(out).toHaveLength(1)
-    expect(out[0]).toMatchObject({
-      id: 'lights-away',
-      label: '2 luci accese e casa vuota',
-      action: { domain: 'light', service: 'turn_off', entityIds: ['light.cucina', 'light.salotto'] },
-    })
-  })
-
-  it('non scatta se qualcuno è in casa o se l\'assenza è recente', () => {
-    expect(computeInsights([
-      e('person.davide', 'home'),
+      e('device_tracker.telefono', 'not_home'),
       e('light.salotto', 'on'),
     ], opts)).toEqual([])
-
-    expect(computeInsights([
-      e('person.davide', 'not_home', {}, 10 * 60 * 1000), // via da soli 10min
-      e('light.salotto', 'on'),
-    ], opts)).toEqual([])
-  })
-
-  it('senza entità person non inventa nulla', () => {
-    expect(computeInsights([e('light.salotto', 'on')], opts)).toEqual([])
   })
 
   it('finestra aperta + riscaldamento attivo nella stessa area → propone Spegni clima', () => {

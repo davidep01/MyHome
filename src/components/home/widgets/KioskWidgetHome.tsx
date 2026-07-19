@@ -7,16 +7,17 @@ import { HomeGridCanvas } from './HomeGridCanvas'
 import { WidgetPicker } from './WidgetPicker'
 import { buildLayout, layoutPixelHeight, orderFromLayout, positionsFromLayout, sameLayout } from '../../../lib/homeLayout'
 import { useTabletLayout, useSaveTabletLayout } from '../../../hooks/useTabletLayout'
-import { useClock } from '../../../hooks/useClock'
-import { useTimeOfDay } from '../../../hooks/useTimeOfDay'
-import { useCurrentWeather } from '../../../hooks/useWeather'
 import { useEntityStore } from '../../../store/entities'
 import { useHaptic } from '../../../hooks/useHaptic'
 import { cn } from '../../../lib/utils'
-import { WeatherIcon } from '../../weather/WeatherIcon'
-import { authApi, type HomeWidget, type TabletDashboardLayout, type WidgetSize } from '../../../api/backend'
-import { NotificationBell } from '../../notifications/NotificationCenter'
-import { BRAND_EXPANDED, BRAND_NAME } from '../../../lib/brand'
+import { authApi, type HomeWidget, type WidgetSize } from '../../../api/backend'
+import { StatusHeader } from '../layers/StatusHeader'
+import { CameraMonitoringRow } from '../layers/CameraMonitoringRow'
+import { RoomDashboard } from '../layers/RoomDashboard'
+import { RoomsRow, type RoomTarget } from '../layers/RoomsRow'
+import { SpacesCatalog } from '../layers/SpacesCatalog'
+import { useRoomsOverview } from '../../../hooks/useRoomsOverview'
+import { selectDashboardCameraIds } from '../../../lib/dashboardSelection'
 
 const GRID_GAP = [14, 14] as const
 const SIZE_SHORT: Record<WidgetSize, string> = { sm: 'S', md: 'M', lg: 'L', wide: 'XL' }
@@ -59,54 +60,6 @@ function sameWidgets(a: HomeWidget[], b: HomeWidget[]): boolean {
   })
 }
 
-function KioskHeader({ layout }: { layout: TabletDashboardLayout }) {
-  const { time, date } = useClock()
-  const { greeting } = useTimeOfDay()
-  const { data: weather } = useCurrentWeather()
-  const status = useEntityStore((s) => s.connectionStatus)
-  const online = status === 'connected'
-  const syncing = status === 'connecting'
-  const cached = layout.source === 'cache'
-
-  return (
-    <header className="flex shrink-0 flex-wrap items-center justify-between gap-4">
-      <div className="min-w-0">
-        <div className="flex items-baseline gap-3">
-          <span className="text-[56px] font-light leading-none text-[#1d1d1f] tabular-nums">{time}</span>
-          <span className="truncate text-base capitalize text-black/45">{date}</span>
-        </div>
-        <div className="mt-2 flex min-w-0 items-baseline gap-2">
-          <span className="shrink-0 text-[10px] font-bold uppercase tracking-[0.14em] text-[#0066cc]" title={BRAND_EXPANDED}>{BRAND_NAME}</span>
-          <p className="truncate text-xl font-semibold text-[#1d1d1f]">
-            {greeting}, {layout.userName || layout.dashboardName || 'Casa'}
-          </p>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-3">
-        {weather && (
-          <div className="flex items-center gap-2 rounded-full bg-sky-500/10 px-4 py-2 ring-1 ring-sky-500/10">
-            <WeatherIcon code={weather.icon} size={27} />
-            <span className="text-2xl font-light text-[#1d1d1f]">{weather.temp}°</span>
-          </div>
-        )}
-        <div
-          className={cn(
-            'flex min-h-[48px] items-center gap-2 rounded-full px-4 text-sm font-semibold',
-            online && !cached ? 'bg-green-500/12 text-green-700 ring-1 ring-green-500/10'
-              : syncing ? 'bg-orange-500/12 text-orange-700 ring-1 ring-orange-500/10'
-                : 'bg-red-500/10 text-red-700 ring-1 ring-red-500/10',
-          )}
-        >
-          <span className={cn('h-2.5 w-2.5 rounded-full', online && !cached ? 'bg-green-500' : 'bg-orange-400')} />
-          {online && !cached ? 'Online' : syncing ? 'Sincronizzazione' : 'Offline'}
-        </div>
-        <NotificationBell allowDismiss={false} />
-      </div>
-    </header>
-  )
-}
-
 function LoadingGrid() {
   return (
     <div className="grid grid-cols-4 gap-4 pt-4">
@@ -130,8 +83,30 @@ export function KioskWidgetHome() {
   const [draft, setDraft] = useState<Draft | null>(null)
   const [pickerOpen, setPickerOpen] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
+  const [activeRoomKey, setActiveRoomKey] = useState<string | null>(null)
+  const [spacesOpen, setSpacesOpen] = useState(false)
   const gridViewportRef = useRef<HTMLDivElement>(null)
   const gridViewportHeight = useElementHeight(gridViewportRef)
+  const entities = useEntityStore((state) => state.entities)
+  const { rooms } = useRoomsOverview({ hiddenEntities: data?.hiddenEntities, overrides: data?.deviceOverrides })
+  const activeRoom = rooms.find((room) => room.key === activeRoomKey) ?? null
+  const preferredCameraIds = useMemo(
+    () => (data?.doorbells ?? [])
+      .filter((doorbell) => doorbell.active !== false && doorbell.cameraEntityId)
+      .map((doorbell) => doorbell.cameraEntityId!),
+    [data?.doorbells],
+  )
+  const cameraIds = useMemo(() => selectDashboardCameraIds(entities, {
+    hiddenEntities: data?.hiddenEntities,
+    overrides: data?.deviceOverrides,
+    preferredEntityIds: preferredCameraIds,
+    limit: 3,
+  }), [entities, data?.hiddenEntities, data?.deviceOverrides, preferredCameraIds])
+
+  const openRoom = (room: RoomTarget) => {
+    setActiveRoomKey(room.key)
+    setSpacesOpen(false)
+  }
 
   const savedWidgets = useMemo(() => data?.widgets ?? [], [data?.widgets])
   const savedLayout = useMemo(() => buildLayout(savedWidgets, data?.layout.items), [savedWidgets, data?.layout.items])
@@ -238,10 +213,26 @@ export function KioskWidgetHome() {
   if (!data) return null
 
   return (
-    <div className="kiosk-burnin-shift flex h-full flex-col gap-5 px-[max(22px,env(safe-area-inset-left))] py-[max(18px,env(safe-area-inset-top))]">
-      <KioskHeader layout={data} />
+    <div className="kiosk-burnin-shift flex h-full flex-col gap-3.5 px-[max(22px,env(safe-area-inset-left))] py-[max(14px,env(safe-area-inset-top))]">
+      <StatusHeader
+        userName={data.userName || data.dashboardName}
+        contextTitle={activeRoom?.title}
+        alerts={[]}
+        onAlertTap={() => undefined}
+      />
 
-      <div className="flex min-h-0 flex-1 flex-col">
+      {!editing && activeRoom ? (
+        <div className="min-h-0 flex-1 overflow-hidden">
+          <RoomDashboard room={activeRoom} overrides={data.deviceOverrides} />
+        </div>
+      ) : (
+        <>
+          {!editing && (
+            <div className="h-[clamp(150px,23vh,215px)] shrink-0 overflow-hidden">
+              <CameraMonitoringRow entityIds={cameraIds} overrides={data.deviceOverrides} />
+            </div>
+          )}
+          <div className="flex min-h-0 flex-1 flex-col">
         <div className="mb-3 flex shrink-0 items-center justify-between gap-3">
           <div className="min-w-0">
             {editing ? (
@@ -332,7 +323,28 @@ export function KioskWidgetHome() {
             </div>
           )}
         </div>
-      </div>
+          </div>
+        </>
+      )}
+
+      {!editing && (
+        <RoomsRow
+          hiddenEntities={data.hiddenEntities}
+          overrides={data.deviceOverrides}
+          onOpen={openRoom}
+          onZoomOut={() => setSpacesOpen(true)}
+          activeRoomKey={activeRoom?.key}
+          onHome={() => setActiveRoomKey(null)}
+        />
+      )}
+
+      <SpacesCatalog
+        open={spacesOpen}
+        hiddenEntities={data.hiddenEntities}
+        overrides={data.deviceOverrides}
+        onClose={() => setSpacesOpen(false)}
+        onOpenRoom={openRoom}
+      />
 
       <WidgetPicker
         open={pickerOpen}

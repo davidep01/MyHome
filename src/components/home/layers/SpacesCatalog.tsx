@@ -134,7 +134,7 @@ function SpaceCard({ room, index, onOpen }: { room: RoomOverview; index: number;
   return (
     <button
       type="button"
-      onClick={() => onOpen({ title: room.title, entityIds: room.entityIds })}
+      onClick={() => onOpen({ key: room.key, title: room.title, entityIds: room.entityIds })}
       className="card-enter glass glass-border flex min-h-[164px] flex-col rounded-[22px] p-5 text-left transition active:scale-[0.98]"
       style={{ '--enter-i': Math.min(index, 10) } as CSSProperties}
     >

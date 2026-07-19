@@ -62,7 +62,7 @@ describe('composeHome', () => {
     expect(out.hero[0].group).toBeUndefined()
   })
 
-  it('nasconde dallo strato Adesso le luci di una stanza senza presenza recente', () => {
+  it('ignora i sensori presenza e mantiene le luci nello strato Adesso', () => {
     const areaNameOf = (id: string) => id.includes('salotto') ? 'Salotto' : undefined
     const inactiveSince = new Date(DAY.getTime() - 5 * 60_000).toISOString()
     const out = composeHome([
@@ -70,16 +70,7 @@ describe('composeHome', () => {
       e('light.salotto', 'on'),
       e('media_player.tv', 'playing'),
     ], { now: DAY, areaNameOf })
-    expect(out.hero.map((slot) => slot.key)).toEqual(['media_player.tv'])
-  })
-
-  it('mantiene la luce contestuale se la stanza è occupata', () => {
-    const areaNameOf = (id: string) => id.includes('salotto') ? 'Salotto' : undefined
-    const out = composeHome([
-      e('binary_sensor.salotto_presenza', 'on', { device_class: 'motion' }),
-      e('light.salotto', 'on'),
-    ], { now: DAY, areaNameOf })
-    expect(out.hero.map((slot) => slot.key)).toEqual(['light.salotto'])
+    expect(out.hero.map((slot) => slot.key)).toEqual(['media_player.tv', 'light.salotto'])
   })
 
   it('serratura sbloccata: warn di giorno, P0+danger di notte', () => {
@@ -170,7 +161,7 @@ describe('composeHome', () => {
     expect(out.hero).toHaveLength(4)
   })
 
-  it('premia il contesto di presenza senza superare le classi di sicurezza', () => {
+  it('non usa la presenza per alterare il ranking', () => {
     const areaNameOf = (id: string) => id.includes('studio') ? 'Studio' : id.includes('garage') ? 'Garage' : undefined
     const out = composeHome([
       e('binary_sensor.studio_presenza', 'on', { device_class: 'occupancy' }),
@@ -181,8 +172,8 @@ describe('composeHome', () => {
 
     expect(out.hero.map((slot) => slot.key)).toEqual([
       'alarm_control_panel.casa',
-      'switch.studio_scrivania',
       'switch.garage_presa',
+      'switch.studio_scrivania',
     ])
     expect(out.hero[1].score).toBeGreaterThan(out.hero[2].score ?? 0)
   })

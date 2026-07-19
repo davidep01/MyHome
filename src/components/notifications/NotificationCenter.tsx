@@ -76,7 +76,13 @@ function NotificationItem({
   )
 }
 
-export function NotificationBell({ allowDismiss = true }: { allowDismiss?: boolean }) {
+export function NotificationBell({
+  allowDismiss = true,
+  variant = 'standalone',
+}: {
+  allowDismiss?: boolean
+  variant?: 'standalone' | 'statusBar'
+}) {
   const notifications = useNotifications()
   const { call } = useHAService()
   const [open, setOpen] = useState(false)
@@ -100,13 +106,18 @@ export function NotificationBell({ allowDismiss = true }: { allowDismiss?: boole
     <>
       <motion.button
         type="button"
-        className="relative flex h-11 w-11 items-center justify-center rounded-[14px] bg-black/8 hover:bg-black/12 transition-colors"
+        className={cn(
+          'relative flex items-center justify-center transition-colors',
+          variant === 'statusBar'
+            ? 'h-12 w-12 rounded-none bg-transparent hover:bg-black/[0.05] dark:hover:bg-white/[0.08]'
+            : 'h-11 w-11 rounded-[14px] bg-black/8 hover:bg-black/12 dark:bg-white/[0.09] dark:hover:bg-white/[0.14]',
+        )}
         onClick={() => setOpen(true)}
         whileTap={{ scale: 0.92 }}
         transition={framerSpring}
         aria-label={badgeCount ? `Apri notifiche: ${badgeCount} attive` : 'Apri notifiche: nessun avviso'}
       >
-        <Bell size={16} className={cn(hasCritical ? 'text-red-500' : 'text-black/50')} aria-hidden="true" />
+        <Bell size={17} className={cn(hasCritical ? 'text-red-500' : 'text-black/50 dark:text-white/65')} aria-hidden="true" />
         <AnimatePresence>
           {badgeCount > 0 && (
             <motion.span
@@ -116,7 +127,8 @@ export function NotificationBell({ allowDismiss = true }: { allowDismiss?: boole
               exit={{ scale: 0 }}
               transition={framerSpring}
               className={cn(
-                'absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-bold text-[#1d1d1f]',
+                'absolute flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-bold text-white',
+                variant === 'statusBar' ? 'right-1 top-1' : '-right-1 -top-1',
                 hasCritical ? 'bg-red-500' : 'bg-orange-500',
               )}
             >
