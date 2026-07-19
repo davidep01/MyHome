@@ -46,14 +46,23 @@ export function powerInKw(entity?: HassEntity): number | null {
   return powerValueInKw(entity.state, entity.attributes?.unit_of_measurement)
 }
 
+/** Somma i flussi disponibili senza trasformare un dato totalmente assente in zero. */
+export function totalPowerInKw(...entities: (HassEntity | undefined)[]): number | null {
+  const values = entities.map(powerInKw).filter((value): value is number => value !== null)
+  return values.length > 0 ? values.reduce((total, value) => total + value, 0) : null
+}
+
+export function formatPowerKw(kilowatts: number | null): string | null {
+  if (kilowatts === null || !Number.isFinite(kilowatts)) return null
+  const digits = Math.abs(kilowatts) < 10 ? 2 : 1
+  return `${kilowatts.toLocaleString('it-IT', { minimumFractionDigits: digits, maximumFractionDigits: digits })} kW`
+}
+
 export function formatHousePower(entity?: HassEntity): string | null {
   const kilowatts = powerInKw(entity)
   if (kilowatts === null) return null
   const unit = String(entity?.attributes?.unit_of_measurement ?? 'W').trim().toLowerCase()
-  if (unit === 'kw') {
-    const digits = Math.abs(kilowatts) < 10 ? 2 : 1
-    return `${kilowatts.toLocaleString('it-IT', { minimumFractionDigits: digits, maximumFractionDigits: digits })} kW`
-  }
+  if (unit === 'kw') return formatPowerKw(kilowatts)
   const watts = kilowatts * 1_000
   if (Math.abs(watts) >= 1_000) {
     const digits = Math.abs(kilowatts) < 10 ? 2 : 1

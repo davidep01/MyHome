@@ -10,8 +10,9 @@ import { WeatherIcon } from '../../weather/WeatherIcon'
 import { NotificationBell } from '../../notifications/NotificationCenter'
 import { BRAND_EXPANDED, BRAND_NAME } from '../../../lib/brand'
 import { externalTemperatureFromEntities, meanIndoorClimateTemperature } from '../../../lib/dashboardSelection'
-import { energyWindowAt, formatHousePower, isEnergyRisk, powerInKw, wallboxMode } from '../../../lib/statusBarEnergy'
+import { energyWindowAt, formatPowerKw, isEnergyRisk, powerInKw, totalPowerInKw, wallboxMode } from '../../../lib/statusBarEnergy'
 import {
+  CAR_CHARGING_POWER_ID,
   EnergyDetailSheet,
   EnergyRiskToast,
   WallboxDetailSheet,
@@ -76,25 +77,32 @@ export function StatusHeader({
   const outdoorTemperature = weather?.temp ?? externalTemperatureFromEntities(entities)
   const wallboxVisual = wallboxMode(entities[WALLBOX_STATUS_ID])
   const housePowerEntity = entities[HOUSE_CONSUMPTION_ID]
-  const housePower = formatHousePower(housePowerEntity)
-  const housePowerKw = powerInKw(housePowerEntity)
+  const carPowerEntity = entities[CAR_CHARGING_POWER_ID]
+  const domesticPowerKw = powerInKw(housePowerEntity)
+  const carPowerKw = powerInKw(carPowerEntity)
+  const totalPowerKw = totalPowerInKw(housePowerEntity, carPowerEntity)
+  const totalPower = formatPowerKw(totalPowerKw)
   const energyWindow = useMemo(() => energyWindowAt(now), [now])
-  const energyRisk = isEnergyRisk(housePowerKw, energyWindow)
+  const energyRisk = isEnergyRisk(totalPowerKw, energyWindow)
   const closeEnergyAlert = useCallback(() => setEnergyAlert(null), [])
 
   useEffect(() => {
-    if (housePowerKw === null || typeof window === 'undefined') return
+    if (totalPowerKw === null || typeof window === 'undefined') return
     // Isteresi: un nuovo avviso è consentito solo dopo che il carico è
     // rientrato con un margine reale, non a ogni oscillazione sul confine.
-    if (housePowerKw < 2.3) window.sessionStorage.removeItem('simi.energy-risk-alert.3')
-    if (housePowerKw < 5.3) window.sessionStorage.removeItem('simi.energy-risk-alert.6')
+    if (totalPowerKw < 2.3) window.sessionStorage.removeItem('simi.energy-risk-alert.3')
+    if (totalPowerKw < 5.3) window.sessionStorage.removeItem('simi.energy-risk-alert.6')
     if (!energyRisk) return
     const key = `simi.energy-risk-alert.${energyWindow.limitKw}`
     if (window.sessionStorage.getItem(key) === 'shown') return
-    window.sessionStorage.setItem(key, 'shown')
-    const timer = window.setTimeout(() => setEnergyAlert({ powerKw: housePowerKw, window: energyWindow }), 0)
+    // La chiave va scritta insieme all'apertura effettiva: in Strict Mode il
+    // primo effect viene annullato intenzionalmente e non deve bruciare l'avviso.
+    const timer = window.setTimeout(() => {
+      window.sessionStorage.setItem(key, 'shown')
+      setEnergyAlert({ powerKw: totalPowerKw, window: energyWindow })
+    }, 0)
     return () => clearTimeout(timer)
-  }, [energyRisk, energyWindow, housePowerKw])
+  }, [energyRisk, energyWindow, totalPowerKw])
 
   return (
     <header className="min-w-0 shrink-0 space-y-3.5">
@@ -149,7 +157,7 @@ export function StatusHeader({
             icon={<Thermometer size={18} className="text-orange-500" aria-hidden="true" />}
           />
           <span className="h-7 w-px bg-black/[0.08] dark:bg-white/[0.12]" aria-hidden="true" />
-          <StatusPower value={housePower} risk={energyRisk} onClick={() => setEnergyOpen(true)} />
+          <StatusPower value={totalPower} risk={energyRisk} onClick={() => setEnergyOpen(true)} />
           {wallboxVisual !== 'hidden' && (
             <>
               <span className="h-7 w-px bg-black/[0.08] dark:bg-white/[0.12]" aria-hidden="true" />
@@ -205,8 +213,11 @@ export function StatusHeader({
       <EnergyDetailSheet
         open={energyOpen}
         onClose={() => setEnergyOpen(false)}
-        entity={housePowerEntity}
-        powerKw={housePowerKw}
+        houseEntity={housePowerEntity}
+        carEntity={carPowerEntity}
+        domesticPowerKw={domesticPowerKw}
+        carPowerKw={carPowerKw}
+        powerKw={totalPowerKw}
         window={energyWindow}
         risk={energyRisk}
       />
@@ -225,7 +236,7 @@ function StatusPower({ value, risk, onClick }: { value: string | null; risk: boo
       type="button"
       onClick={onClick}
       className="flex h-full min-w-[102px] items-center gap-2 px-3 text-left transition hover:bg-black/[0.05] active:scale-[0.98] dark:hover:bg-white/[0.08]"
-      aria-label={`Apri consumo casa: ${value ?? 'non disponibile'}`}
+      aria-label={`Apri consumo totale casa e auto: ${value ?? 'non disponibile'}`}
       title={risk ? 'Consumo vicino al limite disponibile' : 'Apri andamento consumi'}
     >
       <span className={cn('flex h-8 w-8 shrink-0 items-center justify-center', risk ? 'energy-risk-indicator text-orange-600' : 'text-[#0066cc]')}>

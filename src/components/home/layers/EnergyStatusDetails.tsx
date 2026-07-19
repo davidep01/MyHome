@@ -11,6 +11,7 @@ import {
   type EnergyWindow,
   type WallboxMode,
 } from '../../../lib/statusBarEnergy'
+import { sumPowerPoints, type PowerPoint } from '../../../lib/powerHistory'
 import { cn } from '../../../lib/utils'
 import { GlassSheet } from '../../glass/GlassSheet'
 
@@ -120,11 +121,6 @@ function Metric({ icon, label, value, color }: { icon: React.ReactNode; label: s
   )
 }
 
-interface PowerPoint {
-  at: number
-  kw: number
-}
-
 function historyPoints(
   history: HAHistoryPoint[] | undefined,
   currentKw: number | null,
@@ -146,7 +142,7 @@ function historyPoints(
   }
   points.sort((left, right) => left.at - right.at)
   const deduped = points.filter((point, index) => index === points.length - 1 || point.at !== points[index + 1].at)
-  if (deduped.length === 1) deduped.unshift({ at: cutoff, kw: deduped[0].kw })
+  if (deduped.length > 0 && deduped[0].at > cutoff) deduped.unshift({ at: cutoff, kw: deduped[0].kw })
   if (deduped.length <= 120) return deduped
   const stride = Math.ceil(deduped.length / 120)
   return deduped.filter((_, index) => index % stride === 0 || index === deduped.length - 1)
@@ -155,34 +151,52 @@ function historyPoints(
 export function EnergyDetailSheet({
   open,
   onClose,
-  entity,
+  houseEntity,
+  carEntity,
+  domesticPowerKw,
+  carPowerKw,
   powerKw,
   window,
   risk,
 }: {
   open: boolean
   onClose: () => void
-  entity?: HassEntity
+  houseEntity?: HassEntity
+  carEntity?: HassEntity
+  domesticPowerKw: number | null
+  carPowerKw: number | null
   powerKw: number | null
   window: EnergyWindow
   risk: boolean
 }) {
-  const { data: history, isPending, isError } = useQuery({
-    queryKey: ['status-energy-history', entity?.entity_id],
-    queryFn: () => haApi.history(entity!.entity_id, 1),
-    enabled: open && Boolean(entity),
+  const houseHistory = useQuery({
+    queryKey: ['status-energy-history', houseEntity?.entity_id],
+    queryFn: () => haApi.history(houseEntity!.entity_id, 1),
+    enabled: open && Boolean(houseEntity),
+    staleTime: 15_000,
+    refetchInterval: open ? 30_000 : false,
+  })
+  const carHistory = useQuery({
+    queryKey: ['status-energy-history', carEntity?.entity_id],
+    queryFn: () => haApi.history(carEntity!.entity_id, 1),
+    enabled: open && Boolean(carEntity),
     staleTime: 15_000,
     refetchInterval: open ? 30_000 : false,
   })
   const points = useMemo(
-    () => historyPoints(history, powerKw, entity?.last_updated, entity?.attributes?.unit_of_measurement),
-    [entity?.attributes?.unit_of_measurement, entity?.last_updated, history, powerKw],
+    () => sumPowerPoints(
+      historyPoints(houseHistory.data, domesticPowerKw, houseEntity?.last_updated, houseEntity?.attributes?.unit_of_measurement),
+      historyPoints(carHistory.data, carPowerKw, carEntity?.last_updated, carEntity?.attributes?.unit_of_measurement),
+    ),
+    [carEntity?.attributes?.unit_of_measurement, carEntity?.last_updated, carHistory.data, carPowerKw, domesticPowerKw, houseEntity?.attributes?.unit_of_measurement, houseEntity?.last_updated, houseHistory.data],
   )
+  const isPending = Boolean(houseEntity && houseHistory.isPending) || Boolean(carEntity && carHistory.isPending)
+  const isError = houseHistory.isError || carHistory.isError
   const remaining = powerKw === null ? null : Math.max(0, window.limitKw - powerKw)
   const percent = powerKw === null ? 0 : Math.min(100, (powerKw / window.limitKw) * 100)
 
   return (
-    <GlassSheet open={open} onClose={onClose} title="Consumo casa · ultimi 30 minuti" side="center" wide>
+    <GlassSheet open={open} onClose={onClose} title="Consumo totale · ultimi 30 minuti" side="center" wide>
       <div className="space-y-4 pb-1">
         <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
           <div className="flex min-w-0 items-center gap-3">
@@ -197,7 +211,7 @@ export function EnergyDetailSheet({
                 {powerKw === null ? '—' : powerKw.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 {powerKw !== null && <span className="ml-1 text-base font-semibold text-black/38 dark:text-white/42">kW</span>}
               </span>
-              <span className="mt-1 block text-xs font-semibold text-black/40 dark:text-white/45">Consumo istantaneo</span>
+              <span className="mt-1 block text-xs font-semibold text-black/40 dark:text-white/45">Casa + ricarica auto</span>
             </span>
           </div>
           <div className={cn('rounded-[14px] px-3 py-2 text-right', risk ? 'bg-orange-500/12' : 'bg-black/[0.04] dark:bg-white/[0.06]')}>
@@ -217,7 +231,9 @@ export function EnergyDetailSheet({
 
         <PowerChart points={points} limitKw={window.limitKw} risk={risk} loading={isPending} />
 
-        <div className="grid grid-cols-2 gap-2.5">
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+          <Metric icon={<HousePlug size={18} />} label="Consumo domestico" value={domesticPowerKw === null ? '—' : `${domesticPowerKw.toLocaleString('it-IT', { maximumFractionDigits: 2 })} kW`} color="text-[#0066cc]" />
+          <Metric icon={<CarFront size={18} />} label="Ricarica auto" value={carPowerKw === null ? '—' : `${carPowerKw.toLocaleString('it-IT', { maximumFractionDigits: 2 })} kW`} color="text-emerald-600" />
           <Metric icon={<Gauge size={18} />} label="Margine disponibile" value={remaining === null ? '—' : `${remaining.toLocaleString('it-IT', { maximumFractionDigits: 2 })} kW`} color={risk ? 'text-orange-600' : 'text-[#0066cc]'} />
           <Metric icon={<AlertTriangle size={18} />} label="Avviso da" value={`${window.warningKw.toLocaleString('it-IT')} kW`} color="text-orange-600" />
         </div>

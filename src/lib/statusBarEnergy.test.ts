@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { HassEntity } from 'home-assistant-js-websocket'
-import { energyWindowAt, formatHousePower, isEnergyRisk, isWallboxConnected, powerInKw, wallboxMode } from './statusBarEnergy'
+import { energyWindowAt, formatHousePower, formatPowerKw, isEnergyRisk, isWallboxConnected, powerInKw, totalPowerInKw, wallboxMode } from './statusBarEnergy'
 
 function entity(state: string, unit?: string): HassEntity {
   return {
@@ -35,6 +35,13 @@ describe('status bar energy', () => {
     expect(formatHousePower(entity('1540', 'W'))).toBe('1,54 kW')
     expect(formatHousePower(entity('unavailable', 'kW'))).toBeNull()
     expect(powerInKw(entity('1540', 'W'))).toBe(1.54)
+  })
+
+  it('sums house and car power for the contractual load', () => {
+    expect(totalPowerInKw(entity('0.18', 'kW'), entity('5.37', 'kW'))).toBeCloseTo(5.55)
+    expect(formatPowerKw(totalPowerInKw(entity('180', 'W'), entity('5370', 'W')))).toBe('5,55 kW')
+    expect(totalPowerInKw(entity('unavailable', 'kW'), entity('5.37', 'kW'))).toBe(5.37)
+    expect(totalPowerInKw(entity('unavailable', 'kW'), undefined)).toBeNull()
   })
 
   it('uses 3 kW on weekday daytime and 6 kW at night or on holidays', () => {
