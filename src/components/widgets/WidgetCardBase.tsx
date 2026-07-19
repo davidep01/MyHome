@@ -36,6 +36,8 @@ export function WidgetCardShell({
   media,
   className,
   onClick,
+  onClickLabel,
+  onClickPressed,
 }: WidgetCardBaseProps) {
   const cfg = getWidgetSizeConfig(size)
   // An unavailable entity can still be opened to inspect diagnostics and
@@ -75,10 +77,12 @@ export function WidgetCardShell({
       {interactive && (
         <button
           type="button"
-          className="absolute inset-0 z-20 cursor-pointer rounded-[18px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0066cc]"
+          className="widget-card-primary-action absolute inset-0 z-20 cursor-pointer rounded-[18px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0066cc] disabled:cursor-wait"
           onClick={onClick}
-          aria-label={`Apri dettagli di ${title}`}
-          aria-haspopup="dialog"
+          disabled={isPending}
+          aria-label={onClickLabel ?? `Apri dettagli di ${title}`}
+          aria-pressed={onClickPressed}
+          aria-haspopup={onClickPressed === undefined ? 'dialog' : undefined}
         />
       )}
       <div className={cn('relative z-30 flex h-full min-h-0 flex-col', interactive && 'pointer-events-none')}>
@@ -101,6 +105,27 @@ export function WidgetCardShell({
       </div>
       {isEditing && <WidgetCardEditOverlay size={size} />}
     </motion.div>
+  )
+}
+
+/** Static status cue used when the card surface itself is the switch. */
+export function WidgetCardPowerState({
+  active,
+  pending = false,
+  compact = false,
+}: {
+  active: boolean
+  pending?: boolean
+  compact?: boolean
+}) {
+  return (
+    <span
+      className={cn('widget-card-power-state inline-flex shrink-0 items-center rounded-full', active && 'is-on', pending && 'is-pending', compact && 'is-compact')}
+      aria-hidden="true"
+    >
+      <span className="widget-card-power-dot shrink-0 rounded-full" />
+      {!compact && <span>{pending ? 'Attendi' : active ? 'Accesa' : 'Spenta'}</span>}
+    </span>
   )
 }
 

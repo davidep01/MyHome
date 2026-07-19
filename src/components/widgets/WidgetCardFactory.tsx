@@ -12,7 +12,7 @@ import { useEntityStore } from '../../store/entities'
 import { useUIStore } from '../../store/ui'
 import {
   WidgetCardControlButton, WidgetCardHoldButton, WidgetCardIcon, WidgetCardIdentity,
-  WidgetCardShell, WidgetCardSlider, WidgetCardToggle,
+  WidgetCardPowerState, WidgetCardShell, WidgetCardSlider, WidgetCardToggle,
 } from './WidgetCardBase'
 import { CameraStream } from './CameraStream'
 import { mapEntityToWidgetCard } from './utils/mapEntityToWidgetCard'
@@ -41,7 +41,7 @@ function isOnState(state?: string) {
   return state === 'on' || state === 'open' || state === 'playing' || state === 'cleaning'
 }
 
-const TOGGLE_FAMILIES = new Set(['light', 'switch', 'smartPlug', 'fan', 'humidifier', 'automation'])
+const TOGGLE_FAMILIES = new Set(['switch', 'smartPlug', 'fan', 'humidifier', 'automation'])
 const MEDIA_FAMILIES = new Set(['media', 'speaker', 'tv'])
 const COVER_FAMILIES = new Set(['cover', 'curtain', 'gate', 'garage'])
 
@@ -71,6 +71,7 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
   const domain = serviceDomain(entityId)
   const unavailable = mapped.isUnavailable
   const on = isOnState(entity?.state)
+  const lightPowerCard = mapped.family === 'light' && !unavailable
 
   const busy = pendingAction !== null
 
@@ -279,7 +280,11 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
 
   // ── Controllo in alto a destra, per famiglia ───────────────────────────────
   const trailing = (() => {
-    if (unavailable || isEditing) return null
+    if (unavailable) return null
+    if (mapped.family === 'light') {
+      return <WidgetCardPowerState active={mapped.isActive} pending={busy} compact={size === 'XS'} />
+    }
+    if (isEditing) return null
     if (domain === 'siren') {
       return <HoldDangerAction active={on} disabled={busy} onActivate={togglePower} onDeactivate={togglePower} label={mapped.title} compact />
     }
@@ -369,8 +374,10 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
       isPending={busy}
       isEditing={isEditing}
       isDragging={isDragging}
-      className={cn(className, feedbackClass)}
-      onClick={() => setSelectedEntity(entityId)}
+      className={cn(className, feedbackClass, lightPowerCard && 'widget-card-light-power')}
+      onClick={lightPowerCard ? togglePower : () => setSelectedEntity(entityId)}
+      onClickLabel={lightPowerCard ? `${mapped.isActive ? 'Spegni' : 'Accendi'} ${mapped.title}` : undefined}
+      onClickPressed={lightPowerCard ? mapped.isActive : undefined}
       media={liveCamera ? (
           <>
             <CameraStream entityId={entityId} fit="cover" badge className="h-full w-full" />

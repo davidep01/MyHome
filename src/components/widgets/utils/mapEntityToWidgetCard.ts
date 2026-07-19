@@ -235,7 +235,7 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
       return {
         ...base, Icon: AnimLightbulb,
         status: on ? 'on' : 'off',
-        accentColor: widgetTones.light.color,
+        accentColor: on ? widgetTones.light.color : widgetTones.neutral.color,
         isActive: on,
         state: on ? (brightness !== undefined ? `Accesa · ${brightnessPct}%` : 'Accesa') : 'Spenta',
         percent: on ? brightnessPct : undefined,

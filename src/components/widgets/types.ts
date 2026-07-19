@@ -61,4 +61,8 @@ export interface WidgetCardBaseProps {
   media?: ReactNode
   className?: string
   onClick?: () => void
+  /** Accessible label for the full-card primary action. */
+  onClickLabel?: string
+  /** Exposes toggle state when the full card behaves as a power button. */
+  onClickPressed?: boolean
 }

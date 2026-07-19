@@ -20,6 +20,7 @@ import {
 } from './utils/groupActions'
 import { HoldDangerAction } from '../controls/HoldDangerAction'
 import { widgetTones } from './utils/getRingColorScale'
+import { WidgetCardPowerState } from './WidgetCardBase'
 
 export function GroupCard({ group, size = 'M', className }: { group: EntityGroup; size?: WidgetVisualSize; className?: string }) {
   const entities = useEntityStore((s) => s.entities)
@@ -98,13 +99,27 @@ export function GroupCard({ group, size = 'M', className }: { group: EntityGroup
       : capability.offLabel ?? capability.onLabel
     : ''
   const expanded = size === 'L'
+  const lightPowerCard = presentationType === 'light' && capability?.kind === 'switch'
 
   return (
     <GlassCard
       depth
-      className={cn('flex h-full min-h-[104px] flex-col justify-between gap-3', feedbackClass, className)}
+      interactive={lightPowerCard}
+      role={lightPowerCard ? 'button' : undefined}
+      tabIndex={lightPowerCard ? 0 : undefined}
+      aria-label={lightPowerCard ? `${anyActive ? 'Spegni' : 'Accendi'} ${group.label}` : undefined}
+      aria-pressed={lightPowerCard ? anyActive : undefined}
+      onClick={lightPowerCard ? run : undefined}
+      onKeyDown={lightPowerCard ? (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return
+        event.preventDefault()
+        run()
+      } : undefined}
+      data-widget-type={lightPowerCard ? 'light' : undefined}
+      data-widget-status={lightPowerCard ? (anyActive ? 'on' : 'off') : undefined}
+      className={cn('flex h-full min-h-[104px] flex-col justify-between gap-3', feedbackClass, lightPowerCard && 'widget-card-light-power', className)}
       aria-busy={pending}
-      style={anyActive ? {
+      style={anyActive && !lightPowerCard ? {
         background: `linear-gradient(145deg, ${activeTone.bg}, color-mix(in srgb, var(--surface-solid) 72%, transparent) 70%)`,
       } : undefined}
     >
@@ -119,7 +134,10 @@ export function GroupCard({ group, size = 'M', className }: { group: EntityGroup
             : <DynamicIcon name={group.icon} fallback={Layers} size={20} style={{ color: iconColor }} />}
         </div>
 
-        {capability?.kind === 'switch' && !capability.holdToActivate && (
+        {lightPowerCard && (
+          <WidgetCardPowerState active={anyActive} pending={pending} compact={size === 'XS'} />
+        )}
+        {capability?.kind === 'switch' && !capability.holdToActivate && !lightPowerCard && (
           <button
             type="button"
             role="switch"

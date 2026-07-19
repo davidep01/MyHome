@@ -515,6 +515,69 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
 }
 .widget-card-shell.widget-card-active .widget-card-tint { opacity: .9; }
 
+/* Light card: the surface is the switch. A solid state wash replaces the
+   separate toggle: warm color means on, neutral gray means off. Variables
+   keep the same contrast relationship in day and night themes. */
+.widget-card-light-power {
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.widget-card-shell.widget-card-light-power .widget-card-fill {
+  opacity: 1;
+  background: color-mix(in srgb, var(--ink-secondary) 9%, var(--widget-fill));
+}
+.widget-card-shell.widget-card-light-power[data-widget-status='on'] .widget-card-fill {
+  background: color-mix(in srgb, var(--offline-amber) 20%, var(--widget-fill));
+}
+.widget-card-shell.widget-card-light-power .widget-card-tint {
+  opacity: 0;
+}
+.glass.widget-card-light-power {
+  background: color-mix(in srgb, var(--ink-secondary) 9%, var(--canvas-card));
+  transition: background-color 220ms cubic-bezier(0.32,0.72,0,1), transform 160ms ease;
+}
+.glass.widget-card-light-power[data-widget-status='on'] {
+  background: color-mix(in srgb, var(--offline-amber) 20%, var(--canvas-card));
+}
+.widget-card-primary-action {
+  transition: background-color 120ms ease;
+}
+.widget-card-primary-action:active {
+  background: color-mix(in srgb, var(--ink) 5%, transparent);
+}
+
+.widget-card-power-state {
+  min-height: 26px;
+  gap: 6px;
+  padding: 4px 9px;
+  background: color-mix(in srgb, var(--ink-secondary) 9%, transparent);
+  color: var(--ink-secondary);
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1;
+  letter-spacing: .01em;
+}
+.widget-card-power-state.is-compact {
+  min-height: 22px;
+  padding: 5px;
+}
+.widget-card-power-state.is-on {
+  background: color-mix(in srgb, var(--offline-amber) 17%, transparent);
+  color: color-mix(in srgb, var(--offline-amber) 78%, var(--ink));
+}
+.widget-card-power-dot {
+  width: 7px;
+  height: 7px;
+  background: color-mix(in srgb, var(--ink-secondary) 55%, transparent);
+}
+.widget-card-power-state.is-on .widget-card-power-dot {
+  background: var(--offline-amber);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--offline-amber) 13%, transparent);
+}
+.widget-card-power-state.is-pending .widget-card-power-dot {
+  animation: media-live-pulse 1s ease-in-out infinite;
+}
+
 /* Copertina media full-bleed. Il leggero overscan evita hairline sui bordi
    mentre la dissolvenza porta l'immagine nel vetro bianco dei controlli. */
 .media-card-artwork img {
