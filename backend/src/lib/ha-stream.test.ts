@@ -11,7 +11,7 @@ vi.mock('./ha-config.js', () => ({
   getHABaseUrl: vi.fn(async () => 'http://192.168.1.2:8123'),
 }))
 
-import { fetchHAStatesWithTimeout, getStreamStats, invalidateHAConnection, isKnownHAImageSource, recentDoorbellActivityKey, subscribeHaStream } from './ha-stream.js'
+import { fetchHAStatesWithTimeout, getStreamStats, invalidateHAConnection, isKnownHAImageSource, recentDoorbellActivityKey, requestHAEntityRefresh, subscribeHaStream } from './ha-stream.js'
 import { startEntityFeed } from './ha-ws.js'
 
 const originalFetch = globalThis.fetch
@@ -36,6 +36,27 @@ describe.sequential('HA poll fallback', () => {
     const fetchImpl = vi.fn(async () => Response.json([{ entity_id: 'light.kitchen', state: 'on' }])) as unknown as typeof fetch
     await expect(fetchHAStatesWithTimeout('http://192.168.1.2:8123/', 'secret', 100, fetchImpl)).resolves.toHaveLength(1)
     expect(fetchImpl).toHaveBeenCalledWith('http://192.168.1.2:8123/api/states', expect.objectContaining({ signal: expect.any(AbortSignal) }))
+  })
+
+  it('requests an immediate refresh for the shared energy entities', async () => {
+    const fetchImpl = vi.fn(async () => new Response(null, { status: 200 })) as unknown as typeof fetch
+    await requestHAEntityRefresh('http://192.168.1.2:8123/', 'secret', [
+      'sensor.chargesplit_domus_actual_house_consumption',
+      'sensor.chargesplit_domus_car_charging_power',
+    ], fetchImpl)
+
+    expect(fetchImpl).toHaveBeenCalledWith(
+      'http://192.168.1.2:8123/api/services/homeassistant/update_entity',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          entity_id: [
+            'sensor.chargesplit_domus_actual_house_consumption',
+            'sensor.chargesplit_domus_car_charging_power',
+          ],
+        }),
+      }),
+    )
   })
 
   it('clears old state while retaining active SSE subscribers on invalidation', () => {

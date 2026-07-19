@@ -62,10 +62,15 @@ function boundedMilliseconds(value: string | undefined, fallback: number, min: n
 
 const POLL_MS = boundedMilliseconds(process.env.MYHOME_HA_POLL_MS, 1_500, 500, 60_000)
 const POLL_TIMEOUT_MS = boundedMilliseconds(process.env.MYHOME_HA_POLL_TIMEOUT_MS, 8_000, 1_000, 30_000)
+const ENERGY_REFRESH_MS = boundedMilliseconds(process.env.MYHOME_ENERGY_REFRESH_MS, 5_000, 3_000, 60_000)
 const FORCE_POLL = process.env.MYHOME_HA_STREAM === 'poll'
 /** How long we give the WS to come up before starting the poll fallback. */
 const WS_GRACE_MS = 3000
 const RING_MAX = 400
+const FAST_ENERGY_ENTITY_IDS = [
+  'sensor.chargesplit_domus_actual_house_consumption',
+  'sensor.chargesplit_domus_car_charging_power',
+] as const
 
 const subscribers = new Set<Subscriber>()
 let snapshot = new Map<string, HaEntityLike>()
@@ -75,6 +80,8 @@ let feedStarted = false
 let pollTimer: ReturnType<typeof setInterval> | null = null
 let polling = false
 let wsGraceTimer: ReturnType<typeof setTimeout> | null = null
+let energyRefreshTimer: ReturnType<typeof setInterval> | null = null
+let energyRefreshing = false
 let connectionGeneration = 0
 let pollAttemptId = 0
 
@@ -188,6 +195,50 @@ async function fetchStates(): Promise<HaEntityLike[]> {
   return fetchHAStatesWithTimeout(await getHABaseUrl(), haToken)
 }
 
+export async function requestHAEntityRefresh(
+  baseUrl: string,
+  token: string,
+  entityIds: readonly string[],
+  fetchImpl: typeof fetch = fetch,
+): Promise<void> {
+  const response = await fetchImpl(`${baseUrl.replace(/\/$/, '')}/api/services/homeassistant/update_entity`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ entity_id: entityIds }),
+    signal: AbortSignal.timeout(Math.min(8_000, Math.max(2_000, ENERGY_REFRESH_MS - 500))),
+  })
+  if (!response.ok) throw new Error(`Home Assistant update_entity returned ${response.status}`)
+  await response.body?.cancel().catch(() => undefined)
+}
+
+async function refreshEnergyEntities(): Promise<void> {
+  if (energyRefreshing || subscribers.size === 0) return
+  energyRefreshing = true
+  try {
+    const { haToken } = await getHAConfig()
+    if (!haToken) return
+    await requestHAEntityRefresh(await getHABaseUrl(), haToken, FAST_ENERGY_ENTITY_IDS)
+  } catch {
+    // Best effort: the normal HA coordinator remains the fallback source.
+  } finally {
+    energyRefreshing = false
+  }
+}
+
+function startEnergyRefresh(): void {
+  if (energyRefreshTimer || process.env.NODE_ENV === 'test') return
+  void refreshEnergyEntities()
+  energyRefreshTimer = setInterval(() => { void refreshEnergyEntities() }, ENERGY_REFRESH_MS)
+}
+
+function stopEnergyRefresh(): void {
+  if (energyRefreshTimer) clearInterval(energyRefreshTimer)
+  energyRefreshTimer = null
+}
+
 async function poll(): Promise<void> {
   if (polling) return
   polling = true
@@ -235,6 +286,7 @@ function stopPolling(): void {
 
 function ensureFeed(): void {
   if (subscribers.size === 0) return
+  startEnergyRefresh()
   if (FORCE_POLL) {
     startPolling()
     return
@@ -279,6 +331,7 @@ function teardownIfIdle(): void {
   pollAttemptId += 1
   polling = false
   stopPolling()
+  stopEnergyRefresh()
   if (wsGraceTimer) { clearTimeout(wsGraceTimer); wsGraceTimer = null }
   if (feedStarted) {
     stopEntityFeed()
@@ -299,6 +352,7 @@ export function invalidateHAConnection(): void {
   connectionGeneration += 1
   pollAttemptId += 1
   stopPolling()
+  stopEnergyRefresh()
   polling = false
   if (wsGraceTimer) { clearTimeout(wsGraceTimer); wsGraceTimer = null }
   if (feedStarted) stopEntityFeed()
@@ -352,6 +406,7 @@ export function getStreamStats() {
     subscribers: subscribers.size,
     entities: snapshot.size,
     pollMs: POLL_MS,
+    energyRefreshMs: ENERGY_REFRESH_MS,
     lastEventId: eventSeq,
     lastEventAt,
   }
