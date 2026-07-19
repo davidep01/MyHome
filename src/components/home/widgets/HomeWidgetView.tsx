@@ -54,7 +54,9 @@ export function HomeWidgetView({ widget, publicConfig }: { widget: HomeWidget; p
   const { data: fullConfig } = useDashboardConfig(!publicConfig)
   const config = publicConfig ?? fullConfig
   const roomEntity = useRoomEntity(widget.entityId, publicConfig)
-  const visualSize = widgetVisualSizeFromHomeSize(widget.size)
+  const visualSize = widget.entityId
+    ? config?.deviceOverrides?.[widget.entityId]?.cardSize ?? widgetVisualSizeFromHomeSize(widget.size)
+    : widgetVisualSizeFromHomeSize(widget.size)
 
   switch (widget.type) {
     case 'clock': return <ClockWidget size={widget.size} userName={config?.userName} />

@@ -252,6 +252,8 @@ export interface DeviceOverride {
   label?: string
   icon?: string
   type?: EntityType
+  /** Dimensione preferita della card nelle dashboard automatiche. */
+  cardSize?: 'S' | 'M' | 'L' | 'XL'
   enabled?: boolean
 }
 

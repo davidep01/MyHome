@@ -45,8 +45,17 @@ function visualSizeForEntity(entity: RoomEntity): WidgetVisualSize {
 }
 
 /** Renders the right card for a single entity (reused by the editable grid). */
-export function EntityCard({ entity, size }: { entity: RoomEntity; size?: WidgetVisualSize }) {
-  return <WidgetCardFactory entity={entity} size={size ?? visualSizeForEntity(entity)} className="h-full" />
+export function EntityCard({
+  entity,
+  size,
+  preview = false,
+}: {
+  entity: RoomEntity
+  size?: WidgetVisualSize
+  /** Disabilita azioni e apertura dettaglio nelle anteprime del backend. */
+  preview?: boolean
+}) {
+  return <WidgetCardFactory entity={entity} size={size ?? visualSizeForEntity(entity)} className="h-full" isEditing={preview} />
 }
 
 /** Default react-grid-layout footprint (cols≈8 units) per type, derived from SPAN. */

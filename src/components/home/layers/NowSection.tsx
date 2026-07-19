@@ -24,7 +24,7 @@ export function NowSection({
 
   const renderSlot = (slot: HeroSlot) => {
     const index = hero.findIndex((candidate) => candidate.key === slot.key)
-    const size = slot.visualSize ?? 'M'
+    const size = slot.entityId ? overrides?.[slot.entityId]?.cardSize ?? slot.visualSize ?? 'M' : slot.visualSize ?? 'M'
     const span = size === 'XL' ? 'sm:col-span-2 lg:col-span-6'
         : size === 'L' ? 'sm:col-span-2 lg:col-span-3'
           : 'lg:col-span-2'
@@ -33,7 +33,7 @@ export function NowSection({
       <div
         key={slot.key}
         title={slot.reason}
-        className={cn('card-enter h-full min-w-0', span)}
+        className={cn('card-enter h-full min-h-0 min-w-0 overflow-hidden [&_[data-widget-card]]:!min-h-0', span)}
         style={{ '--enter-i': Math.min(index, 8) } as CSSProperties}
       >
         <WidgetErrorBoundary>

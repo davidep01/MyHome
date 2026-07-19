@@ -26,4 +26,10 @@ describe('content aware home widgets', () => {
     const adapted = contentAwareHomeWidgets(widgets, {} as HassEntities, { 'remote.apple_tv': { type: 'media' } })
     expect(adapted[0].size).toBe('md')
   })
+
+  it('rispetta la dimensione esplicita anche quando il contenuto suggerirebbe altro', () => {
+    const widgets = [widget('media', 'entity', 'lg', 'media_player.apple_tv')]
+    const adapted = contentAwareHomeWidgets(widgets, {} as HassEntities, { 'media_player.apple_tv': { cardSize: 'S' } })
+    expect(adapted[0].size).toBe('sm')
+  })
 })

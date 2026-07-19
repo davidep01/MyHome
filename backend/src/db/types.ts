@@ -191,6 +191,8 @@ export interface DeviceOverride {
   icon?: string
   /** override the card type used for this entity */
   type?: string
+  /** Preferred card footprint in automatic dashboards. */
+  cardSize?: 'S' | 'M' | 'L' | 'XL'
   /** false = hide from the dashboard (like hiddenEntities, per-entity) */
   enabled?: boolean
 }

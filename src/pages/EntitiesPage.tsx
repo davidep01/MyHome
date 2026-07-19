@@ -16,6 +16,7 @@ import { uid } from '../lib/uid'
 import { DynamicIcon } from '../components/DynamicIcon'
 import { cn } from '../lib/utils'
 import type { DeviceOverride, EntityGroup, EntityType } from '../api/backend'
+import type { WidgetVisualSize } from '../components/widgets/types'
 
 const TYPE_OPTIONS: { value: EntityType; label: string }[] = [
   { value: 'light', label: 'Luce' }, { value: 'switch', label: 'Interruttore' },
@@ -31,6 +32,12 @@ const TYPE_OPTIONS: { value: EntityType; label: string }[] = [
 
 type VisibilityFilter = 'all' | 'visible' | 'hidden' | 'unavailable'
 const PAGE = 120
+const CARD_SIZE_OPTIONS: { value: WidgetVisualSize; label: string; description: string; className: string }[] = [
+  { value: 'S', label: 'S', description: 'Compatta', className: 'h-[116px]' },
+  { value: 'M', label: 'M', description: 'Standard', className: 'h-[154px]' },
+  { value: 'L', label: 'L', description: 'Estesa', className: 'col-span-2 h-[210px]' },
+  { value: 'XL', label: 'XL', description: 'Panoramica', className: 'col-span-2 h-[158px]' },
+]
 
 /**
  * Regia — Entità: IL workbench. Tabella unica di tutto ciò che HA espone, con
@@ -187,6 +194,7 @@ export function EntitiesPage() {
           isHidden: hiddenSet.has(e.entity_id) || ov?.enabled === false,
           haHidden: meta?.haHidden ?? false,
           hasOverride: Boolean(ov && Object.keys(ov).length),
+          cardSize: ov?.cardSize,
         }
       })
       .filter((r) => domain === 'all' || r.domain === domain)
@@ -431,6 +439,7 @@ interface RowData {
   isHidden: boolean
   haHidden: boolean
   hasOverride: boolean
+  cardSize?: WidgetVisualSize
 }
 
 function EntityRow({
@@ -502,6 +511,7 @@ function EntityRow({
       </div>
 
       <span className="hidden shrink-0 rounded-full bg-black/[0.06] px-2 py-0.5 text-[10px] font-semibold text-black/45 md:block">{row.domain}</span>
+      {row.cardSize && <span className="hidden h-6 min-w-6 shrink-0 items-center justify-center rounded-full bg-[#0066cc]/12 px-1.5 text-[10px] font-bold text-[#0066cc] md:flex" title={`Dimensione card ${row.cardSize}`}>{row.cardSize}</span>}
       <span className="hidden w-24 shrink-0 truncate text-xs text-black/45 lg:block">{row.areaName ?? '—'}</span>
       <span className={cn('hidden w-28 shrink-0 truncate text-right text-xs font-semibold sm:block', row.state === 'unavailable' ? 'text-orange-600' : 'text-black/55')}>
         {stateLabel(row.state)}
@@ -544,11 +554,55 @@ function EntityDetail({
   return (
     <div className="space-y-4">
       {disabled && <p className="rounded-[10px] bg-orange-500/10 px-3 py-2 text-xs text-orange-700" role="status">Configurazione in sola lettura: puoi consultare l’entità, ma non modificarla.</p>}
-      {/* Anteprima live: la card ESATTAMENTE come appare sul kiosk */}
-      <div className="space-y-1.5">
-        <p className="text-xs font-semibold text-black/50">Anteprima live</p>
-        <div className="h-[170px] rounded-[18px] bg-[#f5f5f7] p-2">
-          <EntityCard entity={makeRoomEntity(entityId, entities, overrides)} size="M" />
+      {/* Quattro anteprime reali: il tap sceglie la footprint del device. */}
+      <div className="space-y-2">
+        <div className="flex items-end justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold text-black/50" id={`${id}-size-label`}>Dimensione card</p>
+            <p className="mt-0.5 text-[11px] text-black/35">Scegli la variante abilitata nelle dashboard.</p>
+          </div>
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={() => onPatch({ cardSize: undefined })}
+            aria-pressed={!override?.cardSize}
+            className={cn(
+              'min-h-[40px] shrink-0 rounded-full px-3 text-xs font-semibold transition',
+              !override?.cardSize ? 'bg-[#0066cc] text-white' : 'bg-black/[0.07] text-black/50',
+            )}
+          >
+            Auto
+          </button>
+        </div>
+        <div className="grid grid-cols-2 gap-2 rounded-[20px] bg-[#f5f5f7] p-2" role="group" aria-labelledby={`${id}-size-label`}>
+          {CARD_SIZE_OPTIONS.map((option) => {
+            const selected = override?.cardSize === option.value
+            return (
+              <button
+                key={option.value}
+                type="button"
+                disabled={disabled}
+                onClick={() => onPatch({ cardSize: option.value })}
+                aria-pressed={selected}
+                aria-label={`Usa dimensione ${option.value}, ${option.description}`}
+                className={cn(
+                  'relative min-w-0 rounded-[20px] p-1 text-left transition active:scale-[0.99]',
+                  option.className,
+                  selected ? 'bg-[#0066cc]/12 ring-2 ring-[#0066cc]' : 'bg-black/[0.025] ring-1 ring-black/[0.05]',
+                )}
+              >
+                <span className={cn(
+                  'absolute left-2 top-2 z-40 rounded-full px-2 py-1 text-[10px] font-bold shadow-sm',
+                  selected ? 'bg-[#0066cc] text-white' : 'bg-white/90 text-black/55',
+                )}>
+                  {option.label} · {option.description}
+                </span>
+                <span className="pointer-events-none block h-full min-h-0 overflow-hidden rounded-[18px]">
+                  <EntityCard entity={makeRoomEntity(entityId, entities, overrides)} size={option.value} preview />
+                </span>
+              </button>
+            )
+          })}
         </div>
       </div>
 

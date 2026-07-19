@@ -55,3 +55,19 @@ describe('screensaver AI recap selection', () => {
     })).toMatchObject({ ok: false })
   })
 })
+
+describe('device card size override', () => {
+  it('accepts the four supported preview sizes', () => {
+    for (const cardSize of ['S', 'M', 'L', 'XL']) {
+      expect(validateConfigPatch({
+        deviceOverrides: { 'light.sala': { cardSize } },
+      })).toMatchObject({ ok: true, value: { deviceOverrides: { 'light.sala': { cardSize } } } })
+    }
+  })
+
+  it('rejects unknown card sizes', () => {
+    expect(validateConfigPatch({
+      deviceOverrides: { 'light.sala': { cardSize: 'XXL' } },
+    })).toMatchObject({ ok: false })
+  })
+})

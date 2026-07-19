@@ -36,13 +36,17 @@ export function EntitySheet({
       wide
     >
       <div className="grid w-full grid-cols-2 gap-3 auto-rows-[150px] sm:grid-cols-3 lg:grid-cols-4">
-        {visible.map((entityId, index) => (
-          <div key={entityId} className="card-enter h-full min-w-0" style={{ '--enter-i': Math.min(index, 10) } as CSSProperties}>
-            <WidgetErrorBoundary>
-              <EntityCard entity={makeRoomEntity(entityId, entities, overrides)} size="M" />
-            </WidgetErrorBoundary>
-          </div>
-        ))}
+        {visible.map((entityId, index) => {
+          const size = overrides?.[entityId]?.cardSize ?? 'M'
+          const span = size === 'XL' ? 'col-span-2' : size === 'L' ? 'col-span-2 row-span-2' : ''
+          return (
+            <div key={entityId} className={`card-enter h-full min-h-0 min-w-0 overflow-hidden [&_[data-widget-card]]:!min-h-0 ${span}`} style={{ '--enter-i': Math.min(index, 10) } as CSSProperties}>
+              <WidgetErrorBoundary>
+                <EntityCard entity={makeRoomEntity(entityId, entities, overrides)} size={size} />
+              </WidgetErrorBoundary>
+            </div>
+          )
+        })}
       </div>
       {!showAll && ids.length > INITIAL_CAP && (
         <button

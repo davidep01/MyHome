@@ -32,18 +32,22 @@ export function RoomDashboard({
     >
       {hasCameras && <CameraMonitoringRow entityIds={cameraIds} overrides={overrides} fillEmpty={false} />}
       {deviceIds.length > 0 ? (
-        <div className={`grid h-full min-h-0 grid-cols-3 gap-3.5 overflow-hidden ${deviceIds.length > 3 ? 'grid-rows-2' : 'grid-rows-1'}`}>
-          {deviceIds.map((entityId, index) => (
-            <div
-              key={entityId}
-              className="card-enter h-full min-w-0"
-              style={{ '--enter-i': Math.min(index, 8) } as CSSProperties}
-            >
-              <WidgetErrorBoundary>
-                <EntityCard entity={makeRoomEntity(entityId, entities, overrides)} size="M" />
-              </WidgetErrorBoundary>
-            </div>
-          ))}
+        <div className="grid h-full min-h-0 grid-flow-row-dense auto-rows-[minmax(0,1fr)] grid-cols-6 gap-3.5 overflow-hidden">
+          {deviceIds.map((entityId, index) => {
+            const size = overrides?.[entityId]?.cardSize ?? 'M'
+            const span = size === 'XL' ? 'col-span-6' : size === 'L' ? 'col-span-3' : 'col-span-2'
+            return (
+              <div
+                key={entityId}
+                className={`card-enter h-full min-h-0 min-w-0 overflow-hidden [&_[data-widget-card]]:!min-h-0 ${span}`}
+                style={{ '--enter-i': Math.min(index, 8) } as CSSProperties}
+              >
+                <WidgetErrorBoundary>
+                  <EntityCard entity={makeRoomEntity(entityId, entities, overrides)} size={size} />
+                </WidgetErrorBoundary>
+              </div>
+            )
+          })}
         </div>
       ) : !hasCameras ? (
         <div className="glass glass-border flex h-full items-center justify-center rounded-[18px] text-sm font-semibold text-black/38 dark:text-white/38">
@@ -53,4 +57,3 @@ export function RoomDashboard({
     </section>
   )
 }
-

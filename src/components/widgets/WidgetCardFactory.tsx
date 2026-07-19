@@ -85,7 +85,7 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
   const mediaAccent = dominant ?? mapped.accentColor
   // Il live riempie qualsiasi footprint S/M/L/XL; CameraStream sospende da sé
   // le tile fuori viewport o coperte dal full screen.
-  const liveCamera = shouldRenderCameraStream(mapped.family, size, unavailable)
+  const liveCamera = !isEditing && shouldRenderCameraStream(mapped.family, size, unavailable)
   const mediaCoverStyle = isMediaCard && !liveCamera
 
   /** One in-flight command per card: optimistic start, visible rollback, no double submit. */

@@ -5,6 +5,8 @@ const MEDIUM_WIDGETS = new Set<HomeWidget['type']>([
   'weather', 'status', 'security', 'system', 'insight', 'calendar',
 ])
 
+const HOME_SIZE_FROM_CARD = { S: 'sm', M: 'md', L: 'lg', XL: 'wide' } as const
+
 function atLeast(size: WidgetSize, minimum: 'md' | 'lg'): WidgetSize {
   if (minimum === 'md') return size === 'sm' ? 'md' : size
   return size === 'sm' || size === 'md' ? 'lg' : size
@@ -42,6 +44,11 @@ export function contentAwareHomeWidgets(
   groups?: EntityGroup[],
 ): HomeWidget[] {
   return widgets.map((widget) => {
+    const explicitCardSize = widget.entityId ? overrides?.[widget.entityId]?.cardSize : undefined
+    if (explicitCardSize) {
+      const size = HOME_SIZE_FROM_CARD[explicitCardSize]
+      return size === widget.size ? widget : { ...widget, size }
+    }
     let size = widget.size
     if (widget.type === 'quickStats' || widget.type === 'scenes') size = 'wide'
     else if (widget.type === 'news' || widget.type === 'camera') size = atLeast(size, 'lg')
