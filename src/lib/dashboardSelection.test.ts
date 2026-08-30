@@ -48,10 +48,27 @@ describe('dashboard selection', () => {
       entity('camera.entrata_live_view'),
       entity('camera.garage'),
     )
+    const overrides = Object.fromEntries(
+      Object.keys(source).map((id) => [id, { enabled: true }]),
+    )
     expect(selectDashboardCameraIds(source, {
       preferredEntityIds: ['camera.entrata_live_view'],
+      overrides,
       limit: 3,
     })).toEqual(['camera.entrata_live_view', 'camera.giardino_live_view', 'camera.garage'])
+  })
+
+  it('la tendina video mostra solo le camere configurate nel wizard', () => {
+    const source = entities(
+      entity('camera.giardino_live_view'),
+      entity('camera.entrata_live_view'),
+    )
+    // Nessun override: nessuno stream montato, nemmeno aprendo la tendina.
+    expect(selectDashboardCameraIds(source, { limit: 3 })).toEqual([])
+    expect(selectDashboardCameraIds(source, {
+      overrides: { 'camera.entrata_live_view': { enabled: true } },
+      limit: 3,
+    })).toEqual(['camera.entrata_live_view'])
   })
 
   it('esclude ogni entità di presenza dalla dashboard stanza', () => {

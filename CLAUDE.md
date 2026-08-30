@@ -301,6 +301,16 @@ Fasi 2–6 applicate. La Definition of Done richiede a ogni rilascio lint, suite
 - **Dark mode del wizard** — `bg-white/75` e `ring-black/[0.06]` non esistono nel remap dark di `index.css` (ci sono `/72` e `ring-black/5`): in dark il wizard restava slavato. Normalizzate al vocabolario remappato.
 - Verifica: lint ✅ · test 390/390 ✅ (nuovi: 5 `offlineDevices`, 9 `service-health`/`update-check`, 4 `time`) · build:all ✅ · typecheck backend ✅ · **provato su HA vivo** (246 entità) in light e dark via CDP, controllo aggiornamenti verificato contro GitHub (ha letto `2.2.105`).
 
+
+**Risolti (2026-08-31) — visibilità opt-in, wizard a selezione multipla, video solo nella tendina:**
+- **La dashboard parte vuota (§7)** — inversione del modello: prima era "mostra tutto tranne ciò che nascondi", e su un'installazione reale (246 entità) scaricava sull'utente il lavoro di nascondere il rumore a mano, per sempre. Ora un'entità compare **solo** se scelta esplicitamente nel wizard. Kernel unico in [entityVisibility.ts](src/lib/entityVisibility.ts), applicato a composer, stanze, catalogo Spazi e tendina videocamere. `hiddenEntities` e la curation da registry non decidono più la visibilità (restano per il picker della grid legacy).
+- **La sicurezza non dipende dalla configurazione** — eccezione deliberata: `composeHome` riceve *tutte* le entità e la regola opt-in filtra solo le card ordinarie. Una **P0** (allarme, sirena, fumo/gas/CO, serratura aperta di notte) resta visibile anche su un dispositivo mai configurato, perché non vedere un allarme è peggio di vedere una card non richiesta. Un pin esplicito (`hero: 'always'`) vale come configurazione. 4 test dedicati.
+- **Wizard a selezione multipla** — con tutto invisibile di default, configurare 246 entità una alla volta sarebbe impraticabile: il primo passo è ora una **lista con checkbox** (ricerca + chip per dominio + "seleziona questi"), pre-spuntata su ciò che è già attivo, quindi la stessa schermata accende i dispositivi nuovi e rimuove quelli che non servono. Barra in fondo con il diff ("3 da attivare · 0 da rimuovere") e **un solo salvataggio**. Il tap sul nome porta ancora al percorso di dettaglio in 4 passi (categoria → stanza → anteprima). Configurare **è** rendere visibile: `applyDeviceSetup` scrive `enabled: true`, perché un dispositivo configurato ma spento sarebbe una configurazione senza effetto.
+- **Disattivare non lascia rumore** — `applyVisibilitySelection` **rimuove** la chiave invece di scrivere `enabled: false`: in un modello opt-in assenza e falso coincidono, e su 246 entità scrivere il falso riempirebbe la configurazione di migliaia di voci morte. Un override che resta vuoto sparisce del tutto.
+- **Le card video vivono solo nella tendina videocamere** — `camera.*` non diventa più una card in nessuna superficie (composer, stanze, picker dei widget): il live feed sta esclusivamente nella `CameraMonitoringRow`, che si apre dal pulsante in status bar. Anche la tendina è opt-in, così nessuno stream Ring viene montato senza una scelta esplicita.
+- **Grammatica** — "1 avvisi critici" → "1 avviso critico".
+- Verifica: lint ✅ · test 402/402 ✅ · build:all ✅ · typecheck backend ✅ · **provato dal vivo** su una copia isolata del db con HA reale: wizard aperto, 3 dispositivi selezionati e applicati in un solo salvataggio, override persistiti come `{enabled:true}` e kiosk che mostra esattamente quelle stanze ("Camera da letto 2 · Altro 1").
+
 **Residui noti (non bloccanti):** WebRTC/talk-back via signaling proxy backend; rimozione definitiva della grid legacy dopo validazione del composer sul tablet reale; AI write-back automazioni (roadmap); versioning config con storico snapshot (§4.4) e modalità ospiti/pulizie (§6.4) non ancora implementati.
 
 ---
@@ -391,7 +401,7 @@ Luce (tap=toggle ottimistico, tint ambra, slider inline se accesa) · Clima (tin
 Tap = azione primaria · Press = `scale(0.985–0.95)` · Long-press = sblocco serrature · Click card clima/luce = pannello contestuale. **Tutte** le azioni HA sono **ottimistiche** con rollback.
 
 ### Regole "DA NON FARE"
-❌ Gradienti decorativi di sfondo (solo parchment `#f5f5f7`) · ❌ Ombre su card/bottoni (solo glow funzionale clima) · ❌ Secondo colore brand · ❌ Peso 500 · ❌ Toggle per serrature · ❌ Entità diagnostica/sistema in dashboard (gestione via override admin) · ❌ Chiavi API nel bundle frontend · ❌ Introdurre una quarta geometria di griglia.
+❌ Gradienti decorativi di sfondo (solo parchment `#f5f5f7`) · ❌ Ombre su card/bottoni (solo glow funzionale clima) · ❌ Secondo colore brand · ❌ Peso 500 · ❌ Toggle per serrature · ❌ Mostrare entità non configurate (la visibilità è **opt-in**: si sceglie nel wizard) · ❌ Card video fuori dalla tendina videocamere · ❌ Chiavi API nel bundle frontend · ❌ Introdurre una quarta geometria di griglia.
 
 ---
 

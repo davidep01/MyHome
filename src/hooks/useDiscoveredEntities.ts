@@ -119,12 +119,9 @@ export function useDiscoveredEntities(curation?: CurationSource): { sections: Di
       const domain = e.entity_id.split('.')[0]
       const type = (ov?.type as EntityType | undefined) ?? DOMAIN_TYPE[domain]
       if (!type) continue
-      // Skip snapshot-only cameras (no STREAM feature) — only show live-capable ones.
-      if (domain === 'camera' && !ov?.type) {
-        const feat = Number(e.attributes?.supported_features ?? 0)
-        const isSnapshotOnly = (feat & 2) === 0 || e.entity_id.endsWith('_snapshot')
-        if (isSnapshotOnly) continue
-      }
+      // Le card video vivono solo nella tendina videocamere: non sono widget,
+      // quindi non compaiono nemmeno fra i widget aggiungibili dal picker.
+      if (domain === 'camera') continue
 
       const item: RoomEntity = {
         id: e.entity_id,

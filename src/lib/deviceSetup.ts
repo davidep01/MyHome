@@ -41,7 +41,11 @@ export interface DeviceSetupSelection {
   areaId?: string
 }
 
-/** Applica le sole scelte del wizard, conservando ogni altra cura della card. */
+/**
+ * Applica le sole scelte del wizard, conservando ogni altra cura della card.
+ * Configurare **è** rendere visibile: con il modello opt-in non esiste un
+ * dispositivo configurato ma spento, sarebbe una configurazione senza effetto.
+ */
 export function applyDeviceSetup(
   current: DeviceOverride | undefined,
   selection: DeviceSetupSelection,
@@ -51,5 +55,33 @@ export function applyDeviceSetup(
   else delete next.type
   if (selection.areaId) next.areaId = selection.areaId
   else delete next.areaId
+  next.enabled = true
+  return next
+}
+
+/**
+ * Attiva/disattiva in blocco senza toccare le altre preferenze della card.
+ *
+ * Disattivare **rimuove** la chiave invece di scrivere `enabled: false`: in un
+ * modello opt-in assenza e falso significano la stessa cosa, e su 246 entità
+ * scrivere il falso riempirebbe la configurazione di rumore permanente.
+ */
+export function applyVisibilitySelection(
+  overrides: Record<string, DeviceOverride>,
+  enable: Iterable<string>,
+  disable: Iterable<string>,
+): Record<string, DeviceOverride> {
+  const next: Record<string, DeviceOverride> = { ...overrides }
+  for (const entityId of enable) {
+    next[entityId] = { ...(next[entityId] ?? {}), enabled: true }
+  }
+  for (const entityId of disable) {
+    const current = next[entityId]
+    if (!current) continue
+    const rest: DeviceOverride = { ...current }
+    delete rest.enabled
+    if (Object.keys(rest).length === 0) delete next[entityId]
+    else next[entityId] = rest
+  }
   return next
 }

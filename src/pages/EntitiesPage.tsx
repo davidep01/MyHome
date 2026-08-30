@@ -15,7 +15,7 @@ import { iconExists } from '../lib/lucide'
 import { uid } from '../lib/uid'
 import { DynamicIcon } from '../components/DynamicIcon'
 import { cn } from '../lib/utils'
-import { DEVICE_CATEGORY_OPTIONS } from '../lib/deviceSetup'
+import { applyVisibilitySelection, DEVICE_CATEGORY_OPTIONS } from '../lib/deviceSetup'
 import {
   DeviceSetupWizard, type DeviceSetupRegistryMeta,
 } from '../components/entities/DeviceSetupWizard'
@@ -245,6 +245,15 @@ export function EntitiesPage() {
     persistDraft(payload, JSON.stringify(payload))
   }
 
+  /** Attivazione/rimozione in blocco dal wizard: un solo salvataggio. */
+  const saveVisibilityNow = (enable: string[], disable: string[]) => {
+    const nextOverrides = applyVisibilitySelection(overrides, enable, disable)
+    const payload = { hiddenEntities: hidden, deviceOverrides: nextOverrides, groups }
+    setOverrides(nextOverrides)
+    draftRef.current = payload
+    persistDraft(payload, JSON.stringify(payload))
+  }
+
   const toggleSelect = (id: string) =>
     setSelected((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n })
 
@@ -425,6 +434,7 @@ export function EntitiesPage() {
           disabled={readOnly}
           saveState={saveState}
           onSave={(entityId, selection) => saveOverrideNow(entityId, selection)}
+          onBulkSave={(enable, disable) => saveVisibilityNow(enable, disable)}
           onClose={() => setWizardInvocation(null)}
         />
       )}

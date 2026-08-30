@@ -14,6 +14,7 @@ import { resolveAreaId } from '../../lib/areaInference'
 import {
   applyDeviceSetup, DEVICE_CATEGORY_OPTIONS, type DeviceSetupSelection,
 } from '../../lib/deviceSetup'
+import { isCameraEntity, isConfiguredEntity } from '../../lib/entityVisibility'
 import type { DeviceOverride, EntityType } from '../../api/backend'
 import type { HAArea } from '../../api/ha-registry'
 
@@ -34,6 +35,8 @@ interface DeviceSetupWizardProps {
   disabled: boolean
   saveState: 'idle' | 'saving' | 'saved' | 'error'
   onSave: (entityId: string, selection: DeviceSetupSelection) => void
+  /** Attivazione/disattivazione in blocco dallo stesso passaggio di scelta. */
+  onBulkSave: (enable: string[], disable: string[]) => void
   onClose: () => void
 }
 
@@ -56,6 +59,7 @@ export function DeviceSetupWizard({
   disabled,
   saveState,
   onSave,
+  onBulkSave,
   onClose,
 }: DeviceSetupWizardProps) {
   const entities = useEntityStore((state) => state.entities)
@@ -66,6 +70,26 @@ export function DeviceSetupWizard({
   const [areaId, setAreaId] = useState<string | undefined>(() => initialId ? overrides[initialId]?.areaId : undefined)
   const [query, setQuery] = useState('')
   const [complete, setComplete] = useState(false)
+  const [domainFilter, setDomainFilter] = useState('all')
+  // La selezione parte da ciò che è già attivo: la stessa schermata serve ad
+  // accendere i dispositivi nuovi e a spegnere quelli che non servono più.
+  const initiallyEnabled = useMemo(
+    () => new Set(Object.keys(overrides).filter((id) => isConfiguredEntity(id, overrides))),
+    [overrides],
+  )
+  const [selected, setSelected] = useState<ReadonlySet<string>>(initiallyEnabled)
+  const [bulkDone, setBulkDone] = useState<{ enabled: number; disabled: number } | null>(null)
+
+  const toggleSelected = (entityId: string) => setSelected((current) => {
+    const next = new Set(current)
+    if (next.has(entityId)) next.delete(entityId)
+    else next.add(entityId)
+    return next
+  })
+
+  const pendingEnable = [...selected].filter((id) => !initiallyEnabled.has(id)).sort()
+  const pendingDisable = [...initiallyEnabled].filter((id) => !selected.has(id)).sort()
+  const dirty = pendingEnable.length > 0 || pendingDisable.length > 0
 
   const begin = (nextEntityId: string, nextStep = 1) => {
     const current = overrides[nextEntityId]
@@ -91,9 +115,15 @@ export function DeviceSetupWizard({
       })
     : undefined
 
+  const domains = useMemo(
+    () => [...new Set(Object.keys(entities).map((id) => id.split('.')[0]))].sort(),
+    [entities],
+  )
+
   const candidates = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase('it')
     return Object.values(entities)
+      .filter((entity) => domainFilter === 'all' || entity.entity_id.startsWith(`${domainFilter}.`))
       .filter((entity) => {
         if (!normalized) return true
         const name = String(entity.attributes?.friendly_name ?? '')
@@ -112,8 +142,8 @@ export function DeviceSetupWizard({
         const nameB = String(b.attributes?.friendly_name ?? b.entity_id)
         return nameA.localeCompare(nameB, 'it')
       })
-  }, [entities, overrides, query])
-  const visibleCandidates = candidates.slice(0, 12)
+  }, [entities, overrides, query, domainFilter])
+  const visibleCandidates = candidates.slice(0, 60)
 
   const selectedName = selectedEntity
     ? String(selectedEntity.attributes?.friendly_name ?? selectedEntity.entity_id)
@@ -171,7 +201,15 @@ export function DeviceSetupWizard({
           </div>
         </div>
 
-        {complete && entityId ? (
+        {complete && bulkDone ? (
+          <BulkDoneScreen
+            enabled={bulkDone.enabled}
+            disabled={bulkDone.disabled}
+            saveState={saveState}
+            onAnother={() => { setBulkDone(null); setComplete(false) }}
+            onClose={onClose}
+          />
+        ) : complete && entityId ? (
           <div className="flex min-h-[430px] flex-col items-center justify-center px-4 text-center">
             <div className={cn(
               'flex h-20 w-20 items-center justify-center rounded-[28px]',
@@ -215,9 +253,12 @@ export function DeviceSetupWizard({
           <section aria-labelledby="wizard-device-title">
             <div className="mb-4">
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#0066cc]">Passaggio 1</p>
-              <h2 id="wizard-device-title" className="mt-1 text-2xl font-semibold text-[#1d1d1f]">Quale dispositivo vuoi configurare?</h2>
-              <p className="mt-1 text-sm text-black/45">Cerca per nome o identificativo Home Assistant.</p>
+              <h2 id="wizard-device-title" className="mt-1 text-2xl font-semibold text-[#1d1d1f]">Quali dispositivi vuoi in casa?</h2>
+              <p className="mt-1 text-sm text-black/45">
+                La dashboard parte vuota: compare solo ciò che spunti qui. Puoi sceglierne quanti vuoi in una volta.
+              </p>
             </div>
+
             <div className="relative">
               <Search size={17} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-black/35" />
               <input
@@ -230,7 +271,36 @@ export function DeviceSetupWizard({
                 className="min-h-[52px] w-full rounded-[18px] border border-black/10 bg-white pl-11 pr-4 text-base text-[#1d1d1f] outline-none focus:border-[#0066cc]"
               />
             </div>
-            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+
+            <div className="mt-2.5 flex flex-wrap gap-1.5" role="group" aria-label="Filtra per tipo">
+              <FilterChip label="Tutti" active={domainFilter === 'all'} onClick={() => setDomainFilter('all')} />
+              {domains.map((domain) => (
+                <FilterChip key={domain} label={domain} active={domainFilter === domain} onClick={() => setDomainFilter(domain)} />
+              ))}
+            </div>
+
+            <div className="mt-3 flex items-center justify-between gap-3 px-1">
+              <p className="text-xs text-black/45" aria-live="polite">
+                {selected.size} attivi · {candidates.length} disponibili
+              </p>
+              <button
+                type="button"
+                onClick={() => setSelected((current) => {
+                  const next = new Set(current)
+                  const ids = visibleCandidates.map((entity) => entity.entity_id)
+                  const allOn = ids.every((id) => next.has(id))
+                  for (const id of ids) { if (allOn) next.delete(id); else next.add(id) }
+                  return next
+                })}
+                className="min-h-[36px] rounded-full bg-black/[0.06] px-3 text-xs font-semibold text-black/55 active:scale-95"
+              >
+                {visibleCandidates.every((entity) => selected.has(entity.entity_id)) && visibleCandidates.length > 0
+                  ? 'Deseleziona questi'
+                  : 'Seleziona questi'}
+              </button>
+            </div>
+
+            <div className="mt-2 grid gap-2 sm:grid-cols-2">
               {visibleCandidates.map((entity) => {
                 const id = entity.entity_id
                 const current = overrides[id]
@@ -240,30 +310,71 @@ export function DeviceSetupWizard({
                 const roomLabel = current?.areaId
                   ? areaNameById.get(current.areaId) ?? current.areaId
                   : autoRoom ? areaNameById.get(autoRoom) ?? autoRoom : 'Nessuna stanza'
+                const on = selected.has(id)
                 return (
-                  <button
+                  <div
                     key={id}
-                    type="button"
-                    onClick={() => begin(id)}
-                    className="flex min-h-[72px] items-center gap-3 rounded-[18px] bg-white/72 px-3 py-2.5 text-left ring-1 ring-black/5 transition hover:ring-[#0066cc]/35 active:scale-[0.99]"
+                    className={cn(
+                      'flex min-h-[72px] items-center gap-2 rounded-[18px] px-2.5 py-2 ring-1 transition',
+                      on ? 'bg-[#0066cc]/8 ring-[#0066cc]/35' : 'bg-white/72 ring-black/5',
+                    )}
                   >
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[15px] bg-[#0066cc]/10 text-[#0066cc]">
-                      <DynamicIcon name={DEVICE_CATEGORY_OPTIONS.find((option) => option.value === (current?.type ?? domainType))?.icon} fallback={LayoutGrid} size={20} />
-                    </span>
-                    <span className="min-w-0 flex-1">
+                    <button
+                      type="button"
+                      role="checkbox"
+                      aria-checked={on}
+                      onClick={() => toggleSelected(id)}
+                      aria-label={`${on ? 'Rimuovi' : 'Aggiungi'} ${String(entity.attributes?.friendly_name ?? id)}`}
+                      className={cn(
+                        'flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] transition active:scale-95',
+                        on ? 'bg-[#0066cc] text-white' : 'bg-black/[0.05] text-[#0066cc]',
+                      )}
+                    >
+                      {on ? <Check size={20} /> : <DynamicIcon name={DEVICE_CATEGORY_OPTIONS.find((option) => option.value === (current?.type ?? domainType))?.icon} fallback={LayoutGrid} size={20} />}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => begin(id)}
+                      className="min-w-0 flex-1 py-1 text-left"
+                      aria-label={`Configura in dettaglio ${String(entity.attributes?.friendly_name ?? id)}`}
+                    >
                       <span className="block truncate text-sm font-semibold text-[#1d1d1f]">{String(entity.attributes?.friendly_name ?? id)}</span>
-                      <span className="mt-0.5 block truncate text-[11px] text-black/40">{categoryLabel(current?.type ?? domainType)} · {roomLabel} · {stateLabel(entity.state)}</span>
-                      <span className="block truncate font-mono text-[9px] text-black/25">{id}</span>
-                    </span>
-                    <ArrowRight size={16} className="shrink-0 text-black/25" />
-                  </button>
+                      <span className="mt-0.5 block truncate text-[11px] text-black/40">
+                        {categoryLabel(current?.type ?? domainType)} · {roomLabel} · {stateLabel(entity.state)}
+                      </span>
+                      <span className="block truncate font-mono text-[9px] text-black/25">
+                        {isCameraEntity(id) ? 'video · solo nella tendina videocamere' : id}
+                      </span>
+                    </button>
+                    <ArrowRight size={16} className="shrink-0 text-black/25" aria-hidden="true" />
+                  </div>
                 )
               })}
             </div>
             {visibleCandidates.length === 0 && <p className="py-10 text-center text-sm text-black/40">Nessun dispositivo corrisponde alla ricerca.</p>}
             {candidates.length > visibleCandidates.length && (
-              <p className="mt-3 text-center text-xs text-black/35">Mostrati 12 di {candidates.length}: restringi la ricerca per trovare gli altri.</p>
+              <p className="mt-3 text-center text-xs text-black/35">Mostrati {visibleCandidates.length} di {candidates.length}: restringi la ricerca o filtra per tipo.</p>
             )}
+
+            <div className="sticky bottom-0 mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-black/[0.07] bg-white/72 pt-3 backdrop-blur">
+              <p className="text-xs text-black/45">
+                {dirty
+                  ? `${pendingEnable.length} da attivare · ${pendingDisable.length} da rimuovere`
+                  : 'Nessuna modifica in sospeso'}
+              </p>
+              <button
+                type="button"
+                disabled={disabled || !dirty || saveState === 'saving'}
+                onClick={() => {
+                  onBulkSave(pendingEnable, pendingDisable)
+                  setBulkDone({ enabled: pendingEnable.length, disabled: pendingDisable.length })
+                  setComplete(true)
+                }}
+                className="flex min-h-[48px] items-center gap-2 rounded-full bg-[#0066cc] px-6 text-sm font-semibold text-white active:scale-95 disabled:opacity-45"
+              >
+                <Check size={16} /> Applica
+              </button>
+            </div>
           </section>
         ) : step === 1 && entityId ? (
           <section aria-labelledby="wizard-category-title">
@@ -384,6 +495,62 @@ export function DeviceSetupWizard({
         )}
       </div>
     </GlassSheet>
+  )
+}
+
+function BulkDoneScreen({
+  enabled, disabled, saveState, onAnother, onClose,
+}: {
+  enabled: number
+  disabled: number
+  saveState: 'idle' | 'saving' | 'saved' | 'error'
+  onAnother: () => void
+  onClose: () => void
+}) {
+  return (
+    <div className="flex min-h-[430px] flex-col items-center justify-center px-4 text-center">
+      <div className={cn(
+        'flex h-20 w-20 items-center justify-center rounded-[28px]',
+        saveState === 'error' ? 'bg-red-500/10 text-red-600' : 'bg-[#34c759]/12 text-[#248a3d]',
+      )}>
+        {saveState === 'error' ? <RotateCcw size={32} /> : <Check size={36} />}
+      </div>
+      <h2 className="mt-5 text-2xl font-semibold text-[#1d1d1f]">
+        {saveState === 'error' ? 'Salvataggio non riuscito' : 'Casa aggiornata'}
+      </h2>
+      <p className="mt-2 max-w-md text-sm leading-relaxed text-black/45">
+        {saveState === 'error'
+          ? 'Le scelte restano nel wizard: puoi riprovare senza ricominciare.'
+          : [
+            enabled > 0 && `${enabled} ${enabled === 1 ? 'dispositivo attivato' : 'dispositivi attivati'}`,
+            disabled > 0 && `${disabled} ${disabled === 1 ? 'rimosso' : 'rimossi'}`,
+          ].filter(Boolean).join(' · ') || 'Nessuna modifica applicata.'}
+      </p>
+      <div className="mt-7 flex flex-wrap justify-center gap-2">
+        <button type="button" onClick={onAnother} className="flex min-h-[48px] items-center gap-2 rounded-full bg-[#0066cc] px-5 text-sm font-semibold text-white active:scale-95">
+          <WandSparkles size={16} /> Continua a scegliere
+        </button>
+        <button type="button" onClick={onClose} className="min-h-[48px] rounded-full bg-black/[0.07] px-5 text-sm font-semibold text-black/60 active:scale-95">
+          Fine
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function FilterChip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={cn(
+        'min-h-[36px] rounded-full px-3 text-xs font-semibold transition active:scale-95',
+        active ? 'bg-[#0066cc] text-white' : 'bg-black/[0.05] text-black/55',
+      )}
+    >
+      {label}
+    </button>
   )
 }
 

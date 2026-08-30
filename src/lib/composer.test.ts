@@ -231,6 +231,51 @@ describe('composeHome', () => {
     expect(quartet.hero.map((slot) => slot.visualSize)).toEqual(['M', 'S', 'M', 'S'])
   })
 
+  it('con visibilità opt-in mostra solo i dispositivi configurati', () => {
+    const out = composeHome([
+      e('fan.studio', 'on'),
+      e('switch.presa', 'on'),
+      e('light.cucina', 'on'),
+    ], { now: DAY, isConfigured: (id) => id === 'fan.studio' })
+
+    expect(out.hero.map((slot) => slot.key)).toEqual(['fan.studio'])
+  })
+
+  it('un allarme si vede anche su un dispositivo mai configurato', () => {
+    const out = composeHome([
+      e('alarm_control_panel.casa', 'triggered'),
+      e('switch.presa', 'on'),
+    ], { now: DAY, isConfigured: () => false })
+
+    expect(out.hero.map((slot) => slot.key)).toEqual(['alarm_control_panel.casa'])
+    expect(out.alerts.some((chip) => chip.id === 'alarm')).toBe(true)
+  })
+
+  it('il pin esplicito vale come configurazione', () => {
+    const out = composeHome([e('switch.presa', 'on')], {
+      now: DAY,
+      isConfigured: () => false,
+      heroOf: (id) => (id === 'switch.presa' ? 'always' : undefined),
+    })
+
+    expect(out.hero.map((slot) => slot.key)).toEqual(['switch.presa'])
+  })
+
+  it('il gruppo luci di un area conta solo le luci configurate', () => {
+    const out = composeHome([
+      e('light.cucina_1', 'on'),
+      e('light.cucina_2', 'on'),
+      e('light.cucina_3', 'on'),
+    ], {
+      now: DAY,
+      areaNameOf: () => 'Cucina',
+      isConfigured: (id) => id !== 'light.cucina_3',
+    })
+
+    expect(out.hero[0].group?.entityIds).toEqual(['light.cucina_1', 'light.cucina_2'])
+    expect(out.hero[0].reason).toBe('2 luci accese')
+  })
+
   it("override 'never': l'entità non entra mai nell'Adesso (nemmeno nel gruppo luci)", () => {
     const heroOf = (id: string) => (id === 'light.bagno' ? 'never' as const : undefined)
     const out = composeHome([

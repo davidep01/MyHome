@@ -9,8 +9,8 @@ import {
 } from '../lib/composer'
 import { computeInsights, type InsightAction } from '../lib/insights'
 import { useEntityStore } from '../store/entities'
-import { useDashboardEntityCuration } from './useDashboardEntityCuration'
 import { useAreaIndex } from './useAreaIndex'
+import { isDashboardCardEntity } from '../lib/entityVisibility'
 import type { DeviceOverride } from '../api/backend'
 
 /** Chip dell'header: anomalia del composer o suggerimento con azione proposta. */
@@ -23,6 +23,7 @@ export interface ComposedHomeView {
 }
 
 export interface KioskCurationConfig {
+  /** Conservato per compatibilità del layout pubblico; con l'opt-in non decide più nulla. */
   hiddenEntities?: string[]
   deviceOverrides?: Record<string, DeviceOverride>
 }
@@ -40,7 +41,6 @@ const IDLE: ComposedHomeView = { hero: [], alerts: [], quiet: true }
  * la composizione cambia davvero: a casa quieta la home non ri-renderizza.
  */
 export function useComposedHome(cfg?: KioskCurationConfig): ComposedHomeView {
-  const registryExcluded = useDashboardEntityCuration()
   const { areaNameOf, areaIdOf } = useAreaIndex(cfg?.deviceOverrides)
   const [view, setView] = useState<ComposedHomeView>(IDLE)
 
@@ -50,24 +50,20 @@ export function useComposedHome(cfg?: KioskCurationConfig): ComposedHomeView {
     signature: '',
   })
 
-  const hiddenEntities = cfg?.hiddenEntities
   const deviceOverrides = cfg?.deviceOverrides
 
   useEffect(() => {
     const compute = () => {
       const entities = useEntityStore.getState().entities
-      const hidden = new Set([...(hiddenEntities ?? []), ...registryExcluded])
-      const visible = Object.values(entities).filter((e) =>
-        (!hidden.has(e.entity_id) || deviceOverrides?.[e.entity_id]?.enabled === true)
-        && deviceOverrides?.[e.entity_id]?.enabled !== false
-      )
-
-      // Le camere disponibili appartengono alla fila fissa e il composer non
-      // crea card per loro; se sono offline contribuiscono però al riepilogo.
-      const raw = composeHome(visible, {
+      // Il composer riceve TUTTE le entità: decide lui cosa diventa card
+      // (solo il configurato) e cosa resta comunque visibile (le P0 di
+      // sicurezza, il riepilogo offline). Filtrare qui spegnerebbe gli allarmi
+      // sui dispositivi non ancora configurati.
+      const raw = composeHome(Object.values(entities), {
         areaNameOf,
         heroOf: (id) => deviceOverrides?.[id]?.hero,
         showWhenActive: (id) => deviceOverrides?.[id]?.showWhenActive === true,
+        isConfigured: (id) => isDashboardCardEntity(id, deviceOverrides),
         now: new Date(),
         maxHero: KIOSK_HERO_LIMIT,
       })
@@ -78,7 +74,10 @@ export function useComposedHome(cfg?: KioskCurationConfig): ComposedHomeView {
         Date.now(),
         KIOSK_HERO_LIMIT,
       )
-      const insights = computeInsights(visible, { areaIdOf, nowMs: Date.now() })
+      const insights = computeInsights(
+        Object.values(entities).filter((e) => isDashboardCardEntity(e.entity_id, deviceOverrides)),
+        { areaIdOf, nowMs: Date.now() },
+      )
 
       const next: ComposedHomeView = { hero, alerts: [...raw.alerts, ...insights], quiet: hero.length === 0 }
       const signature = JSON.stringify(next)
@@ -96,7 +95,7 @@ export function useComposedHome(cfg?: KioskCurationConfig): ComposedHomeView {
       unsubscribe()
       clearInterval(id)
     }
-  }, [registryExcluded, areaNameOf, areaIdOf, hiddenEntities, deviceOverrides])
+  }, [areaNameOf, areaIdOf, deviceOverrides])
 
   return view
 }

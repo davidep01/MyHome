@@ -37,7 +37,7 @@ export function useHomeStatus() {
 
     if (triggeredAlarms.length > 0 || criticalNotifications.length > 0) {
       return {
-        label: `${alertCount} avvisi critici`,
+        label: alertCount === 1 ? '1 avviso critico' : `${alertCount} avvisi critici`,
         detail: triggeredAlarms[0]?.attributes?.friendly_name as string | undefined,
         count: alertCount,
         tone: 'critical' as const,

@@ -1,9 +1,9 @@
 import { useMemo } from 'react'
 import type { HassEntity } from 'home-assistant-js-websocket'
 import { useAreaIndex } from './useAreaIndex'
-import { useDashboardEntityCuration } from './useDashboardEntityCuration'
 import { useEntityStore } from '../store/entities'
 import { isRenderableDomain } from '../components/home/layers/makeRoomEntity'
+import { isDashboardCardEntity } from '../lib/entityVisibility'
 import type { DeviceOverride } from '../api/backend'
 import { isPresenceEntity } from '../lib/dashboardSelection'
 
@@ -106,18 +106,15 @@ export function useRoomsOverview(cfg?: {
   overrides?: Record<string, DeviceOverride>
 }): { rooms: RoomOverview[]; ready: boolean } {
   const entities = useEntityStore((s) => s.entities)
-  const registryExcluded = useDashboardEntityCuration()
-  const hiddenEntities = cfg?.hiddenEntities
   const overrides = cfg?.overrides
   const { areas, areaIdOf, ready } = useAreaIndex(overrides)
 
   const rooms = useMemo(() => {
-    const hidden = new Set([...(hiddenEntities ?? []), ...registryExcluded])
+    // Opt-in: una stanza contiene solo ciò che è stato configurato nel wizard.
     const visible = Object.values(entities).filter((e) =>
-      (!hidden.has(e.entity_id) || overrides?.[e.entity_id]?.enabled === true)
+      isDashboardCardEntity(e.entity_id, overrides)
       && !isPresenceEntity(e)
-      && isRenderableDomain(e.entity_id)
-      && overrides?.[e.entity_id]?.enabled !== false)
+      && isRenderableDomain(e.entity_id))
 
     const byArea = new Map<string, HassEntity[]>()
     const orphan: HassEntity[] = []
@@ -142,7 +139,7 @@ export function useRoomsOverview(cfg?: {
     }
     if (orphan.length) list.push(summarize('other', 'Altro', orphan))
     return list
-  }, [entities, areas, areaIdOf, ready, hiddenEntities, registryExcluded, overrides])
+  }, [entities, areas, areaIdOf, ready, overrides])
 
   return { rooms, ready }
 }

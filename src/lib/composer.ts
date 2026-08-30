@@ -61,6 +61,14 @@ export interface ComposeOptions {
   heroOf?: (entityId: string) => 'always' | 'never' | undefined
   /** Per-climate backend override: garantisce la presenza mentre il clima è acceso. */
   showWhenActive?: (entityId: string) => boolean
+  /**
+   * Visibilità opt-in: solo le entità configurate diventano card. La sicurezza
+   * è deliberatamente esente — una P0 (allarme, sirena, fumo/gas, serratura
+   * aperta di notte) si vede anche su un dispositivo mai configurato, perché
+   * non vedere un allarme è peggio di vedere una card non richiesta.
+   * Default permissivo: `composeHome` resta usabile senza curation.
+   */
+  isConfigured?: (entityId: string) => boolean
   now: Date
   maxHero?: number
 }
@@ -165,6 +173,8 @@ export function composeHome(entities: ComposerEntity[], opts: ComposeOptions): C
   const maxHero = opts.maxHero ?? 6
   const night = isNight(now)
   const heroPref = (id: string) => heroOf?.(id)
+  // Un pin esplicito ('always') È una configurazione: non richiede altro.
+  const configured = (id: string) => opts.isConfigured?.(id) !== false || heroPref(id) === 'always'
   const todayKey = dateKeyForLocalDate(now)
 
   const candidates: (HeroSlot & { changed: number })[] = []
@@ -315,7 +325,7 @@ export function composeHome(entities: ComposerEntity[], opts: ComposeOptions): C
         break
       }
       case 'light': {
-        if (e.state === 'on' && !banned.has(e.entity_id)) {
+        if (e.state === 'on' && !banned.has(e.entity_id) && configured(e.entity_id)) {
           const area = areaNameOf?.(e.entity_id) ?? 'Casa'
           const list = litByArea.get(area) ?? []
           list.push(e)
@@ -341,6 +351,13 @@ export function composeHome(entities: ComposerEntity[], opts: ComposeOptions): C
       })
     }
   }
+
+  // Opt-in: solo le entità configurate diventano card. Le P0 restano sempre —
+  // un allarme non può dipendere dall'aver completato una configurazione.
+  const visibleCandidates = candidates.filter((c) =>
+    c.priority === 0 || !c.entityId || configured(c.entityId))
+  candidates.length = 0
+  candidates.push(...visibleCandidates)
 
   // ── Chip anomalie (header) ─────────────────────────────────────────────────
   const triggered = candidates.filter((c) => c.priority === 0 && c.reason === 'Allarme in corso')
