@@ -1,10 +1,11 @@
 import { useId, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { MonitorSmartphone, Save, Server, ShieldCheck } from 'lucide-react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { AlertTriangle, MonitorSmartphone, Save, Server, ShieldCheck } from 'lucide-react'
 import { GlassCard } from '../components/glass/GlassCard'
 import { ServiceHealthCard } from '../components/system/ServiceHealthCard'
 import { useDashboardConfig, useUpdateConfig } from '../hooks/useDashboardConfig'
-import { alarmApi, kioskApi, systemApi } from '../api/backend'
+import { alarmApi, kioskApi, systemApi, type KioskDeviceStatus } from '../api/backend'
+import { commandNeedsFully, commandResultLabel, fleetReadiness } from '../lib/kioskCommands'
 import { timeAgo } from '../lib/time'
 import { cn } from '../lib/utils'
 
@@ -43,14 +44,27 @@ export function SystemPage() {
  * conferma; il TTS chiede il testo.
  */
 function KioskFleetCard() {
+  const queryClient = useQueryClient()
   const { data, isPending, isError } = useQuery({ queryKey: ['kiosk-devices'], queryFn: kioskApi.devices, refetchInterval: 30_000 })
   const [message, setMessage] = useState<string | null>(null)
   const devices = data?.devices ?? []
 
+  /**
+   * Inviare è un broadcast SSE: il server sa di aver trasmesso, non che il
+   * tablet abbia eseguito. Si attende quindi il riscontro del tablet e si
+   * mostra quello, invece di dichiarare un successo che non è stato verificato.
+   */
   const send = (target: string, command: string, value?: number | string) => {
-    setMessage(null)
+    setMessage('Invio in corso…')
     kioskApi.command(target, command, value)
-      .then(() => setMessage('Comando inviato al tablet.'))
+      .then(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 1200))
+        const fresh = await queryClient.fetchQuery({ queryKey: ['kiosk-devices'], queryFn: kioskApi.devices })
+        const device = fresh.devices.find((item) => item.deviceId === target)
+        const result = device?.lastCommand
+        if (result && result.command === command) setMessage(commandResultLabel(result))
+        else setMessage('Comando trasmesso, ma il tablet non ha ancora risposto.')
+      })
       .catch(() => setMessage('Comando non inviato. Riprova.'))
   }
 
@@ -82,22 +96,7 @@ function KioskFleetCard() {
                     d.audioChannel && `Canale allarme ${d.audioChannel === 'ready' ? 'pronto' : d.audioChannel === 'needs-interaction' ? 'da attivare sul tablet' : d.audioChannel}`,
                   ].filter(Boolean).join(' · ') || 'Nessun dato dal dispositivo'}
                 </p>
-                <div className="flex flex-wrap gap-2">
-                  <FleetButton label="Ricarica" onClick={() => send(d.deviceId, 'reload')} />
-                  <FleetButton label={d.screenOn === false ? 'Accendi schermo' : 'Spegni schermo'} onClick={() => {
-                    if (d.screenOn === false) send(d.deviceId, 'screenOn')
-                    else if (window.confirm('Spegnere lo schermo del tablet?')) send(d.deviceId, 'screenOff')
-                  }} />
-                  <FleetButton label="Annuncio" onClick={() => {
-                    const text = window.prompt('Testo da pronunciare sul tablet:')
-                    if (text?.trim()) send(d.deviceId, 'say', text.trim().slice(0, 200))
-                  }} />
-                  <FleetButton label="Screensaver" onClick={() => send(d.deviceId, d.screensaver ? 'screensaverStop' : 'screensaverStart')} />
-                  <FleetButton label="Prova audio" onClick={() => send(d.deviceId, 'audioTest')} />
-                  <FleetButton label="Riavvia" danger onClick={() => {
-                    if (window.confirm('Riavviare l’app del tablet? Il kiosk ricomparirà da solo.')) send(d.deviceId, 'restart')
-                  }} />
-                </div>
+                <FleetActions device={d} onSend={send} />
               </div>
             ))}
       {message && <p className="text-xs font-semibold text-black/50" role="status" aria-live="polite">{message}</p>}
@@ -105,13 +104,78 @@ function KioskFleetCard() {
   )
 }
 
-function FleetButton({ label, onClick, danger }: { label: string; onClick: () => void; danger?: boolean }) {
+/**
+ * Le azioni che richiedono Fully Kiosk restano disabilitate quando il tablet
+ * non lo espone: prima erano premibili e la regia dichiarava "Comando inviato"
+ * mentre sul tablet non poteva succedere nulla — solo Ricarica e Prova audio,
+ * che vivono nel browser, funzionavano davvero.
+ */
+function FleetActions({
+  device, onSend,
+}: {
+  device: KioskDeviceStatus
+  onSend: (target: string, command: string, value?: number | string) => void
+}) {
+  const readiness = fleetReadiness(device)
+  const blocked = !readiness.canRunAll
+  const disabledFor = (command: string) => blocked && commandNeedsFully(command)
+
+  return (
+    <div className="space-y-2">
+      {blocked && (
+        <div className="flex items-start gap-2 rounded-[10px] bg-orange-500/10 px-3 py-2">
+          <AlertTriangle size={14} className="mt-0.5 shrink-0 text-orange-600" />
+          <p className="text-[11px] leading-relaxed text-orange-700">
+            {readiness.canRunAll === false && readiness.reason}
+          </p>
+        </div>
+      )}
+      <div className="flex flex-wrap gap-2">
+        <FleetButton label="Ricarica" onClick={() => onSend(device.deviceId, 'reload')} />
+        <FleetButton
+          label={device.screenOn === false ? 'Accendi schermo' : 'Spegni schermo'}
+          disabled={disabledFor('screenOff')}
+          onClick={() => {
+            if (device.screenOn === false) onSend(device.deviceId, 'screenOn')
+            else if (window.confirm('Spegnere lo schermo del tablet?')) onSend(device.deviceId, 'screenOff')
+          }}
+        />
+        <FleetButton
+          label="Annuncio"
+          disabled={disabledFor('say')}
+          onClick={() => {
+            const text = window.prompt('Testo da pronunciare sul tablet:')
+            if (text?.trim()) onSend(device.deviceId, 'say', text.trim().slice(0, 200))
+          }}
+        />
+        <FleetButton
+          label="Screensaver"
+          disabled={disabledFor('screensaverStart')}
+          onClick={() => onSend(device.deviceId, device.screensaver ? 'screensaverStop' : 'screensaverStart')}
+        />
+        <FleetButton label="Prova audio" onClick={() => onSend(device.deviceId, 'audioTest')} />
+        <FleetButton
+          label="Riavvia"
+          danger
+          disabled={disabledFor('restart')}
+          onClick={() => {
+            if (window.confirm('Riavviare l’app del tablet? Il kiosk ricomparirà da solo.')) onSend(device.deviceId, 'restart')
+          }}
+        />
+      </div>
+    </div>
+  )
+}
+
+function FleetButton({ label, onClick, danger, disabled }: { label: string; onClick: () => void; danger?: boolean; disabled?: boolean }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      disabled={disabled}
+      title={disabled ? 'Richiede l’interfaccia JavaScript di Fully Kiosk' : undefined}
       className={cn(
-        'min-h-[44px] rounded-full px-3.5 text-xs font-semibold transition active:scale-95',
+        'min-h-[44px] rounded-full px-3.5 text-xs font-semibold transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100',
         danger ? 'bg-red-500/10 text-red-600' : 'bg-white/80 text-black/60',
       )}
     >

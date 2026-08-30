@@ -506,9 +506,25 @@ export interface KioskHeartbeatPayload {
   audioPlaying?: boolean
 }
 
+/** Esito dell'ultimo comando remoto, riferito dal tablet stesso. */
+export interface KioskCommandResult {
+  command: string
+  ok: boolean
+  reason?: string
+  at: string
+}
+
 export interface KioskDeviceStatus extends KioskHeartbeatPayload {
   lastSeenAt: string
   online: boolean
+  lastCommand?: KioskCommandResult
+}
+
+export interface KioskCommandAck {
+  deviceId: string
+  command: string
+  ok: boolean
+  reason?: string
 }
 
 export const kioskApi = {
@@ -517,6 +533,8 @@ export const kioskApi = {
   devices: () => request<{ devices: KioskDeviceStatus[] }>('/kiosk/devices'),
   command: (target: string, command: string, value?: number | string) =>
     request<{ ok: true }>('/kiosk/command', { method: 'POST', body: JSON.stringify({ target, command, ...(value !== undefined ? { value } : {}) }) }),
+  ack: (payload: KioskCommandAck) =>
+    request<{ ok: true }>('/kiosk/command-ack', { method: 'POST', body: JSON.stringify(payload) }),
 }
 
 export interface AuditEntry {

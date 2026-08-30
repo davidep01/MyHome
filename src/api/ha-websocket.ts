@@ -2,7 +2,7 @@ import type { HassEntities, HassEntity } from 'home-assistant-js-websocket'
 import { useEntityStore } from '../store/entities'
 import { useDoorbellEvents } from '../store/doorbellEvents'
 import { alarmTestNeedsSync, useAlarmTestStore } from '../store/alarmTest'
-import { alarmApi, haApi, type AlarmTestRemoteState } from './backend'
+import { alarmApi, haApi, kioskApi, type AlarmTestRemoteState } from './backend'
 
 /**
  * Live Home Assistant data for every client (kiosk AND desktop).
@@ -93,8 +93,20 @@ function applyStreamEvent(event: HaStreamEvent): void {
     void import('../lib/kioskDevice').then(({ executeKioskCommand, getKioskDeviceId }) => {
       const isKiosk = document.documentElement.classList.contains('kiosk-mode')
       if (!isKiosk) return
-      if (event.target !== 'all' && event.target !== getKioskDeviceId()) return
-      executeKioskCommand(event.command as Parameters<typeof executeKioskCommand>[0], event.value)
+      const deviceId = getKioskDeviceId()
+      if (event.target !== 'all' && event.target !== deviceId) return
+      const outcome = executeKioskCommand(
+        event.command as Parameters<typeof executeKioskCommand>[0],
+        event.value,
+      )
+      // L'invio è un broadcast: senza questo riscontro la regia non saprebbe
+      // mai se il comando è stato davvero eseguito.
+      void kioskApi.ack({
+        deviceId,
+        command: event.command,
+        ok: outcome.ok,
+        ...(outcome.ok ? {} : { reason: outcome.reason }),
+      }).catch(() => {})
     })
   }
 }

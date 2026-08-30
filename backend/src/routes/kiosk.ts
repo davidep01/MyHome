@@ -2,7 +2,8 @@ import { Hono } from 'hono'
 import { adminOnly } from '../lib/security.js'
 import { broadcastKioskCommand } from '../lib/ha-stream.js'
 import {
-  DEVICE_ID_PATTERN, listKioskDevices, parseKioskCommand, recordKioskHeartbeat,
+  DEVICE_ID_PATTERN, listKioskDevices, parseKioskCommand, recordKioskCommandResult,
+  recordKioskHeartbeat,
 } from '../lib/kiosk-fleet.js'
 
 /**
@@ -49,6 +50,26 @@ kioskRouter.post('/heartbeat', async (c) => {
 })
 
 kioskRouter.get('/devices', adminOnly, (c) => c.json({ devices: listKioskDevices() }))
+
+/**
+ * Riscontro dal tablet dopo un comando. Non è autenticato come admin di
+ * proposito: lo manda il kiosk, esattamente come l'heartbeat, e non concede
+ * alcun privilegio — scrive solo l'esito sul proprio record.
+ */
+kioskRouter.post('/command-ack', async (c) => {
+  const body = await c.req.json<Record<string, unknown>>().catch(() => null)
+  if (!body || typeof body.deviceId !== 'string' || !DEVICE_ID_PATTERN.test(body.deviceId)) {
+    return c.json({ error: 'deviceId non valido' }, 400)
+  }
+  const command = cleanLabel(body.command, 40)
+  if (!command || typeof body.ok !== 'boolean') return c.json({ error: 'Riscontro non valido' }, 400)
+  const accepted = recordKioskCommandResult(body.deviceId, {
+    command,
+    ok: body.ok,
+    reason: cleanLabel(body.reason, 40),
+  })
+  return accepted ? c.json({ ok: true as const }) : c.json({ error: 'Tablet sconosciuto' }, 404)
+})
 
 kioskRouter.post('/command', adminOnly, async (c) => {
   const body = await c.req.json<unknown>().catch(() => null)

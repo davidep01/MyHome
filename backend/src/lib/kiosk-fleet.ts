@@ -21,9 +21,24 @@ export interface KioskHeartbeat {
   audioPlaying?: boolean
 }
 
+/**
+ * Esito dell'ultimo comando remoto. Serve perché l'invio è un broadcast SSE:
+ * il server sa di averlo trasmesso, non che qualcuno l'abbia eseguito. Senza
+ * questo la regia dichiarava "Comando inviato" anche quando sul tablet non
+ * poteva succedere nulla.
+ */
+export interface KioskCommandResult {
+  command: string
+  ok: boolean
+  /** Perché non è stato eseguito ('no-bridge' | 'unsupported'). */
+  reason?: string
+  at: string
+}
+
 export interface KioskDeviceStatus extends KioskHeartbeat {
   lastSeenAt: string
   online: boolean
+  lastCommand?: KioskCommandResult
 }
 
 export const KIOSK_ONLINE_WINDOW_MS = 150_000
@@ -32,6 +47,7 @@ export const DEVICE_ID_PATTERN = /^[a-z0-9][a-z0-9_-]{0,79}$/i
 
 interface StoredDevice extends KioskHeartbeat {
   lastSeen: number
+  lastCommand?: KioskCommandResult
 }
 
 const devices = new Map<string, StoredDevice>()
@@ -48,7 +64,26 @@ export function recordKioskHeartbeat(heartbeat: KioskHeartbeat, now = Date.now()
     }
     if (stalest) devices.delete(stalest)
   }
-  devices.set(heartbeat.deviceId, { ...heartbeat, lastSeen: now })
+  // L'heartbeat non deve cancellare l'esito dell'ultimo comando.
+  const previous = devices.get(heartbeat.deviceId)
+  devices.set(heartbeat.deviceId, { ...heartbeat, lastSeen: now, lastCommand: previous?.lastCommand })
+  return true
+}
+
+/** Riscontro dal tablet: eseguito, oppure perché no. */
+export function recordKioskCommandResult(
+  deviceId: string,
+  result: { command: string; ok: boolean; reason?: string },
+  now = Date.now(),
+): boolean {
+  const device = devices.get(deviceId)
+  if (!device) return false
+  device.lastCommand = {
+    command: result.command.slice(0, 40),
+    ok: result.ok,
+    ...(result.reason ? { reason: result.reason.slice(0, 40) } : {}),
+    at: new Date(now).toISOString(),
+  }
   return true
 }
 

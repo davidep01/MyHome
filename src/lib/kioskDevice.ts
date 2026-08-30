@@ -19,28 +19,46 @@ export function getKioskDeviceId(): string {
 
 export type KioskCommandName = 'reload' | 'screenOn' | 'screenOff' | 'brightness' | 'say' | 'screensaverStart' | 'screensaverStop' | 'audioTest' | 'restart'
 
+export type KioskCommandOutcome =
+  | { ok: true }
+  /** Fully non è raggiungibile: interfaccia JavaScript spenta o origine non fidata. */
+  | { ok: false; reason: 'no-bridge' }
+  /** Fully c'è ma questa versione non espone la funzione. */
+  | { ok: false; reason: 'unsupported' }
+
 /**
  * Esegue un comando dalla regia (§4.5/§12) sul tablet corrente via Fully.
- * `reload` funziona anche senza Fully (browser normale).
+ *
+ * `reload` e `audioTest` vivono nel browser e funzionano sempre: è il motivo
+ * per cui erano gli unici a "funzionare" quando Fully non è disponibile,
+ * mentre tutti gli altri fallivano in silenzio. Ora l'esito torna al
+ * chiamante, che lo riferisce alla regia.
  */
-export function executeKioskCommand(command: KioskCommandName, value?: number | string): void {
+export function executeKioskCommand(
+  command: KioskCommandName,
+  value?: number | string,
+): KioskCommandOutcome {
   if (command === 'reload') {
     window.location.reload()
-    return
+    return { ok: true }
   }
   if (command === 'audioTest') {
     testKioskAlarmChannel()
-    return
+    return { ok: true }
   }
   const bridge = createFullyKioskBridge(window.fully, window.location)
-  if (!bridge) return
-  switch (command) {
-    case 'screenOn': bridge.turnScreenOn(); break
-    case 'screenOff': bridge.turnScreenOff(); break
-    case 'brightness': if (typeof value === 'number') bridge.setBrightness(value); break
-    case 'say': if (typeof value === 'string') bridge.say(value); break
-    case 'screensaverStart': bridge.startScreensaver(); break
-    case 'screensaverStop': bridge.stopScreensaver(); break
-    case 'restart': bridge.restartApp(); break
-  }
+  if (!bridge) return { ok: false, reason: 'no-bridge' }
+  const done = (() => {
+    switch (command) {
+      case 'screenOn': return bridge.turnScreenOn()
+      case 'screenOff': return bridge.turnScreenOff()
+      case 'brightness': return typeof value === 'number' ? bridge.setBrightness(value) : false
+      case 'say': return typeof value === 'string' ? bridge.say(value) : false
+      case 'screensaverStart': return bridge.startScreensaver()
+      case 'screensaverStop': return bridge.stopScreensaver()
+      case 'restart': return bridge.restartApp()
+      default: return false
+    }
+  })()
+  return done ? { ok: true } : { ok: false, reason: 'unsupported' }
 }

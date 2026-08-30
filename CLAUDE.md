@@ -338,6 +338,13 @@ Fasi 2–6 applicate. La Definition of Done richiede a ogni rilascio lint, suite
 
 **Verificato (2026-08-31) — le videocamere NON sono più in home.** Con la build corrente, in **entrambe** le modalità home, con **tutte** le camere attivate nel wizard e persino un widget `camera` salvato in griglia: zero `img`/`video` nella pagina. La segnalazione "le vedo ancora" corrisponde alla **2.2.105** installata sul tablet (l'entità `update.*` lo confermava); la correzione è nella 2.2.107.
 
+
+**Risolti (2026-08-31) — comandi remoti ai tablet: fallivano in silenzio:**
+- **Diagnosi: solo `reload` funzionava, e non è un caso.** `reload` e `audioTest` vivono nel browser; **tutti** gli altri comandi (schermo, annuncio TTS, screensaver, riavvio) passano dall'interfaccia JavaScript di Fully Kiosk. Quando `window.fully` non c'è, `executeKioskCommand` faceva `return` **in silenzio** — e la regia, che non riceveva alcun riscontro, dichiarava comunque "Comando inviato al tablet.". Il comando *era* stato trasmesso: semplicemente sul tablet non poteva succedere nulla.
+- **Riscontro vero, non un successo presunto** — l'invio è un broadcast SSE: il server sa di aver trasmesso, non che qualcuno abbia eseguito. Ora `executeKioskCommand` restituisce l'esito (`ok` / `no-bridge` / `unsupported`), il kiosk lo riferisce con `POST /api/kiosk/command-ack` (non admin: lo manda il tablet come l'heartbeat, e scrive solo sul proprio record) e la regia attende quel riscontro prima di dire com'è andata. L'heartbeat non cancella l'esito dell'ultimo comando.
+- **La regia dice perché, prima di premere** — [kioskCommands.ts](src/lib/kioskCommands.ts) distingue i due casi con istruzioni concrete: `unavailable` → "in Fully → Settings → Advanced Web Settings attiva *Enable JavaScript Interface*"; `blocked` → "l'indirizzo aperto sul tablet non è considerato locale: apri la dashboard con l'IP della LAN". I comandi che richiedono Fully restano **disabilitati** finché non è disponibile; Ricarica e Prova audio restano sempre attivi perché non ne hanno bisogno. Uno stato mai riportato dal tablet non viene dato per buono.
+- Verifica: lint ✅ · test 422/422 ✅ (4 nuovi su `kioskCommands`) · build:all ✅ · typecheck backend ✅ · **provato end-to-end** con un kiosk reale senza Fully: `say` → `{ok:false, reason:'no-bridge'}`, `audioTest` → `{ok:true}`, e la card della flotta che mostra l'avviso con i quattro pulsanti disabilitati.
+
 **Residui noti (non bloccanti):** WebRTC/talk-back via signaling proxy backend; rimozione definitiva della grid legacy dopo validazione del composer sul tablet reale; AI write-back automazioni (roadmap); versioning config con storico snapshot (§4.4) e modalità ospiti/pulizie (§6.4) non ancora implementati.
 
 ---
