@@ -122,8 +122,15 @@ export function KioskWidgetHome() {
     [savedWidgets, entities, data?.deviceOverrides, data?.groups],
   )
   const displayLayout = useMemo(
-    () => buildLayout(displayWidgets, data?.layout.items),
-    [displayWidgets, data?.layout.items],
+    // Se la vista ha filtrato qualcosa (videocamere, dispositivi non ancora
+    // scelti nel wizard), le posizioni salvate lascerebbero buchi al loro
+    // posto: si ricompatta la SOLA vista, il layout salvato resta intatto e
+    // torna com'era appena il dispositivo viene attivato.
+    () => buildLayout(
+      displayWidgets,
+      displayWidgets.length === savedWidgets.length ? data?.layout.items : undefined,
+    ),
+    [displayWidgets, savedWidgets.length, data?.layout.items],
   )
 
   // Auth removed on the LAN → /status reports the admin role on every device,

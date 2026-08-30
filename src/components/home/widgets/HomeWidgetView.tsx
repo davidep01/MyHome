@@ -2,6 +2,7 @@ import { useEntityStore } from '../../../store/entities'
 import { useDashboardConfig } from '../../../hooks/useDashboardConfig'
 import { DOMAIN_TYPE } from '../../../hooks/useDiscoveredEntities'
 import { EntityCard } from '../../widgets/WidgetGrid'
+import { isConfiguredEntity } from '../../../lib/entityVisibility'
 import { GroupCard } from '../../widgets/GroupCard'
 import { WeatherWidget } from '../../weather/WeatherWidget'
 import { GlassCard } from '../../glass/GlassCard'
@@ -53,7 +54,11 @@ function MissingWidget({ text }: { text: string }) {
 export function HomeWidgetView({ widget, publicConfig }: { widget: HomeWidget; publicConfig?: PublicWidgetConfig }) {
   const { data: fullConfig } = useDashboardConfig(!publicConfig)
   const config = publicConfig ?? fullConfig
-  const roomEntity = useRoomEntity(widget.entityId, publicConfig)
+  const rawRoomEntity = useRoomEntity(widget.entityId, publicConfig)
+  // Opt-in anche nella griglia: un widget salvato su un dispositivo che non è
+  // (più) stato scelto nel wizard non deve tornare a vivere da solo.
+  const configured = !widget.entityId || isConfiguredEntity(widget.entityId, config?.deviceOverrides)
+  const roomEntity = configured ? rawRoomEntity : null
   const visualSize = widget.entityId
     ? resolveEnabledCardSize(widgetVisualSizeFromHomeSize(widget.size), config?.deviceOverrides?.[widget.entityId])
     : widgetVisualSizeFromHomeSize(widget.size)
@@ -77,17 +82,19 @@ export function HomeWidgetView({ widget, publicConfig }: { widget: HomeWidget; p
     case 'sensor':
       return roomEntity
         ? <EntityCard entity={roomEntity} size={visualSize} />
-        : <MissingWidget text="Sensore non impostato" />
+        : <MissingWidget text={configured ? 'Sensore non impostato' : 'Non attivo: aggiungilo nel wizard'} />
+    // Le card video vivono solo nella tendina videocamere (pulsante in alto):
+    // un widget camera salvato da una versione precedente non riapre lo stream.
     case 'camera':
-      return roomEntity
-        ? <EntityCard entity={roomEntity} size={visualSize} />
-        : <MissingWidget text="Camera non impostata" />
+      return <MissingWidget text="Le videocamere si aprono dalla tendina video" />
     case 'group': {
       const group = config?.groups?.find((g) => g.id === widget.groupId)
       return group ? <GroupCard group={group} size={visualSize} className="h-full" /> : <MissingWidget text="Gruppo non impostato" />
     }
     case 'entity':
-      return roomEntity ? <EntityCard entity={roomEntity} size={visualSize} /> : <MissingWidget text="Dispositivo non impostato" />
+      return roomEntity
+        ? <EntityCard entity={roomEntity} size={visualSize} />
+        : <MissingWidget text={configured ? 'Dispositivo non impostato' : 'Non attivo: aggiungilo nel wizard'} />
     default:
       return <MissingWidget text="Widget sconosciuto" />
   }

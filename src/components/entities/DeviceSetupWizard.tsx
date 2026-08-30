@@ -145,6 +145,26 @@ export function DeviceSetupWizard({
   }, [entities, overrides, query, domainFilter])
   const visibleCandidates = candidates.slice(0, 60)
 
+  /**
+   * `resolveAreaId` ri-tokenizza i nomi delle aree a ogni chiamata: senza cache
+   * costerebbe 60 righe × N aree a ogni tasto premuto e a ogni delta di stato
+   * di Home Assistant. La chiave include il nome, così una rinomina invalida.
+   */
+  const roomLabelById = useMemo(() => {
+    const cache = new Map<string, string>()
+    for (const entity of visibleCandidates) {
+      const id = entity.entity_id
+      const manual = overrides[id]?.areaId
+      if (manual) {
+        cache.set(id, areaNameById.get(manual) ?? manual)
+        continue
+      }
+      const auto = resolveAreaId({ entity, areas, registryAreaId: registryById?.get(id)?.areaId })
+      cache.set(id, auto ? areaNameById.get(auto) ?? auto : 'Nessuna stanza')
+    }
+    return cache
+  }, [visibleCandidates, overrides, areas, areaNameById, registryById])
+
   const selectedName = selectedEntity
     ? String(selectedEntity.attributes?.friendly_name ?? selectedEntity.entity_id)
     : ''
@@ -304,12 +324,8 @@ export function DeviceSetupWizard({
               {visibleCandidates.map((entity) => {
                 const id = entity.entity_id
                 const current = overrides[id]
-                const meta = registryById?.get(id)
                 const domainType = DOMAIN_TYPE[id.split('.')[0]]
-                const autoRoom = resolveAreaId({ entity, areas, registryAreaId: meta?.areaId })
-                const roomLabel = current?.areaId
-                  ? areaNameById.get(current.areaId) ?? current.areaId
-                  : autoRoom ? areaNameById.get(autoRoom) ?? autoRoom : 'Nessuna stanza'
+                const roomLabel = roomLabelById.get(id) ?? 'Nessuna stanza'
                 const on = selected.has(id)
                 return (
                   <div

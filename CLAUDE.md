@@ -311,6 +311,15 @@ Fasi 2–6 applicate. La Definition of Done richiede a ogni rilascio lint, suite
 - **Grammatica** — "1 avvisi critici" → "1 avviso critico".
 - Verifica: lint ✅ · test 402/402 ✅ · build:all ✅ · typecheck backend ✅ · **provato dal vivo** su una copia isolata del db con HA reale: wizard aperto, 3 dispositivi selezionati e applicati in un solo salvataggio, override persistiti come `{enabled:true}` e kiosk che mostra esattamente quelle stanze ("Camera da letto 2 · Altro 1").
 
+
+**Risolti (2026-08-31) — l'opt-in mancava dove serviva: la griglia (bugfix di 2.2.106):**
+- **Diagnosi: la 2.2.106 non toccava la home reale.** L'opt-in era stato applicato al *composer*, ma `config.kiosk.homeMode` è `grid`: sul tablet gira `KioskWidgetHome`, dove la home è la lista di widget salvati. Il composer non veniva nemmeno eseguito, quindi la dashboard continuava a mostrare tutto. Le chip stanza funzionavano (usano `useRoomsOverview`), il resto no.
+- **Griglia: opt-in vero** — `contentAwareHomeWidgets` ora **filtra** i widget che non possono mostrare nulla, invece di lasciare un buco con una scritta: fuori le videocamere (sempre) e i dispositivi non ancora scelti nel wizard. La vista si **ricompatta** (`buildLayout` senza le posizioni salvate quando qualcosa è stato filtrato), mentre il layout salvato resta intatto e torna com'era appena il dispositivo viene attivato. `HomeWidgetView` fa da seconda barriera con un messaggio esplicito ("Non attivo: aggiungilo nel wizard").
+- **Card video fuori dalla dashboard, davvero** — `case 'camera'` in `HomeWidgetView` renderizzava un `EntityCard` a tutta card, cioè **il video sulla dashboard**. Ora non rende mai lo stream e rimanda alla tendina; `camera` è fuori da `WIDGET_ORDER` (resta in `WIDGET_META` per non rompere i layout salvati). La tendina resta raggiungibile in entrambe le modalità home.
+- **Riepiloghi onesti** — `useHomeSummary` (Riepilogo casa) e `useHomeStatus` (Stato casa) contavano tutte le 246 entità: un "7 luci accese" che includeva lampade mai volute in casa, per giunta con un bottone che le avrebbe spente tutte. Ora contano solo i dispositivi scelti nel wizard. **Eccezione coerente col composer:** gli allarmi scattati restano contati anche se non configurati.
+- **Wizard più leggero** — le etichette di stanza sono memoizzate: `resolveAreaId` ri-tokenizza i nomi delle aree a ogni chiamata e la lista si ridisegna a ogni tasto premuto e a ogni delta di stato HA (60 righe × N aree di lavoro sprecato).
+- Verifica: lint ✅ · test 405/405 ✅ · build:all ✅ · typecheck backend ✅ · **provato in grid mode su HA reale** con una copia isolata del db: widget camera e dispositivo non configurato spariti dalla griglia (ricompattata, senza buchi), 0 elementi video sulla dashboard, tendina che apre e mostra lo stream della camera attivata.
+
 **Residui noti (non bloccanti):** WebRTC/talk-back via signaling proxy backend; rimozione definitiva della grid legacy dopo validazione del composer sul tablet reale; AI write-back automazioni (roadmap); versioning config con storico snapshot (§4.4) e modalità ospiti/pulizie (§6.4) non ancora implementati.
 
 ---

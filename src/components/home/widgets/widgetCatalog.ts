@@ -41,5 +41,8 @@ export const WIDGET_META: Record<WidgetType, WidgetMeta> = {
 
 export const WIDGET_ORDER: WidgetType[] = [
   'clock', 'status', 'quickStats', 'insight', 'weather', 'calendar', 'news',
-  'security', 'system', 'scenes', 'people', 'entity', 'group', 'sensor', 'camera',
+  'security', 'system', 'scenes', 'people', 'entity', 'group', 'sensor',
 ]
+
+// 'camera' resta nel WIDGET_META per rendere i layout salvati in passato, ma
+// è fuori da WIDGET_ORDER: le card video vivono solo nella tendina video.

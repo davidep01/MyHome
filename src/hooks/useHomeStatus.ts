@@ -2,6 +2,8 @@ import { useMemo } from 'react'
 import { AlertTriangle, CheckCircle2, ShieldAlert } from 'lucide-react'
 import { useEntityStore } from '../store/entities'
 import { useNotifications } from './useNotifications'
+import { useTabletLayout } from './useTabletLayout'
+import { isDashboardCardEntity } from '../lib/entityVisibility'
 import { tokens } from '../design/tokens'
 
 const criticalBinaryClasses = new Set([
@@ -19,14 +21,20 @@ const criticalBinaryClasses = new Set([
 export function useHomeStatus() {
   const entities = useEntityStore((s) => s.entities)
   const notifications = useNotifications()
+  const { data: layout } = useTabletLayout('home')
+  const overrides = layout?.deviceOverrides
 
   return useMemo(() => {
+    // I sensori seguono l'opt-in: un contatto mai scelto non deve alzare la voce.
     const binaryAlerts = Object.values(entities).filter((entity) => {
       if (!entity.entity_id.startsWith('binary_sensor.') || entity.state !== 'on') return false
+      if (!isDashboardCardEntity(entity.entity_id, overrides)) return false
       const deviceClass = entity.attributes?.device_class as string | undefined
       return deviceClass ? criticalBinaryClasses.has(deviceClass) : false
     })
 
+    // Gli allarmi scattati NO: come nel composer, la sicurezza non dipende
+    // dall'aver completato una configurazione.
     const triggeredAlarms = Object.values(entities).filter(
       (entity) => entity.entity_id.startsWith('alarm_control_panel.') && entity.state === 'triggered',
     )
@@ -65,5 +73,5 @@ export function useHomeStatus() {
       color: tokens.accent.green,
       Icon: CheckCircle2,
     }
-  }, [entities, notifications])
+  }, [entities, notifications, overrides])
 }

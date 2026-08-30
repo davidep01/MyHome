@@ -1,5 +1,6 @@
 import type { HassEntities } from 'home-assistant-js-websocket'
 import type { DeviceOverride, EntityGroup, HomeWidget, WidgetSize } from '../api/backend'
+import { isConfiguredEntity } from './entityVisibility'
 import { resolveEnabledCardSize, widgetVisualSizeFromHomeSize } from '../components/widgets/utils/getWidgetSizeConfig'
 
 const MEDIUM_WIDGETS = new Set<HomeWidget['type']>([
@@ -44,7 +45,14 @@ export function contentAwareHomeWidgets(
   overrides?: Record<string, DeviceOverride>,
   groups?: EntityGroup[],
 ): HomeWidget[] {
-  return widgets.map((widget) => {
+  return widgets
+    // Un widget che non può mostrare nulla non deve occupare uno slot: la
+    // griglia si ricompatta invece di lasciare un buco con una scritta.
+    // Le videocamere escono sempre (il video vive nella tendina); i
+    // dispositivi escono finché non sono scelti nel wizard.
+    .filter((widget) => widget.type !== 'camera')
+    .filter((widget) => !widget.entityId || isConfiguredEntity(widget.entityId, overrides))
+    .map((widget) => {
     const override = widget.entityId ? overrides?.[widget.entityId] : undefined
     const explicitCardSize = override?.cardSizes?.length ? undefined : override?.cardSize
     if (explicitCardSize) {
