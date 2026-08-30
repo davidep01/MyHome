@@ -328,6 +328,16 @@ Fasi 2–6 applicate. La Definition of Done richiede a ogni rilascio lint, suite
 - **Allowlist** — `update.install` e `homeassistant.update_entity` aggiunti ai servizi consentiti, **solo per il ruolo admin**: aggiornare il servizio non è un gesto da tablet a muro.
 - Verifica: lint ✅ · test 409/409 ✅ · build:all ✅ · typecheck backend ✅. **Da provare con l'add-on vero:** una installazione completa (qui verificata la lettura dell'entità dall'HA reale, non l'installazione, che riavvia il servizio).
 
+
+**Risolti (2026-08-31) — schermata di aggiornamento sul kiosk:**
+- **Il tablet non deve sembrare guasto mentre si aggiorna** — durante la sostituzione dell'immagine il servizio sparisce e lo stream cade: finora il kiosk mostrava `ConnectionOverlay` ("connessione assente"), cioè un errore, proprio mentre stava andando tutto bene. Nuovo [AddonUpdateOverlay](src/components/system/AddonUpdateOverlay.tsx) a schermo pieno (z 95, sopra ConnectionOverlay): "Aggiornamento in corso · Non spegnere il tablet", versione da→a, barra di avanzamento.
+- **Le tre fasi sono un kernel puro** (`addonUpdatePhase`, 4 test): `updating` mentre HA installa, `restarting` quando il servizio sparisce **dopo** che un aggiornamento è partito (una disconnessione qualsiasi resta competenza di ConnectionOverlay, non diventa una falsa schermata di aggiornamento), `done` al ritorno della connessione — seguito da una **ricarica automatica**, altrimenti il tablet continuerebbe a eseguire il bundle vecchio, che è esattamente il problema che questo schermo esiste per rendere visibile.
+- **Percentuale onesta** — se HA riporta `update_percentage` la barra la usa, altrimenti pulsa senza mostrare un numero inventato.
+- **Presentazione separata dai dati** — `AddonUpdateScreen` è puro e testabile a props; l'hook resta il solo punto che tocca lo store. Serviva davvero: in render server Zustand v5 restituisce lo stato **iniziale** (`getInitialState`), quindi un test che legge lo store non avrebbe mai visto l'aggiornamento. 5 test di render.
+- Verifica: lint ✅ · test 418/418 ✅ · build:all ✅ · typecheck backend ✅. **Da provare con l'add-on vero:** un aggiornamento completo end-to-end (qui verificate le fasi e il render, non l'installazione reale).
+
+**Verificato (2026-08-31) — le videocamere NON sono più in home.** Con la build corrente, in **entrambe** le modalità home, con **tutte** le camere attivate nel wizard e persino un widget `camera` salvato in griglia: zero `img`/`video` nella pagina. La segnalazione "le vedo ancora" corrisponde alla **2.2.105** installata sul tablet (l'entità `update.*` lo confermava); la correzione è nella 2.2.107.
+
 **Residui noti (non bloccanti):** WebRTC/talk-back via signaling proxy backend; rimozione definitiva della grid legacy dopo validazione del composer sul tablet reale; AI write-back automazioni (roadmap); versioning config con storico snapshot (§4.4) e modalità ospiti/pulizie (§6.4) non ancora implementati.
 
 ---

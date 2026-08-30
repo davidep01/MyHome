@@ -48,3 +48,25 @@ export function findAddonUpdateEntity(entities: HassEntities): AddonUpdateInfo |
     autoUpdate: entity.attributes?.auto_update === true,
   }
 }
+
+export type AddonUpdatePhase = 'idle' | 'updating' | 'restarting' | 'done'
+
+/**
+ * Fase mostrata sul kiosk durante un aggiornamento.
+ *
+ * Il punto delicato è il **riavvio**: quando il Supervisor sostituisce
+ * l'immagine, il servizio sparisce e lo stream cade. Senza memoria di ciò che
+ * stava succedendo il tablet mostrerebbe "connessione assente", che sembra un
+ * guasto; con la memoria (`started`) resta invece "aggiornamento in corso" fino
+ * al ritorno del servizio, e a quel punto va ricaricato per prendere il bundle
+ * nuovo.
+ */
+export function addonUpdatePhase(input: {
+  inProgress: boolean
+  connected: boolean
+  started: boolean
+}): AddonUpdatePhase {
+  if (input.inProgress) return 'updating'
+  if (!input.started) return 'idle'
+  return input.connected ? 'done' : 'restarting'
+}

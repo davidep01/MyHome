@@ -8,6 +8,7 @@ import { useUIStore, viewFromPath, VIEW_PATHS } from '../../store/ui'
 import { GlassSheet } from '../glass/GlassSheet'
 import { ContextualPanel } from '../contextual/ContextualPanel'
 import { ConnectionOverlay } from '../system/ConnectionOverlay'
+import { AddonUpdateOverlay } from '../system/AddonUpdateOverlay'
 import { DoorbellAlert } from '../system/DoorbellAlert'
 import { LiveActivityBar } from '../live/LiveActivityBar'
 import { usePerfMode } from '../../hooks/usePerfMode'
@@ -195,6 +196,9 @@ function DesktopShell({ path }: { path: string }) {
 
       {/* HA-down fullscreen overlay (auto-dismisses on reconnect) */}
       <ConnectionOverlay />
+      {/* Sopra ConnectionOverlay: durante l'aggiornamento il servizio sparisce
+          e "connessione assente" sembrerebbe un guasto. */}
+      <AddonUpdateOverlay />
 
       {/* Doorbell → fullscreen video alert */}
       <DoorbellAlert doorbells={layout?.doorbells ?? []} vision={layout?.ai?.doorbellVision === true} />

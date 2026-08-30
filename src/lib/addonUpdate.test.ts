@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { HassEntities, HassEntity } from 'home-assistant-js-websocket'
-import { findAddonUpdateEntity } from './addonUpdate'
+import { addonUpdatePhase, findAddonUpdateEntity } from './addonUpdate'
 
 function update(entity_id: string, state: string, attributes: Record<string, unknown>): HassEntity {
   return { entity_id, state, attributes, last_changed: '', last_updated: '', context: { id: 'x', parent_id: null, user_id: null } }
@@ -58,5 +58,25 @@ describe('entità di aggiornamento dell add-on', () => {
 
   it('restituisce null se HA non espone alcuna entità update', () => {
     expect(findAddonUpdateEntity({} as HassEntities)).toBeNull()
+  })
+})
+
+describe('fasi dell aggiornamento sul kiosk', () => {
+  it('resta inattivo finché non parte nulla', () => {
+    expect(addonUpdatePhase({ inProgress: false, connected: true, started: false })).toBe('idle')
+    // Anche se lo stream cade per conto suo: una disconnessione non è un aggiornamento.
+    expect(addonUpdatePhase({ inProgress: false, connected: false, started: false })).toBe('idle')
+  })
+
+  it('mostra l aggiornamento mentre HA lo installa', () => {
+    expect(addonUpdatePhase({ inProgress: true, connected: true, started: true })).toBe('updating')
+  })
+
+  it('durante il riavvio non scambia il servizio assente per un guasto', () => {
+    expect(addonUpdatePhase({ inProgress: false, connected: false, started: true })).toBe('restarting')
+  })
+
+  it('a servizio tornato dichiara concluso, così il tablet può ricaricare', () => {
+    expect(addonUpdatePhase({ inProgress: false, connected: true, started: true })).toBe('done')
   })
 })
