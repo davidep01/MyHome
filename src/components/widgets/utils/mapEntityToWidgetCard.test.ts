@@ -49,3 +49,29 @@ describe('light widget mapping', () => {
     })
   })
 })
+
+describe('safety widget mapping', () => {
+  it('does not mislabel a generic problem sensor as a water leak', () => {
+    const problemEntity: HassEntity = {
+      entity_id: 'binary_sensor.gateway_problem',
+      state: 'on',
+      attributes: { device_class: 'problem', friendly_name: 'Gateway' },
+      last_changed: '2026-07-19T00:00:00Z',
+      last_updated: '2026-07-19T00:00:00Z',
+      context: { id: 'test', parent_id: null, user_id: null },
+    }
+    const problemRoom: RoomEntity = {
+      ...roomEntity,
+      id: problemEntity.entity_id,
+      entityId: problemEntity.entity_id,
+      label: 'Gateway',
+      type: 'binary_sensor',
+    }
+
+    expect(mapEntityToWidgetCard(problemEntity, problemRoom)).toMatchObject({
+      family: 'system',
+      state: 'Problema rilevato',
+      isActive: true,
+    })
+  })
+})

@@ -252,6 +252,8 @@ export interface DeviceOverride {
   label?: string
   icon?: string
   type?: EntityType
+  /** Stanza scelta manualmente nel wizard; precede registry HA e fallback automatico. */
+  areaId?: string
   /** Dimensione preferita della card nelle dashboard automatiche. */
   cardSize?: 'XS' | 'S' | 'M' | 'L' | 'XL'
   /** Dimensioni consentite: il composer sceglie la più adatta fra queste. */

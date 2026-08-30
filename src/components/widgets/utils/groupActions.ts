@@ -1,3 +1,6 @@
+import type { WidgetVisualSize } from '../types'
+import { stateLabel } from './stateLabel'
+
 export type GroupControlKind = 'switch' | 'action' | 'activate'
 
 export interface GroupCapability {
@@ -74,6 +77,18 @@ export function groupMemberActive(domain: string, state: string | undefined): bo
     default:
       return state === 'on'
   }
+}
+
+export function groupMemberStateLabel(domain: string, state: string | undefined): string {
+  if (domain === 'light') {
+    if (state === 'on') return 'Accesa'
+    if (state === 'off') return 'Spenta'
+  }
+  return stateLabel(state)
+}
+
+export function groupShowsMemberDetails(size: WidgetVisualSize): boolean {
+  return size === 'L' || size === 'XL'
 }
 
 /** Undefined means HA must report the real restored state (e.g. climate). */

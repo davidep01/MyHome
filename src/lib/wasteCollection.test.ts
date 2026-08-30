@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   isWasteCollectionSensor,
+  wasteFuturePickupLimit,
   wasteItemsFromText,
   wastePickupDateLabel,
   wastePickups,
@@ -59,5 +60,11 @@ describe('Waste Collection Schedule adapter', () => {
     expect({ icon: glass.icon, background: glass.background }).toEqual({ icon: 'glass', background: '#248a3d' })
     expect({ icon: paper.icon, background: paper.background }).toEqual({ icon: 'paper', background: '#ffffff' })
     expect({ icon: general.icon, background: general.background }).toEqual({ icon: 'general', background: '#1d1d1f' })
+  })
+
+  it('uses spare space in panoramic and tall kiosk cards for future pickups', () => {
+    expect(wasteFuturePickupLimit('XL')).toBe(2)
+    expect(wasteFuturePickupLimit('L')).toBe(2)
+    expect(wasteFuturePickupLimit('M')).toBe(0)
   })
 })

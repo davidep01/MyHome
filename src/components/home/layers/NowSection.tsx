@@ -48,6 +48,7 @@ export function NowSection({
           {slot.group ? (
             <GroupCard
               group={{ id: slot.key, label: slot.group.label, entityIds: slot.group.entityIds, type: 'light' }}
+              size={size}
               className="h-full"
             />
           ) : slot.entityId ? (

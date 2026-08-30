@@ -152,8 +152,9 @@ function binaryFamily(entity?: HassEntity | null): WidgetFamily {
   if (['motion', 'occupancy', 'moving'].includes(dc)) return dc === 'motion' ? 'motion' : 'presence'
   if (['presence'].includes(dc)) return 'presence'
   if (['door', 'window', 'garage_door', 'opening'].includes(dc)) return 'doorWindow'
-  if (['moisture', 'problem'].includes(dc) || hasAny(id, ['leak', 'perdita', 'flood'])) return 'waterLeak'
+  if (dc === 'moisture' || hasAny(id, ['leak', 'perdita', 'flood'])) return 'waterLeak'
   if (['smoke', 'gas', 'carbon_monoxide'].includes(dc) || hasAny(id, ['smoke', 'gas', 'co_'])) return 'smokeGasCo'
+  if (dc === 'problem') return 'system'
   return 'generic'
 }
 
@@ -323,6 +324,18 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
         isActive: critical,
         state: critical ? (siren ? 'Sirena attiva' : 'Allarme!') : siren ? 'Sirena disattivata' : stateLabel(rawState),
         stateAccent: critical,
+      }
+    }
+    case 'system': {
+      const problem = ['on', 'problem', 'error', 'triggered'].includes(rawState)
+      const tone = problem ? widgetTones.warning : widgetTones.ok
+      return {
+        ...base, Icon: AnimShield,
+        status: problem ? 'warning' : 'clear',
+        accentColor: tone.color,
+        isActive: problem,
+        state: problem ? 'Problema rilevato' : 'Nessun problema',
+        stateAccent: problem,
       }
     }
     case 'motion':

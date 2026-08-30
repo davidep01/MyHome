@@ -15,6 +15,8 @@ import {
   entityDomain,
   groupCapability,
   groupMemberActive,
+  groupMemberStateLabel,
+  groupShowsMemberDetails,
   homogeneousGroupDomain,
   optimisticGroupState,
 } from './utils/groupActions'
@@ -98,7 +100,7 @@ export function GroupCard({ group, size = 'M', className }: { group: EntityGroup
       ? capability.onLabel
       : capability.offLabel ?? capability.onLabel
     : ''
-  const expanded = size === 'L'
+  const expanded = groupShowsMemberDetails(size)
   const lightPowerCard = presentationType === 'light' && capability?.kind === 'switch'
 
   return (
@@ -190,14 +192,14 @@ export function GroupCard({ group, size = 'M', className }: { group: EntityGroup
         </p>
       </div>
       {expanded && members.length > 0 && (
-        <div className="min-h-0 space-y-1.5 overflow-hidden">
-          {members.slice(0, 5).map(({ id, entity }) => {
+        <div className={cn('min-h-0 overflow-hidden', size === 'XL' ? 'grid grid-cols-2 gap-1.5' : 'space-y-1.5')}>
+          {members.slice(0, size === 'XL' ? 6 : 5).map(({ id, entity }) => {
             const memberActive = groupMemberActive(entityDomain(id), entity.state)
             return (
-              <div key={id} className="flex items-center gap-2 rounded-[10px] bg-black/[0.035] px-2.5 py-2 text-xs">
+              <div key={id} className="flex min-w-0 items-center gap-2 rounded-[10px] bg-black/[0.035] px-2.5 py-2 text-xs dark:bg-white/[0.055]">
                 <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: memberActive ? activeTone.color : 'rgba(0,0,0,0.18)' }} />
-                <span className="min-w-0 flex-1 truncate font-semibold text-black/65">{String(entity.attributes?.friendly_name ?? id.split('.')[1])}</span>
-                <span className="shrink-0 text-black/35">{entity.state}</span>
+                <span className="min-w-0 flex-1 truncate font-semibold text-black/65 dark:text-white/68">{String(entity.attributes?.friendly_name ?? id.split('.')[1])}</span>
+                <span className="shrink-0 text-black/35 dark:text-white/42">{groupMemberStateLabel(entityDomain(id), entity.state)}</span>
               </div>
             )
           })}

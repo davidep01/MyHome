@@ -88,3 +88,22 @@ describe('device card size override', () => {
     }
   })
 })
+
+describe('device setup room override', () => {
+  it('accepts a Home Assistant area id alongside the card category', () => {
+    expect(validateConfigPatch({
+      deviceOverrides: { 'light.sala': { type: 'light', areaId: 'soggiorno' } },
+    })).toMatchObject({
+      ok: true,
+      value: { deviceOverrides: { 'light.sala': { type: 'light', areaId: 'soggiorno' } } },
+    })
+  })
+
+  it('rejects empty, unsafe or oversized area ids', () => {
+    for (const areaId of ['', 'soggiorno\naltro', 'x'.repeat(129)]) {
+      expect(validateConfigPatch({
+        deviceOverrides: { 'light.sala': { areaId } },
+      })).toMatchObject({ ok: false })
+    }
+  })
+})

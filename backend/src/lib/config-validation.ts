@@ -136,8 +136,9 @@ function parseOverrides(value: unknown): Record<string, DeviceOverride> | null {
   if (!isRecord(value) || Object.keys(value).length > 5_000) return null
   const result: Record<string, DeviceOverride> = {}
   for (const [entityId, raw] of Object.entries(value)) {
-    if (!isEntityId(entityId) || !isRecord(raw) || !onlyKeys(raw, ['hero', 'label', 'icon', 'type', 'cardSize', 'cardSizes', 'showWhenActive', 'enabled'])) return null
+    if (!isEntityId(entityId) || !isRecord(raw) || !onlyKeys(raw, ['hero', 'label', 'icon', 'type', 'areaId', 'cardSize', 'cardSizes', 'showWhenActive', 'enabled'])) return null
     const label = raw.label === undefined ? undefined : cleanText(raw.label, 100)
+    const areaId = raw.areaId === undefined ? undefined : cleanText(raw.areaId, 128)
     const cardSizes = raw.cardSizes === undefined
       ? undefined
       : Array.isArray(raw.cardSizes)
@@ -152,6 +153,7 @@ function parseOverrides(value: unknown): Record<string, DeviceOverride> | null {
       || label === null
       || (raw.icon !== undefined && !isIconName(raw.icon))
       || (raw.type !== undefined && !isEntityType(raw.type))
+      || areaId === null
       || (raw.cardSize !== undefined && !['XS', 'S', 'M', 'L', 'XL'].includes(String(raw.cardSize)))
       || cardSizes === null
       || (raw.showWhenActive !== undefined && typeof raw.showWhenActive !== 'boolean')
@@ -162,6 +164,7 @@ function parseOverrides(value: unknown): Record<string, DeviceOverride> | null {
       ...(label !== undefined ? { label } : {}),
       ...(typeof raw.icon === 'string' ? { icon: raw.icon } : {}),
       ...(typeof raw.type === 'string' ? { type: raw.type } : {}),
+      ...(areaId !== undefined ? { areaId } : {}),
       ...(raw.cardSize === 'XS' || raw.cardSize === 'S' || raw.cardSize === 'M' || raw.cardSize === 'L' || raw.cardSize === 'XL' ? { cardSize: raw.cardSize } : {}),
       ...(cardSizes ? { cardSizes } : {}),
       ...(typeof raw.showWhenActive === 'boolean' ? { showWhenActive: raw.showWhenActive } : {}),

@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import type { HassEntity } from 'home-assistant-js-websocket'
 import { useAreaIndex } from './useAreaIndex'
-import { useHAHiddenEntities } from './useHAHiddenEntities'
+import { useDashboardEntityCuration } from './useDashboardEntityCuration'
 import { useEntityStore } from '../store/entities'
 import { isRenderableDomain } from '../components/home/layers/makeRoomEntity'
 import type { DeviceOverride } from '../api/backend'
@@ -106,19 +106,18 @@ export function useRoomsOverview(cfg?: {
   overrides?: Record<string, DeviceOverride>
 }): { rooms: RoomOverview[]; ready: boolean } {
   const entities = useEntityStore((s) => s.entities)
-  const haHidden = useHAHiddenEntities()
-  const { areas, areaIdOf, ready } = useAreaIndex()
+  const registryExcluded = useDashboardEntityCuration()
   const hiddenEntities = cfg?.hiddenEntities
   const overrides = cfg?.overrides
+  const { areas, areaIdOf, ready } = useAreaIndex(overrides)
 
   const rooms = useMemo(() => {
-    const hidden = new Set([...(hiddenEntities ?? []), ...haHidden])
+    const hidden = new Set([...(hiddenEntities ?? []), ...registryExcluded])
     const visible = Object.values(entities).filter((e) =>
-      !hidden.has(e.entity_id)
+      (!hidden.has(e.entity_id) || overrides?.[e.entity_id]?.enabled === true)
       && !isPresenceEntity(e)
       && isRenderableDomain(e.entity_id)
-      && overrides?.[e.entity_id]?.enabled !== false
-      && e.attributes?.entity_category !== 'diagnostic')
+      && overrides?.[e.entity_id]?.enabled !== false)
 
     const byArea = new Map<string, HassEntity[]>()
     const orphan: HassEntity[] = []
@@ -143,7 +142,7 @@ export function useRoomsOverview(cfg?: {
     }
     if (orphan.length) list.push(summarize('other', 'Altro', orphan))
     return list
-  }, [entities, areas, areaIdOf, ready, hiddenEntities, haHidden, overrides])
+  }, [entities, areas, areaIdOf, ready, hiddenEntities, registryExcluded, overrides])
 
   return { rooms, ready }
 }

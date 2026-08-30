@@ -191,6 +191,8 @@ export interface DeviceOverride {
   icon?: string
   /** override the card type used for this entity */
   type?: string
+  /** Manual dashboard room assignment; takes precedence over the HA registry. */
+  areaId?: string
   /** Preferred card footprint in automatic dashboards. */
   cardSize?: 'XS' | 'S' | 'M' | 'L' | 'XL'
   /** Allowed footprints; the automatic composer picks one of these. */

@@ -1,7 +1,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
-  Boxes, Check, Eye, EyeOff, Layers, Pencil, Plus, Save, Search, Trash2, X,
+  Boxes, Check, Eye, EyeOff, Layers, Pencil, Plus, Save, Search, Trash2, WandSparkles, X,
 } from 'lucide-react'
 import { GlassCard } from '../components/glass/GlassCard'
 import { GlassSheet } from '../components/glass/GlassSheet'
@@ -15,20 +15,14 @@ import { iconExists } from '../lib/lucide'
 import { uid } from '../lib/uid'
 import { DynamicIcon } from '../components/DynamicIcon'
 import { cn } from '../lib/utils'
+import { DEVICE_CATEGORY_OPTIONS } from '../lib/deviceSetup'
+import {
+  DeviceSetupWizard, type DeviceSetupRegistryMeta,
+} from '../components/entities/DeviceSetupWizard'
 import type { DeviceOverride, EntityGroup, EntityType } from '../api/backend'
 import type { WidgetVisualSize } from '../components/widgets/types'
 
-const TYPE_OPTIONS: { value: EntityType; label: string }[] = [
-  { value: 'light', label: 'Luce' }, { value: 'switch', label: 'Interruttore' },
-  { value: 'climate', label: 'Clima' }, { value: 'cover', label: 'Tapparella' },
-  { value: 'lock', label: 'Serratura' }, { value: 'fan', label: 'Ventilatore' },
-  { value: 'media', label: 'Media' }, { value: 'camera', label: 'Videocamera' },
-  { value: 'vacuum', label: 'Robot' }, { value: 'scene', label: 'Scena' },
-  { value: 'alarm', label: 'Allarme' }, { value: 'siren', label: 'Sirena' },
-  { value: 'number', label: 'Slider' }, { value: 'select', label: 'Selettore' },
-  { value: 'button', label: 'Pulsante' }, { value: 'binary_sensor', label: 'Sensore stato' },
-  { value: 'sensor', label: 'Sensore valore' },
-]
+const TYPE_OPTIONS: { value: EntityType; label: string }[] = DEVICE_CATEGORY_OPTIONS
 
 type VisibilityFilter = 'all' | 'visible' | 'hidden' | 'unavailable'
 const PAGE = 120
@@ -61,16 +55,22 @@ export function EntitiesPage() {
       const [areas, devices, regs] = await Promise.all([haRegistry.areas(), haRegistry.devices(), haRegistry.entities()])
       const deviceArea = new Map(devices.map((d) => [d.id, d.area_id]))
       const areaName = new Map(areas.map((a) => [a.area_id, a.name]))
-      const byId = new Map(regs.map((r) => [r.entity_id, {
-        areaName: (() => {
-          const id = r.area_id ?? (r.device_id ? deviceArea.get(r.device_id) ?? null : null)
-          return id ? areaName.get(id) : undefined
-        })(),
+      const byId = new Map<string, DeviceSetupRegistryMeta>(regs.map((r) => {
+        const areaId = r.area_id ?? (r.device_id ? deviceArea.get(r.device_id) ?? null : null)
+        return [r.entity_id, {
+        areaId: areaId ?? undefined,
+        areaName: areaId ? areaName.get(areaId) : undefined,
         platform: r.platform ?? undefined,
         haHidden: r.hidden_by != null,
         category: r.entity_category ?? undefined,
-      }]))
-      return { byId, areaNames: [...areaName.values()].sort((a, b) => a.localeCompare(b)) }
+      }]
+      }))
+      return {
+        byId,
+        areas: [...areas].sort((a, b) => a.name.localeCompare(b.name)),
+        areaNames: [...areaName.values()].sort((a, b) => a.localeCompare(b)),
+        areaNameById: areaName,
+      }
     },
   })
 
@@ -170,6 +170,7 @@ export function EntitiesPage() {
   const [cap, setCap] = useState(PAGE)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [editId, setEditId] = useState<string | null>(null)
+  const [wizardInvocation, setWizardInvocation] = useState<{ entityId?: string } | null>(null)
   const [groupDraft, setGroupDraft] = useState<EntityGroup | null>(null)
   const [groupQuery, setGroupQuery] = useState('')
 
@@ -185,12 +186,14 @@ export function EntitiesPage() {
       .map((e) => {
         const meta = registry?.byId.get(e.entity_id)
         const ov = overrides[e.entity_id]
+        const manualAreaName = ov?.areaId ? registry?.areaNameById.get(ov.areaId) : undefined
         return {
           id: e.entity_id,
           name: ov?.label || (e.attributes?.friendly_name as string | undefined) || e.entity_id,
           domain: e.entity_id.split('.')[0],
           state: e.state,
-          areaName: meta?.areaName,
+          areaName: manualAreaName ?? meta?.areaName,
+          areaManual: Boolean(manualAreaName),
           platform: meta?.platform,
           isHidden: hiddenSet.has(e.entity_id) || ov?.enabled === false,
           haHidden: meta?.haHidden ?? false,
@@ -272,14 +275,23 @@ export function EntitiesPage() {
             </button>
           )}
         </div>
-        <button
-          type="button"
-          onClick={() => { setGroupQuery(''); setGroupDraft({ id: uid('g'), label: '', entityIds: [] }) }}
-          disabled={readOnly}
-          className="flex min-h-[44px] items-center gap-2 rounded-full bg-[#0066cc] px-4 text-sm font-semibold text-white transition active:scale-95"
-        >
-          <Layers size={15} /> Nuovo gruppo
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setWizardInvocation({})}
+            className="flex min-h-[48px] items-center gap-2 rounded-full bg-[#0066cc] px-5 text-sm font-semibold text-white shadow-sm transition active:scale-95"
+          >
+            <WandSparkles size={16} /> Configura dispositivo
+          </button>
+          <button
+            type="button"
+            onClick={() => { setGroupQuery(''); setGroupDraft({ id: uid('g'), label: '', entityIds: [] }) }}
+            disabled={readOnly}
+            className="flex min-h-[48px] items-center gap-2 rounded-full bg-black/[0.07] px-4 text-sm font-semibold text-black/60 transition active:scale-95"
+          >
+            <Layers size={15} /> Nuovo gruppo
+          </button>
+        </div>
       </div>
       {configError && config && (
         <p className="shrink-0 rounded-[10px] bg-orange-500/10 px-3 py-2 text-xs text-orange-700" role="alert">
@@ -386,6 +398,7 @@ export function EntitiesPage() {
                 onRename={(label) => patchOverride(row.id, { label })}
                 onToggleHide={() => toggleHide([row.id], !hidden.includes(row.id))}
                 onEdit={() => setEditId(row.id)}
+                onSetup={() => setWizardInvocation({ entityId: row.id })}
               />
             ))}
             {rows.length > cap && (
@@ -401,6 +414,20 @@ export function EntitiesPage() {
           </p>
         )}
       </GlassCard>
+
+      {wizardInvocation && (
+        <DeviceSetupWizard
+          open
+          initialEntityId={wizardInvocation.entityId}
+          areas={registry?.areas ?? []}
+          registryById={registry?.byId}
+          overrides={overrides}
+          disabled={readOnly}
+          saveState={saveState}
+          onSave={(entityId, selection) => saveOverrideNow(entityId, selection)}
+          onClose={() => setWizardInvocation(null)}
+        />
+      )}
 
       {/* Dettaglio con anteprima live */}
       <GlassSheet open={Boolean(editId)} onClose={() => setEditId(null)} title="Dispositivo" side="right">
@@ -457,6 +484,7 @@ interface RowData {
   domain: string
   state: string
   areaName?: string
+  areaManual: boolean
   isHidden: boolean
   haHidden: boolean
   hasOverride: boolean
@@ -465,7 +493,7 @@ interface RowData {
 }
 
 function EntityRow({
-  row, checked, disabled, onCheck, onRename, onToggleHide, onEdit,
+  row, checked, disabled, onCheck, onRename, onToggleHide, onEdit, onSetup,
 }: {
   row: RowData
   checked: boolean
@@ -474,6 +502,7 @@ function EntityRow({
   onRename: (label: string) => void
   onToggleHide: () => void
   onEdit: () => void
+  onSetup: () => void
 }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(row.name)
@@ -541,7 +570,7 @@ function EntityRow({
           {(row.cardSizes?.length ? row.cardSizes : [row.cardSize]).filter(Boolean).join('·')}
         </span>
       )}
-      <span className="hidden w-24 shrink-0 truncate text-xs text-black/45 lg:block">{row.areaName ?? '—'}</span>
+      <span className={cn('hidden w-24 shrink-0 truncate text-xs lg:block', row.areaManual ? 'font-semibold text-[#0066cc]' : 'text-black/45')} title={row.areaManual ? 'Stanza assegnata nel wizard' : undefined}>{row.areaName ?? '—'}</span>
       <span className={cn('hidden w-28 shrink-0 truncate text-right text-xs font-semibold sm:block', row.state === 'unavailable' ? 'text-orange-600' : 'text-black/55')}>
         {stateLabel(row.state)}
       </span>
@@ -555,6 +584,9 @@ function EntityRow({
         title={row.haHidden ? 'Nascosta in Home Assistant' : undefined}
       >
         {row.isHidden || row.haHidden ? <EyeOff size={15} /> : <Eye size={15} />}
+      </button>
+      <button type="button" onClick={onSetup} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#0066cc]/12 text-[#0066cc] hover:bg-[#0066cc]/18" aria-label={`Configura categoria e stanza di ${row.name}`}>
+        <WandSparkles size={15} />
       </button>
       <button type="button" onClick={onEdit} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-black/8 text-black/55 hover:text-[#1d1d1f]" aria-label={`Dettagli ${row.name}`}>
         <Pencil size={14} />

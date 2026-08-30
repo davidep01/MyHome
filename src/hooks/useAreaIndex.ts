@@ -2,6 +2,8 @@ import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { haRegistry, type HAArea } from '../api/ha-registry'
 import { useEntityStore } from '../store/entities'
+import { resolveAreaId } from '../lib/areaInference'
+import type { DeviceOverride } from '../api/backend'
 
 export interface AreaIndex {
   /** Aree HA ordinate per nome (vuoto se il registry non è raggiungibile). */
@@ -18,7 +20,7 @@ const EMPTY: AreaIndex = { areas: [], areaIdOf: () => undefined, areaNameOf: () 
  * l'area del device). Una richiesta condivisa, cache 10 minuti; degrada a
  * indice vuoto se il registry non risponde (es. HA WS giù).
  */
-export function useAreaIndex(): AreaIndex {
+export function useAreaIndex(overrides?: Record<string, DeviceOverride>): AreaIndex {
   const connected = useEntityStore((s) => s.connectionStatus === 'connected')
 
   const { data } = useQuery({
@@ -48,14 +50,34 @@ export function useAreaIndex(): AreaIndex {
   return useMemo(() => {
     if (!data) return EMPTY
     const nameById = new Map(data.areas.map((a) => [a.area_id, a.name]))
+    // Lo store è letto al momento della chiamata, non sottoscritto: l'identità
+    // di areaIdOf/areaNameOf resta stabile fra i delta HA, così il composer non
+    // ricrea subscription e tick a ogni aggiornamento di stato sul tablet.
+    // L'inferenza è cache-ata per nome: si ricalcola solo se l'entità cambia
+    // etichetta, mai a ogni compute del composer.
+    const cache = new Map<string, string | undefined>()
+    const resolvedAreaId = (entityId: string) => {
+      const entity = useEntityStore.getState().entities[entityId]
+      const key = `${entityId}|${String(entity?.attributes?.friendly_name ?? '')}`
+      const cached = cache.get(key)
+      if (cached !== undefined || cache.has(key)) return cached
+      const resolved = resolveAreaId({
+        entity,
+        areas: data.areas,
+        registryAreaId: data.entityArea.get(entityId),
+        manualAreaId: overrides?.[entityId]?.areaId,
+      })
+      cache.set(key, resolved)
+      return resolved
+    }
     return {
       areas: data.areas,
-      areaIdOf: (entityId: string) => data.entityArea.get(entityId),
+      areaIdOf: resolvedAreaId,
       areaNameOf: (entityId: string) => {
-        const id = data.entityArea.get(entityId)
+        const id = resolvedAreaId(entityId)
         return id ? nameById.get(id) : undefined
       },
       ready: true,
     }
-  }, [data])
+  }, [data, overrides])
 }

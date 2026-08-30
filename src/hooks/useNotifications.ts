@@ -2,6 +2,8 @@ import { useMemo } from 'react'
 import type { HassEntities } from 'home-assistant-js-websocket'
 import { useEntityStore } from '../store/entities'
 import { entityName } from '../components/widgets/utils/mapEntityToWidgetCard'
+import { isRelevantUnavailableEntity } from '../lib/entityCuration'
+import { useDashboardEntityCuration } from './useDashboardEntityCuration'
 
 export interface HANotification {
   id: string
@@ -14,7 +16,10 @@ export interface HANotification {
 
 const OPENING_CLASSES = new Set(['door', 'window', 'garage_door', 'opening'])
 
-export function notificationsFromEntities(entities: HassEntities): HANotification[] {
+export function notificationsFromEntities(
+  entities: HassEntities,
+  options: { excludedEntityIds?: ReadonlySet<string> } = {},
+): HANotification[] {
   const notifications: HANotification[] = []
 
   for (const [entityId, entity] of Object.entries(entities)) {
@@ -65,7 +70,8 @@ export function notificationsFromEntities(entities: HassEntities): HANotificatio
 
       // ── Unavailable entities (skip helpers and hidden) ───────────
       if (
-        entity.state === 'unavailable' &&
+        !options.excludedEntityIds?.has(entityId) &&
+        isRelevantUnavailableEntity(entity) &&
         !entityId.startsWith('persistent_notification.') &&
         !entityId.startsWith('input_') &&
         !entityId.startsWith('group.') &&
@@ -84,9 +90,13 @@ export function notificationsFromEntities(entities: HassEntities): HANotificatio
       }
 
       // ── Low battery ───────────────────────────────────────────────
-      const batteryLevel =
-        (entity.attributes?.battery_level as number | undefined) ??
-        (entity.attributes?.battery as number | undefined)
+      const batteryRaw = entity.attributes?.battery_level
+        ?? entity.attributes?.battery
+        ?? (deviceClass === 'battery' ? entity.state : undefined)
+      const parsedBattery = batteryRaw === undefined ? NaN : Number(batteryRaw)
+      const batteryLevel = Number.isFinite(parsedBattery) ? parsedBattery : undefined
+      // Battery sensors are commonly registry diagnostics. Their standalone
+      // card stays hidden, while a genuinely low value remains proactive.
       if (batteryLevel !== undefined && batteryLevel < 20) {
         const friendlyName = entityName(entity)
         notifications.push({
@@ -107,5 +117,9 @@ export function notificationsFromEntities(entities: HassEntities): HANotificatio
 
 export function useNotifications(): HANotification[] {
   const entities = useEntityStore((s) => s.entities)
-  return useMemo(() => notificationsFromEntities(entities), [entities])
+  const excludedEntityIds = useDashboardEntityCuration()
+  return useMemo(
+    () => notificationsFromEntities(entities, { excludedEntityIds }),
+    [entities, excludedEntityIds],
+  )
 }

@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useEntityStore } from '../store/entities'
 import { useDashboardConfig } from './useDashboardConfig'
-import { useHAHiddenEntities } from './useHAHiddenEntities'
+import { useDashboardEntityCuration } from './useDashboardEntityCuration'
 import type { DeviceOverride, EntityGroup, EntityType, RoomEntity } from '../api/backend'
 
 /** Curation the kiosk already holds in its public layout (no admin config fetch). */
@@ -104,23 +104,21 @@ export function useDiscoveredEntities(curation?: CurationSource): { sections: Di
   const hidden = curation?.hiddenEntities ?? config?.hiddenEntities
   const overrides = curation?.deviceOverrides ?? config?.deviceOverrides
   const groups = curation?.groups ?? config?.groups
-  const haHidden = useHAHiddenEntities()
+  const registryExcluded = useDashboardEntityCuration()
 
   return useMemo(() => {
     // Merge: Admin-hidden + HA-hidden + entities already shown inside a group.
     const groupMembers = (groups ?? []).flatMap((g) => g.entityIds)
-    const hiddenSet = new Set([...(hidden ?? []), ...haHidden, ...groupMembers])
+    const hiddenSet = new Set([...(hidden ?? []), ...registryExcluded, ...groupMembers])
     const byDomain = new Map<string, RoomEntity[]>()
 
     for (const e of Object.values(entities)) {
-      if (hiddenSet.has(e.entity_id)) continue
       const ov = overrides?.[e.entity_id]
+      if (hiddenSet.has(e.entity_id) && ov?.enabled !== true) continue
       if (ov?.enabled === false) continue // per-entity disable
       const domain = e.entity_id.split('.')[0]
       const type = (ov?.type as EntityType | undefined) ?? DOMAIN_TYPE[domain]
       if (!type) continue
-      // Skip diagnostic entities (noise) across all domains
-      if (e.attributes?.entity_category === 'diagnostic') continue
       // Skip snapshot-only cameras (no STREAM feature) — only show live-capable ones.
       if (domain === 'camera' && !ov?.type) {
         const feat = Number(e.attributes?.supported_features ?? 0)
@@ -154,5 +152,5 @@ export function useDiscoveredEntities(curation?: CurationSource): { sections: Di
 
     const total = sections.reduce((n, s) => n + s.entities.length, 0)
     return { sections, total }
-  }, [entities, hidden, overrides, groups, haHidden])
+  }, [entities, hidden, overrides, groups, registryExcluded])
 }

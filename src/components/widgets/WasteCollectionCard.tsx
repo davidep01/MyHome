@@ -5,6 +5,7 @@ import {
   dateKeyForLocalDate,
   isWasteCollectionCalendar,
   wasteItemsFromText,
+  wasteFuturePickupLimit,
   wastePickups,
   type WasteKind,
   type WastePickup,
@@ -124,6 +125,7 @@ export function WasteCollectionCard({
       ? '#9a6d00'
       : (next?.items[0]?.background ?? '#248a3d')
   const imminent = next !== undefined
+  const futurePickupLimit = wasteFuturePickupLimit(size)
 
   if (size === 'XS') {
     return (
@@ -200,7 +202,7 @@ export function WasteCollectionCard({
       <div className="mt-auto min-w-0 space-y-1.5 pt-2">
         <WasteDayRow pickup={today} label="Oggi" />
         <WasteDayRow pickup={tomorrow} label="Domani" />
-        {size === 'L' && pickups.filter((pickup) => pickup.daysUntil > 1).slice(0, 2).map((pickup) => (
+        {pickups.filter((pickup) => pickup.daysUntil > 1).slice(0, futurePickupLimit).map((pickup) => (
           <div key={pickup.dateKey} className="flex items-center gap-2 border-t border-black/[0.05] pt-1.5">
             <span className="w-[48px] shrink-0 text-[11px] font-semibold text-black/40">Tra {pickup.daysUntil}g</span>
             <div className="flex min-w-0 gap-1 overflow-hidden">

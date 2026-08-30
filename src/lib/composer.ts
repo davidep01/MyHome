@@ -1,4 +1,5 @@
 import { dateKeyForLocalDate, isWasteCollectionSensor, wastePickups } from './wasteCollection'
+import { isRelevantUnavailableEntity } from './entityCuration'
 
 /**
  * Composer di rilevanza — il cuore della home a strati (DOMINICA M1).
@@ -172,7 +173,7 @@ export function composeHome(entities: ComposerEntity[], opts: ComposeOptions): C
   const openOpenings: ComposerEntity[] = []
   const unlockedLocks: ComposerEntity[] = []
   const litByArea = new Map<string, ComposerEntity[]>()
-  let unavailable = 0
+  const unavailableEntityIds: string[] = []
 
   const banned = new Set<string>()
   for (const e of entities) if (heroPref(e.entity_id) === 'never') banned.add(e.entity_id)
@@ -186,7 +187,10 @@ export function composeHome(entities: ComposerEntity[], opts: ComposeOptions): C
 
   for (const e of entities) {
     const domain = domainOf(e.entity_id)
-    if (e.state === 'unavailable') { unavailable += 1; continue }
+    if (e.state === 'unavailable') {
+      if (isRelevantUnavailableEntity(e)) unavailableEntityIds.push(e.entity_id)
+      continue
+    }
     if (e.state === 'unknown') continue
 
     switch (domain) {
@@ -363,8 +367,14 @@ export function composeHome(entities: ComposerEntity[], opts: ComposeOptions): C
       entityIds: unlockedLocks.map((e) => e.entity_id).sort(),
     })
   }
-  if (unavailable >= 5) {
-    alerts.push({ id: 'unavailable', severity: 'info', label: `${unavailable} entità non disponibili`, entityIds: [] })
+  if (unavailableEntityIds.length >= 3) {
+    unavailableEntityIds.sort()
+    alerts.push({
+      id: 'unavailable',
+      severity: 'warn',
+      label: `${unavailableEntityIds.length} dispositivi offline`,
+      entityIds: unavailableEntityIds,
+    })
   }
 
   // Pinned: gli 'always' non ancora candidati entrano come "In evidenza".
@@ -410,15 +420,22 @@ export function composeHome(entities: ComposerEntity[], opts: ComposeOptions): C
     return true
   })
   const selected = ordered.slice(0, maxHero)
+  // Il canvas kiosk è 3 colonne × 6 sotto-righe. Questi pattern saturano
+  // esattamente lo spazio per 1–4 contenuti, evitando card oltre il clipping.
+  const fittedSizes: HeroVisualSize[] | undefined = selected.length === 1 ? ['L']
+    : selected.length === 2 ? ['XL', 'XL']
+      : selected.length === 3 ? ['XL', 'M', 'S']
+        : selected.length === 4 ? ['M', 'S', 'M', 'S']
+          : undefined
   const hero = selected
-    .map((c): HeroSlot => ({
+    .map((c, index): HeroSlot => ({
       key: c.key,
       priority: c.priority,
       entityId: c.entityId,
       group: c.group,
       reason: c.reason,
       score: c.score,
-      visualSize: selected.length === 1 ? 'XL' : c.visualSize,
+      visualSize: fittedSizes?.[index] ?? c.visualSize,
     }))
 
   return { hero, alerts, quiet: hero.length === 0 }

@@ -97,6 +97,23 @@ describe('composeHome', () => {
     ])
   })
 
+  it('segnala come offline solo dispositivi rilevanti e apre i relativi dettagli', () => {
+    const out = composeHome([
+      e('sensor.bluetooth_1', 'unavailable', { device_class: 'distance' }),
+      e('sensor.bluetooth_2', 'unavailable', { device_class: 'distance' }),
+      e('climate.sala', 'unavailable'),
+      e('siren.giardino', 'unavailable'),
+      e('camera.entrata', 'unavailable'),
+    ], { now: DAY })
+
+    expect(out.alerts).toContainEqual({
+      id: 'unavailable',
+      severity: 'warn',
+      label: '3 dispositivi offline',
+      entityIds: ['camera.entrata', 'climate.sala', 'siren.giardino'],
+    })
+  })
+
   it('porta nella home i dispositivi attivi che richiedono attenzione o controllo', () => {
     const out = composeHome([
       e('fan.studio', 'on'),
@@ -127,7 +144,7 @@ describe('composeHome', () => {
       entityId: 'sensor.waste_collection_schedule_rifiuti',
       priority: 3,
       reason: 'Ritiro rifiuti tra 2 giorni',
-      visualSize: 'XL',
+      visualSize: 'L',
     })
   })
 
@@ -188,15 +205,30 @@ describe('composeHome', () => {
     expect(out.hero.map((slot) => slot.key)).toEqual(['media_player.apple_tv'])
   })
 
-  it('assegna ingombri adatti alle card e usa XL quando Adesso ha un solo contenuto', () => {
+  it('assegna una composizione che riempie il canvas senza spingere card fuori vista', () => {
     const single = composeHome([e('media_player.tv', 'playing')], { now: DAY })
-    expect(single.hero[0].visualSize).toBe('XL')
+    expect(single.hero[0].visualSize).toBe('L')
 
-    const multiple = composeHome([
+    const pair = composeHome([
       e('media_player.tv', 'playing'),
       e('switch.presa', 'on'),
     ], { now: DAY })
-    expect(multiple.hero.map((slot) => slot.visualSize)).toEqual(['L', 'S'])
+    expect(pair.hero.map((slot) => slot.visualSize)).toEqual(['XL', 'XL'])
+
+    const trio = composeHome([
+      e('media_player.tv', 'playing'),
+      e('switch.presa', 'on'),
+      e('light.cucina', 'on'),
+    ], { now: DAY })
+    expect(trio.hero.map((slot) => slot.visualSize)).toEqual(['XL', 'M', 'S'])
+
+    const quartet = composeHome([
+      e('media_player.tv', 'playing'),
+      e('switch.presa', 'on'),
+      e('light.cucina', 'on'),
+      e('fan.camera', 'on'),
+    ], { now: DAY })
+    expect(quartet.hero.map((slot) => slot.visualSize)).toEqual(['M', 'S', 'M', 'S'])
   })
 
   it("override 'never': l'entità non entra mai nell'Adesso (nemmeno nel gruppo luci)", () => {

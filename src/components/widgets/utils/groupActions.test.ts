@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import {
   groupCapability,
   groupMemberActive,
+  groupMemberStateLabel,
+  groupShowsMemberDetails,
   homogeneousGroupDomain,
   optimisticGroupState,
 } from './groupActions'
@@ -27,5 +29,18 @@ describe('group actions', () => {
     expect(groupMemberActive('media_player', 'idle')).toBe(true)
     expect(optimisticGroupState('cover', false)).toBe('closing')
     expect(optimisticGroupState('water_heater', true)).toBeUndefined()
+  })
+
+  it('shows natural Italian instead of raw Home Assistant states', () => {
+    expect(groupMemberStateLabel('light', 'on')).toBe('Accesa')
+    expect(groupMemberStateLabel('switch', 'on')).toBe('Acceso')
+    expect(groupMemberStateLabel('cover', 'opening')).toBe('In apertura')
+    expect(groupMemberStateLabel('lock', 'unavailable')).toBe('Non disponibile')
+  })
+
+  it('uses member details in both tall and panoramic group cards', () => {
+    expect(groupShowsMemberDetails('L')).toBe(true)
+    expect(groupShowsMemberDetails('XL')).toBe(true)
+    expect(groupShowsMemberDetails('M')).toBe(false)
   })
 })

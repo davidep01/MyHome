@@ -14,6 +14,8 @@ export interface HAEntityReg {
   area_id: string | null
   device_id: string | null
   hidden_by: string | null
+  /** Entity disabled in HA (normally absent from states, kept for defensive curation). */
+  disabled_by?: string | null
   /** Integration that provides the entity (e.g. 'ring', 'ezviz'). */
   platform: string | null
   /** 'diagnostic' | 'config' | null — vive nel registry, NON negli attributi di stato. */

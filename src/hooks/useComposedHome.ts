@@ -9,7 +9,7 @@ import {
 } from '../lib/composer'
 import { computeInsights, type InsightAction } from '../lib/insights'
 import { useEntityStore } from '../store/entities'
-import { useHAHiddenEntities } from './useHAHiddenEntities'
+import { useDashboardEntityCuration } from './useDashboardEntityCuration'
 import { useAreaIndex } from './useAreaIndex'
 import type { DeviceOverride } from '../api/backend'
 
@@ -40,8 +40,8 @@ const IDLE: ComposedHomeView = { hero: [], alerts: [], quiet: true }
  * la composizione cambia davvero: a casa quieta la home non ri-renderizza.
  */
 export function useComposedHome(cfg?: KioskCurationConfig): ComposedHomeView {
-  const haHidden = useHAHiddenEntities()
-  const { areaNameOf, areaIdOf } = useAreaIndex()
+  const registryExcluded = useDashboardEntityCuration()
+  const { areaNameOf, areaIdOf } = useAreaIndex(cfg?.deviceOverrides)
   const [view, setView] = useState<ComposedHomeView>(IDLE)
 
   const memory = useRef<{ hero: HeroSlot[]; state: HysteresisState; signature: string }>({
@@ -56,15 +56,15 @@ export function useComposedHome(cfg?: KioskCurationConfig): ComposedHomeView {
   useEffect(() => {
     const compute = () => {
       const entities = useEntityStore.getState().entities
-      const hidden = new Set([...(hiddenEntities ?? []), ...haHidden])
+      const hidden = new Set([...(hiddenEntities ?? []), ...registryExcluded])
       const visible = Object.values(entities).filter((e) =>
-        !hidden.has(e.entity_id)
+        (!hidden.has(e.entity_id) || deviceOverrides?.[e.entity_id]?.enabled === true)
         && deviceOverrides?.[e.entity_id]?.enabled !== false
-        && e.attributes?.entity_category !== 'diagnostic')
+      )
 
-      // Le camere appartengono alla prima fila fissa e non consumano gli slot
-      // dinamici del composer.
-      const raw = composeHome(visible.filter((entity) => !entity.entity_id.startsWith('camera.')), {
+      // Le camere disponibili appartengono alla fila fissa e il composer non
+      // crea card per loro; se sono offline contribuiscono però al riepilogo.
+      const raw = composeHome(visible, {
         areaNameOf,
         heroOf: (id) => deviceOverrides?.[id]?.hero,
         showWhenActive: (id) => deviceOverrides?.[id]?.showWhenActive === true,
@@ -96,7 +96,7 @@ export function useComposedHome(cfg?: KioskCurationConfig): ComposedHomeView {
       unsubscribe()
       clearInterval(id)
     }
-  }, [haHidden, areaNameOf, areaIdOf, hiddenEntities, deviceOverrides])
+  }, [registryExcluded, areaNameOf, areaIdOf, hiddenEntities, deviceOverrides])
 
   return view
 }
