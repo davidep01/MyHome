@@ -22,7 +22,7 @@ import {
 export const haRouter = new Hono()
 
 const SERVICE_ALLOWLIST: Record<string, Set<string>> = {
-  homeassistant: new Set(['turn_on', 'turn_off', 'toggle']),
+  homeassistant: new Set(['turn_on', 'turn_off', 'toggle', 'update_entity']),
   light: new Set(['turn_on', 'turn_off', 'toggle']),
   switch: new Set(['turn_on', 'turn_off', 'toggle']),
   input_boolean: new Set(['turn_on', 'turn_off', 'toggle']),
@@ -56,10 +56,16 @@ const SERVICE_ALLOWLIST: Record<string, Set<string>> = {
   lawn_mower: new Set(['start_mowing', 'pause', 'dock']),
   automation: new Set(['turn_on', 'turn_off', 'toggle']),
   persistent_notification: new Set(['dismiss']),
+  // Aggiornamento dell'add-on dalla regia (§4.4): forzare il ricontrollo e
+  // installare. Solo admin — vedi canCallService.
+  update: new Set(['install']),
 }
 
 function canCallService(role: 'admin' | 'kiosk', domain: string, service: string) {
   if (domain === 'persistent_notification' && role !== 'admin') return false
+  // Aggiornare il servizio o forzare un ricontrollo non è un gesto da tablet.
+  if (domain === 'update' && role !== 'admin') return false
+  if (domain === 'homeassistant' && service === 'update_entity' && role !== 'admin') return false
   if (!Object.hasOwn(SERVICE_ALLOWLIST, domain)) return false
   return SERVICE_ALLOWLIST[domain]?.has(service) ?? false
 }

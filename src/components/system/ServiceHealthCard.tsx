@@ -1,7 +1,11 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowUpCircle, CheckCircle2, CircleAlert, Heart, RefreshCw } from 'lucide-react'
 import { GlassCard } from '../glass/GlassCard'
 import { systemApi, type SystemStatus } from '../../api/backend'
+import { callService } from '../../api/ha-websocket'
+import { useEntityStore } from '../../store/entities'
+import { findAddonUpdateEntity } from '../../lib/addonUpdate'
 import { compareVersions, durationSince, timeAgo } from '../../lib/time'
 import { cn } from '../../lib/utils'
 
@@ -25,8 +29,38 @@ export function ServiceHealthCard({ status }: { status?: SystemStatus }) {
   const health = status?.health
   const uptime = durationSince(health?.startedAt)
   const connectedFor = durationSince(health?.connectedSince)
+  const entities = useEntityStore((state) => state.entities)
+  const addon = findAddonUpdateEntity(entities)
+  const [updating, setUpdating] = useState<'idle' | 'checking' | 'installing' | 'done' | 'error'>('idle')
   const installed = __APP_VERSION__
   const latest = update.data?.latest
+
+  /**
+   * Ricontrolla e installa. Il ricontrollo è il passo che di solito manca:
+   * l'auto-update può essere già attivo, ma finché il Supervisor non rilegge
+   * il repository `latest_version` resta uguale a quella installata e non
+   * succede nulla.
+   */
+  const updateNow = async () => {
+    if (!addon) return
+    setUpdating('checking')
+    try {
+      await callService('homeassistant', 'update_entity', { entity_id: addon.entityId })
+      // HA aggiorna lo stato dell'entità in modo asincrono: si concede un
+      // momento prima di decidere se c'è davvero qualcosa da installare.
+      await new Promise((resolve) => setTimeout(resolve, 4000))
+      const refreshed = findAddonUpdateEntity(useEntityStore.getState().entities)
+      if (!refreshed?.updateAvailable) {
+        setUpdating('done')
+        return
+      }
+      setUpdating('installing')
+      await callService('update', 'install', { entity_id: addon.entityId })
+      setUpdating('done')
+    } catch {
+      setUpdating('error')
+    }
+  }
   // 'dev' non è una versione confrontabile: in sviluppo non si annuncia nulla.
   const behind = Boolean(latest && installed !== 'dev' && compareVersions(latest, installed) > 0)
 
@@ -67,8 +101,41 @@ export function ServiceHealthCard({ status }: { status?: SystemStatus }) {
       )}
       {behind && (
         <p className="rounded-[10px] bg-[#0066cc]/10 px-3 py-2 text-xs leading-relaxed text-[#0066cc]">
-          È pubblicata la versione {latest}: aggiorna l’add-on da Home Assistant → Impostazioni → Add-on.
+          È pubblicata la versione {latest}.{addon ? ' Usa “Controlla e aggiorna ora” qui sotto.' : ' Aggiorna l’add-on da Home Assistant → Impostazioni → Add-on.'}
         </p>
+      )}
+      {addon && (
+        <div className="space-y-1.5 rounded-[10px] bg-black/[0.035] px-3 py-2.5">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-xs text-black/45">Add-on Home Assistant</span>
+            <span className="truncate text-xs font-semibold text-black/70">
+              {addon.installedVersion ?? '—'}
+              {addon.autoUpdate ? ' · auto-update attivo' : ''}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={updateNow}
+            disabled={updating === 'checking' || updating === 'installing' || addon.inProgress}
+            className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-[12px] bg-[#0066cc] px-4 text-xs font-semibold text-white transition active:scale-95 disabled:opacity-45"
+          >
+            {updating === 'checking' || updating === 'installing' || addon.inProgress
+              ? <><RefreshCw size={14} className="animate-spin" /> {updating === 'installing' || addon.inProgress ? 'Installazione…' : 'Controllo…'}</>
+              : <><ArrowUpCircle size={14} /> Controlla e aggiorna ora</>}
+          </button>
+          {updating === 'done' && (
+            <p className="text-[11px] text-black/45" role="status">
+              {addon.updateAvailable
+                ? 'Aggiornamento avviato: l’add-on si riavvia da solo, poi ricarica questa pagina.'
+                : 'Già all’ultima versione pubblicata che Home Assistant conosce.'}
+            </p>
+          )}
+          {updating === 'error' && (
+            <p className="text-[11px] font-semibold text-red-600" role="alert">
+              Aggiornamento non riuscito. Prova da Home Assistant → Impostazioni → Add-on.
+            </p>
+          )}
+        </div>
       )}
       {update.data?.error && (
         <p className="text-[11px] text-black/35">Controllo aggiornamenti non riuscito ({update.data.error}).</p>

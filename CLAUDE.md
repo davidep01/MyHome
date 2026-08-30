@@ -320,6 +320,14 @@ Fasi 2–6 applicate. La Definition of Done richiede a ogni rilascio lint, suite
 - **Wizard più leggero** — le etichette di stanza sono memoizzate: `resolveAreaId` ri-tokenizza i nomi delle aree a ogni chiamata e la lista si ridisegna a ogni tasto premuto e a ogni delta di stato HA (60 righe × N aree di lavoro sprecato).
 - Verifica: lint ✅ · test 405/405 ✅ · build:all ✅ · typecheck backend ✅ · **provato in grid mode su HA reale** con una copia isolata del db: widget camera e dispositivo non configurato spariti dalla griglia (ricompattata, senza buchi), 0 elementi video sulla dashboard, tendina che apre e mostra lo stream della camera attivata.
 
+
+**Risolti (2026-08-31) — aggiornamento dell'add-on dalla regia:**
+- **Diagnosi: l'auto-update era già attivo e non bastava.** L'entità `update.myhome_dashboard_update` riportava `auto_update: true` ma anche `installed_version: 2.2.105` **e** `latest_version: 2.2.105` con la 2.2.106 già pubblicata: il Supervisor non aveva ancora riletto il repository, quindi non c'era nulla da installare dal suo punto di vista. Il passo mancante era il **ricontrollo**, non l'installazione — ed è il motivo per cui l'app sul tablet restava indietro.
+- **"Controlla e aggiorna ora"** in Sistema → Salute del servizio: chiama `homeassistant.update_entity` per forzare il ricontrollo, attende che HA aggiorni l'entità e installa con `update.install` **solo se** risulta davvero disponibile qualcosa. Stato esplicito ("Controllo…", "Installazione…", "Già all'ultima versione…").
+- **Identificazione robusta** — [addonUpdate.ts](src/lib/addonUpdate.ts) riconosce l'add-on dallo **slug** nell'`entity_picture` (`/api/hassio/addons/<hash>_myhome_dashboard/icon`), non dal titolo: il titolo è personalizzabile e il nome dell'entità cambia con esso, lo slug no. 4 test, incluso il caso dell'add-on rinominato.
+- **Allowlist** — `update.install` e `homeassistant.update_entity` aggiunti ai servizi consentiti, **solo per il ruolo admin**: aggiornare il servizio non è un gesto da tablet a muro.
+- Verifica: lint ✅ · test 409/409 ✅ · build:all ✅ · typecheck backend ✅. **Da provare con l'add-on vero:** una installazione completa (qui verificata la lettura dell'entità dall'HA reale, non l'installazione, che riavvia il servizio).
+
 **Residui noti (non bloccanti):** WebRTC/talk-back via signaling proxy backend; rimozione definitiva della grid legacy dopo validazione del composer sul tablet reale; AI write-back automazioni (roadmap); versioning config con storico snapshot (§4.4) e modalità ospiti/pulizie (§6.4) non ancora implementati.
 
 ---
