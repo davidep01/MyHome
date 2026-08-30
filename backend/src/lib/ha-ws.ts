@@ -1,6 +1,7 @@
 import { getHAConfig, getHAWebSocketUrl } from './ha-config.js'
 import { applyCompressedEvent, type CompressedStatesEvent } from './ha-ws-codec.js'
 import type { HaEntityLike } from './ha-stream.js'
+import { recordBridgeUp } from './service-health.js'
 
 /**
  * Minimal Home Assistant WebSocket client on Node's native WebSocket (≥22).
@@ -174,6 +175,7 @@ function handleMessage(raw: unknown): void {
       stopHandshakeTimeout()
       state = 'connected'
       retryAttempt = 0
+      recordBridgeUp()
       startHeartbeat()
       const queued = [...sendQueue.values()]
       sendQueue.clear()

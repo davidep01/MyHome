@@ -10,6 +10,7 @@ import { cacheHARegistry, getCachedHARegistry, type RegistryPayload } from '../l
 import { ByteLru } from '../lib/lru.js'
 import { isCriticalAction, recordCriticalAction } from '../lib/audit-log.js'
 import { advertisedArtworkSources } from '../lib/ha-media.js'
+import { recordServiceError } from '../lib/service-health.js'
 import {
   addWebRtcCandidate,
   closeWebRtcSession,
@@ -439,6 +440,13 @@ haRouter.post('/services/:domain/:service', async (c) => {
     const target = (parsed as Record<string, unknown>).entity_id
     const entityIds = (Array.isArray(target) ? target : [target]).filter((id): id is string => typeof id === 'string')
     recordCriticalAction(role, domain, service, entityIds)
+  }
+  // Un comando rifiutato da HA è la cosa che l'operatore cerca per prima quando
+  // "il pulsante non fa niente": senza questa riga restava invisibile al server.
+  if (!res.ok) {
+    const target = (parsed as Record<string, unknown>).entity_id
+    const label = Array.isArray(target) ? target.join(', ') : typeof target === 'string' ? target : '—'
+    recordServiceError('ha', `${domain}.${service} rifiutato da Home Assistant (${res.status}) su ${label}`)
   }
   return forwardResponse(res)
 })

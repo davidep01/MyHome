@@ -147,7 +147,7 @@ export function DeviceSetupWizard({
       className="max-h-[min(90dvh,820px)]"
     >
       <div className="space-y-5 pb-1">
-        <div className="rounded-[20px] bg-white/55 p-2 ring-1 ring-black/[0.05]">
+        <div className="rounded-[20px] bg-white/55 p-2 ring-1 ring-black/5">
           <div className="grid grid-cols-4 gap-1" aria-label="Avanzamento configurazione">
             {STEP_LABELS.map((label, index) => {
               const active = !complete && step === index
@@ -245,7 +245,7 @@ export function DeviceSetupWizard({
                     key={id}
                     type="button"
                     onClick={() => begin(id)}
-                    className="flex min-h-[72px] items-center gap-3 rounded-[18px] bg-white/75 px-3 py-2.5 text-left ring-1 ring-black/[0.06] transition hover:ring-[#0066cc]/35 active:scale-[0.99]"
+                    className="flex min-h-[72px] items-center gap-3 rounded-[18px] bg-white/72 px-3 py-2.5 text-left ring-1 ring-black/5 transition hover:ring-[#0066cc]/35 active:scale-[0.99]"
                   >
                     <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[15px] bg-[#0066cc]/10 text-[#0066cc]">
                       <DynamicIcon name={DEVICE_CATEGORY_OPTIONS.find((option) => option.value === (current?.type ?? domainType))?.icon} fallback={LayoutGrid} size={20} />
@@ -278,7 +278,7 @@ export function DeviceSetupWizard({
                 role="radio"
                 aria-checked={!type}
                 onClick={() => setType(undefined)}
-                className={cn('flex min-h-[82px] items-center gap-3 rounded-[18px] p-3 text-left ring-1 transition', !type ? 'bg-[#0066cc] text-white ring-[#0066cc]' : 'bg-white/70 text-[#1d1d1f] ring-black/[0.06]')}
+                className={cn('flex min-h-[82px] items-center gap-3 rounded-[18px] p-3 text-left ring-1 transition', !type ? 'bg-[#0066cc] text-white ring-[#0066cc]' : 'bg-white/70 text-[#1d1d1f] ring-black/5')}
               >
                 <span className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px]', !type ? 'bg-white/18' : 'bg-black/[0.05] text-[#0066cc]')}><WandSparkles size={20} /></span>
                 <span><span className="block text-sm font-semibold">Automatica</span><span className={cn('mt-0.5 block text-[11px]', !type ? 'text-white/70' : 'text-black/40')}>Rilevata: {categoryLabel(automaticType)}</span></span>
@@ -290,7 +290,7 @@ export function DeviceSetupWizard({
                   role="radio"
                   aria-checked={type === option.value}
                   onClick={() => setType(option.value)}
-                  className={cn('flex min-h-[82px] items-center gap-3 rounded-[18px] p-3 text-left ring-1 transition', type === option.value ? 'bg-[#0066cc] text-white ring-[#0066cc]' : 'bg-white/70 text-[#1d1d1f] ring-black/[0.06] hover:ring-[#0066cc]/30')}
+                  className={cn('flex min-h-[82px] items-center gap-3 rounded-[18px] p-3 text-left ring-1 transition', type === option.value ? 'bg-[#0066cc] text-white ring-[#0066cc]' : 'bg-white/70 text-[#1d1d1f] ring-black/5 hover:ring-[#0066cc]/30')}
                 >
                   <span className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px]', type === option.value ? 'bg-white/18' : 'bg-black/[0.05] text-[#0066cc]')}><DynamicIcon name={option.icon} fallback={LayoutGrid} size={20} /></span>
                   <span className="min-w-0"><span className="block text-sm font-semibold">{option.label}</span><span className={cn('mt-0.5 block text-[11px] leading-tight', type === option.value ? 'text-white/70' : 'text-black/40')}>{option.description}</span></span>
@@ -311,7 +311,7 @@ export function DeviceSetupWizard({
                 role="radio"
                 aria-checked={!areaId}
                 onClick={() => setAreaId(undefined)}
-                className={cn('flex min-h-[92px] items-center gap-4 rounded-[20px] p-4 text-left ring-1 transition', !areaId ? 'bg-[#0066cc] text-white ring-[#0066cc]' : 'bg-white/75 text-[#1d1d1f] ring-black/[0.06]')}
+                className={cn('flex min-h-[92px] items-center gap-4 rounded-[20px] p-4 text-left ring-1 transition', !areaId ? 'bg-[#0066cc] text-white ring-[#0066cc]' : 'bg-white/72 text-[#1d1d1f] ring-black/5')}
               >
                 <span className={cn('flex h-12 w-12 shrink-0 items-center justify-center rounded-[16px]', !areaId ? 'bg-white/18' : 'bg-black/[0.05] text-[#0066cc]')}><WandSparkles size={22} /></span>
                 <span><span className="block text-base font-semibold">Automatica</span><span className={cn('mt-0.5 block text-xs', !areaId ? 'text-white/70' : 'text-black/40')}>{automaticAreaId ? `Ora rilevata: ${areaNameById.get(automaticAreaId) ?? automaticAreaId}` : 'Nessuna stanza rilevata'}</span></span>
@@ -323,7 +323,7 @@ export function DeviceSetupWizard({
                   role="radio"
                   aria-checked={areaId === room.area_id}
                   onClick={() => setAreaId(room.area_id)}
-                  className={cn('flex min-h-[92px] items-center gap-4 rounded-[20px] p-4 text-left ring-1 transition', areaId === room.area_id ? 'bg-[#0066cc] text-white ring-[#0066cc]' : 'bg-white/75 text-[#1d1d1f] ring-black/[0.06] hover:ring-[#0066cc]/30')}
+                  className={cn('flex min-h-[92px] items-center gap-4 rounded-[20px] p-4 text-left ring-1 transition', areaId === room.area_id ? 'bg-[#0066cc] text-white ring-[#0066cc]' : 'bg-white/72 text-[#1d1d1f] ring-black/5 hover:ring-[#0066cc]/30')}
                 >
                   <span className={cn('flex h-12 w-12 shrink-0 items-center justify-center rounded-[16px]', areaId === room.area_id ? 'bg-white/18' : 'bg-black/[0.05] text-[#0066cc]')}><MapPin size={22} /></span>
                   <span><span className="block text-base font-semibold">{room.name}</span><span className={cn('mt-0.5 block text-xs', areaId === room.area_id ? 'text-white/70' : 'text-black/40')}>{selectedMeta?.areaId === room.area_id ? 'Stanza registrata in HA' : 'Assegnazione MyHome'}</span></span>
@@ -340,7 +340,7 @@ export function DeviceSetupWizard({
               <p className="mt-1 text-sm text-black/45">La preview usa già categoria e stanza scelte, senza cambiare le altre preferenze della card.</p>
             </div>
             <div className="grid gap-4 md:grid-cols-[minmax(0,1.15fr)_minmax(260px,.85fr)]">
-              <div className="min-h-[250px] overflow-hidden rounded-[24px] bg-[#e9eef5] p-3 ring-1 ring-black/[0.05]">
+              <div className="min-h-[250px] overflow-hidden rounded-[24px] bg-[#e9eef5] p-3 ring-1 ring-black/5">
                 <EntityCard entity={makeRoomEntity(entityId, entities, previewOverrides)} size="XL" preview />
               </div>
               <div className="space-y-2">
@@ -389,7 +389,7 @@ export function DeviceSetupWizard({
 
 function ReviewItem({ icon, label, value }: { icon: string; label: string; value: string }) {
   return (
-    <div className="flex min-h-[58px] items-center gap-3 rounded-[16px] bg-white/75 px-3 py-2 ring-1 ring-black/[0.05]">
+    <div className="flex min-h-[58px] items-center gap-3 rounded-[16px] bg-white/72 px-3 py-2 ring-1 ring-black/5">
       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[13px] bg-[#0066cc]/10 text-[#0066cc]"><DynamicIcon name={icon} fallback={LayoutGrid} size={18} /></span>
       <span className="min-w-0"><span className="block text-[10px] font-bold uppercase tracking-[0.12em] text-black/30">{label}</span><span className="mt-0.5 block truncate text-sm font-semibold text-[#1d1d1f]">{value}</span></span>
     </div>

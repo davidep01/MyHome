@@ -5,6 +5,8 @@ import { getStreamStats } from '../lib/ha-stream.js'
 import { desktopOnly } from '../lib/security.js'
 import { configuredIntegrations } from '../lib/integration-config.js'
 import { getAuditLog } from '../lib/audit-log.js'
+import { getBridgeHealth, getServiceErrors, recordServiceError } from '../lib/service-health.js'
+import { getUpdateInfo } from '../lib/update-check.js'
 
 /**
  * Diagnostica per la regia desktop: salute HA (raggiungibilità + latenza),
@@ -17,6 +19,12 @@ systemRouter.use('*', desktopOnly)
 
 // Log amministrativo azioni critiche (§3): aperture, disarmi, sirene.
 systemRouter.get('/audit', (c) => c.json({ entries: getAuditLog() }))
+
+// Errori recenti del servizio: cosa è fallito, non solo cosa è riuscito.
+systemRouter.get('/errors', (c) => c.json({ entries: getServiceErrors() }))
+
+// Ultima versione pubblicata (cache 6h lato server). Il confronto lo fa il client.
+systemRouter.get('/update', async (c) => c.json(await getUpdateInfo(c.req.query('force') === '1')))
 
 systemRouter.get('/status', async (c) => {
   const ha = await getHAConfig()
@@ -39,17 +47,16 @@ systemRouter.get('/status', async (c) => {
         message: res.ok ? undefined : `Home Assistant risponde ${res.status}`,
       }
     } catch (error) {
-      haStatus = {
-        reachable: false,
-        latencyMs: null,
-        message: error instanceof Error ? error.message : 'Home Assistant non raggiungibile',
-      }
+      const message = error instanceof Error ? error.message : 'Home Assistant non raggiungibile'
+      recordServiceError('ha', `Home Assistant non raggiungibile: ${message}`)
+      haStatus = { reachable: false, latencyMs: null, message }
     }
   }
 
   return c.json({
     ha: { ...haStatus, url: ha.haUrl, source: ha.source, locked: ha.locked },
     stream: getStreamStats(),
+    health: getBridgeHealth(),
     storage: { mode: db.mode, writable: db.writable },
     integrations: configuredIntegrations(),
     now: new Date().toISOString(),

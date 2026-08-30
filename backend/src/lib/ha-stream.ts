@@ -1,6 +1,7 @@
 import { getHABaseUrl, getHAConfig } from './ha-config.js'
 import { closeHaWs, getHaWsState, startEntityFeed, stopEntityFeed } from './ha-ws.js'
 import { advertisedArtworkSources } from './ha-media.js'
+import { recordBridgeDown, recordServiceError } from './service-health.js'
 
 /**
  * Backend-held Home Assistant state stream.
@@ -311,7 +312,9 @@ function ensureFeed(): void {
       for (const id of removed) snapshot.delete(id)
       pushEvent({ type: 'delta', changed, removed })
     },
-    onDown: () => {
+    onDown: (reason) => {
+      recordBridgeDown(reason)
+      recordServiceError('stream', `Ponte dati caduto: ${reason}`)
       // The WS layer keeps retrying with backoff; meanwhile clients must not
       // starve — fall back to the poll loop until the next onSnapshot.
       if (subscribers.size > 0) startPolling()

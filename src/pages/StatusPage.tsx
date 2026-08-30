@@ -1,20 +1,26 @@
 import { useMemo, useRef, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
-  Activity, AlertTriangle, ArrowUpRight, CheckCircle2, Database, Download,
-  ExternalLink, KeyRound, RefreshCw, Upload, WifiOff, Zap,
+  Activity, AlertTriangle, Boxes, CheckCircle2, Download, ExternalLink,
+  KeyRound, PlugZap, RefreshCw, Timer, Upload, WifiOff,
 } from 'lucide-react'
 import { GlassCard } from '../components/glass/GlassCard'
+import { OfflineDevicesCard } from '../components/system/OfflineDevicesCard'
 import { configApi, systemApi } from '../api/backend'
 import { useDashboardConfig } from '../hooks/useDashboardConfig'
+import { useOfflineReport } from '../hooks/useOfflineReport'
 import { useEntityStore } from '../store/entities'
 import { useUIStore } from '../store/ui'
+import { durationSince } from '../lib/time'
 import { cn } from '../lib/utils'
 
 /**
  * Regia — Stato (landing desktop): il quadro della casa in 5 secondi.
- * Salute HA/bridge/storage, cosa non va (entità giù, chiavi mancanti),
- * attività recente e le azioni di manutenzione rapide.
+ *
+ * Mostra solo ciò su cui si può agire: connessione, cosa non va, quali
+ * dispositivi sono giù e il backup. Le metriche di impianto (modo del ponte,
+ * client SSE, contatore eventi) vivono in Sistema — qui erano titoli grandi
+ * su numeri che non cambiano una decisione.
  */
 export function StatusPage() {
   const { data: status, isPending: statusPending, isError: statusError, error: statusQueryError, isFetching, refetch } = useQuery({
@@ -27,12 +33,7 @@ export function StatusPage() {
   const connectionStatus = useEntityStore((s) => s.connectionStatus)
   const setActiveView = useUIStore((s) => s.setActiveView)
 
-  const unavailable = useMemo(
-    () => Object.values(entities)
-      .filter((e) => e.state === 'unavailable')
-      .sort((a, b) => a.entity_id.localeCompare(b.entity_id)),
-    [entities],
-  )
+  const offline = useOfflineReport()
 
   const problems = useMemo(() => {
     const list: { id: string; severity: 'danger' | 'warn'; text: string; action?: () => void; actionLabel?: string }[] = []
@@ -59,11 +60,8 @@ export function StatusPage() {
     if (status && !status.storage.writable) {
       list.push({ id: 'storage', severity: 'warn', text: 'Storage in sola lettura: le modifiche alla configurazione non vengono salvate.' })
     }
-    if (unavailable.length > 0) {
-      list.push({ id: 'unavailable', severity: 'warn', text: `${unavailable.length} entità non disponibili.`, action: () => setActiveView('system'), actionLabel: 'Dettagli' })
-    }
     return list
-  }, [status, statusError, statusQueryError, unavailable.length, setActiveView])
+  }, [status, statusError, statusQueryError, setActiveView])
 
   const home = config?.home
   const online = connectionStatus === 'connected'
@@ -118,12 +116,23 @@ export function StatusPage() {
 
       <div className="grid shrink-0 grid-cols-2 gap-3 xl:grid-cols-4">
         <Metric label="Latenza HA" value={status?.ha.latencyMs != null ? `${status.ha.latencyMs} ms` : statusPending ? '…' : '—'} tone={status?.ha.reachable ? 'ok' : statusPending ? 'neutral' : 'warn'} Icon={Activity} />
-        <Metric label="Bridge dati" value={status ? (status.stream.mode === 'ws' ? 'Push WS' : status.stream.mode === 'poll' ? 'Poll' : 'Inattivo') : '—'} tone={status?.stream.mode === 'ws' ? 'ok' : 'neutral'} Icon={Zap} />
-        <Metric label="Client LAN" value={String(status?.stream.subscribers ?? 0)} Icon={ArrowUpRight} />
-        <Metric label="Storage" value={status ? `${storageModeLabel(status.storage.mode)}${status.storage.writable ? '' : ' (sola lettura)'}` : '—'} tone={status?.storage.writable ? 'neutral' : 'warn'} Icon={Database} />
+        <Metric
+          label="Dispositivi offline"
+          value={String(offline.deviceCount)}
+          tone={offline.deviceCount > 0 ? 'warn' : 'ok'}
+          Icon={PlugZap}
+        />
+        <Metric
+          label="Stabile da"
+          value={durationSince(status?.health?.connectedSince) || '—'}
+          tone={status?.health?.connectedSince ? 'ok' : 'warn'}
+          Icon={Timer}
+        />
+        <Metric label="Entità live" value={String(Object.keys(entities).length)} Icon={Boxes} />
       </div>
 
       <div className="grid shrink-0 grid-cols-1 items-start gap-4 xl:grid-cols-2">
+        <div className="flex flex-col gap-4">
         <GlassCard className="space-y-2 overflow-y-auto">
           <h2 className="text-sm font-semibold text-[#1d1d1f]">Cosa non va</h2>
           {statusPending ? (
@@ -150,13 +159,14 @@ export function StatusPage() {
             ))
           )}
         </GlassCard>
+        <OfflineDevicesCard report={offline} ready={online} />
+        </div>
 
         <div className="flex flex-col gap-4">
           <GlassCard className="space-y-2">
             <h2 className="text-sm font-semibold text-[#1d1d1f]">Attività</h2>
-            <InfoRow label="Entità live" value={String(Object.keys(entities).length)} />
             <InfoRow label="Ultimo salvataggio config" value={home?.updatedAt ? `${new Date(home.updatedAt).toLocaleString('it-IT')} · da ${home.updatedBy ?? '—'}` : '—'} />
-            <InfoRow label="Eventi stream" value={status ? `${status.stream.lastEventId}${status.stream.lastEventAt ? ` · ultimo ${new Date(status.stream.lastEventAt).toLocaleTimeString('it-IT')}` : ''}` : '—'} />
+            <InfoRow label="Ultimo dato da Home Assistant" value={status?.stream.lastEventAt ? new Date(status.stream.lastEventAt).toLocaleTimeString('it-IT') : '—'} />
             <InfoRow
               label="Integrazioni"
               value={status ? ['Gemini', 'OpenWeather'].filter((_, i) => [status.integrations.gemini, status.integrations.openweather][i]).join(' · ') || 'nessuna integrazione opzionale' : '—'}
@@ -192,11 +202,6 @@ function InfoRow({ label, value, Icon }: { label: string; value: string; Icon?: 
       <span className="truncate text-xs font-semibold text-black/70">{value}</span>
     </div>
   )
-}
-
-function storageModeLabel(mode: 'file' | 'read-only') {
-  if (mode === 'file') return 'Locale'
-  return 'Locale in sola lettura'
 }
 
 function BackupCard({ readOnly }: { readOnly: boolean }) {

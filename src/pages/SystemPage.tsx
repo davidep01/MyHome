@@ -1,116 +1,38 @@
-import { useId, useMemo, useState } from 'react'
+import { useId, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { AlertTriangle, Database, MonitorSmartphone, RefreshCw, Save, Server, ShieldCheck, Wrench } from 'lucide-react'
+import { MonitorSmartphone, Save, Server, ShieldCheck } from 'lucide-react'
 import { GlassCard } from '../components/glass/GlassCard'
+import { ServiceHealthCard } from '../components/system/ServiceHealthCard'
 import { useDashboardConfig, useUpdateConfig } from '../hooks/useDashboardConfig'
-import { useEntityStore } from '../store/entities'
-import { haRegistry } from '../api/ha-registry'
 import { alarmApi, kioskApi, systemApi } from '../api/backend'
-import { stateLabel } from '../components/widgets/utils/stateLabel'
 import { timeAgo } from '../lib/time'
 import { cn } from '../lib/utils'
 
 /**
- * Regia — Sistema: connessione HA, storage, versione e la diagnostica VERA
- * (entity_category dal registry, non keyword-grep sui nomi).
+ * Regia — Sistema: il servizio, non la casa. Connessione a HA, salute nel
+ * tempo (uptime, cadute del ponte, errori, aggiornamenti), tablet a muro e
+ * log delle azioni critiche. "Cosa non va in casa" vive in Stato: qui non si
+ * duplica nulla di quella vista.
  */
 export function SystemPage() {
-  const { data: status, isPending: statusPending, isError: statusError, refetch, isFetching } = useQuery({ queryKey: ['system-status'], queryFn: systemApi.status, refetchInterval: 15_000 })
-  const entities = useEntityStore((s) => s.entities)
-  const connected = useEntityStore((s) => s.connectionStatus === 'connected')
-
-  const { data: registry, isPending: registryPending, isError: registryError } = useQuery({
-    queryKey: ['ha-registry-diagnostics'],
-    enabled: connected,
-    staleTime: 5 * 60 * 1000,
-    queryFn: () => haRegistry.entities(),
-  })
-
-  const diagnostics = useMemo(() => {
-    if (!registry) return []
-    return registry
-      .filter((r) => r.entity_category === 'diagnostic')
-      .map((r) => entities[r.entity_id])
-      .filter((e): e is NonNullable<typeof e> => Boolean(e))
-      .sort((a, b) => a.entity_id.localeCompare(b.entity_id))
-      .slice(0, 30)
-  }, [registry, entities])
-
-  const unavailable = useMemo(
-    () => Object.values(entities)
-      .filter((e) => e.state === 'unavailable')
-      .sort((a, b) => a.entity_id.localeCompare(b.entity_id)),
-    [entities],
-  )
+  const { data: status } = useQuery({ queryKey: ['system-status'], queryFn: systemApi.status, refetchInterval: 15_000 })
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-y-auto pr-1">
       <div>
         <h1 className="text-2xl font-semibold text-[#1d1d1f] sm:text-3xl">Sistema</h1>
-        <p className="mt-1 text-sm text-black/45">Connessione e diagnostica dell’installazione locale nella rete LAN</p>
+        <p className="mt-1 text-sm text-black/45">Connessione, salute del servizio e tablet dell’installazione locale</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         <ConnectionCard />
-
-        <GlassCard className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Database size={16} className="text-black/45" />
-            <h2 className="text-sm font-semibold text-[#1d1d1f]">Storage & versione</h2>
-          </div>
-          {statusPending && !status ? (
-            <p className="py-6 text-center text-sm text-black/40" role="status">Lettura dello stato locale…</p>
-          ) : statusError && !status ? (
-            <div className="space-y-2 rounded-[10px] bg-red-500/10 px-3 py-3" role="alert">
-              <p className="text-sm text-red-700">Stato del servizio MyHome non disponibile.</p>
-              <button type="button" onClick={() => refetch()} className="min-h-[44px] rounded-full bg-white px-4 text-xs font-semibold text-red-700">Riprova</button>
-            </div>
-          ) : (
-            <>
-              {statusError && (
-                <p className="rounded-[10px] bg-orange-500/10 px-3 py-2 text-xs text-orange-700" role="alert">Aggiornamento non riuscito: sono mostrati gli ultimi dati disponibili.</p>
-              )}
-              <Row label="Persistenza" value={status ? `${storageModeLabel(status.storage.mode)}${status.storage.writable ? '' : ' — sola lettura'}` : '—'} />
-              <Row label="Bridge dati" value={status ? `${status.stream.mode === 'ws' ? 'WebSocket push' : status.stream.mode === 'poll' ? `poll ${status.stream.pollMs} ms` : 'inattivo'} · WS ${status.stream.wsState}` : '—'} />
-              <Row label="Client LAN connessi" value={String(status?.stream.subscribers ?? 0)} />
-              <Row label="Versione app" value={`v${__APP_VERSION__}`} />
-              <Row label="Integrazioni opzionali" value={status ? [status.integrations.gemini && 'Gemini', status.integrations.openweather && 'OpenWeather'].filter(Boolean).join(' · ') || 'nessuna' : '—'} />
-              <button type="button" onClick={() => refetch()} disabled={isFetching} className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-[12px] bg-black/[0.05] text-xs font-semibold text-black/55">
-                <RefreshCw size={14} className={cn(isFetching && 'animate-spin')} /> {isFetching ? 'Aggiornamento…' : 'Aggiorna stato'}
-              </button>
-            </>
-          )}
-        </GlassCard>
+        <ServiceHealthCard status={status} />
       </div>
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         <KioskFleetCard />
         <AuditCard />
       </div>
-
-      <Section title="Entità non disponibili" count={unavailable.length} emptyText="Tutte le entità rispondono.">
-        {unavailable.slice(0, 36).map((e) => (
-          <DiagRow key={e.entity_id} id={e.entity_id} name={(e.attributes?.friendly_name as string | undefined) ?? e.entity_id} state={stateLabel(e.state)} updated={e.last_updated} warning />
-        ))}
-      </Section>
-
-      <Section
-        title="Diagnostica (dal registro HA)"
-        count={diagnostics.length}
-        emptyText={registryError ? 'Registro Home Assistant non disponibile.' : connected && registryPending ? 'Lettura del registro Home Assistant…' : connected ? 'Nessun sensore diagnostico esposto.' : 'In attesa della connessione…'}
-        error={registryError}
-        loading={connected && registryPending}
-      >
-        {diagnostics.map((e) => (
-          <DiagRow
-            key={e.entity_id}
-            id={e.entity_id}
-            name={(e.attributes?.friendly_name as string | undefined) ?? e.entity_id}
-            state={`${e.state}${e.attributes?.unit_of_measurement ? ` ${e.attributes.unit_of_measurement}` : ''}`}
-            updated={e.last_updated}
-          />
-        ))}
-      </Section>
     </div>
   )
 }
@@ -363,46 +285,6 @@ function ConnectionCard() {
   )
 }
 
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between gap-3 rounded-[10px] bg-black/[0.035] px-3 py-2">
-      <span className="text-xs text-black/45">{label}</span>
-      <span className="truncate text-xs font-semibold text-black/70">{value}</span>
-    </div>
-  )
-}
-
-function Section({ title, count, emptyText, children, loading = false, error = false }: { title: string; count: number; emptyText: string; children: React.ReactNode; loading?: boolean; error?: boolean }) {
-  return (
-    <GlassCard className="space-y-2">
-      <div className="flex items-center gap-2">
-        <Wrench size={15} className="text-black/40" />
-        <h2 className="text-sm font-semibold text-[#1d1d1f]">{title}</h2>
-        <span className="rounded-full bg-black/[0.06] px-2 py-0.5 text-xs font-semibold tabular-nums text-black/45">{count}</span>
-      </div>
-      {count === 0
-        ? <p className={cn('py-4 text-center text-sm', error ? 'text-red-600' : 'text-black/35')} role={error ? 'alert' : loading ? 'status' : undefined}>{emptyText}</p>
-        : <div className="grid grid-cols-1 gap-1.5 lg:grid-cols-2">{children}</div>}
-    </GlassCard>
-  )
-}
-
-function DiagRow({ id, name, state, updated, warning }: { id: string; name: string; state: string; updated?: string; warning?: boolean }) {
-  return (
-    <div className={cn('flex items-center gap-3 rounded-[10px] px-3 py-2', warning ? 'bg-orange-500/8' : 'bg-black/[0.035]')}>
-      {warning && <AlertTriangle size={14} className="shrink-0 text-orange-600" />}
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm text-[#1d1d1f]">{name}</p>
-        <p className="truncate font-mono text-[10px] text-black/30">{id}</p>
-      </div>
-      <div className="shrink-0 text-right">
-        <p className="text-xs font-semibold text-black/65">{state}</p>
-        <p className="text-[10px] text-black/30">{timeAgo(updated)}</p>
-      </div>
-    </div>
-  )
-}
-
 function configSourceLabel(source: 'env' | 'db' | 'default' | 'missing' | 'invalid') {
   if (source === 'env') return 'Variabile d’ambiente'
   if (source === 'db') return 'Configurazione locale'
@@ -411,7 +293,3 @@ function configSourceLabel(source: 'env' | 'db' | 'default' | 'missing' | 'inval
   return 'Non configurato'
 }
 
-function storageModeLabel(mode: 'file' | 'read-only') {
-  if (mode === 'file') return 'File locale'
-  return 'Locale in sola lettura'
-}

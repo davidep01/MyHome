@@ -548,11 +548,38 @@ export interface SystemStatus {
     lastEventAt: string | null
   }
   storage: { mode: 'file' | 'read-only'; writable: boolean }
+  /**
+   * Stabilità del ponte dati. Opzionale di proposito: durante un aggiornamento
+   * dell'add-on il bundle può essere più nuovo del servizio che lo serve, e la
+   * regia deve degradare a "—", non cadere.
+   */
+  health?: {
+    startedAt: string
+    connectedSince: string | null
+    disconnections: number
+    lastDisconnectAt: string | null
+    lastDisconnectReason: string | null
+  }
   integrations: { gemini: boolean; openweather: boolean }
   now: string
+}
+
+export interface ServiceError {
+  at: string
+  scope: 'ha' | 'stream' | 'storage' | 'ai' | 'weather'
+  message: string
+  count: number
+}
+
+export interface UpdateInfo {
+  latest: string | null
+  checkedAt: string
+  error?: string
 }
 
 export const systemApi = {
   status: () => request<SystemStatus>('/system/status'),
   audit: () => request<{ entries: AuditEntry[] }>('/system/audit'),
+  errors: () => request<{ entries: ServiceError[] }>('/system/errors'),
+  update: (force = false) => request<UpdateInfo>(`/system/update${force ? '?force=1' : ''}`),
 }
