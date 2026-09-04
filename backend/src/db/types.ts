@@ -203,8 +203,30 @@ export interface DeviceOverride {
   enabled?: boolean
 }
 
+export interface HomeRevisionSummary {
+  widgetsAdded: number
+  widgetsRemoved: number
+  widgetsMoved: number
+  widgetsResized: number
+  reordered: boolean
+}
+
+/** Uno scatto della home (widget/posizioni/ordine) per la cronologia versioni (§4.4). */
+export interface HomeRevision {
+  version: number
+  createdAt: string
+  createdBy: NonNullable<HomeConfig['updatedBy']>
+  source: 'edit' | 'rollback'
+  /** Presente solo se questa revisione è nata da un ripristino. */
+  restoredFromVersion?: number
+  summary: HomeRevisionSummary
+  home: HomeConfig
+}
+
 export interface DbStore {
   config: AppConfig
   rooms: Omit<Room, 'entities'>[]
   entities: RoomEntity[]
+  /** Cronologia della home: ultime MAX_HOME_REVISIONS versioni, più recente in coda. */
+  homeRevisions?: HomeRevision[]
 }

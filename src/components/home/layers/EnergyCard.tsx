@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Zap } from 'lucide-react'
 import { GlassCard } from '../../glass/GlassCard'
@@ -6,6 +6,10 @@ import { haApi } from '../../../api/backend'
 import { useEntityStore } from '../../../store/entities'
 import { cn } from '../../../lib/utils'
 import { entityName } from '../../widgets/utils/mapEntityToWidgetCard'
+import {
+  detectSolarSelfSufficiency, detectSustainedWaterFlow, findSolarProductionSensor, findWaterFlowSensor,
+} from '../../../lib/consumptionInsights'
+import { powerValueInKw } from '../../../lib/statusBarEnergy'
 
 /**
  * Energia onesta (DOMINICA M5): capability-gated — senza sensori di potenza la
@@ -32,6 +36,22 @@ export function EnergyCard() {
     queryFn: () => haApi.history(sensor!.entity_id, 24),
   })
 
+  const waterSensor = useMemo(() => findWaterFlowSensor(Object.values(entities)), [entities])
+  const { data: waterHistory } = useQuery({
+    queryKey: ['water-flow-history', waterSensor?.entityId],
+    enabled: Boolean(waterSensor),
+    staleTime: 5 * 60 * 1000,
+    queryFn: () => haApi.history(waterSensor!.entityId, 1),
+  })
+  const solarSensor = useMemo(() => findSolarProductionSensor(Object.values(entities)), [entities])
+
+  // Aggiornato a intervalli, mai letto direttamente durante il render.
+  const [nowMs, setNowMs] = useState(() => Date.now())
+  useEffect(() => {
+    const timer = window.setInterval(() => setNowMs(Date.now()), 60_000)
+    return () => window.clearInterval(timer)
+  }, [])
+
   if (!sensor) return null
 
   const now = parseFloat(sensor.state)
@@ -39,6 +59,14 @@ export function EnergyCard() {
   const values = (history ?? []).map((h) => parseFloat(h.state)).filter(Number.isFinite)
   const avg = values.length >= 8 ? values.reduce((a, b) => a + b, 0) / values.length : null
   const delta = avg && avg > 1 ? Math.round(((now - avg) / avg) * 100) : null
+
+  const waterInsight = waterSensor && waterHistory
+    ? detectSustainedWaterFlow(waterHistory, waterSensor.unit, nowMs)
+    : null
+  const consumptionKw = powerValueInKw(sensor.state, unit)
+  const solarInsight = solarSensor && consumptionKw !== null
+    ? detectSolarSelfSufficiency(consumptionKw, solarSensor.kw)
+    : null
 
   return (
     <GlassCard
@@ -67,6 +95,12 @@ export function EnergyCard() {
         <p className="mt-2 truncate text-xs text-black/40">
           {entityName(sensor)}
         </p>
+        {(waterInsight || solarInsight) && (
+          <div className="mt-1.5 space-y-0.5">
+            {waterInsight && <p className="text-[11px] font-semibold leading-snug text-[#c2410c]">{waterInsight.text}</p>}
+            {solarInsight && <p className="text-[11px] font-semibold leading-snug text-green-700">{solarInsight.text}</p>}
+          </div>
+        )}
       </div>
     </GlassCard>
   )

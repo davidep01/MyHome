@@ -595,9 +595,28 @@ export interface UpdateInfo {
   error?: string
 }
 
+export interface HomeRevisionSummary {
+  widgetsAdded: number
+  widgetsRemoved: number
+  widgetsMoved: number
+  widgetsResized: number
+  reordered: boolean
+}
+
+export interface HomeRevisionMeta {
+  version: number
+  createdAt: string
+  createdBy: 'desktop' | 'tablet' | 'migration' | 'system'
+  source: 'edit' | 'rollback'
+  restoredFromVersion?: number
+  summary: HomeRevisionSummary
+}
+
 export const systemApi = {
   status: () => request<SystemStatus>('/system/status'),
   audit: () => request<{ entries: AuditEntry[] }>('/system/audit'),
   errors: () => request<{ entries: ServiceError[] }>('/system/errors'),
   update: (force = false) => request<UpdateInfo>(`/system/update${force ? '?force=1' : ''}`),
+  homeRevisions: () => request<{ entries: HomeRevisionMeta[] }>('/system/home-revisions'),
+  restoreHomeRevision: (version: number) => request<unknown>(`/system/home-revisions/${version}/restore`, { method: 'POST' }),
 }

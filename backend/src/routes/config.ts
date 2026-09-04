@@ -6,6 +6,7 @@ import { getHAConfig, normalizeHAUrl } from '../lib/ha-config.js'
 import { configEvents, emitConfigChange } from '../lib/configEvents.js'
 import { desktopOnly } from '../lib/security.js'
 import { mergeHomeConfig, normalizeHomeConfig } from '../lib/home-layout.js'
+import { recordHomeRevision } from '../lib/home-revisions.js'
 import { validateConfigPatch } from '../lib/config-validation.js'
 import { cleanText, integerInRange, isEntityId, isEntityType, isIconName, isRecord, SIMPLE_ID_PATTERN } from '../lib/validation.js'
 import { invalidateHAConnection } from '../lib/ha-stream.js'
@@ -231,7 +232,9 @@ configRouter.put('/', async (c) => {
     if (body.doorbells !== undefined) store.config.doorbells = body.doorbells
     if (body.groups !== undefined) store.config.groups = body.groups
     if (body.home !== undefined) {
+      const previousHome = store.config.home
       store.config.home = mergeHomeConfig(store.config.home, body.home, 'desktop')
+      recordHomeRevision(store, previousHome, store.config.home, { source: 'edit', createdBy: 'desktop' })
     }
     if (body.dashboardLayout !== undefined) store.config.dashboardLayout = body.dashboardLayout
     if (body.kiosk !== undefined) store.config.kiosk = body.kiosk

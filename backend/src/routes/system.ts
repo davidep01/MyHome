@@ -7,6 +7,9 @@ import { configuredIntegrations } from '../lib/integration-config.js'
 import { getAuditLog } from '../lib/audit-log.js'
 import { getBridgeHealth, getServiceErrors, recordServiceError } from '../lib/service-health.js'
 import { getUpdateInfo } from '../lib/update-check.js'
+import { emitConfigChange } from '../lib/configEvents.js'
+import { findHomeRevision, listHomeRevisionsMeta, recordHomeRevision } from '../lib/home-revisions.js'
+import { mergeHomeConfig, tabletHomeLayout } from '../lib/home-layout.js'
 
 /**
  * Diagnostica per la regia desktop: salute HA (raggiungibilità + latenza),
@@ -25,6 +28,42 @@ systemRouter.get('/errors', (c) => c.json({ entries: getServiceErrors() }))
 
 // Ultima versione pubblicata (cache 6h lato server). Il confronto lo fa il client.
 systemRouter.get('/update', async (c) => c.json(await getUpdateInfo(c.req.query('force') === '1')))
+
+// Cronologia versioni della home (§4.4): ultime revisioni, più recente per prima.
+systemRouter.get('/home-revisions', async (c) => c.json({ entries: listHomeRevisionsMeta(await db.read()) }))
+
+// Ripristino non distruttivo: crea una NUOVA revisione che punta a quella scelta,
+// non sovrascrive né tronca la cronologia esistente.
+systemRouter.post('/home-revisions/:version/restore', async (c) => {
+  const version = Number(c.req.param('version'))
+  if (!Number.isInteger(version)) return c.json({ error: 'Versione non valida' }, 400)
+
+  let notFound = false
+  const ok = await db.write((store) => {
+    const revision = findHomeRevision(store, version)
+    if (!revision) {
+      notFound = true
+      return
+    }
+    const previousHome = store.config.home
+    store.config.home = mergeHomeConfig(previousHome, {
+      widgets: revision.home.widgets,
+      positions: revision.home.positions,
+      order: revision.home.order,
+    }, 'desktop')
+    recordHomeRevision(store, previousHome, store.config.home, {
+      source: 'rollback',
+      createdBy: 'desktop',
+      restoredFromVersion: version,
+    })
+  })
+  if (notFound) return c.json({ error: 'Versione non trovata' }, 404)
+  if (!ok) return c.json({ error: 'Ripristino non salvabile in questo deploy' }, 409)
+
+  emitConfigChange()
+  const updated = await db.read()
+  return c.json(tabletHomeLayout(updated.config))
+})
 
 systemRouter.get('/status', async (c) => {
   const ha = await getHAConfig()

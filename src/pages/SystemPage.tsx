@@ -1,11 +1,12 @@
 import { useId, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { AlertTriangle, MonitorSmartphone, Save, Server, ShieldCheck } from 'lucide-react'
+import { AlertTriangle, History, MonitorSmartphone, Save, Server, ShieldCheck } from 'lucide-react'
 import { GlassCard } from '../components/glass/GlassCard'
 import { ServiceHealthCard } from '../components/system/ServiceHealthCard'
 import { useDashboardConfig, useUpdateConfig } from '../hooks/useDashboardConfig'
-import { alarmApi, kioskApi, systemApi, type KioskDeviceStatus } from '../api/backend'
+import { alarmApi, kioskApi, systemApi, type HomeRevisionMeta, type KioskDeviceStatus } from '../api/backend'
 import { commandNeedsFully, commandResultLabel, fleetReadiness } from '../lib/kioskCommands'
+import { summaryLabel } from '../lib/homeRevisions'
 import { timeAgo } from '../lib/time'
 import { cn } from '../lib/utils'
 
@@ -34,6 +35,94 @@ export function SystemPage() {
         <KioskFleetCard />
         <AuditCard />
       </div>
+
+      <HomeVersionsCard />
+    </div>
+  )
+}
+
+/**
+ * Cronologia versioni della home (§4.4): ogni salvataggio del layout (tablet o
+ * regia) crea una revisione. Il ripristino non sovrascrive la cronologia — crea
+ * una nuova revisione che punta a quella scelta, quindi è a sua volta annullabile.
+ */
+function HomeVersionsCard() {
+  const queryClient = useQueryClient()
+  const revisions = useQuery({ queryKey: ['system-home-revisions'], queryFn: systemApi.homeRevisions, refetchInterval: 30_000 })
+  const [restoring, setRestoring] = useState<number | null>(null)
+  const [message, setMessage] = useState<string | null>(null)
+  const entries = revisions.data?.entries ?? []
+
+  const restore = (version: number) => {
+    if (!window.confirm(`Ripristinare la disposizione della home alla versione ${version}? Verrà creata una nuova versione: quella attuale resta nello storico.`)) return
+    setRestoring(version)
+    setMessage(null)
+    systemApi.restoreHomeRevision(version)
+      .then(async () => {
+        setMessage('Disposizione ripristinata.')
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ['system-home-revisions'] }),
+          queryClient.invalidateQueries({ queryKey: ['config'] }),
+          queryClient.invalidateQueries({ queryKey: ['layout'] }),
+        ])
+      })
+      .catch(() => setMessage('Ripristino non riuscito. Riprova.'))
+      .finally(() => setRestoring(null))
+  }
+
+  return (
+    <GlassCard className="space-y-2">
+      <div className="flex items-center gap-2">
+        <History size={16} className="text-black/45" />
+        <h2 className="flex-1 text-sm font-semibold text-[#1d1d1f]">Versioni della home</h2>
+      </div>
+      {entries.length === 0
+        ? <p className="py-3 text-center text-sm text-black/40">Nessuna modifica registrata dall’avvio del servizio.</p>
+        : entries.slice(0, 10).map((entry, index) => (
+          <HomeVersionRow
+            key={`${entry.version}-${entry.createdAt}`}
+            entry={entry}
+            current={index === 0}
+            restoring={restoring === entry.version}
+            disabled={restoring !== null}
+            onRestore={() => restore(entry.version)}
+          />
+        ))}
+      {message && <p className="text-xs font-semibold text-black/50" role="status" aria-live="polite">{message}</p>}
+    </GlassCard>
+  )
+}
+
+function HomeVersionRow({
+  entry, current, restoring, disabled, onRestore,
+}: {
+  entry: HomeRevisionMeta
+  current: boolean
+  restoring: boolean
+  disabled: boolean
+  onRestore: () => void
+}) {
+  return (
+    <div className="flex items-center gap-2 rounded-[10px] bg-black/[0.04] px-3 py-2">
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm text-[#1d1d1f]">
+          v{entry.version} · {summaryLabel(entry.summary)}
+          {entry.source === 'rollback' && <span className="text-black/45"> · ripristino da v{entry.restoredFromVersion}</span>}
+        </p>
+        <p className="text-[11px] text-black/40">
+          {entry.createdBy === 'tablet' ? 'Tablet' : entry.createdBy === 'desktop' ? 'Regia' : 'Sistema'} · {timeAgo(entry.createdAt)}
+        </p>
+      </div>
+      {!current && (
+        <button
+          type="button"
+          onClick={onRestore}
+          disabled={disabled}
+          className="tap-target shrink-0 rounded-full bg-white/80 px-3 py-1.5 text-xs font-semibold text-black/60 transition active:scale-95 disabled:opacity-40"
+        >
+          {restoring ? 'Ripristino…' : 'Ripristina'}
+        </button>
+      )}
     </div>
   )
 }

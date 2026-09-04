@@ -58,6 +58,7 @@ const DEFAULT_DB: DbStore = {
     { id: 'e19', roomId: 'esterno',   entityId: 'cover.cancello',          label: 'Cancello',      type: 'cover',   sortOrder: 1 },
     { id: 'e20', roomId: 'esterno',   entityId: 'switch.irrigazione',      label: 'Irrigazione',   type: 'switch',  sortOrder: 2 },
   ],
+  homeRevisions: [],
 }
 
 class JsonStore {
@@ -154,6 +155,11 @@ class JsonStore {
     const normalizedHome = normalizeHomeConfig(this.data.config.home)
     if (JSON.stringify(this.data.config.home ?? null) !== JSON.stringify(normalizedHome)) {
       this.data.config.home = normalizedHome
+      changed = true
+    }
+
+    if (!this.data.homeRevisions) {
+      this.data.homeRevisions = []
       changed = true
     }
 

@@ -1,11 +1,13 @@
 import { useMemo, useRef, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
-  Activity, AlertTriangle, Boxes, CheckCircle2, Download, ExternalLink,
+  Activity, Boxes, CheckCircle2, Download, ExternalLink,
   KeyRound, PlugZap, RefreshCw, Timer, Upload, WifiOff,
 } from 'lucide-react'
 import { GlassCard } from '../components/glass/GlassCard'
+import { AttentionCard } from '../components/system/AttentionCard'
 import { OfflineDevicesCard } from '../components/system/OfflineDevicesCard'
+import type { SystemProblem } from '../lib/attention'
 import { configApi, systemApi } from '../api/backend'
 import { useDashboardConfig } from '../hooks/useDashboardConfig'
 import { useOfflineReport } from '../hooks/useOfflineReport'
@@ -36,7 +38,7 @@ export function StatusPage() {
   const offline = useOfflineReport()
 
   const problems = useMemo(() => {
-    const list: { id: string; severity: 'danger' | 'warn'; text: string; action?: () => void; actionLabel?: string }[] = []
+    const list: SystemProblem[] = []
     if (statusError) {
       list.push({
         id: 'backend',
@@ -44,12 +46,11 @@ export function StatusPage() {
         text: statusQueryError instanceof Error
           ? `Diagnostica del servizio locale non disponibile — ${statusQueryError.message}`
           : 'Diagnostica del servizio locale non disponibile. Riprova o controlla MyHome nella LAN.',
-        action: () => setActiveView('system'),
-        actionLabel: 'Sistema',
+        actionTarget: 'system',
       })
     }
     if (status && !status.ha.reachable) {
-      list.push({ id: 'ha', severity: 'danger', text: `Home Assistant non raggiungibile${status.ha.message ? ` — ${status.ha.message}` : ''}`, action: () => setActiveView('system'), actionLabel: 'Connessione' })
+      list.push({ id: 'ha', severity: 'danger', text: `Home Assistant non raggiungibile${status.ha.message ? ` — ${status.ha.message}` : ''}`, actionTarget: 'system' })
     }
     if (status && !status.integrations.openweather) {
       list.push({ id: 'weather', severity: 'warn', text: 'Chiave OpenWeather assente: meteo spento su kiosk e regia.' })
@@ -61,7 +62,7 @@ export function StatusPage() {
       list.push({ id: 'storage', severity: 'warn', text: 'Storage in sola lettura: le modifiche alla configurazione non vengono salvate.' })
     }
     return list
-  }, [status, statusError, statusQueryError, setActiveView])
+  }, [status, statusError, statusQueryError])
 
   const home = config?.home
   const online = connectionStatus === 'connected'
@@ -133,32 +134,7 @@ export function StatusPage() {
 
       <div className="grid shrink-0 grid-cols-1 items-start gap-4 xl:grid-cols-2">
         <div className="flex flex-col gap-4">
-        <GlassCard className="space-y-2 overflow-y-auto">
-          <h2 className="text-sm font-semibold text-[#1d1d1f]">Cosa non va</h2>
-          {statusPending ? (
-            <div className="flex min-h-[132px] flex-col items-center justify-center gap-2 text-black/40" role="status">
-              <RefreshCw size={24} className="animate-spin text-[#0066cc]" />
-              <p className="text-sm">Controllo dei servizi in corso…</p>
-            </div>
-          ) : problems.length === 0 ? (
-            <div className="flex min-h-[132px] flex-col items-center justify-center gap-2 text-black/35">
-              <CheckCircle2 size={28} className="text-green-600/70" />
-              <p className="text-sm">Tutto regolare.</p>
-            </div>
-          ) : (
-            problems.map((p) => (
-              <div key={p.id} className={cn('flex items-center gap-3 rounded-[12px] px-3 py-2.5', p.severity === 'danger' ? 'bg-red-500/10' : 'bg-orange-500/10')}>
-                <AlertTriangle size={16} className={p.severity === 'danger' ? 'shrink-0 text-red-600' : 'shrink-0 text-orange-600'} />
-                <p className="min-w-0 flex-1 text-sm text-[#1d1d1f]">{p.text}</p>
-                {p.action && (
-                  <button type="button" onClick={p.action} className="min-h-[44px] shrink-0 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-black/60 active:scale-95">
-                    {p.actionLabel}
-                  </button>
-                )}
-              </div>
-            ))
-          )}
-        </GlassCard>
+        <AttentionCard problems={problems} offline={offline} loading={statusPending} onNavigateSystem={() => setActiveView('system')} />
         <OfflineDevicesCard report={offline} ready={online} />
         </div>
 

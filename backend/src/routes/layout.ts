@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { db } from '../db/client.js'
 import type { HomeWidget } from '../db/types.js'
 import { emitConfigChange } from '../lib/configEvents.js'
+import { recordHomeRevision } from '../lib/home-revisions.js'
 import { adminOnly } from '../lib/security.js'
 import {
   HOME_COLS,
@@ -122,12 +123,14 @@ layoutRouter.put('/:dashboardId', adminOnly, async (c) => {
       failureCurrent = latest
       return
     }
+    const previousHome = store.config.home
     store.config.home = mergeHomeConfig(store.config.home, {
       ...(atomicValidation.widgets ? { widgets: atomicValidation.widgets } : {}),
       positions: atomicValidation.items,
       order: atomicValidation.order ?? (atomicValidation.widgets ? undefined : latest.layout.order),
       layoutVersion: latest.layoutVersion + 1,
     }, 'tablet')
+    recordHomeRevision(store, previousHome, store.config.home, { source: 'edit', createdBy: 'tablet' })
   })
   if (!ok) return c.json({ error: 'Layout non salvabile in questo deploy' }, 409)
   if (atomicFailure) {

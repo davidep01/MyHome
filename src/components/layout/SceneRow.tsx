@@ -1,10 +1,14 @@
+import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Music, DoorOpen, Moon, Film, Sunrise, Home as House, Sparkles } from 'lucide-react'
+import { Check, Music, DoorOpen, Moon, Film, Sunrise, Home as House, Sparkles } from 'lucide-react'
 import { useHAService } from '../../hooks/useHAService'
 import { useHaptic } from '../../hooks/useHaptic'
 import { useScenes } from '../../hooks/useScenes'
 import { framerSpringBounce } from '../../design/tokens'
+import { cn } from '../../lib/utils'
 import type { WidgetSize } from '../../api/backend'
+
+type ScenePhase = 'idle' | 'pending' | 'done' | 'failed'
 
 const sceneIcons: Record<string, React.ElementType> = {
   music: Music,
@@ -18,8 +22,9 @@ const sceneIcons: Record<string, React.ElementType> = {
 
 export function SceneRow({ size = 'wide' }: { size?: WidgetSize }) {
   const { call } = useHAService()
-  const { medium } = useHaptic()
+  const { medium, heavy } = useHaptic()
   const scenes = useScenes()
+  const [phases, setPhases] = useState<Record<string, ScenePhase>>({})
 
   if (scenes.length === 0) {
     return (
@@ -37,9 +42,21 @@ export function SceneRow({ size = 'wide' }: { size?: WidgetSize }) {
   const visibleScenes = scenes.slice(0, size === 'sm' ? 2 : size === 'md' ? 4 : size === 'lg' ? 6 : 10)
   const large = size === 'lg'
 
-  const activate = (entityId: string) => {
+  const setPhase = (entityId: string, phase: ScenePhase) => setPhases((current) => ({ ...current, [entityId]: phase }))
+
+  const activate = async (entityId: string) => {
+    if (phases[entityId] === 'pending') return
     medium()
-    call('scene', 'turn_on', { entity_id: entityId })
+    setPhase(entityId, 'pending')
+    try {
+      await call('scene', 'turn_on', { entity_id: entityId })
+      setPhase(entityId, 'done')
+      window.setTimeout(() => setPhase(entityId, 'idle'), 1800)
+    } catch {
+      heavy()
+      setPhase(entityId, 'failed')
+      window.setTimeout(() => setPhase(entityId, 'idle'), 2200)
+    }
   }
 
   return (
@@ -48,19 +65,29 @@ export function SceneRow({ size = 'wide' }: { size?: WidgetSize }) {
     <div className={large ? 'grid w-full grid-cols-3 gap-x-4 gap-y-5 overflow-hidden px-1 py-2 sm:grid-cols-4' : 'flex shrink-0 items-start gap-[18px] overflow-x-auto px-0.5 pb-3 pt-1.5'}>
       {visibleScenes.map((scene) => {
         const Icon = sceneIcons[scene.icon] ?? Sparkles
+        const phase = phases[scene.entityId] ?? 'idle'
         return (
           <motion.button
             key={scene.entityId}
             type="button"
-            onClick={() => activate(scene.entityId)}
+            onClick={() => void activate(scene.entityId)}
+            disabled={phase === 'pending'}
             whileTap={{ scale: 0.92 }}
             transition={framerSpringBounce}
-            className="flex shrink-0 flex-col items-center gap-2"
+            className={cn('flex shrink-0 flex-col items-center gap-2', phase === 'failed' && 'widget-anim-errorShake')}
             style={{ width: large ? '100%' : 68 }}
           >
             {/* Scene orb — uses the .scene-orb CSS class from index.css */}
-            <span className="scene-orb" style={{ background: scene.color, boxShadow: `inset 0 1px 0 rgba(255,255,255,0.35), 0 4px 14px ${scene.color}50` }}>
-              <Icon size={22} color="#fff" strokeWidth={2.1} />
+            <span className="relative scene-orb" style={{ background: scene.color, boxShadow: `inset 0 1px 0 rgba(255,255,255,0.35), 0 4px 14px ${scene.color}50` }}>
+              {phase === 'done'
+                ? <Check size={22} color="#fff" strokeWidth={2.6} />
+                : <Icon size={22} color="#fff" strokeWidth={2.1} />}
+              {phase === 'pending' && (
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-[3px] animate-spin rounded-full border-2 border-white/70 border-t-transparent"
+                />
+              )}
             </span>
             <span className="w-full truncate text-center capitalize" style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink-secondary)', letterSpacing: '-0.1px' }}>
               {scene.label}
