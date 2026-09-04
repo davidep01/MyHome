@@ -1,5 +1,6 @@
 import { dateKeyForLocalDate, isWasteCollectionSensor, wastePickups } from './wasteCollection'
 import { isRelevantUnavailableEntity } from './entityCuration'
+import { isCameraEntity } from './entityVisibility'
 
 /**
  * Composer di rilevanza — il cuore della home a strati (DOMINICA M1).
@@ -395,9 +396,12 @@ export function composeHome(entities: ComposerEntity[], opts: ComposeOptions): C
   }
 
   // Pinned: gli 'always' non ancora candidati entrano come "In evidenza".
+  // Le videocamere restano escluse anche qui: vivono solo nella tendina video,
+  // mai come card (§7) — un pin su "Sempre" non deve poter aggirarlo.
   const candidateKeys = new Set(candidates.map((c) => c.key))
   for (const e of entities) {
     if (heroPref(e.entity_id) !== 'always' || candidateKeys.has(e.entity_id)) continue
+    if (isCameraEntity(e.entity_id)) continue
     if (e.state === 'unavailable' || e.state === 'unknown') continue
     candidates.push({ key: e.entity_id, entityId: e.entity_id, priority: 4, reason: 'In evidenza', changed: changedMs(e) })
   }

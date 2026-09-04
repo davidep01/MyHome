@@ -353,6 +353,12 @@ Fasi 2–6 applicate. La Definition of Done richiede a ogni rilascio lint, suite
 - Ispirazione dichiarata: analisi di **DomusUI** (progetto di un amico, componente HACS per HA) — presi i pattern funzionali/UX, **non** l'estetica (gradienti per famiglia, wallpaper): il canone Liquid Glass di MyHome resta invariato, §7 non è stato toccato.
 - Verifica: lint ✅ · test 465/465 frontend + 180/180 backend ✅ · build:all ✅ · typecheck backend ✅.
 
+**Risolti (2026-09-04, sera) — una videocamera pinnata "Sempre" finiva comunque su Home:**
+- **Diagnosi: il pin bypassava sia l'opt-in sia l'esclusione camere.** Il selettore "Nello strato Adesso: Sempre" nel workbench Entità ([EntitiesPage.tsx](src/pages/EntitiesPage.tsx)) non aveva mai un'esclusione di dominio, e il fallback "pinned" di `composer.ts` (gli `hero:'always'` non ancora candidati) scorre **tutte** le entità passate al composer — di proposito, per garantire le P0 di sicurezza anche su dispositivi non configurati — senza mai passare da `isDashboardCardEntity`/`isCameraEntity`. Risultato: una `camera.*` con hero `always` rientrava su Home aggirando sia l'opt-in (§entityVisibility.ts) sia la regola esplicita "le card video vivono solo nella tendina" (§7).
+- **Corretto ad entrambi i livelli** — il fallback pinned in `composer.ts` ora salta esplicitamente `isCameraEntity()` (stessa fonte di verità di `entityVisibility.ts`, non una copia locale); il workbench non offre più il controllo "Auto/Sempre/Mai" per una videocamera, sostituito da una nota che rimanda alla tendina. Test di regressione dedicato in `composer.test.ts`.
+- **La tendina video riempiva sempre 3 slot, anche con una sola camera configurata** — `CameraMonitoringRow` aveva un `fillEmpty` che nessuna chiamata reale usava più a `false` tranne `RoomDashboard`; la fila globale (Home) e la griglia legacy lo lasciavano al default `true`, mostrando "Camera non configurata" per ogni slot oltre alle camere scelte — leggibile come un errore, non come "spazio libero". Rimosso il flag: ora è l'unico comportamento, in tutti e tre i punti di utilizzo.
+- Verifica: lint ✅ · test 468/468 ✅ · build:all ✅ · typecheck backend ✅.
+
 **Residui noti (non bloccanti):** WebRTC/talk-back via signaling proxy backend; rimozione definitiva della grid legacy dopo validazione del composer sul tablet reale; AI write-back automazioni (roadmap); modalità ospiti/pulizie (§6.4) non ancora implementata.
 
 ---

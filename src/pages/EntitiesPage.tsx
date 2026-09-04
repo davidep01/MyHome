@@ -16,6 +16,7 @@ import { uid } from '../lib/uid'
 import { DynamicIcon } from '../components/DynamicIcon'
 import { cn } from '../lib/utils'
 import { applyVisibilitySelection, DEVICE_CATEGORY_OPTIONS } from '../lib/deviceSetup'
+import { isCameraEntity } from '../lib/entityVisibility'
 import {
   DeviceSetupWizard, type DeviceSetupRegistryMeta,
 } from '../components/entities/DeviceSetupWizard'
@@ -727,6 +728,11 @@ function EntityDetail({
         <p className="rounded-[10px] bg-orange-500/10 px-3 py-2 text-xs text-orange-700">Nascosta direttamente in Home Assistant.</p>
       )}
 
+      {isCameraEntity(entityId) ? (
+        <p className="rounded-[10px] bg-black/[0.04] px-3 py-2 text-[11px] leading-relaxed text-black/45">
+          Le videocamere restano solo nella tendina video: non possono diventare una card fissa sulla home.
+        </p>
+      ) : (
       <div className="space-y-1.5">
         <p className="text-xs font-semibold text-black/50" id={`${id}-hero-label`}>Nello strato “Adesso” del kiosk</p>
         <div className="flex rounded-full bg-black/[0.05] p-1" role="group" aria-labelledby={`${id}-hero-label`}>
@@ -748,6 +754,7 @@ function EntityDetail({
         </div>
         <p className="text-[11px] text-black/35">Auto = il composer decide per rilevanza. Sempre = card fissa in evidenza. Mai = resta solo nelle stanze.</p>
       </div>
+      )}
 
       {entityId.startsWith('climate.') && (
         <div className="flex items-center justify-between gap-4 rounded-[16px] bg-black/[0.045] px-4 py-3">

@@ -34,7 +34,7 @@ export function RoomDashboard({
       ? 'grid h-full min-h-0 grid-rows-[minmax(145px,1fr)_minmax(0,1fr)] gap-3.5 overflow-hidden'
       : 'h-full min-h-0 overflow-hidden'}
     >
-      {hasCameras && <CameraMonitoringRow entityIds={cameraIds} overrides={overrides} fillEmpty={false} />}
+      {hasCameras && <CameraMonitoringRow entityIds={cameraIds} overrides={overrides} />}
       {deviceIds.length > 0 ? (
         <div className="grid h-full min-h-0 grid-flow-row-dense grid-cols-3 grid-rows-[repeat(6,minmax(0,1fr))] auto-rows-[minmax(0,1fr)] gap-3.5 overflow-hidden">
           {deviceIds.map((entityId, index) => {

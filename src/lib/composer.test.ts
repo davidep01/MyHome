@@ -304,6 +304,15 @@ describe('composeHome', () => {
     expect(out.hero[0].key).toBe('alarm_control_panel.casa')
   })
 
+  it("override 'always' su una videocamera non la porta in Adesso: le camere vivono solo nella tendina video", () => {
+    const heroOf = (id: string) => (id === 'camera.ingresso' ? 'always' as const : undefined)
+    const out = composeHome([
+      e('camera.ingresso', 'idle'),
+      e('media_player.tv', 'playing'),
+    ], { now: DAY, heroOf })
+    expect(out.hero.map((s) => s.key)).not.toContain('camera.ingresso')
+  })
+
   it('mantiene in Home un climate acceso quando il backend abilita showWhenActive', () => {
     const showWhenActive = (id: string) => id === 'climate.sala'
     const many = Array.from({ length: 6 }, (_, i) => e(`media_player.p${i}`, 'playing'))
