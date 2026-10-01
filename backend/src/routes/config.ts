@@ -14,8 +14,6 @@ import { invalidateHARegistryCache } from '../lib/ha-registry-cache.js'
 
 export const configRouter = new Hono()
 
-configRouter.use('*', desktopOnly)
-
 // Live config stream — every client subscribes and refetches on a change, so a
 // global dashboard edit on one device propagates to all devices instantly.
 // Event-driven (no polling): a change wakes the waiter and is pushed immediately.
@@ -31,8 +29,8 @@ configRouter.get('/stream', (c) => {
     configEvents.on('change', onChange)
     stream.onAbort(() => { closed = true; wake?.() })
 
-    await stream.writeSSE({ event: 'ready', data: 'ok' })
     try {
+      await stream.writeSSE({ event: 'ready', data: 'ok' })
       while (!closed) {
         if (dirty) {
           dirty = false
@@ -52,6 +50,10 @@ configRouter.get('/stream', (c) => {
     }
   })
 })
+
+// The authenticated notification stream contains no configuration values.
+// Reading or modifying the full configuration remains admin-only.
+configRouter.use('*', desktopOnly)
 
 configRouter.get('/', async (c) => {
   const { config } = await db.read()
@@ -143,6 +145,8 @@ configRouter.post('/import', async (c) => {
 
   const ok = await db.write((store) => {
     const importedConfig = configResult.value
+    const previousHome = store.config.home
+    const importedHome = normalizeHomeConfig(importedConfig.home)
     store.config = {
       ...store.config,
       ...importedConfig,
@@ -150,8 +154,14 @@ configRouter.post('/import', async (c) => {
       // portable backups, including legacy v1 exports.
       haUrl: store.config.haUrl,
       haToken: store.config.haToken,
-      home: mergeHomeConfig(store.config.home, normalizeHomeConfig(importedConfig.home), 'desktop'),
+      // Version and timestamp belong to this installation, not the backup.
+      home: mergeHomeConfig(previousHome, {
+        widgets: importedHome.widgets,
+        positions: importedHome.positions,
+        order: importedHome.order,
+      }, 'desktop'),
     }
+    recordHomeRevision(store, previousHome, store.config.home!, { source: 'edit', createdBy: 'desktop' })
     store.rooms = normalizedRooms
     store.entities = normalizedEntities
   })
@@ -238,6 +248,7 @@ configRouter.put('/', async (c) => {
     }
     if (body.dashboardLayout !== undefined) store.config.dashboardLayout = body.dashboardLayout
     if (body.kiosk !== undefined) store.config.kiosk = body.kiosk
+    if (body.alarm !== undefined) store.config.alarm = body.alarm
     if (body.ai !== undefined) store.config.ai = body.ai
   })
   if (!ok) return c.json({ error: 'Configurazione in sola lettura in questo deployment' }, 409)

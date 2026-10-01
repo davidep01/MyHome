@@ -21,13 +21,21 @@ function clientContext(): 'desktop' | 'tablet' {
   return window.matchMedia('(pointer: fine)').matches ? 'desktop' : 'tablet'
 }
 
-async function request<T>(
+export async function request<T>(
   path: string,
   options?: RequestInit,
 ): Promise<T> {
   const { headers: optionHeaders, ...requestOptions } = options ?? {}
+  const controller = new AbortController()
+  const parent = requestOptions.signal
+  const abort = () => controller.abort(parent?.reason)
+  if (parent?.aborted) abort()
+  else parent?.addEventListener('abort', abort, { once: true })
+  const timeout = setTimeout(() => controller.abort(new Error('La richiesta non ha risposto in tempo')), path.startsWith('/ai/') ? 30_000 : 15_000)
+  try {
   const res = await fetch(`${BASE}${path}`, {
     ...requestOptions,
+    signal: controller.signal,
     credentials: 'same-origin',
     headers: {
       'Content-Type': 'application/json',
@@ -44,7 +52,11 @@ async function request<T>(
     const action = typeof payload?.action === 'string' ? ` ${payload.action}` : ''
     throw new ApiError(`${detail}${action}`, res.status)
   }
-  return res.json() as Promise<T>
+  return await res.json() as T
+  } finally {
+    clearTimeout(timeout)
+    parent?.removeEventListener('abort', abort)
+  }
 }
 
 export interface AuthStatus {
@@ -508,6 +520,8 @@ export interface KioskHeartbeatPayload {
 
 /** Esito dell'ultimo comando remoto, riferito dal tablet stesso. */
 export interface KioskCommandResult {
+  commandId: string
+  status: 'pending' | 'accepted' | 'completed' | 'failed'
   command: string
   ok: boolean
   reason?: string
@@ -521,6 +535,8 @@ export interface KioskDeviceStatus extends KioskHeartbeatPayload {
 }
 
 export interface KioskCommandAck {
+  commandId: string
+  status?: 'accepted' | 'completed'
   deviceId: string
   command: string
   ok: boolean
@@ -532,7 +548,7 @@ export const kioskApi = {
     request<{ ok: true }>('/kiosk/heartbeat', { method: 'POST', body: JSON.stringify(payload) }),
   devices: () => request<{ devices: KioskDeviceStatus[] }>('/kiosk/devices'),
   command: (target: string, command: string, value?: number | string) =>
-    request<{ ok: true }>('/kiosk/command', { method: 'POST', body: JSON.stringify({ target, command, ...(value !== undefined ? { value } : {}) }) }),
+    request<{ ok: true; commandId: string }>('/kiosk/command', { method: 'POST', body: JSON.stringify({ target, command, ...(value !== undefined ? { value } : {}) }) }),
   ack: (payload: KioskCommandAck) =>
     request<{ ok: true }>('/kiosk/command-ack', { method: 'POST', body: JSON.stringify(payload) }),
 }

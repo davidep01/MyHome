@@ -74,3 +74,43 @@ describe('parseKioskCommand', () => {
     expect(parseKioskCommand(null)).toBeNull()
   })
 })
+
+describe('correlated command acknowledgements', () => {
+  it('rejects stale, foreign and mismatched ACKs and preserves the latest command', async () => {
+    const { issueKioskCommand, recordKioskCommandResult } = await import('./kiosk-fleet.js')
+    recordKioskHeartbeat({ deviceId: 'tab-1' }, 1000)
+    recordKioskHeartbeat({ deviceId: 'tab-2' }, 1000)
+    const first = issueKioskCommand({ target: 'tab-1', command: 'screenOn' }, 1000)!
+    const second = issueKioskCommand({ target: 'tab-1', command: 'screenOn' }, 1001)!
+    expect(first).not.toBe(second)
+    expect(recordKioskCommandResult('tab-1', { commandId: first, command: 'screenOn', ok: true }, 1002)).toBe(false)
+    expect(recordKioskCommandResult('tab-2', { commandId: second, command: 'screenOn', ok: true }, 1002)).toBe(false)
+    expect(recordKioskCommandResult('tab-1', { commandId: second, command: 'screenOff', ok: true }, 1002)).toBe(false)
+    expect(recordKioskCommandResult('tab-1', { commandId: second, command: 'screenOn', ok: true }, 1002)).toBe(true)
+    expect(recordKioskCommandResult('tab-1', { commandId: second, command: 'screenOn', ok: false }, 1003)).toBe(false)
+    expect(listKioskDevices(1003).find((device) => device.deviceId === 'tab-1')?.lastCommand).toMatchObject({ commandId: second, status: 'completed', ok: true })
+  })
+
+  it('separates reboot acceptance from completion and rejects expired confirmations', async () => {
+    const { issueKioskCommand, recordKioskCommandResult } = await import('./kiosk-fleet.js')
+    recordKioskHeartbeat({ deviceId: 'tab-1' }, 1000)
+    const id = issueKioskCommand({ target: 'tab-1', command: 'reload' }, 1000)!
+    expect(recordKioskCommandResult('tab-1', { commandId: id, command: 'reload', ok: true, status: 'accepted' }, 2000)).toBe(true)
+    expect(listKioskDevices(2000)[0].lastCommand?.status).toBe('accepted')
+    recordKioskHeartbeat({ deviceId: 'tab-1' }, 3000)
+    expect(recordKioskCommandResult('tab-1', { commandId: id, command: 'reload', ok: true, status: 'completed' }, 4000)).toBe(true)
+    const expired = issueKioskCommand({ target: 'tab-1', command: 'reload' }, 4000)!
+    expect(recordKioskCommandResult('tab-1', { commandId: expired, command: 'reload', ok: true }, 100000)).toBe(false)
+  })
+
+  it('correlates broadcasts independently for every registered target', async () => {
+    const { issueKioskCommand, recordKioskCommandResult } = await import('./kiosk-fleet.js')
+    recordKioskHeartbeat({ deviceId: 'tab-1' })
+    recordKioskHeartbeat({ deviceId: 'tab-2' })
+    const commandId = issueKioskCommand({ target: 'all', command: 'screenOn' })!
+    expect(recordKioskCommandResult('tab-1', { commandId, command: 'screenOn', ok: true })).toBe(true)
+    expect(listKioskDevices().find((device) => device.deviceId === 'tab-2')?.lastCommand?.status).toBe('pending')
+    expect(recordKioskCommandResult('tab-2', { commandId, command: 'screenOn', ok: false, reason: 'unsupported' })).toBe(true)
+    expect(issueKioskCommand({ target: 'unknown', command: 'screenOn' })).toBeNull()
+  })
+})

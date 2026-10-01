@@ -11,10 +11,15 @@ export function useConfigSync() {
   const qc = useQueryClient()
   useEffect(() => {
     if (typeof EventSource === 'undefined') return
-    const es = new EventSource('/api/config/stream?client=desktop')
-    es.addEventListener('config', () => {
-      qc.invalidateQueries({ queryKey: ['config'] })
-    })
+    const es = new EventSource('/api/config/stream')
+    const refresh = () => {
+      for (const key of ['config', 'tablet-layout', 'weather', 'news', 'calendar-events', 'screensaver-photos']) {
+        void qc.invalidateQueries({ queryKey: [key] })
+      }
+    }
+    es.addEventListener('config', refresh)
+    // Changes missed while disconnected are not replayed by this stream.
+    es.addEventListener('ready', refresh)
     // Errors are transient — the browser reconnects automatically; stay quiet.
     es.onerror = () => {}
     return () => es.close()

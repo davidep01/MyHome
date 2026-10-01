@@ -199,14 +199,14 @@ export function DoorbellAlert({ kiosk = false, doorbells, vision = false }: { ki
             {(active?.device.lockEntityIds?.length ?? 0) > 0 && (
               <div className="flex flex-wrap gap-3">
                 {active!.device.lockEntityIds!.map((lockId) => (
-                  <HoldUnlockButton key={lockId} entityId={lockId} />
+                  <HoldUnlockButton key={lockId} entityId={lockId} simulated={active?.test === true} />
                 ))}
               </div>
             )}
             {visibleShortcuts(active?.device.shortcuts).length > 0 && (
               <div className="flex shrink-0 flex-wrap gap-3" aria-label="Azione campanello configurata">
                 {visibleShortcuts(active?.device.shortcuts).map((shortcut) => (
-                  <ShortcutActionButton key={shortcut.id} shortcut={shortcut} />
+                  <ShortcutActionButton key={shortcut.id} shortcut={shortcut} disabled={active?.test === true} />
                 ))}
               </div>
             )}
@@ -235,7 +235,7 @@ export function DoorbellAlert({ kiosk = false, doorbells, vision = false }: { ki
  * Apertura serratura dal modale del campanello: MAI un toggle — pressione
  * prolungata 900ms (canone), con riempimento di progresso e stato live.
  */
-function HoldUnlockButton({ entityId }: { entityId: string }) {
+function HoldUnlockButton({ entityId, simulated = false }: { entityId: string; simulated?: boolean }) {
   const entity = useEntityStore((s) => s.entities[entityId])
   const setOptimisticState = useEntityStore((s) => s.setOptimisticState)
   const { heavy } = useHaptic()
@@ -252,13 +252,14 @@ function HoldUnlockButton({ entityId }: { entityId: string }) {
   const unavailable = !entity || entity.state === 'unavailable'
 
   const start = () => {
-    if (unavailable || unlocked || timer.current) return
+    if (simulated || unavailable || unlocked || timer.current) return
     setFailed(false)
     setHolding(true)
     timer.current = setTimeout(() => {
       timer.current = null
       setHolding(false)
       heavy()
+      if (simulated) return
       setOptimisticState(entityId, 'unlocking')
       callService('lock', 'unlock', { entity_id: entityId }).catch(() => {
         setOptimisticState(entityId, entity?.state ?? 'locked')
@@ -289,7 +290,7 @@ function HoldUnlockButton({ entityId }: { entityId: string }) {
         event.preventDefault()
         cancel()
       }}
-      disabled={unavailable || unlocked}
+      disabled={simulated || unavailable || unlocked}
       className={cn(
         'relative flex min-h-[52px] flex-1 items-center justify-center gap-2 overflow-hidden rounded-full text-base font-semibold backdrop-blur transition',
         unlocked ? 'bg-[#30d158]/25 text-[#7ee2a8]' : failed ? 'bg-red-500/25 text-red-200' : 'bg-white/15 text-white',

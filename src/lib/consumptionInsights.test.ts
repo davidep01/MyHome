@@ -43,7 +43,7 @@ describe('findWaterFlowSensor', () => {
 
 describe('detectSustainedWaterFlow', () => {
   it('flags a sustained flow above threshold across the whole window', () => {
-    const points = [point(3, 25), point(2.5, 15), point(4, 5)]
+    const points = [point(3, 35), point(2.5, 15), point(4, 5)]
     const insight = detectSustainedWaterFlow(points, 'L/min', NOW)
     expect(insight).toMatchObject({ id: 'water-sustained-flow', severity: 'warn' })
     expect(insight?.text).toContain(`${WATER_FLOW_WINDOW_MINUTES}`)
@@ -71,9 +71,31 @@ describe('detectSustainedWaterFlow', () => {
 
   it('normalizes m³/h to L/min before comparing to the threshold', () => {
     // 5 m3/h = 5000 L / 60 min ≈ 83.3 L/min, well above threshold
-    const points = [point(5, 25), point(5, 15), point(5, 5)]
+    const points = [point(5, 35), point(5, 15), point(5, 5)]
     const insight = detectSustainedWaterFlow(points, 'm³/h', NOW)
     expect(insight).not.toBeNull()
+  })
+
+  it('requires evidence covering the full window, not three recent points', () => {
+    expect(detectSustainedWaterFlow([point(3, 0), point(3, 1 / 60), point(3, 2 / 60)], 'L/min', NOW)).toBeNull()
+  })
+
+  it('treats unavailable intervals as missing evidence', () => {
+    expect(detectSustainedWaterFlow([
+      point(3, 35), { ...point(3, 20), state: 'unavailable' }, point(3, 10), point(3, 0),
+    ], 'L/min', NOW)).toBeNull()
+  })
+
+  it('rejects unsupported rate units and malformed numeric states', () => {
+    const points = [point(3, 35), point(3, 15), point(3, 0)]
+    expect(detectSustainedWaterFlow(points, 'gal/min', NOW)).toBeNull()
+    expect(detectSustainedWaterFlow([{ ...points[0], state: '3junk' }, ...points.slice(1)], 'L/min', NOW)).toBeNull()
+    expect(findWaterFlowSensor([{ entity_id: 'sensor.water', state: '3', attributes: { device_class: 'water', unit_of_measurement: 'gal/min' } }])).toBeNull()
+  })
+
+  it('sorts state transitions and ignores future samples', () => {
+    const points = [point(3, 0), point(0, -5), point(3, 35), point(3, 15)]
+    expect(detectSustainedWaterFlow(points, 'L/min', NOW)).not.toBeNull()
   })
 
   it('flow exactly at the threshold is not "sustained above" it', () => {

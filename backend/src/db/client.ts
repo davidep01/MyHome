@@ -75,11 +75,12 @@ class JsonStore {
     if (this.mode === 'file' && !existsSync(DATA_DIR)) mkdirSync(DATA_DIR, { recursive: true, mode: 0o700 })
 
     if (existsSync(DB_PATH)) {
+      // I/O failures must never enter the corruption recovery path.
+      const source = readFileSync(DB_PATH, 'utf-8')
       try {
-        const parsed = JSON.parse(readFileSync(DB_PATH, 'utf-8')) as unknown
+        const parsed = JSON.parse(source) as unknown
         if (!isStore(parsed)) throw new Error('Struttura DB non valida')
         this.data = parsed
-        if (this.mode === 'file') chmodSync(DB_PATH, 0o600)
       } catch (error) {
         this.data = structuredClone(DEFAULT_DB)
         if (this.mode === 'file') {
@@ -91,6 +92,7 @@ class JsonStore {
           console.error('⚠️ DB non valido in modalità sola lettura; uso i valori predefiniti in memoria', error)
         }
       }
+      if (this.mode === 'file') chmodSync(DB_PATH, 0o600)
     } else {
       this.data = structuredClone(DEFAULT_DB)
       if (this.mode === 'file') {
@@ -114,57 +116,54 @@ class JsonStore {
       const previous = this.data
       const draft = structuredClone(previous)
       updater(draft)
+      this.persistFile(draft)
       this.data = draft
-      try {
-        this.persistFile()
-        written = true
-      } catch (error) {
-        this.data = previous
-        throw error
-      }
+      written = true
     })
     this.writeQueue = operation.catch(() => {})
     await operation
     return written
   }
 
-  private persistFile(): void {
+  private persistFile(data: DbStore = this.data): void {
     const tempPath = `${DB_PATH}.${process.pid}.tmp`
-    writeFileSync(tempPath, JSON.stringify(this.data, null, 2), { encoding: 'utf-8', mode: 0o600 })
+    writeFileSync(tempPath, JSON.stringify(data, null, 2), { encoding: 'utf-8', mode: 0o600 })
+    // Check permissions before rename: rename is the only commit boundary.
+    chmodSync(tempPath, 0o600)
     renameSync(tempPath, DB_PATH)
-    chmodSync(DB_PATH, 0o600)
   }
 
   private async migrate(): Promise<void> {
     if (this.migrated) return
-    this.migrated = true
+    const draft = structuredClone(this.data)
     let changed = false
 
-    if (!this.data.config.newsFeedUrl) {
-      this.data.config.newsFeedUrl = DEFAULT_DB.config.newsFeedUrl
+    if (!draft.config.newsFeedUrl) {
+      draft.config.newsFeedUrl = DEFAULT_DB.config.newsFeedUrl
       changed = true
     }
 
     // Rebrand migration: preserve every custom dashboard name, replacing only
     // the untouched historical default.
-    if (this.data.config.dashboardName === 'MyHome') {
-      this.data.config.dashboardName = 'S.I.M.I.'
+    if (draft.config.dashboardName === 'MyHome') {
+      draft.config.dashboardName = 'S.I.M.I.'
       changed = true
     }
 
-    const normalizedHome = normalizeHomeConfig(this.data.config.home)
-    if (JSON.stringify(this.data.config.home ?? null) !== JSON.stringify(normalizedHome)) {
-      this.data.config.home = normalizedHome
+    const normalizedHome = normalizeHomeConfig(draft.config.home)
+    if (JSON.stringify(draft.config.home ?? null) !== JSON.stringify(normalizedHome)) {
+      draft.config.home = normalizedHome
       changed = true
     }
 
-    if (!this.data.homeRevisions) {
-      this.data.homeRevisions = []
+    if (!draft.homeRevisions) {
+      draft.homeRevisions = []
       changed = true
     }
 
-    if (!changed || !this.writable) return
-    this.persistFile()
+    if (changed && this.writable) this.persistFile(draft)
+    this.data = draft
+    this.migrated = true
   }
 }
 

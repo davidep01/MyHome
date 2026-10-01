@@ -1,7 +1,7 @@
 import { getHABaseUrl, getHAConfig } from './ha-config.js'
 import { closeHaWs, getHaWsState, startEntityFeed, stopEntityFeed } from './ha-ws.js'
 import { advertisedArtworkSources } from './ha-media.js'
-import { recordBridgeDown, recordServiceError } from './service-health.js'
+import { recordBridgeDown, recordBridgeUp, recordServiceError } from './service-health.js'
 
 /**
  * Backend-held Home Assistant state stream.
@@ -45,12 +45,13 @@ export type AlarmTestStreamEvent =
 
 export type HaStreamEvent =
   | { type: 'snapshot'; entities: HaEntityLike[] }
+  | { type: 'status'; connected: boolean; message?: string }
   | { type: 'delta'; changed: HaEntityLike[]; removed: string[] }
   | { type: 'error'; message: string }
   /** Prova campanello (Funzioni → Campanelli → Prova): suona su TUTTI i client. */
   | { type: 'doorbell-test'; doorbellId: string }
   /** Comando dalla regia a un tablet (§4.5/§12): ricarica, schermo, TTS… */
-  | { type: 'kiosk-command'; target: string; command: string; value?: number | string }
+  | { type: 'kiosk-command'; commandId: string; target: string; command: string; value?: number | string }
   /** Simulazione emergenza coordinata dal server su tutti i kiosk. */
   | AlarmTestStreamEvent
 
@@ -75,6 +76,8 @@ const FAST_ENERGY_ENTITY_IDS = [
 
 const subscribers = new Set<Subscriber>()
 let snapshot = new Map<string, HaEntityLike>()
+let snapshotKnown = false
+let connectionStatus: Extract<HaStreamEvent, { type: 'status' }> | null = null
 
 let mode: 'idle' | 'ws' | 'poll' = 'idle'
 let feedStarted = false
@@ -100,6 +103,11 @@ function broadcast(event: HaStreamEvent, id: number): void {
 }
 
 function pushEvent(event: HaStreamEvent): void {
+  if (event.type === 'snapshot' || event.type === 'delta') {
+    connectionStatus = { type: 'status', connected: true }
+  } else if (event.type === 'error') {
+    connectionStatus = { type: 'status', connected: false, message: event.message }
+  }
   eventSeq += 1
   lastEventAt = new Date().toISOString()
   if (event.type === 'delta') {
@@ -125,9 +133,9 @@ export function broadcastDoorbellTest(doorbellId: string): void {
  * Comando remoto per i tablet: stesso canale one-shot della prova campanello
  * (fuori dal ring buffer — un comando non deve rieseguirsi a una riconnessione).
  */
-export function broadcastKioskCommand(target: string, command: string, value?: number | string): void {
+export function broadcastKioskCommand(target: string, command: string, value: number | string | undefined, commandId: string): void {
   eventSeq += 1
-  broadcast({ type: 'kiosk-command', target, command, ...(value !== undefined ? { value } : {}) }, eventSeq)
+  broadcast({ type: 'kiosk-command', commandId, target, command, ...(value !== undefined ? { value } : {}) }, eventSeq)
 }
 
 function activeAlarmTestEvent(test: ActiveAlarmTest): AlarmTestStreamEvent {
@@ -248,6 +256,7 @@ async function poll(): Promise<void> {
   try {
     const states = await fetchStates()
     if (generation !== connectionGeneration || attemptId !== pollAttemptId || mode !== 'poll') return
+    recordBridgeUp()
     const next = new Map(states.map((entity) => [entity.entity_id, entity]))
 
     const changed: HaEntityLike[] = []
@@ -260,11 +269,19 @@ async function poll(): Promise<void> {
     const removed: string[] = []
     for (const id of snapshot.keys()) if (!next.has(id)) removed.push(id)
 
+    const firstSnapshot = !snapshotKnown
     snapshot = next
-    if (changed.length || removed.length) pushEvent({ type: 'delta', changed, removed })
+    snapshotKnown = true
+    // A successful poll also restores connectivity when the house was quiet
+    // throughout the outage (or the first snapshot is empty).
+    if (firstSnapshot) pushEvent({ type: 'snapshot', entities: states })
+    else if (changed.length || removed.length || !connectionStatus?.connected) pushEvent({ type: 'delta', changed, removed })
   } catch (error) {
     if (generation === connectionGeneration && attemptId === pollAttemptId && mode === 'poll') {
-      pushEvent({ type: 'error', message: error instanceof Error ? error.message : 'Home Assistant unreachable' })
+      const message = error instanceof Error ? error.message : 'Home Assistant unreachable'
+      recordBridgeDown(message)
+      recordServiceError('stream', message)
+      pushEvent({ type: 'error', message })
     }
   } finally {
     if (attemptId === pollAttemptId) polling = false
@@ -305,6 +322,7 @@ function ensureFeed(): void {
       polling = false
       mode = 'ws'
       snapshot = new Map(entities.map((entity) => [entity.entity_id, entity]))
+      snapshotKnown = true
       pushEvent({ type: 'snapshot', entities })
     },
     onDelta: (changed, removed) => {
@@ -342,6 +360,8 @@ function teardownIfIdle(): void {
   }
   mode = 'idle'
   snapshot = new Map()
+  snapshotKnown = false
+  connectionStatus = null
   ring = []
 }
 
@@ -363,11 +383,15 @@ export function invalidateHAConnection(): void {
   feedStarted = false
   mode = 'idle'
   snapshot = new Map()
+  snapshotKnown = false
   ring = []
 
   if (subscribers.size > 0) {
     pushEvent({ type: 'snapshot', entities: [] })
+    connectionStatus = null
     ensureFeed()
+  } else {
+    connectionStatus = null
   }
 }
 
@@ -387,12 +411,15 @@ export function subscribeHaStream(sub: Subscriber, sinceId?: number): () => void
     && (ring.length === 0 ? sinceId === eventSeq : sinceId >= ring[0].id - 1)
   if (canResume) {
     for (const entry of ring) if (entry.id > sinceId) sub(entry.event, entry.id)
-  } else if (snapshot.size > 0) {
+  } else if (snapshotKnown) {
     sub({ type: 'snapshot', entities: [...snapshot.values()] }, eventSeq)
   }
+  // Resume can have zero deltas. Report the actual bridge health explicitly,
+  // including failure after a cached snapshot, without replaying commands.
+  if (connectionStatus) sub(connectionStatus, eventSeq)
 
   const alarmTest = getSharedAlarmTest()
-  if (alarmTest.active) sub({ type: 'alarm-test', ...alarmTest }, eventSeq)
+  sub({ type: 'alarm-test', ...alarmTest }, eventSeq)
 
   ensureFeed()
   return () => {

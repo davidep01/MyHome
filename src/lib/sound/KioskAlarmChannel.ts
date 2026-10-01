@@ -42,9 +42,11 @@ export async function armKioskAlarmChannel(): Promise<boolean> {
   applyVolume()
   try {
     await audio.play()
+    if (channel !== audio) return false
     useKioskAudioStore.getState()._patch({ status: 'ready', playing: true })
     return true
   } catch {
+    if (channel !== audio) return false
     useKioskAudioStore.getState()._patch({ status: 'needs-interaction', playing: false })
     return false
   }
@@ -75,14 +77,15 @@ export function setKioskAlarmChannelActive(active: boolean): void {
 }
 
 /** Direct five-second channel test used by the kiosk fleet panel. */
-export function testKioskAlarmChannel(durationMs = TEST_DURATION_MS): void {
+export function testKioskAlarmChannel(durationMs = TEST_DURATION_MS): Promise<boolean> {
   testActive = true
   applyVolume()
-  void armKioskAlarmChannel()
+  const outcome = armKioskAlarmChannel()
   if (testTimer) clearTimeout(testTimer)
   testTimer = setTimeout(() => {
     testTimer = null
     testActive = false
     applyVolume()
   }, Math.max(250, durationMs))
+  return outcome
 }

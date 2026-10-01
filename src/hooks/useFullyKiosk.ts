@@ -66,7 +66,9 @@ export function useFullyKiosk(options: UseFullyKioskOptions = {}): void {
     // sirena può così partire senza un gesto anche dopo reload o riavvio.
     ensureFullyAlarmAudioSetting(bridge)
 
-    let emergency = useFullyKioskStore.getState().emergencyActive
+    // Desired store state may already be active on mount/reinitialization.
+    // null means the new native bridge has not applied that state yet.
+    let emergency: boolean | null = null
 
     const anyScreensaver = () => appScreensaver || fullyScreensaver
     const activeScreensaverBrightness = () => appScreensaver

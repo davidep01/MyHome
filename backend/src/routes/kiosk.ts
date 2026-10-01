@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { adminOnly } from '../lib/security.js'
 import { broadcastKioskCommand } from '../lib/ha-stream.js'
 import {
-  DEVICE_ID_PATTERN, listKioskDevices, parseKioskCommand, recordKioskCommandResult,
+  issueKioskCommand, DEVICE_ID_PATTERN, listKioskDevices, parseKioskCommand, recordKioskCommandResult,
   recordKioskHeartbeat,
 } from '../lib/kiosk-fleet.js'
 
@@ -62,19 +62,23 @@ kioskRouter.post('/command-ack', async (c) => {
     return c.json({ error: 'deviceId non valido' }, 400)
   }
   const command = cleanLabel(body.command, 40)
-  if (!command || typeof body.ok !== 'boolean') return c.json({ error: 'Riscontro non valido' }, 400)
+  if (!command || typeof body.commandId !== 'string' || body.commandId.length > 80 || typeof body.ok !== 'boolean' || (body.status !== undefined && !['accepted', 'completed'].includes(String(body.status)))) return c.json({ error: 'Riscontro non valido' }, 400)
   const accepted = recordKioskCommandResult(body.deviceId, {
+    commandId: body.commandId,
     command,
+    status: body.status as 'accepted' | 'completed' | undefined,
     ok: body.ok,
     reason: cleanLabel(body.reason, 40),
   })
-  return accepted ? c.json({ ok: true as const }) : c.json({ error: 'Tablet sconosciuto' }, 404)
+  return accepted ? c.json({ ok: true as const }) : c.json({ error: 'Riscontro scaduto o non correlato al comando' }, 409)
 })
 
 kioskRouter.post('/command', adminOnly, async (c) => {
   const body = await c.req.json<unknown>().catch(() => null)
   const command = parseKioskCommand(body)
   if (!command) return c.json({ error: 'Comando non valido' }, 400)
-  broadcastKioskCommand(command.target, command.command, command.value)
-  return c.json({ ok: true as const })
+  const commandId = issueKioskCommand(command)
+  if (!commandId) return c.json({ error: 'Tablet non registrato o troppi comandi in attesa' }, 409)
+  broadcastKioskCommand(command.target, command.command, command.value, commandId)
+  return c.json({ ok: true as const, commandId })
 })

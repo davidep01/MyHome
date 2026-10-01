@@ -112,12 +112,15 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
     const pendingLocalCandidates: RTCIceCandidateInit[] = []
     const streamVideo = videoRef.current
     setMode('connecting')
+    setSnap('')
     setMjpegLive(false)
     mjpegLoadedRef.current = false
 
     // 0 — placeholder istantaneo: l'ultima immagine disponibile, mai schermo nero.
     setPlaceholder(previewAvailable ? `${getCameraProxyUrl(previewEntityId)}?_t=${Date.now()}` : '')
 
+    let removeWebRtcListeners = () => {}
+    let removeHlsListeners = () => {}
     const clearStallTimer = () => {
       if (stallTimer) clearTimeout(stallTimer)
       stallTimer = null
@@ -125,6 +128,9 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
     const goSnapshot = () => {
       if (!cancelled && !settled) {
         settled = true
+        removeHlsListeners()
+        hls?.destroy()
+        hls = null
         setMode(previewAvailable ? 'snapshot' : 'error')
       }
     }
@@ -139,7 +145,14 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
     }
 
     const watchPlayback = (video: HTMLVideoElement) => {
-      const onHealthy = () => clearStallTimer()
+      let lastTime = video.currentTime
+      const onHealthy = () => {
+        if (video.currentTime === lastTime) return
+        lastTime = video.currentTime
+        clearStallTimer()
+        stallTimer = setTimeout(reconnect, STALL_RETRY_MS)
+      }
+      stallTimer = setTimeout(reconnect, STALL_RETRY_MS)
       const onWaiting = () => {
         clearStallTimer()
         stallTimer = setTimeout(reconnect, STALL_RETRY_MS)
@@ -160,14 +173,16 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
     let stopWatchingPlayback: (() => void) | null = null
 
     const stopWebRtc = () => {
+      removeWebRtcListeners()
       if (webRtcWatchdog) clearTimeout(webRtcWatchdog)
       webRtcWatchdog = null
       eventSource?.close()
       eventSource = null
       localCandidateSender?.stop()
       localCandidateSender = null
-      peer?.close()
+      const oldPeer = peer
       peer = null
+      if (oldPeer) { oldPeer.onconnectionstatechange = null; oldPeer.ontrack = null; oldPeer.onicecandidate = null; oldPeer.close() }
       if (webRtcSessionId) {
         void haApi.cameraWebRtcClose(webRtcSessionId).catch(() => {})
         webRtcSessionId = null
@@ -187,21 +202,26 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
         const resp = await haApi.cameraHlsUrl(entityId)
         if (cancelled || settled) return
         const src = toProxiedHlsUrl(resp.url)
+        const firstFrame = () => {
+          if (cancelled || settled || video.paused || video.readyState < 2) return
+          settled = true
+          if (liveWatchdog) clearTimeout(liveWatchdog)
+          setMode('hls')
+          stopWatchingPlayback = watchPlayback(video)
+        }
+        const failed = () => { if (cancelled) return; if (settled) reconnect(); else onFail() }
+        removeHlsListeners()
+        video.addEventListener('playing', firstFrame)
+        video.addEventListener('error', failed)
+        removeHlsListeners = () => {
+          video.removeEventListener('playing', firstFrame)
+          video.removeEventListener('error', failed)
+        }
         if (Hls.isSupported()) {
           hls?.destroy()
           hls = new Hls(HLS_CONFIG)
           hls.loadSource(src); hls.attachMedia(video)
-          hls.on(Hls.Events.MANIFEST_PARSED, () => { video.play().catch(() => {}) })
-          // Un manifest valido non garantisce che Ring stia consegnando video:
-          // dichiariamo vittoria soltanto al primo frammento realmente bufferizzato.
-          hls.on(Hls.Events.FRAG_BUFFERED, () => {
-            if (cancelled || settled) return
-            settled = true
-            if (liveWatchdog) clearTimeout(liveWatchdog)
-            setMode('hls')
-            stopWatchingPlayback = watchPlayback(video)
-            video.play().catch(() => {})
-          })
+          hls.on(Hls.Events.MANIFEST_PARSED, () => { video.play().catch(() => { if (!cancelled && !settled) onFail() }) })
           hls.on(Hls.Events.ERROR, (_e, data) => {
             if (!data.fatal || cancelled) return
             if (data.type === Hls.ErrorTypes.MEDIA_ERROR && mediaRecoveries < 1) {
@@ -217,15 +237,7 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
           })
         } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
           video.src = src
-          video.addEventListener('loadeddata', () => {
-            if (cancelled || settled) return
-            settled = true
-            if (liveWatchdog) clearTimeout(liveWatchdog)
-            setMode('hls')
-            stopWatchingPlayback = watchPlayback(video)
-            video.play().catch(() => {})
-          }, { once: true })
-          video.addEventListener('error', () => { if (settled) reconnect(); else onFail() }, { once: true })
+          void video.play().catch(() => { if (!cancelled && !settled) onFail() })
         } else onFail()
       } catch {
         if (!settled) onFail() // HLS non supportato da questa camera → fallback
@@ -244,8 +256,10 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
           if (cancelled || settled) return
           settled = true
           if (liveWatchdog) clearTimeout(liveWatchdog)
+          removeHlsListeners()
           hls?.destroy()
           hls = null
+          mjpegFailRef.current = reconnect
         }
         // Un errore MJPEG in gara non decide nulla: l'HLS sta già correndo.
         mjpegFailRef.current = () => {}
@@ -253,11 +267,15 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
         liveWatchdog = setTimeout(() => { if (!mjpegLoadedRef.current) goSnapshot() }, LIVE_NEGOTIATION_MS)
       } else {
         // ── Catena classica: HLS → MJPEG → snapshot ──────────────────────────
+        liveWatchdog = setTimeout(goSnapshot, LIVE_NEGOTIATION_MS)
         void startHls(() => {
-          if (cancelled) return
+          if (cancelled || settled) return
+          removeHlsListeners()
+          hls?.destroy()
+          hls = null
           mjpegLoadedRef.current = false
           setMode('mjpeg')
-          mjpegWinRef.current = () => { if (liveWatchdog) clearTimeout(liveWatchdog) }
+          mjpegWinRef.current = () => { settled = true; if (liveWatchdog) clearTimeout(liveWatchdog); mjpegFailRef.current = reconnect }
           mjpegFailRef.current = goSnapshot
           if (liveWatchdog) clearTimeout(liveWatchdog)
           liveWatchdog = setTimeout(() => {
@@ -272,12 +290,13 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
       if (!video || typeof RTCPeerConnection === 'undefined') return startFallback()
       if (!cameraWebRtcHealth.canAttempt(entityId)) return startFallback()
       try {
+        webRtcWatchdog = setTimeout(startFallback, preferLive ? 4_000 : WEBRTC_NEGOTIATION_MS)
         const capabilities = await haApi.cameraCapabilities(entityId)
-        if (cancelled || settled) return
+        if (cancelled || settled || fallbackStarted) return
         if (!capabilities.frontend_stream_types.includes('web_rtc')) return startFallback()
 
         const clientConfig = await haApi.cameraWebRtcConfig(entityId)
-        if (cancelled || settled) return
+        if (cancelled || settled || fallbackStarted) return
         peer = new RTCPeerConnection(clientConfig.configuration)
         if (clientConfig.dataChannel) peer.createDataChannel(clientConfig.dataChannel)
         const remoteStream = new MediaStream()
@@ -285,7 +304,7 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
         const pendingRemoteCandidates: RTCIceCandidateInit[] = []
 
         const firstFrame = () => {
-          if (cancelled || settled) return
+          if (cancelled || settled || fallbackStarted || video.paused || video.readyState < 2) return
           settled = true
           cameraWebRtcHealth.recordSuccess(entityId)
           if (webRtcWatchdog) clearTimeout(webRtcWatchdog)
@@ -293,8 +312,8 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
           stopWatchingPlayback = watchPlayback(video)
           video.play().catch(() => {})
         }
-        video.addEventListener('loadeddata', firstFrame, { once: true })
-        video.addEventListener('playing', firstFrame, { once: true })
+        video.addEventListener('playing', firstFrame)
+        removeWebRtcListeners = () => video.removeEventListener('playing', firstFrame)
         peer.ontrack = (event) => {
           if (event.track.kind === 'audio' && muted) return
           remoteStream.addTrack(event.track)
@@ -316,11 +335,12 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
         peer.addTransceiver('audio', { direction: 'recvonly' })
         peer.addTransceiver('video', { direction: 'recvonly' })
         const offer = await peer.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: true })
+        if (cancelled || fallbackStarted || !peer) return
         await peer.setLocalDescription(offer)
-        if (cancelled || !offer.sdp) return
+        if (cancelled || fallbackStarted || !offer.sdp) return
 
         const session = await haApi.cameraWebRtcOffer(entityId, offer.sdp)
-        if (cancelled) {
+        if (cancelled || fallbackStarted) {
           void haApi.cameraWebRtcClose(session.sessionId).catch(() => {})
           return
         }
@@ -363,7 +383,6 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
           }).catch(() => { if (settled) reconnect(); else startFallback() })
         })
         eventSource.onerror = () => { if (settled) reconnect(); else startFallback() }
-        webRtcWatchdog = setTimeout(startFallback, WEBRTC_NEGOTIATION_MS)
       } catch {
         if (!settled) startFallback()
       }
@@ -377,6 +396,7 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
       if (liveWatchdog) clearTimeout(liveWatchdog)
       clearStallTimer()
       stopWatchingPlayback?.()
+      removeHlsListeners()
       hls?.destroy()
       stopWebRtc()
       if (streamVideo) {
@@ -389,15 +409,15 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
 
   // ── Snapshot polling — solo quando nessun flusso live è disponibile ──
   useEffect(() => {
-    if (mode !== 'snapshot') return
+    if (!streamActive || unavailable || (mode !== 'snapshot' && mode !== 'error')) return
     const tick = () => setSnap(`${getCameraProxyUrl(previewEntityId)}?_t=${Date.now()}`)
-    tick()
-    const id = setInterval(tick, 2000)
+    if (mode === 'snapshot') tick()
+    const id = mode === 'snapshot' ? setInterval(tick, 2000) : undefined
     // Snapshot is a resilient fallback, not a terminal state: periodically ask
     // HA for a fresh signed stream so Ring recovers without closing the panel.
     const retry = setTimeout(() => setRetryKey((key) => key + 1), LIVE_RETRY_MS)
     return () => { clearInterval(id); clearTimeout(retry) }
-  }, [mode, previewEntityId])
+  }, [mode, previewEntityId, streamActive, unavailable])
 
   const fitClass = fit === 'contain' ? 'object-contain' : 'object-cover'
   const liveVisible = mode === 'webrtc' || mode === 'hls' || (mode === 'mjpeg' && mjpegLive)
@@ -411,6 +431,7 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
           una copia sfocata dello snapshot, senza ritagliare persone o pacchi. */}
       {backdrop && (
         <img
+          key={backdrop}
           src={backdrop}
           alt=""
           aria-hidden="true"
@@ -422,6 +443,7 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
       {/* Placeholder: l'ultima foto nota, leggermente attenuata finché il live non arriva. */}
       {showPlaceholder && (
         <img
+          key={placeholder}
           src={placeholder}
           alt=""
           aria-hidden="true"
@@ -445,12 +467,12 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
           alt={`Video in diretta: ${cameraLabel}`}
           className={cn('absolute inset-0 h-full w-full transition-opacity duration-300', fitClass, mjpegLive ? 'opacity-100' : 'opacity-0')}
           onLoad={() => { mjpegLoadedRef.current = true; setMjpegLive(true); mjpegWinRef.current() }}
-          onError={() => { if (!mjpegLoadedRef.current) mjpegFailRef.current() }}
+          onError={() => { setMjpegLive(false); mjpegFailRef.current() }}
         />
       )}
 
       {mode === 'snapshot' && snap && (
-        <img src={snap} alt={`Immagine videocamera: ${cameraLabel}`} className={cn('absolute inset-0 h-full w-full', fitClass)} />
+        <img onError={() => setMode('error')} src={snap} alt={`Immagine videocamera: ${cameraLabel}`} className={cn('absolute inset-0 h-full w-full', fitClass)} />
       )}
 
       {mode === 'connecting' && !showPlaceholder && (

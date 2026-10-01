@@ -17,20 +17,21 @@ export function useActiveWhenVisible<T extends Element>(rootMargin = '150px') {
     const el = ref.current
     if (!el) return
 
-    let inView = false
+    let inView = typeof IntersectionObserver === 'undefined'
     let pageVisible = document.visibilityState === 'visible'
     const update = () => setActive(inView && pageVisible)
 
-    const io = new IntersectionObserver(
+    const io = typeof IntersectionObserver === 'undefined' ? null : new IntersectionObserver(
       (entries) => { inView = entries[0]?.isIntersecting ?? false; update() },
       { rootMargin },
     )
-    io.observe(el)
+    io?.observe(el)
+    update()
 
     const onVis = () => { pageVisible = document.visibilityState === 'visible'; update() }
     document.addEventListener('visibilitychange', onVis)
 
-    return () => { io.disconnect(); document.removeEventListener('visibilitychange', onVis) }
+    return () => { io?.disconnect(); document.removeEventListener('visibilitychange', onVis) }
   }, [rootMargin])
 
   return { ref, active }

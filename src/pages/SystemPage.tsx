@@ -146,13 +146,19 @@ function KioskFleetCard() {
   const send = (target: string, command: string, value?: number | string) => {
     setMessage('Invio in corso…')
     kioskApi.command(target, command, value)
-      .then(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 1200))
-        const fresh = await queryClient.fetchQuery({ queryKey: ['kiosk-devices'], queryFn: kioskApi.devices })
-        const device = fresh.devices.find((item) => item.deviceId === target)
-        const result = device?.lastCommand
-        if (result && result.command === command) setMessage(commandResultLabel(result))
-        else setMessage('Comando trasmesso, ma il tablet non ha ancora risposto.')
+      .then(async ({ commandId }) => {
+        const deadline = Date.now() + 10_000
+        do {
+          await new Promise((resolve) => setTimeout(resolve, 500))
+          const fresh = await kioskApi.devices()
+          queryClient.setQueryData(['kiosk-devices'], fresh)
+          const result = fresh.devices.find((item) => item.deviceId === target)?.lastCommand
+          if (result?.commandId === commandId && result.status !== 'pending') {
+            setMessage(commandResultLabel(result))
+            return
+          }
+        } while (Date.now() < deadline)
+        setMessage('Il tablet non ha confermato il comando entro il tempo previsto.')
       })
       .catch(() => setMessage('Comando non inviato. Riprova.'))
   }

@@ -7,7 +7,9 @@ services:
       - .env
     environment:
       NODE_ENV: production
-      MYHOME_AUTH_MODE: required
+      # Empty selects the startup default: direct LAN access unless an admin
+      # token is configured. An explicit required/disabled value is respected.
+      MYHOME_AUTH_MODE: ${MYHOME_AUTH_MODE:-}
       MYHOME_DB_PATH: /data/db.json
     ports:
       - "3001:3001"

@@ -218,6 +218,7 @@ function KioskShell() {
   const criticalAlerts = useCriticalAlerts()
   const { period } = useTimeOfDay()
   usePerfMode(layout?.kiosk?.perfProfile)
+  useConfigSync()
   useWakeLock()
   useAutoTheme()
   useFullyKiosk({ ambientBrightness: layout?.kiosk?.screensaver?.brightness })
@@ -258,6 +259,8 @@ function KioskShell() {
       />
 
       <DoorbellAlert kiosk doorbells={layout?.doorbells ?? []} vision={layout?.ai?.doorbellVision === true} />
+      <ConnectionOverlay kiosk />
+      <AddonUpdateOverlay />
       {fullscreenCameraId && <FullscreenCameraOverlay entityId={fullscreenCameraId} doorbells={layout?.doorbells} />}
       <KioskAlarmAudioChannel active={criticalAlerts.length > 0} />
       <CriticalEventOverlay alerts={criticalAlerts} shortcuts={layout?.alarm?.shortcuts} />

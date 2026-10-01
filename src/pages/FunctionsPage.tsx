@@ -126,8 +126,8 @@ function PreferencesCard() {
       </div>
       {field('weatherCity', 'Città meteo', 'es. Milan,IT')}
       {field('newsFeedUrl', 'Feed RSS news', 'https://…/rss.xml', 'url')}
-      <div className="rounded-[14px] bg-violet-500/[0.07] p-3">
-        <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-violet-800/75">
+      <div className="rounded-[14px] bg-[var(--fill-subtle)] p-3">
+        <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-[var(--ink)]">
           <CalendarDays size={15} /> Calendario eventi
         </div>
         {field('calendarFeedUrl', 'Link pubblico iCalendar / ICS', 'webcal://… o https://…/calendar.ics')}
@@ -182,7 +182,7 @@ function ThemeCard() {
 
   return (
     <GlassCard className="space-y-3">
-      <FeatureHeader Icon={SunMoon} title="Luminosità kiosk" badge={themeMode === 'auto' ? 'Segue la luce' : themeMode === 'dark' ? 'Notte' : 'Giorno'} tone={themeMode === 'auto' ? 'ok' : 'neutral'} />
+      <FeatureHeader Icon={SunMoon} title="Aspetto su questo dispositivo" badge={themeMode === 'auto' ? 'Segue la luce' : themeMode === 'dark' ? 'Notte' : 'Giorno'} tone={themeMode === 'auto' ? 'ok' : 'neutral'} />
       <div className="flex gap-2" role="group" aria-label="Tema dell’interfaccia">
         {modes.map((m) => (
           <button
@@ -197,10 +197,10 @@ function ThemeCard() {
         ))}
       </div>
       <p className="text-[11px] text-black/40">
-        In Auto il tablet attenua l’intera interfaccia sotto 20 lux e torna alla luminosità diurna sopra 45 lux; su desktop segue il sistema.
+        In Auto il tablet passa al tema scuro sotto 20 lux e al chiaro sopra 45 lux, se il sensore è disponibile. Altrimenti segue il sistema, come su desktop. La scelta vale solo per questo dispositivo.
       </p>
       <div className="grid grid-cols-3 gap-2 text-center">
-        {[['Sensore', SENSOR_LABEL[sensorState] ?? sensorState], ['Lux', String(lastLux ?? '—')], ['Origine', source]].map(([label, value]) => (
+        {[['Sensore', SENSOR_LABEL[sensorState] ?? sensorState], ['Lux', String(lastLux ?? '—')], ['Origine', source === 'sensor' ? 'Sensore' : source === 'manual' ? 'Manuale' : 'Sistema']].map(([label, value]) => (
           <div key={label} className="rounded-[10px] bg-black/[0.05] px-2 py-2">
             <p className="text-[10px] uppercase tracking-wide text-black/35">{label}</p>
             <p className="mt-0.5 text-xs font-semibold text-black/70 tabular-nums">{value}</p>

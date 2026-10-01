@@ -356,6 +356,7 @@ haRouter.get('/camera-webrtc-events/:sessionId', (c) => {
     })
     if (!unlisten) return
     stream.onAbort(() => { closed = true; unlisten(); wake?.() })
+    try {
     await stream.writeSSE({ event: 'ready', data: 'ok' })
     while (!closed && hasWebRtcSession(sessionId)) {
       while (!closed && queue.length) {
@@ -370,7 +371,7 @@ haRouter.get('/camera-webrtc-events/:sessionId', (c) => {
       wake = null
       if (ping && !closed && queue.length === 0) await stream.writeSSE({ event: 'ping', data: '' })
     }
-    unlisten()
+    } finally { unlisten() }
   })
 })
 
@@ -481,17 +482,39 @@ haRouter.get('/camera-stream/:entityId', async (c) => {
   const entityId = c.req.param('entityId')
   if (!ENTITY_ID.test(entityId) || !entityId.startsWith('camera.')) return c.json({ error: 'Videocamera non valida' }, 400)
   const abort = new AbortController()
+  const clientSignal = c.req.raw.signal
+  const onAbort = () => abort.abort(clientSignal.reason)
+  if (clientSignal.aborted) onAbort()
+  else clientSignal.addEventListener('abort', onAbort, { once: true })
   const connectTimeout = setTimeout(() => abort.abort(), 15_000)
-  const res = await proxyHA(`/api/camera_proxy_stream/${encodeURIComponent(entityId)}`, { signal: abort.signal })
-  clearTimeout(connectTimeout)
-  c.req.raw.signal.addEventListener('abort', () => abort.abort(), { once: true })
-  return new Response(res.body, {
-    status: res.status,
-    headers: {
-      'Content-Type': res.headers.get('Content-Type') ?? 'multipart/x-mixed-replace',
-      'Cache-Control': 'no-store',
-    },
-  })
+  const cleanup = () => { clearTimeout(connectTimeout); clientSignal.removeEventListener('abort', onAbort) }
+  try {
+    const res = await proxyHA(`/api/camera_proxy_stream/${encodeURIComponent(entityId)}`, { signal: abort.signal })
+    clearTimeout(connectTimeout)
+    if (!res.body) { cleanup(); return new Response(null, { status: res.status }) }
+    const reader = res.body.getReader()
+    const body = new ReadableStream<Uint8Array>({
+      async pull(controller) {
+        try {
+          const next = await reader.read()
+          if (next.done) { cleanup(); reader.releaseLock(); controller.close() }
+          else controller.enqueue(next.value)
+        } catch (error) { cleanup(); controller.error(error) }
+      },
+      async cancel(reason) {
+        abort.abort(reason)
+        cleanup()
+        await reader.cancel(reason)
+      },
+    })
+    return new Response(body, {
+      status: res.status,
+      headers: {
+        'Content-Type': res.headers.get('Content-Type') ?? 'multipart/x-mixed-replace',
+        'Cache-Control': 'no-store',
+      },
+    })
+  } catch (error) { cleanup(); throw error }
 })
 
 // HLS proxy — serves HA's /api/hls/* through the same origin so the browser's

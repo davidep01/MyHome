@@ -89,7 +89,16 @@ fi
 # Authentication is OFF by default: MyHome runs on a trusted home LAN and the
 # owner wants immediate access. It turns ON only when an admin_token option is
 # set — then (optionally) a distinct kiosk_token adds the reduced kiosk role.
-if [ -n "$ADMIN_OPT" ]; then
+case "${MYHOME_AUTH_MODE:-}" in
+  ''|disabled|required) ;;
+  *) echo "Errore: MYHOME_AUTH_MODE deve essere disabled oppure required." >&2; exit 1 ;;
+esac
+if [ "${MYHOME_AUTH_MODE:-}" = required ] && [ -z "$ADMIN_OPT" ]; then
+  echo "Errore: MYHOME_AUTH_MODE=required richiede MYHOME_ADMIN_TOKEN o admin_token." >&2
+  exit 1
+fi
+
+if [ -n "$ADMIN_OPT" ] && [ "${MYHOME_AUTH_MODE:-}" != disabled ]; then
   MYHOME_ADMIN_TOKEN=$(load_token "$ADMIN_OPT" /data/myhome-admin-token "amministratore") || exit 1
   export MYHOME_ADMIN_TOKEN
   if [ -n "$KIOSK_OPT" ]; then

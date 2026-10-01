@@ -2,6 +2,7 @@ import { lstat, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises
 import { basename, dirname, join, resolve } from 'node:path'
 import { Hono } from 'hono'
 import { adminOnly } from '../lib/security.js'
+import { db } from '../db/client.js'
 import {
   getSharedAlarmTest,
   startSharedAlarmTest,
@@ -74,6 +75,9 @@ alarmRouter.delete('/test', (c) => {
 
 alarmRouter.post('/photo', async (c) => {
   if (!writesAllowed()) return c.json({ error: 'Storage in sola lettura' }, 403)
+  if ((await db.read()).config.alarm?.photo !== true) {
+    return c.json({ error: 'Foto di emergenza disattivate' }, 403)
+  }
   const body = await c.req.json<{ image?: unknown; alertId?: unknown; takenAt?: unknown; deviceId?: unknown }>().catch(() => null)
   if (!body || typeof body.image !== 'string' || body.image.length > MAX_IMAGE_DATAURL_LENGTH) {
     return c.json({ error: 'Foto non valida' }, 400)
@@ -84,7 +88,10 @@ alarmRouter.post('/photo', async (c) => {
     return c.json({ error: 'Evento non valido' }, 400)
   }
   const takenAt = typeof body.takenAt === 'string' ? Date.parse(body.takenAt) : Date.now()
-  const when = Number.isFinite(takenAt) ? new Date(takenAt) : new Date()
+  const when = new Date(takenAt)
+  if (!Number.isFinite(takenAt) || when.getUTCFullYear() < 1970 || when.getUTCFullYear() > 9999) {
+    return c.json({ error: 'Data della foto non valida' }, 400)
+  }
 
   const bytes = Buffer.from(match[1], 'base64')
   if (bytes.byteLength < 128) return c.json({ error: 'Foto non valida' }, 400)

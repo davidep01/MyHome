@@ -8,8 +8,12 @@ const KEY = 'myhome.themeMode'
 
 function initialMode(): ThemeMode {
   if (typeof window === 'undefined') return 'auto'
-  const v = localStorage.getItem(KEY)
-  return v === 'light' || v === 'dark' || v === 'auto' ? v : 'auto'
+  try {
+    const v = localStorage.getItem(KEY)
+    return v === 'light' || v === 'dark' || v === 'auto' ? v : 'auto'
+  } catch {
+    return 'auto'
+  }
 }
 
 interface ThemeStore {

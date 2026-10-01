@@ -49,7 +49,7 @@ function RailButton({
       {/* Tooltip pill — matches design system rail-tip */}
       <span
         className="pointer-events-none absolute left-[54px] top-1/2 z-50 -translate-y-1/2 scale-95 whitespace-nowrap rounded-lg px-[10px] py-[5px] text-xs font-semibold text-white opacity-0 transition-[opacity,transform] group-hover:scale-100 group-hover:opacity-100 group-focus-visible:scale-100 group-focus-visible:opacity-100"
-        style={{ background: 'var(--ink)', letterSpacing: '-0.1px', transformOrigin: 'left center' }}
+        style={{ background: 'var(--ink)', color: 'var(--canvas-page)', letterSpacing: '-0.1px', transformOrigin: 'left center' }}
       >
         {label}
       </span>

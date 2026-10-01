@@ -1,3 +1,4 @@
+import { request } from './backend'
 export interface AIContextEntity {
   entity_id: string
   state: string
@@ -9,33 +10,15 @@ export interface AITurn {
   text: string
 }
 
-function clientHeader(): 'desktop' | 'tablet' {
-  if (typeof window === 'undefined') return 'desktop'
-  return window.matchMedia('(pointer: fine)').matches ? 'desktop' : 'tablet'
-}
-
 async function postAI(path: string, body: unknown): Promise<string> {
-  const res = await fetch(`/api/ai/${path}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-MyHome-Client': clientHeader() },
-    body: JSON.stringify(body),
-  })
-  const data = (await res.json().catch(() => ({}))) as { text?: string; error?: string }
-  if (!res.ok) throw new Error(data.error ?? `Errore AI (${res.status})`)
+  const data = await request<{ text?: string }>(`/ai/${path}`, { method: 'POST', body: JSON.stringify(body) })
   return data.text ?? ''
 }
 
 export type HAAutomation = Record<string, unknown> & { alias?: string }
 
 async function postJSON<T>(path: string, body: unknown): Promise<T> {
-  const res = await fetch(`/api/ai/${path}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-MyHome-Client': clientHeader() },
-    body: JSON.stringify(body),
-  })
-  const data = (await res.json().catch(() => ({}))) as T & { error?: string }
-  if (!res.ok) throw new Error((data as { error?: string }).error ?? `Errore AI (${res.status})`)
-  return data
+  return request<T>(`/ai/${path}`, { method: 'POST', body: JSON.stringify(body) })
 }
 
 export const aiApi = {
@@ -49,8 +32,5 @@ export const aiApi = {
   /** Generate an HA automation config (preview before creating). */
   automation: (prompt: string, context: AIContextEntity[]) =>
     postJSON<{ automation: HAAutomation }>('automation', { prompt, context }),
-  health: async () => {
-    const res = await fetch('/api/ai/health')
-    return res.json() as Promise<{ ok: boolean; model: string; configured: boolean }>
-  },
+  health: () => request<{ ok: boolean; model: string; configured: boolean }>('/ai/health'),
 }

@@ -75,9 +75,12 @@ class SoundManager {
 
   constructor() {
     if (typeof window !== 'undefined') {
-      this.muted = localStorage.getItem(MUTE_KEY) === 'true'
-      const v = Number(localStorage.getItem(VOL_KEY))
-      if (Number.isFinite(v) && v >= 0 && v <= 1) this.volume = v
+      try {
+        this.muted = localStorage.getItem(MUTE_KEY) === 'true'
+        const raw = localStorage.getItem(VOL_KEY)
+        const v = raw === null || raw.trim() === '' ? NaN : Number(raw)
+        if (Number.isFinite(v) && v >= 0 && v <= 1) this.volume = v
+      } catch { /* Storage is optional; keep notification defaults. */ }
     }
   }
 
@@ -97,8 +100,15 @@ class SoundManager {
 
   isMuted() { return this.muted }
   getVolume() { return this.volume }
-  setMuted(m: boolean) { this.muted = m; localStorage.setItem(MUTE_KEY, String(m)) }
-  setVolume(v: number) { this.volume = Math.min(1, Math.max(0, v)); localStorage.setItem(VOL_KEY, String(this.volume)) }
+  setMuted(m: boolean) {
+    this.muted = m
+    try { localStorage.setItem(MUTE_KEY, String(m)) } catch { /* best effort */ }
+  }
+  setVolume(v: number) {
+    if (!Number.isFinite(v)) return
+    this.volume = Math.min(1, Math.max(0, v))
+    try { localStorage.setItem(VOL_KEY, String(this.volume)) } catch { /* best effort */ }
+  }
 
   private ensureCtx() {
     if (!this.ctx) {

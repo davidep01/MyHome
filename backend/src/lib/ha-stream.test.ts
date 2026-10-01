@@ -13,11 +13,13 @@ vi.mock('./ha-config.js', () => ({
 
 import { fetchHAStatesWithTimeout, getStreamStats, invalidateHAConnection, isKnownHAImageSource, recentDoorbellActivityKey, requestHAEntityRefresh, subscribeHaStream } from './ha-stream.js'
 import { startEntityFeed } from './ha-ws.js'
+import { getBridgeHealth, recordBridgeUp, resetServiceHealth } from './service-health.js'
 
 const originalFetch = globalThis.fetch
 
 afterEach(() => {
   globalThis.fetch = originalFetch
+  vi.useRealTimers()
 })
 
 describe.sequential('HA poll fallback', () => {
@@ -119,5 +121,70 @@ describe.sequential('HA poll fallback', () => {
     expect(recentDoorbellActivityKey('binary_sensor.side_door')).toBeNull()
     expect(recentDoorbellActivityKey('event.unknown')).toBeNull()
     unsubscribe()
+  })
+})
+
+
+describe('stream connection recovery', () => {
+  it('acknowledges a healthy resume even when no entity changed', () => {
+    const unsubscribe = subscribeHaStream(() => undefined)
+    const handlers = vi.mocked(startEntityFeed).mock.calls.at(-1)![0]
+    handlers.onSnapshot([])
+    const events: unknown[] = []
+    const resume = subscribeHaStream((event) => events.push(event), getStreamStats().lastEventId)
+    try {
+      expect(events).toContainEqual({ type: 'status', connected: true })
+    } finally { resume(); unsubscribe() }
+  })
+
+  it('reports recovery after a failed poll even with identical entities', async () => {
+    vi.useFakeTimers()
+    const states = [{ entity_id: 'light.kitchen', state: 'on', last_updated: '2026-09-30T10:00:00Z' }]
+    globalThis.fetch = vi.fn()
+      .mockRejectedValueOnce(new Error('HA offline'))
+      .mockResolvedValue(Response.json(states))
+    const events: unknown[] = []
+    const unsubscribe = subscribeHaStream((event) => events.push(event))
+    try {
+      resetServiceHealth()
+      recordBridgeUp()
+      const handlers = vi.mocked(startEntityFeed).mock.calls.at(-1)![0]
+      handlers.onSnapshot(states)
+      handlers.onDown('network')
+      await vi.advanceTimersByTimeAsync(0)
+      expect(events.at(-1)).toMatchObject({ type: 'error' })
+      expect(getBridgeHealth().connectedSince).toBeNull()
+      const resumed: unknown[] = []
+      const resume = subscribeHaStream((event) => resumed.push(event), getStreamStats().lastEventId)
+      expect(resumed).toContainEqual(expect.objectContaining({ type: 'status', connected: false }))
+      resume()
+      await vi.advanceTimersByTimeAsync(getStreamStats().pollMs)
+      expect(events.at(-1)).toEqual({ type: 'delta', changed: [], removed: [] })
+      expect(getBridgeHealth().connectedSince).not.toBeNull()
+    } finally { unsubscribe() }
+  })
+})
+
+
+describe('complete hydration after reconnect', () => {
+  it('sends a known empty snapshot and inactive alarm state to late subscribers', () => {
+    const first = subscribeHaStream(() => undefined)
+    vi.mocked(startEntityFeed).mock.calls.at(-1)![0].onSnapshot([])
+    const events: unknown[] = []
+    const late = subscribeHaStream((event) => events.push(event))
+    expect(events).toContainEqual({ type: 'snapshot', entities: [] })
+    expect(events).toContainEqual(expect.objectContaining({ type: 'alarm-test', active: false }))
+    late(); first()
+  })
+
+  it('primes a fresh poll generation with a complete snapshot even when empty', async () => {
+    vi.useFakeTimers()
+    globalThis.fetch = vi.fn().mockResolvedValue(Response.json([]))
+    const events: unknown[] = []
+    const stop = subscribeHaStream((event) => events.push(event))
+    vi.mocked(startEntityFeed).mock.calls.at(-1)![0].onDown('offline')
+    await vi.advanceTimersByTimeAsync(0)
+    expect(events).toContainEqual({ type: 'snapshot', entities: [] })
+    stop()
   })
 })

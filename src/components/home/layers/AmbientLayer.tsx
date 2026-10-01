@@ -9,6 +9,7 @@ import { cn } from '../../../lib/utils'
 import { WeatherIcon } from '../../weather/WeatherIcon'
 import { screensaverApi, type KioskSettings } from '../../../api/backend'
 import { KIOSK_ACTIVITY_EVENT, reportKioskScreensaver } from '../../../lib/kioskActivity'
+import { createFullyKioskBridge } from '../../../lib/fullyKiosk'
 import { BRAND_EXPANDED, BRAND_NAME } from '../../../lib/brand'
 import {
   centeredKenBurnsMove,
@@ -24,7 +25,7 @@ const DEFAULT_AMBIENT_BRIGHTNESS = 28
 /** Sensore di prossimità (Generic Sensor API) — presente solo su alcuni WebView. */
 interface ProximitySensorLike {
   near?: boolean
-  addEventListener: (type: 'reading', listener: () => void) => void
+  addEventListener: (type: 'reading' | 'error', listener: () => void) => void
   start: () => void
   stop: () => void
 }
@@ -59,10 +60,14 @@ export function AmbientLayer({
     const markActive = () => {
       setIdle(false)
       if (timer.current) clearTimeout(timer.current)
-      if (enabled) timer.current = setTimeout(() => setIdle(true), idleMs)
+      if (enabled) timer.current = setTimeout(() => {
+        const presence = wakeEntityId && useEntityStore.getState().entities[wakeEntityId]?.state === 'on'
+        if (presence) markActive()
+        else setIdle(true)
+      }, idleMs)
     }
     wakeRef.current = markActive
-    if (enabled) timer.current = setTimeout(() => setIdle(true), idleMs)
+    markActive()
     window.addEventListener('pointerdown', markActive)
     window.addEventListener('keydown', markActive)
     window.addEventListener(KIOSK_ACTIVITY_EVENT, markActive)
@@ -75,19 +80,27 @@ export function AmbientLayer({
       window.removeEventListener(KIOSK_ACTIVITY_EVENT, markActive)
       document.removeEventListener('visibilitychange', onVisibility)
     }
-  }, [enabled, idleMs])
+  }, [enabled, idleMs, wakeEntityId])
 
   useEffect(() => {
-    if (forceWake) wakeRef.current()
+    if (forceWake) {
+      createFullyKioskBridge(window.fully, window.location)?.turnScreenOn()
+      wakeRef.current()
+    }
   }, [forceWake])
 
   // Presence wake: il fronte di salita del sensore equivale a un tocco.
   useEffect(() => {
     if (!wakeEntityId) return
+    const wake = () => {
+      createFullyKioskBridge(window.fully, window.location)?.turnScreenOn()
+      wakeRef.current()
+    }
+    if (useEntityStore.getState().entities[wakeEntityId]?.state === 'on') wake()
     return useEntityStore.subscribe((state, prev) => {
       const now = state.entities[wakeEntityId]?.state
       const before = prev.entities[wakeEntityId]?.state
-      if (now === 'on' && before !== 'on') wakeRef.current()
+      if (now === 'on' && before !== 'on') wake()
     })
   }, [wakeEntityId])
 
@@ -114,8 +127,10 @@ export function AmbientLayer({
     try {
       sensor = new Ctor({ frequency: 2 })
       sensor.addEventListener('reading', () => { if (sensor?.near) wakeRef.current() })
+      sensor.addEventListener('error', () => { try { sensor?.stop() } catch { /* unavailable */ } })
       sensor.start()
     } catch {
+      try { sensor?.stop() } catch { /* unavailable */ }
       return // permesso negato o sensore assente: si vive bene lo stesso
     }
     return () => { try { sensor?.stop() } catch { /* noop */ } }

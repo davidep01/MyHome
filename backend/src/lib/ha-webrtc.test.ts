@@ -19,6 +19,7 @@ import {
   addWebRtcCandidate,
   closeWebRtcSession,
   listenWebRtcSession,
+  hasWebRtcSession,
   startWebRtcSession,
 } from './ha-webrtc.js'
 
@@ -28,6 +29,7 @@ afterEach(() => {
   if (activeSession) closeWebRtcSession(activeSession)
   activeSession = null
   wsMocks.handlers = null
+  vi.useRealTimers()
   vi.clearAllMocks()
 })
 
@@ -56,4 +58,39 @@ describe('HA WebRTC session bridge', () => {
       candidate: { candidate: 'candidate:1', sdpMid: '0' },
     }))
   })
+  it('keeps a viewed camera alive and expires only after the last viewer leaves', async () => {
+    vi.useFakeTimers()
+    activeSession = await startWebRtcSession('camera.entrata', 'offer')
+    const leave = listenWebRtcSession(activeSession, vi.fn())!
+    await vi.advanceTimersByTimeAsync(5 * 60_000)
+    expect(hasWebRtcSession(activeSession)).toBe(true)
+    leave()
+    await vi.advanceTimersByTimeAsync(120_000)
+    expect(hasWebRtcSession(activeSession)).toBe(false)
+    expect(wsMocks.unsubscribe).toHaveBeenCalledOnce()
+  })
+
+  it('reports a failed buffered ICE command to the browser', async () => {
+    activeSession = await startWebRtcSession('camera.entrata', 'offer')
+    await addWebRtcCandidate(activeSession, { candidate: 'candidate:1' })
+    const listener = vi.fn()
+    listenWebRtcSession(activeSession, listener)
+    wsMocks.haWsCommand.mockRejectedValueOnce(new Error('HA offline'))
+    wsMocks.handlers?.onEvent({ type: 'session', session_id: 'ha-session' })
+    await vi.waitFor(() => expect(listener).toHaveBeenCalledWith({ type: 'error', code: 'ice_candidate', message: 'HA offline' }))
+  })
+
+  it('refuses capacity overflow without evicting a viewed camera', async () => {
+    const ids: string[] = []
+    try {
+      for (let i = 0; i < 12; i++) {
+        const id = await startWebRtcSession('camera.entrata', 'offer')
+        ids.push(id)
+        listenWebRtcSession(id, vi.fn())
+      }
+      await expect(startWebRtcSession('camera.entrata', 'offer')).rejects.toThrow('in uso')
+      expect(ids.every(hasWebRtcSession)).toBe(true)
+    } finally { ids.forEach(closeWebRtcSession) }
+  })
+
 })

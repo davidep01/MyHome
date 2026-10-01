@@ -22,11 +22,11 @@ const WATER_KEYWORDS = /water|acqua|flow|portata/i
  * (L, m³) va deliberatamente ignorato — una perdita "a delta" su un contatore
  * cumulativo non è verificabile qui contro hardware reale, e un falso allarme
  * "possibile perdita" è peggio del silenzio. */
-const RATE_UNIT = /\/\s*(min|h)\b/i
 const SOLAR_KEYWORDS = /solar|solare|fotovoltaic|pv\b/i
 
 function isFiniteNumber(value: unknown): value is number {
-  return typeof value === 'number' ? Number.isFinite(value) : typeof value === 'string' && Number.isFinite(Number.parseFloat(value))
+  return typeof value === 'number' ? Number.isFinite(value)
+    : typeof value === 'string' && value.trim() !== '' && Number.isFinite(Number(value))
 }
 
 function numberOf(value: unknown): number {
@@ -44,7 +44,7 @@ export function findWaterFlowSensor(entities: EntityLike[]): { entityId: string;
     if (entity.state === 'unavailable' || !isFiniteNumber(entity.state)) return false
     const deviceClass = String(entity.attributes?.device_class ?? '')
     const unit = String(entity.attributes?.unit_of_measurement ?? '')
-    if (!RATE_UNIT.test(unit)) return false
+    if (toLitersPerMinute(0, unit) === null) return false
     return deviceClass === 'water' || WATER_KEYWORDS.test(entity.entity_id)
   })
   if (!candidate) return null
@@ -55,11 +55,12 @@ export function findWaterFlowSensor(entities: EntityLike[]): { entityId: string;
 
 function toLitersPerMinute(value: number, unit: string): number | null {
   const normalized = unit.toLowerCase().replace(/\s+/g, '')
-  const isCubicMeters = normalized.includes('m³') || normalized.includes('m3')
-  const liters = isCubicMeters ? value * 1000 : value
-  if (normalized.includes('/min')) return liters
-  if (normalized.includes('/h')) return liters / 60
-  return null
+  const factors: Record<string, number> = {
+    'l/min': 1, 'l/h': 1 / 60,
+    'm³/min': 1000, 'm3/min': 1000, 'm³/h': 1000 / 60, 'm3/h': 1000 / 60,
+  }
+  const factor = factors[normalized]
+  return factor === undefined ? null : value * factor
 }
 
 /**
@@ -70,8 +71,17 @@ function toLitersPerMinute(value: number, unit: string): number | null {
  */
 export function detectSustainedWaterFlow(points: HAHistoryPoint[], unit: string, nowMs: number): ConsumptionInsight | null {
   const windowStart = nowMs - WATER_FLOW_WINDOW_MINUTES * 60_000
-  const recent = points.filter((point) => Date.parse(point.last_updated) >= windowStart && isFiniteNumber(point.state))
+  // HA history consists of state transitions, not regularly sampled telemetry.
+  // A state at/before the boundary is necessary to establish the full duration.
+  const ordered = points.map((point) => ({ point, at: Date.parse(point.last_updated) }))
+    .filter(({ at }) => Number.isFinite(at) && at <= nowMs)
+    .sort((a, b) => a.at - b.at)
+  const baseline = ordered.findLastIndex(({ at }) => at <= windowStart)
+  if (baseline < 0) return null
+  const recent = ordered.slice(baseline).map(({ point }) => point)
   if (recent.length < MIN_WATER_SAMPLES) return null
+  // Do not discard unavailable/invalid states: they break evidence of continuity.
+  if (recent.some((point) => !isFiniteNumber(point.state))) return null
 
   const litersPerMinute = recent.map((point) => toLitersPerMinute(numberOf(point.state), unit))
   if (litersPerMinute.some((value) => value === null)) return null

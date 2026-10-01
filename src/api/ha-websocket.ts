@@ -18,10 +18,11 @@ import { alarmApi, haApi, kioskApi, type AlarmTestRemoteState } from './backend'
 
 type HaStreamEvent =
   | { type: 'snapshot'; entities: HassEntity[] }
+  | { type: 'status'; connected: boolean; message?: string }
   | { type: 'delta'; changed: HassEntity[]; removed: string[] }
   | { type: 'error'; message: string }
   | { type: 'doorbell-test'; doorbellId: string }
-  | { type: 'kiosk-command'; target: string; command: string; value?: number | string }
+  | { type: 'kiosk-command'; commandId: string; target: string; command: string; value?: number | string }
   | ({ type: 'alarm-test' } & AlarmTestRemoteState)
 
 const PROXY_POLL_MS = 4000
@@ -33,6 +34,9 @@ let eventSource: EventSource | null = null
 let proxyPollTimer: ReturnType<typeof setInterval> | null = null
 let proxyPollInFlight: Promise<void> | null = null
 let proxyPollAbort: AbortController | null = null
+let streamWatchdog: ReturnType<typeof setTimeout> | null = null
+let streamInitialTimer: ReturnType<typeof setTimeout> | null = null
+let streamRetryTimer: ReturnType<typeof setTimeout> | null = null
 let manuallyClosed = false
 let alarmSyncTimer: ReturnType<typeof setInterval> | null = null
 let alarmSyncInFlight: Promise<void> | null = null
@@ -81,6 +85,8 @@ function applyStreamEvent(event: HaStreamEvent): void {
     }
     if (!flushTimer) flushTimer = setTimeout(flushDeltas, FLUSH_MS)
     store.setConnectionStatus('connected')
+  } else if (event.type === 'status') {
+    store.setConnectionStatus(event.connected ? 'connected' : 'error', event.message)
   } else if (event.type === 'error') {
     store.setConnectionStatus('error', event.message)
   } else if (event.type === 'doorbell-test') {
@@ -90,24 +96,31 @@ function applyStreamEvent(event: HaStreamEvent): void {
     useAlarmTestStore.getState().sync(event)
   } else if (event.type === 'kiosk-command') {
     // Comando dalla regia (§4.5/§12): lo esegue solo il tablet bersaglio.
-    void import('../lib/kioskDevice').then(({ executeKioskCommand, getKioskDeviceId }) => {
+    void import('../lib/kioskDevice').then(async ({ executeKioskCommand, getKioskDeviceId, rememberKioskRestart, forgetKioskRestart }) => {
       const isKiosk = document.documentElement.classList.contains('kiosk-mode')
       if (!isKiosk) return
       const deviceId = getKioskDeviceId()
       if (event.target !== 'all' && event.target !== deviceId) return
-      const outcome = executeKioskCommand(
+      if (event.command === 'reload' || event.command === 'restart') {
+        await kioskApi.ack({ deviceId, commandId: event.commandId, command: event.command, ok: true, status: 'accepted' })
+        rememberKioskRestart(event.commandId, event.command)
+      }
+      const outcome = await executeKioskCommand(
         event.command as Parameters<typeof executeKioskCommand>[0],
         event.value,
       )
       // L'invio è un broadcast: senza questo riscontro la regia non saprebbe
       // mai se il comando è stato davvero eseguito.
+      if (outcome.ok && (event.command === 'reload' || event.command === 'restart')) return
+      if (!outcome.ok && (event.command === 'reload' || event.command === 'restart')) forgetKioskRestart()
       void kioskApi.ack({
+        commandId: event.commandId,
         deviceId,
         command: event.command,
         ok: outcome.ok,
         ...(outcome.ok ? {} : { reason: outcome.reason }),
       }).catch(() => {})
-    })
+    }).catch(() => {})
   }
 }
 
@@ -184,6 +197,7 @@ export function disconnectHAProxy() {
   }
   proxyPollAbort?.abort()
   proxyPollAbort = null
+  proxyPollInFlight = null
   useEntityStore.getState().setConnectionStatus('disconnected')
 }
 
@@ -197,56 +211,70 @@ export function disconnectHAProxy() {
  */
 export async function connectHAStream(): Promise<void> {
   manuallyClosed = false
-  const disabled = typeof localStorage !== 'undefined' && localStorage.getItem('myhome.haStream') === 'off'
+  let disabled = false
+  try { disabled = localStorage.getItem('myhome.haStream') === 'off' } catch { /* optional storage */ }
   if (typeof EventSource === 'undefined' || disabled) {
     await connectHAProxy()
     return
   }
   if (eventSource) return
-  useEntityStore.getState().setConnectionStatus('connecting')
+  if (streamRetryTimer) clearTimeout(streamRetryTimer)
+  streamRetryTimer = null
+  if (!proxyPollTimer) useEntityStore.getState().setConnectionStatus('connecting')
 
-  let gotData = false
   const es = new EventSource('/api/ha/stream')
   eventSource = es
-
   const toPoll = () => {
-    if (eventSource !== es) return
+    if (eventSource !== es || manuallyClosed) return
     es.close()
     eventSource = null
-    connectHAProxy().catch(() => {})
+    if (streamWatchdog) clearTimeout(streamWatchdog)
+    if (streamInitialTimer) clearTimeout(streamInitialTimer)
+    streamWatchdog = streamInitialTimer = null
+    resetDeltaBuffer()
+    void connectHAProxy()
+    streamRetryTimer = setTimeout(() => { void connectHAStream() }, 15_000)
   }
-  const fallback = setTimeout(() => { if (!gotData) toPoll() }, 6000)
-
+  const watch = (timeout = 35_000) => {
+    if (streamWatchdog) clearTimeout(streamWatchdog)
+    streamWatchdog = setTimeout(toPoll, timeout)
+  }
+  streamInitialTimer = setTimeout(toPoll, 6000)
   es.addEventListener('ready', () => {
-    // Il backend idrata sempre un test attivo quando registra il subscriber;
-    // finché SSE è vivo il polling REST ogni 1,5 s sarebbe solo duplicato.
-    gotData = true
-    clearTimeout(fallback)
-    stopAlarmTestSync()
+    if (eventSource === es) watch()
   })
-
+  es.addEventListener('ping', () => {
+    if (eventSource === es) watch()
+  })
   es.addEventListener('states', (event) => {
-    gotData = true
-    clearTimeout(fallback)
+    if (eventSource !== es || manuallyClosed) return
     try {
-      applyStreamEvent(JSON.parse((event as MessageEvent).data) as HaStreamEvent)
-    } catch {
-      // ignore a malformed frame; the next delta corrects the store
-    }
+      const parsed = JSON.parse((event as MessageEvent).data) as HaStreamEvent
+      if (!parsed || typeof parsed !== 'object' || typeof parsed.type !== 'string') return
+      if (['snapshot', 'delta', 'status', 'error'].includes(parsed.type)) {
+        if (streamInitialTimer) clearTimeout(streamInitialTimer)
+        streamInitialTimer = null
+        if (proxyPollTimer) disconnectHAProxy()
+        watch()
+      }
+      if (parsed.type === 'alarm-test') stopAlarmTestSync()
+      applyStreamEvent(parsed)
+    } catch { /* malformed frames must not count as healthy data */ }
   })
   es.onerror = () => {
-    if (!gotData) {
-      clearTimeout(fallback)
-      toPoll()
-    } else {
-      // transient drop — EventSource auto-reconnects; surface as syncing
-      useEntityStore.getState().setConnectionStatus('connecting')
-    }
+    if (eventSource !== es || manuallyClosed) return
+    useEntityStore.getState().setConnectionStatus('connecting')
+    startAlarmTestSync()
+    watch(6000)
   }
 }
 
 export function disconnectHAStream() {
   manuallyClosed = true
+  if (streamWatchdog) clearTimeout(streamWatchdog)
+  if (streamInitialTimer) clearTimeout(streamInitialTimer)
+  if (streamRetryTimer) clearTimeout(streamRetryTimer)
+  streamWatchdog = streamInitialTimer = streamRetryTimer = null
   stopAlarmTestSync()
   resetDeltaBuffer()
   if (eventSource) { eventSource.close(); eventSource = null }

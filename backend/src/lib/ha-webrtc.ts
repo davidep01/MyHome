@@ -17,7 +17,7 @@ interface WebRtcSession {
   queuedEvents: WebRtcSignalEvent[]
   listeners: Set<(event: WebRtcSignalEvent) => void>
   unsubscribe?: () => void
-  expires: ReturnType<typeof setTimeout>
+  expires?: ReturnType<typeof setTimeout>
 }
 
 const SESSION_TTL_MS = 2 * 60_000
@@ -60,17 +60,21 @@ function emit(session: WebRtcSession, event: WebRtcSignalEvent): void {
 async function flushCandidates(session: WebRtcSession): Promise<void> {
   if (!session.haSessionId || session.pendingCandidates.length === 0) return
   const candidates = session.pendingCandidates.splice(0)
-  await Promise.allSettled(candidates.map((candidate) => haWsCommand({
-    type: 'camera/webrtc/candidate',
-    entity_id: session.entityId,
-    session_id: session.haSessionId,
-    candidate,
-  })))
+  for (const candidate of candidates) {
+    if (!sessions.has(session.id)) return
+    await haWsCommand({
+      type: 'camera/webrtc/candidate',
+      entity_id: session.entityId,
+      session_id: session.haSessionId,
+      candidate,
+    })
+  }
 }
 
 function removeOldestSession(): void {
-  const oldest = sessions.keys().next().value as string | undefined
-  if (oldest) closeWebRtcSession(oldest)
+  const oldest = [...sessions.values()].find((session) => session.listeners.size === 0)
+  if (!oldest) throw new Error('Tutte le sessioni video sono in uso. Riprova dopo aver chiuso una camera.')
+  closeWebRtcSession(oldest.id)
 }
 
 export async function startWebRtcSession(entityId: string, offer: string): Promise<string> {
@@ -87,7 +91,7 @@ export async function startWebRtcSession(entityId: string, offer: string): Promi
   sessions.set(id, session)
 
   try {
-    session.unsubscribe = await haWsSubscribe<WebRtcSignalEvent>({
+    const unsubscribe = await haWsSubscribe<WebRtcSignalEvent>({
       type: 'camera/webrtc/offer',
       entity_id: entityId,
       offer,
@@ -99,7 +103,9 @@ export async function startWebRtcSession(entityId: string, offer: string): Promi
         if (!event) return
         if (event.type === 'session') {
           current.haSessionId = event.session_id
-          void flushCandidates(current)
+          void flushCandidates(current).catch((error: unknown) => {
+            if (sessions.has(id)) emit(current, { type: 'error', code: 'ice_candidate', message: error instanceof Error ? error.message.slice(0, 1024) : 'Invio ICE fallito' })
+          })
         }
         emit(current, event)
       },
@@ -109,6 +115,8 @@ export async function startWebRtcSession(entityId: string, offer: string): Promi
         emit(current, { type: 'error', code: 'ha_connection', message: error.message.slice(0, 1_024) })
       },
     }, 20_000)
+    if (!sessions.has(id)) { unsubscribe(); throw new Error('Sessione video scaduta durante la connessione') }
+    session.unsubscribe = unsubscribe
   } catch (error) {
     closeWebRtcSession(id)
     throw error
@@ -123,17 +131,25 @@ export function hasWebRtcSession(id: string): boolean {
 export function listenWebRtcSession(id: string, listener: (event: WebRtcSignalEvent) => void): (() => void) | null {
   const session = sessions.get(id)
   if (!session) return null
+  clearTimeout(session.expires)
+  session.expires = undefined
+  session.listeners.add(listener)
   const queued = session.queuedEvents.splice(0)
   for (const event of queued) listener(event)
-  session.listeners.add(listener)
-  return () => session.listeners.delete(listener)
+  return () => {
+    session.listeners.delete(listener)
+    if (session.listeners.size === 0 && sessions.has(id)) {
+      clearTimeout(session.expires)
+      session.expires = setTimeout(() => closeWebRtcSession(id), SESSION_TTL_MS)
+    }
+  }
 }
 
 export async function addWebRtcCandidate(id: string, candidate: Candidate): Promise<boolean> {
   const session = sessions.get(id)
   if (!session) return false
   if (!session.haSessionId) {
-    if (session.pendingCandidates.length >= MAX_PENDING_CANDIDATES) session.pendingCandidates.shift()
+    if (session.pendingCandidates.length >= MAX_PENDING_CANDIDATES) throw new Error('Troppi candidati ICE in attesa')
     session.pendingCandidates.push(candidate)
     return true
   }

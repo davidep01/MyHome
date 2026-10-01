@@ -41,7 +41,8 @@ export function fleetReadiness(device: Pick<KioskDeviceStatus, 'fully'>): FleetR
 }
 
 /** Etichetta leggibile dell'esito riferito dal tablet. */
-export function commandResultLabel(result: { ok: boolean; reason?: string; command: string }): string {
+export function commandResultLabel(result: { ok: boolean; reason?: string; command: string; status?: string }): string {
+  if (result.status === 'accepted') return `“${result.command}” ricevuto; attendo il nuovo avvio del tablet`
   if (result.ok) return `“${result.command}” eseguito sul tablet`
   if (result.reason === 'no-bridge') return `“${result.command}” non eseguito: Fully Kiosk non raggiungibile dalla pagina`
   if (result.reason === 'unsupported') return `“${result.command}” non eseguito: questa versione di Fully non lo supporta`

@@ -40,6 +40,13 @@ it('enforces signed roles even when the legacy client header is forged', async (
   expect(kioskLogin.status).toBe(200)
   const kioskCookie = kioskLogin.headers.get('Set-Cookie')?.split(';')[0] ?? ''
   expect((await app.request('/api/config', { headers: { Cookie: kioskCookie } })).status).toBe(403)
+  const notifications = await app.request('/api/config/stream', { headers: { Cookie: kioskCookie } })
+  expect(notifications.status).toBe(200)
+  const reader = notifications.body!.getReader()
+  const first = await reader.read()
+  expect(new TextDecoder().decode(first.value)).toContain('event: ready')
+  await reader.cancel()
+  expect((await app.request('/api/config/export', { headers: { Cookie: kioskCookie } })).status).toBe(403)
   expect((await app.request('/api/layout/home', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', Cookie: kioskCookie },

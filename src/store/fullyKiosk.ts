@@ -73,5 +73,9 @@ function initialSnapshot(availability: FullyKioskAvailability = 'unavailable'): 
 export const useFullyKioskStore = create<FullyKioskStore>((set) => ({
   ...initialSnapshot(),
   _patch: (patch) => set(patch),
-  _reset: (availability) => set(initialSnapshot(availability)),
+  // Emergency intent belongs to useEmergencyMode, not the bridge lifecycle.
+  _reset: (availability) => set((state) => ({
+    ...initialSnapshot(availability),
+    emergencyActive: state.emergencyActive,
+  })),
 }))

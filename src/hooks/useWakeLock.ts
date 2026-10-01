@@ -14,15 +14,23 @@ export function useWakeLock(enabled = true) {
 
     let sentinel: WakeLockSentinel | null = null
     let cancelled = false
+    let acquiring = false
+    let retry: ReturnType<typeof setTimeout> | undefined
 
     const acquire = async () => {
-      if (cancelled || document.visibilityState !== 'visible') return
+      if (cancelled || acquiring || sentinel || document.visibilityState !== 'visible') return
+      acquiring = true
       try {
-        sentinel = await wl.request('screen')
-        sentinel.addEventListener('release', () => { sentinel = null })
+        const acquired = await wl.request('screen')
+        if (cancelled || document.visibilityState !== 'visible') { await acquired.release(); return }
+        sentinel = acquired
+        acquired.addEventListener('release', () => {
+          if (sentinel === acquired) sentinel = null
+          if (!cancelled && document.visibilityState === 'visible') retry = setTimeout(() => { void acquire() }, 1_000)
+        })
       } catch {
         /* denied (e.g. low battery) or not allowed — silently ignore */
-      }
+      } finally { acquiring = false }
     }
 
     const onVisible = () => { if (document.visibilityState === 'visible' && !sentinel) acquire() }
@@ -32,6 +40,7 @@ export function useWakeLock(enabled = true) {
 
     return () => {
       cancelled = true
+      clearTimeout(retry)
       document.removeEventListener('visibilitychange', onVisible)
       sentinel?.release().catch(() => {})
       sentinel = null

@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 /**
  * Registro della flotta kiosk (§4.5): ogni tablet manda un heartbeat periodico
  * con il proprio stato (batteria, schermo, luminosità, pagina); la regia lo
@@ -28,6 +29,8 @@ export interface KioskHeartbeat {
  * poteva succedere nulla.
  */
 export interface KioskCommandResult {
+  commandId: string
+  status: 'pending' | 'accepted' | 'completed' | 'failed'
   command: string
   ok: boolean
   /** Perché non è stato eseguito ('no-bridge' | 'unsupported'). */
@@ -51,6 +54,19 @@ interface StoredDevice extends KioskHeartbeat {
 }
 
 const devices = new Map<string, StoredDevice>()
+const pendingCommands = new Map<string, { command: string; targets: Set<string>; expires: number }>()
+
+export function issueKioskCommand(input: KioskCommand, now = Date.now()): string | null {
+  for (const [id, item] of pendingCommands) if (item.expires <= now) pendingCommands.delete(id)
+  const targets = input.target === 'all' ? [...devices.keys()] : devices.has(input.target) ? [input.target] : []
+  if (!targets.length || pendingCommands.size >= 100) return null
+  const commandId = randomUUID()
+  pendingCommands.set(commandId, { command: input.command, targets: new Set(targets), expires: now + 90_000 })
+  for (const target of targets) devices.get(target)!.lastCommand = {
+    commandId, command: input.command, status: 'pending', ok: false, at: new Date(now).toISOString(),
+  }
+  return commandId
+}
 
 export function recordKioskHeartbeat(heartbeat: KioskHeartbeat, now = Date.now()): boolean {
   if (!DEVICE_ID_PATTERN.test(heartbeat.deviceId)) return false
@@ -73,12 +89,17 @@ export function recordKioskHeartbeat(heartbeat: KioskHeartbeat, now = Date.now()
 /** Riscontro dal tablet: eseguito, oppure perché no. */
 export function recordKioskCommandResult(
   deviceId: string,
-  result: { command: string; ok: boolean; reason?: string },
+  result: { commandId: string; command: string; ok: boolean; reason?: string; status?: 'accepted' | 'completed' },
   now = Date.now(),
 ): boolean {
   const device = devices.get(deviceId)
-  if (!device) return false
+  const pending = pendingCommands.get(result.commandId)
+  if (!device || !pending || pending.expires <= now || pending.command !== result.command
+    || !pending.targets.has(deviceId) || device.lastCommand?.commandId !== result.commandId) return false
+  if (device.lastCommand.status === 'completed' || device.lastCommand.status === 'failed') return false
   device.lastCommand = {
+    commandId: result.commandId,
+    status: result.ok ? result.status ?? 'completed' : 'failed',
     command: result.command.slice(0, 40),
     ok: result.ok,
     ...(result.reason ? { reason: result.reason.slice(0, 40) } : {}),
@@ -99,6 +120,7 @@ export function listKioskDevices(now = Date.now()): KioskDeviceStatus[] {
 
 export function resetKioskFleet(): void {
   devices.clear()
+  pendingCommands.clear()
 }
 
 // ── Comandi remoti (§4.5/§12) ────────────────────────────────────────────────

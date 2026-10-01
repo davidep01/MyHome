@@ -10,7 +10,7 @@ import { connectHAStream, disconnectHAStream } from '../../api/ha-websocket'
  * drops or errors and dismisses automatically as soon as it reconnects.
  * A short grace delay avoids flashing during the initial handshake.
  */
-export function ConnectionOverlay() {
+export function ConnectionOverlay({ kiosk = false }: { kiosk?: boolean }) {
   const status = useEntityStore((s) => s.connectionStatus)
   const lastError = useEntityStore((s) => s.lastError)
   const activeView = useUIStore((s) => s.activeView)
@@ -18,7 +18,7 @@ export function ConnectionOverlay() {
   const [show, setShow] = useState(false)
 
   // Never block the System page — that's where the user fixes the credentials.
-  const down = (status === 'error' || status === 'disconnected') && activeView !== 'system'
+  const down = (status !== 'connected') && (kiosk || activeView !== 'system')
 
   useEffect(() => {
     if (!down) {
@@ -49,36 +49,36 @@ export function ConnectionOverlay() {
           exit={{ opacity: 0 }}
         >
           <motion.div
-            className="flex h-20 w-20 items-center justify-center rounded-[28px] bg-white shadow-sm"
+            className="flex h-20 w-20 items-center justify-center rounded-[28px] bg-[var(--surface-solid)]"
             animate={{ scale: [1, 1.06, 1] }}
             transition={{ repeat: Infinity, duration: 1.8 }}
           >
             <WifiOff size={36} className="text-[#dc2626]" />
           </motion.div>
           <div>
-            <h2 className="text-2xl font-semibold tracking-[-0.01em] text-[#1d1d1f]">Home Assistant non disponibile</h2>
-            <p className="mt-2 max-w-sm text-sm text-black/50">
-              Riconnessione automatica appena torna online.
+            <h2 className="text-2xl font-semibold tracking-[-0.01em] text-[var(--ink)]">Home Assistant non disponibile</h2>
+            <p className="mt-2 max-w-sm text-sm text-[var(--ink-secondary)]">
+              Dati non aggiornati. Riconnessione automatica appena torna online.
             </p>
-            {lastError && <p className="mt-1 text-xs text-black/35">{lastError}</p>}
+            {lastError && <p className="mt-1 text-xs text-[var(--ink-tertiary)]">{lastError}</p>}
           </div>
-          <div className="flex items-center gap-2 text-sm text-black/45">
+          <div className="flex items-center gap-2 text-sm text-[var(--ink-secondary)]">
             <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-orange-400" />
             In attesa della connessione
           </div>
           <div className="flex flex-wrap items-center justify-center gap-2">
             <button
               onClick={retry}
-              className="flex items-center gap-2 rounded-full bg-[#0066cc] px-5 py-2.5 text-sm font-semibold text-white transition active:scale-95"
+              className="flex min-h-11 items-center gap-2 rounded-full bg-[#0066cc] px-5 py-2.5 text-sm font-semibold text-white transition active:scale-95"
             >
               <RotateCw size={15} /> Riprova adesso
             </button>
-            <button
+            {!kiosk && <button
               onClick={() => setActiveView('system')}
               className="flex items-center gap-2 rounded-full bg-black/8 px-5 py-2.5 text-sm font-semibold text-[#1d1d1f] transition hover:bg-black/12 active:scale-95"
             >
               <Settings size={15} /> Configura connessione
-            </button>
+            </button>}
           </div>
         </motion.div>
       )}

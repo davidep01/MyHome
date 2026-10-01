@@ -41,11 +41,19 @@ export default defineConfig(({ mode }) => ({
         target: process.env.VITE_BACKEND_URL ?? 'http://localhost:3001',
         changeOrigin: true,
       },
+      '/alarm-siren.wav': {
+        target: process.env.VITE_BACKEND_URL ?? 'http://localhost:3001',
+        changeOrigin: true,
+      },
     },
   },
   preview: {
     proxy: {
       '/api': {
+        target: process.env.VITE_BACKEND_URL ?? 'http://localhost:3001',
+        changeOrigin: true,
+      },
+      '/alarm-siren.wav': {
         target: process.env.VITE_BACKEND_URL ?? 'http://localhost:3001',
         changeOrigin: true,
       },

@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { kioskApi } from '../api/backend'
 import { createFullyKioskBridge } from '../lib/fullyKiosk'
-import { getKioskDeviceId } from '../lib/kioskDevice'
+import { confirmKioskRestart, getKioskDeviceId } from '../lib/kioskDevice'
 import { useFullyKioskStore } from '../store/fullyKiosk'
 import { useKioskAudioStore } from '../store/kioskAudio'
 
@@ -14,7 +14,10 @@ const HEARTBEAT_MS = 60_000
  */
 export function useKioskHeartbeat(): void {
   useEffect(() => {
+    let inFlight = false
     const send = () => {
+      if (inFlight) return
+      inFlight = true
       const bridge = createFullyKioskBridge(window.fully, window.location)
       const fully = useFullyKioskStore.getState()
       const audio = useKioskAudioStore.getState()
@@ -32,7 +35,7 @@ export function useKioskHeartbeat(): void {
         nativeAudio: fully.capabilities.soundPlayback,
         audioChannel: audio.status,
         audioPlaying: audio.playing,
-      }).catch(() => undefined)
+      }).then(() => confirmKioskRestart()).catch(() => undefined).finally(() => { inFlight = false })
     }
     send()
     const timer = window.setInterval(send, HEARTBEAT_MS)

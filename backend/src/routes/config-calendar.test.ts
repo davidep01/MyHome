@@ -57,3 +57,57 @@ describe('calendar link persistence', () => {
     expect(await read.json()).toMatchObject({ calendarFeedUrl: '' })
   })
 })
+
+
+describe('emergency settings persistence', () => {
+  it('persists emergency photo and shortcuts and projects them to the kiosk', async () => {
+    const alarm = { photo: true, shortcuts: [{ id: 'lights', label: 'Accendi luci', entityId: 'light.kitchen', service: 'turn_on' }] }
+    const save = await app.request('/api/config', { method: 'PUT', headers: desktop, body: JSON.stringify({ alarm }) })
+    expect(save.status).toBe(200)
+    const read = await app.request('/api/config', { headers: desktop })
+    expect(await read.json()).toMatchObject({ alarm })
+    const kiosk = await app.request('/api/layout/home')
+    expect(await kiosk.json()).toMatchObject({ alarm })
+  })
+
+  it('persists disabling photos and removing every emergency shortcut', async () => {
+    const alarm = { photo: false, shortcuts: [] }
+    const save = await app.request('/api/config', { method: 'PUT', headers: desktop, body: JSON.stringify({ alarm }) })
+    expect(save.status).toBe(200)
+    const read = await app.request('/api/config', { headers: desktop })
+    expect(await read.json()).toMatchObject({ alarm })
+  })
+})
+
+
+describe('portable backup restore', () => {
+  it('retains local credentials and creates a fresh local layout revision', async () => {
+    const { db } = await import('../db/client.js')
+    await db.write((store) => {
+      store.config.haUrl = 'http://192.168.1.20:8123'
+      store.config.haToken = 'installation-local-test-token'
+    })
+    const before = await db.read()
+    const exported = await app.request('/api/config/export', { headers: desktop })
+    const backup = await exported.json() as { secretsIncluded: boolean; store: typeof before }
+    expect(backup.secretsIncluded).toBe(false)
+    expect(backup.store.config.haToken).toBe('***')
+    backup.store.config.haUrl = 'http://192.168.1.99:8123'
+    backup.store.config.haToken = 'foreign-backup-test-token'
+    backup.store.config.home = {
+      widgets: [{ id: 'backup-clock', type: 'clock', size: 'sm' }],
+      layoutVersion: 999,
+      updatedAt: '2000-01-01T00:00:00.000Z',
+    }
+    const restored = await app.request('/api/config/import', {
+      method: 'POST', headers: desktop, body: JSON.stringify(backup),
+    })
+    expect(restored.status).toBe(200)
+    const after = await db.read()
+    expect(after.config.haToken).toBe(before.config.haToken)
+    expect(after.config.haUrl).toBe(before.config.haUrl)
+    expect(after.config.home?.layoutVersion).toBe((before.config.home?.layoutVersion ?? 1) + 1)
+    expect(Date.parse(after.config.home!.updatedAt!)).toBeGreaterThan(Date.parse('2000-01-01'))
+    expect(after.homeRevisions?.at(-1)?.home.widgets[0].id).toBe('backup-clock')
+  })
+})

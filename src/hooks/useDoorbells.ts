@@ -27,7 +27,7 @@ interface ActiveRing {
 export function useDoorbells(deviceOverride?: DoorbellDevice[]) {
   const { data: config } = useDashboardConfig(deviceOverride === undefined)
   const entities = useEntityStore((s) => s.entities)
-  const devices = useMemo(() => deviceOverride ?? normalizeDoorbells(config), [config, deviceOverride])
+  const devices = useMemo(() => deviceOverride?.filter((device) => device.active !== false && Boolean(device.entityId)) ?? normalizeDoorbells(config), [config, deviceOverride])
   const { play } = useSoundNotifications()
   const pushEvent = useDoorbellEvents((s) => s.push)
 
