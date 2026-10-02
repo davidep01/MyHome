@@ -70,3 +70,9 @@ export function addonUpdatePhase(input: {
   if (!input.started) return 'idle'
   return input.connected ? 'done' : 'restarting'
 }
+
+/** An installation may outlive the HTTP request; a timeout is not a refusal. */
+export function addonRequestFailure(installAttempted: boolean, status?: number): 'error' | 'unconfirmed' {
+  const refused = status !== undefined && status >= 400 && status < 500 && status !== 408
+  return installAttempted && !refused ? 'unconfirmed' : 'error'
+}

@@ -454,7 +454,7 @@ haRouter.post('/services/:domain/:service', async (c) => {
   if (!res.ok) {
     const target = (parsed as Record<string, unknown>).entity_id
     const label = Array.isArray(target) ? target.join(', ') : typeof target === 'string' ? target : '—'
-    recordServiceError('ha', `${domain}.${service} rifiutato da Home Assistant (${res.status}) su ${label}`)
+    recordServiceError('ha', `${domain}.${service} ${res.status >= 500 ? 'esito non confermato' : 'rifiutato da Home Assistant'} (${res.status}) su ${label}`)
   }
   return forwardResponse(res)
 })

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { HassEntities, HassEntity } from 'home-assistant-js-websocket'
-import { addonUpdatePhase, findAddonUpdateEntity } from './addonUpdate'
+import { addonUpdatePhase, findAddonUpdateEntity, addonRequestFailure } from './addonUpdate'
 
 function update(entity_id: string, state: string, attributes: Record<string, unknown>): HassEntity {
   return { entity_id, state, attributes, last_changed: '', last_updated: '', context: { id: 'x', parent_id: null, user_id: null } }
@@ -78,5 +78,18 @@ describe('fasi dell aggiornamento sul kiosk', () => {
 
   it('a servizio tornato dichiara concluso, così il tablet può ricaricare', () => {
     expect(addonUpdatePhase({ inProgress: false, connected: true, started: true })).toBe('done')
+  })
+})
+
+describe('esito richiesta aggiornamento', () => {
+  it('non dichiara fallita un installazione dopo timeout o errore del proxy', () => {
+    expect(addonRequestFailure(true)).toBe('unconfirmed')
+    expect(addonRequestFailure(true, 502)).toBe('unconfirmed')
+    expect(addonRequestFailure(true, 408)).toBe('unconfirmed')
+  })
+  it('distingue un rifiuto esplicito e il controllo che precede l installazione', () => {
+    expect(addonRequestFailure(true, 403)).toBe('error')
+    expect(addonRequestFailure(true, 400)).toBe('error')
+    expect(addonRequestFailure(false)).toBe('error')
   })
 })

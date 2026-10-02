@@ -2,10 +2,10 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowUpCircle, CheckCircle2, CircleAlert, Heart, RefreshCw } from 'lucide-react'
 import { GlassCard } from '../glass/GlassCard'
-import { systemApi, type SystemStatus } from '../../api/backend'
+import { ApiError, systemApi, type SystemStatus } from '../../api/backend'
 import { callService } from '../../api/ha-websocket'
 import { useEntityStore } from '../../store/entities'
-import { findAddonUpdateEntity } from '../../lib/addonUpdate'
+import { findAddonUpdateEntity, addonRequestFailure } from '../../lib/addonUpdate'
 import { compareVersions, durationSince, timeAgo } from '../../lib/time'
 import { cn } from '../../lib/utils'
 
@@ -31,7 +31,7 @@ export function ServiceHealthCard({ status }: { status?: SystemStatus }) {
   const connectedFor = durationSince(health?.connectedSince)
   const entities = useEntityStore((state) => state.entities)
   const addon = findAddonUpdateEntity(entities)
-  const [updating, setUpdating] = useState<'idle' | 'checking' | 'installing' | 'done' | 'error'>('idle')
+  const [updating, setUpdating] = useState<'idle' | 'checking' | 'installing' | 'done' | 'error' | 'unconfirmed'>('idle')
   const installed = __APP_VERSION__
   const latest = update.data?.latest
 
@@ -43,6 +43,8 @@ export function ServiceHealthCard({ status }: { status?: SystemStatus }) {
    */
   const updateNow = async () => {
     if (!addon) return
+    const checkingUnconfirmed = updating === 'unconfirmed'
+    let installAttempted = false
     setUpdating('checking')
     try {
       await callService('homeassistant', 'update_entity', { entity_id: addon.entityId })
@@ -54,11 +56,14 @@ export function ServiceHealthCard({ status }: { status?: SystemStatus }) {
         setUpdating('done')
         return
       }
+      if (checkingUnconfirmed) { setUpdating('idle'); return }
+      if (refreshed.inProgress) { setUpdating('idle'); return }
       setUpdating('installing')
+      installAttempted = true
       await callService('update', 'install', { entity_id: addon.entityId })
       setUpdating('done')
-    } catch {
-      setUpdating('error')
+    } catch (error) {
+      setUpdating(addonRequestFailure(installAttempted, error instanceof ApiError ? error.status : undefined))
     }
   }
   // 'dev' non è una versione confrontabile: in sviluppo non si annuncia nulla.
@@ -117,17 +122,22 @@ export function ServiceHealthCard({ status }: { status?: SystemStatus }) {
             type="button"
             onClick={updateNow}
             disabled={updating === 'checking' || updating === 'installing' || addon.inProgress}
-            className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-[12px] bg-[var(--action-blue)] px-4 text-xs font-semibold text-white transition active:scale-95 disabled:opacity-45"
+            className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-[12px] bg-[var(--action-blue)] px-4 text-xs font-semibold text-[var(--on-accent)] transition active:scale-95 disabled:opacity-45"
           >
             {updating === 'checking' || updating === 'installing' || addon.inProgress
               ? <><RefreshCw size={14} className="animate-spin" /> {updating === 'installing' || addon.inProgress ? 'Installazione…' : 'Controllo…'}</>
-              : <><ArrowUpCircle size={14} /> Controlla e aggiorna ora</>}
+              : <><ArrowUpCircle size={14} /> {updating === 'unconfirmed' ? 'Verifica stato' : 'Controlla e aggiorna ora'}</>}
           </button>
           {updating === 'done' && (
             <p className="text-[11px] text-[var(--ink-secondary)]" role="status">
               {addon.updateAvailable
                 ? 'Aggiornamento avviato: l’add-on si riavvia da solo, poi ricarica questa pagina.'
                 : 'Già all’ultima versione pubblicata che Home Assistant conosce.'}
+            </p>
+          )}
+          {updating === 'unconfirmed' && (
+            <p className="text-[11px] text-[var(--ink-secondary)]" role="status">
+              {addon.inProgress ? 'Installazione in corso: attendi il riavvio.' : 'Esito della richiesta non confermato. Verifica lo stato prima di riprovare: l’installazione potrebbe essere ancora in corso.'}
             </p>
           )}
           {updating === 'error' && (
