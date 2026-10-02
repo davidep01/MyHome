@@ -850,3 +850,5 @@ Preflight LAN: HA raggiungibile, versione installata 2.2.113, bridge WebSocket c
 Gate locali ripetuti prima del rilascio: lint, 601 test, build frontend/backend e typecheck backend PASS. Pubblicazione, architettura AMD64 e installazione verranno registrate con gli esiti effettivi; nessun risultato ancora atteso viene dichiarato superato.
 
 **Immagini locali:** smoke ARM64 e AMD64 entrambi PASS nelle quattro modalità direct/restart/readonly/protected; caso auth required senza credenziali correttamente rifiutato. AMD64 è eseguito su host ARM64 tramite emulazione Docker Desktop, non su hardware x86 fisico. Questo chiude il precedente impedimento Docker locale di F30; resta da verificare il workflow e il digest realmente pubblicato.
+
+**Primo tentativo CI:** commit `21941a7`, workflow `36998138241` fermato prima del publish da `npm ci`: mancavano tre dipendenze opzionali @emnapi nel lockfile prodotto su macOS. Lock rigenerato in ambiente Linux Node24, `npm ci` pulito verificato sia Linux sia macOS; lint, 601 test, build e typecheck ripetuti con successo. Nessuna immagine incompleta è stata pubblicata dal tentativo fallito.
