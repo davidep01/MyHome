@@ -26,6 +26,7 @@ import { useKioskHeartbeat } from '../../hooks/useKioskHeartbeat'
 import { KioskAlarmAudioChannel } from '../system/KioskAlarmAudioChannel'
 import { useTimeOfDay } from '../../hooks/useTimeOfDay'
 import { BRAND_NAME } from '../../lib/brand'
+import { useEntityStore } from '../../store/entities'
 import { FullscreenCameraOverlay } from '../system/FullscreenCameraOverlay'
 
 // Le viste regia sono lazy: il kiosk (percorso primario) carica solo
@@ -123,6 +124,7 @@ function NotFoundPage() {
 }
 
 function DesktopShell({ path }: { path: string }) {
+  const connectionStatus = useEntityStore((s) => s.connectionStatus)
   const activeView = useUIStore((s) => s.activeView)
   const selectedEntityId = useUIStore((s) => s.selectedEntityId)
   const fullscreenCameraId = useUIStore((s) => s.fullscreenCameraId)
@@ -155,7 +157,7 @@ function DesktopShell({ path }: { path: string }) {
       <a href="#main-content" className="skip-link">Vai al contenuto</a>
       {/* Layout: sidebar | main | right panel */}
       <div
-        className="relative flex w-full gap-3 h-full"
+        className="admin-shell relative flex w-full gap-5 h-full"
         style={{
           // On mobile: add bottom padding for the fixed tab bar (≈72px) + safe area
           // On tablet/desktop: standard safe area padding all around
@@ -173,7 +175,11 @@ function DesktopShell({ path }: { path: string }) {
         {/* Main canvas — full width; extra bottom padding on mobile for the tab bar */}
         <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-hidden pb-[80px] md:pb-0">
           <LiveActivityBar />
-          <main id="main-content" tabIndex={-1} className="min-h-0 flex-1 overflow-hidden outline-none">
+          {connectionStatus !== 'connected' && <div role="status" className="flex shrink-0 flex-wrap items-center justify-between gap-2 rounded-[14px] bg-[var(--fill-subtle)] px-4 py-2 text-sm text-[var(--ink-secondary)]">
+            <span>{connectionStatus === 'connecting' || connectionStatus === 'idle' ? 'Connessione a Home Assistant in corso…' : 'Home Assistant offline · ultimi dati ricevuti'}</span>
+            <button type="button" className="min-h-11 font-semibold text-[var(--action-blue)]" onClick={() => useUIStore.getState().setActiveView('system')}>Verifica connessione</button>
+          </div>}
+          <main id="main-content" tabIndex={-1} className="admin-content min-h-0 flex-1 overflow-hidden outline-none">
             {page}
           </main>
         </div>

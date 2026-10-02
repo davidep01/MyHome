@@ -53,7 +53,7 @@ export function StatusPage() {
       list.push({ id: 'ha', severity: 'danger', text: `Home Assistant non raggiungibile${status.ha.message ? ` — ${status.ha.message}` : ''}`, actionTarget: 'system' })
     }
     if (status && !status.integrations.openweather) {
-      list.push({ id: 'weather', severity: 'warn', text: 'Chiave OpenWeather assente: meteo spento su kiosk e regia.' })
+      list.push({ id: 'weather', severity: 'warn', text: 'OpenWeather non configurato: il meteo usa Home Assistant, se disponibile.' })
     }
     if (status && !status.integrations.gemini) {
       list.push({ id: 'ai', severity: 'warn', text: 'Chiave Gemini assente: assistente AI e riconoscimento campanello spenti.' })
@@ -75,10 +75,10 @@ export function StatusPage() {
       : status?.ha.message ?? 'Controlla il servizio MyHome locale e le credenziali Home Assistant.'
 
   return (
-    <div className="flex h-full flex-col gap-4 overflow-y-auto pr-1">
+    <div className="flex h-full flex-col gap-4 overflow-y-auto pr-1 pb-6">
       <div className="shrink-0">
-        <h1 className="text-2xl font-semibold text-[#1d1d1f] sm:text-3xl">Stato</h1>
-        <p className="mt-1 text-sm text-black/45">Salute e attività dell’installazione MyHome nella rete LAN</p>
+        <h1 className="text-2xl font-semibold text-[var(--ink)] sm:text-3xl">Stato</h1>
+        <p className="mt-1 text-sm text-[var(--ink-secondary)]">Il quadro della casa, le anomalie e i dati da proteggere</p>
       </div>
       <GlassCard className="shrink-0">
         <div className="flex flex-wrap items-center justify-between gap-4" aria-live="polite">
@@ -90,8 +90,8 @@ export function StatusPage() {
               {online ? <CheckCircle2 size={21} /> : connecting ? <RefreshCw size={21} className="animate-spin" /> : <WifiOff size={21} />}
             </div>
             <div>
-              <p className="text-lg font-semibold text-[#1d1d1f]">{connectionLabel}</p>
-              <p className="text-sm text-black/45">{connectionDetail}</p>
+              <p className="text-lg font-semibold text-[var(--ink)]">{connectionLabel}</p>
+              <p className="text-sm text-[var(--ink-secondary)]">{connectionDetail}</p>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -99,7 +99,7 @@ export function StatusPage() {
               type="button"
               onClick={() => refetch()}
               disabled={isFetching}
-              className="flex min-h-[44px] items-center gap-2 rounded-full bg-black/[0.07] px-4 text-sm font-semibold text-black/60 transition hover:bg-black/10 active:scale-95"
+              className="flex min-h-[44px] items-center gap-2 rounded-full bg-[var(--fill-subtle)] px-4 text-sm font-semibold text-[var(--ink-secondary)] transition hover:bg-[var(--fill-subtle)] active:scale-95"
             >
               <RefreshCw size={15} className={cn(isFetching && 'animate-spin')} /> {isFetching ? 'Verifica…' : 'Prova connessione'}
             </button>
@@ -107,7 +107,7 @@ export function StatusPage() {
               href="/kiosk"
               target="_blank"
               rel="noreferrer"
-              className="flex min-h-[44px] items-center gap-2 rounded-full bg-[#0066cc] px-4 text-sm font-semibold text-white transition hover:bg-[#0052a3] active:scale-95"
+              className="flex min-h-[44px] items-center gap-2 rounded-full bg-[var(--action-blue)] px-4 text-sm font-semibold text-[var(--on-accent)] transition hover:bg-[#0052a3] active:scale-95"
             >
               <ExternalLink size={15} /> Apri dashboard
             </a>
@@ -140,7 +140,7 @@ export function StatusPage() {
 
         <div className="flex flex-col gap-4">
           <GlassCard className="space-y-2">
-            <h2 className="text-sm font-semibold text-[#1d1d1f]">Attività</h2>
+            <h2 className="text-sm font-semibold text-[var(--ink)]">Attività</h2>
             <InfoRow label="Ultimo salvataggio config" value={home?.updatedAt ? `${new Date(home.updatedAt).toLocaleString('it-IT')} · da ${home.updatedBy ?? '—'}` : '—'} />
             <InfoRow label="Ultimo dato da Home Assistant" value={status?.stream.lastEventAt ? new Date(status.stream.lastEventAt).toLocaleTimeString('it-IT') : '—'} />
             <InfoRow
@@ -160,22 +160,22 @@ function Metric({ label, value, tone = 'neutral', Icon }: { label: string; value
   return (
     <div className={cn(
       'rounded-[14px] border px-4 py-3',
-      tone === 'ok' ? 'border-green-500/15 bg-green-500/10' : tone === 'warn' ? 'border-orange-500/15 bg-orange-500/10' : 'border-black/8 bg-black/[0.035]',
+      tone === 'ok' ? 'border-green-500/15 bg-green-500/10' : tone === 'warn' ? 'border-orange-500/15 bg-orange-500/10' : 'border-[var(--hairline)] bg-[var(--fill-subtle)]',
     )}>
-      <div className="flex items-center gap-1.5 text-black/35">
+      <div className="flex items-center gap-1.5 text-[var(--ink-tertiary)]">
         <Icon size={13} />
         <p className="text-[11px] font-semibold uppercase tracking-[0.08em]">{label}</p>
       </div>
-      <p className="mt-1 truncate text-2xl font-semibold text-[#1d1d1f] tabular-nums">{value}</p>
+      <p className="mt-1 truncate text-2xl font-semibold text-[var(--ink)] tabular-nums">{value}</p>
     </div>
   )
 }
 
 function InfoRow({ label, value, Icon }: { label: string; value: string; Icon?: React.ElementType }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-[10px] bg-black/[0.035] px-3 py-2">
-      <span className="flex items-center gap-1.5 text-xs text-black/45">{Icon && <Icon size={13} />}{label}</span>
-      <span className="truncate text-xs font-semibold text-black/70">{value}</span>
+    <div className="flex items-center justify-between gap-3 rounded-[10px] bg-[var(--fill-subtle)] px-3 py-2">
+      <span className="flex items-center gap-1.5 text-xs text-[var(--ink-secondary)]">{Icon && <Icon size={13} />}{label}</span>
+      <span className="truncate text-xs font-semibold text-[var(--ink-secondary)]">{value}</span>
     </div>
   )
 }
@@ -238,8 +238,8 @@ function BackupCard({ readOnly }: { readOnly: boolean }) {
   return (
     <GlassCard className="space-y-2.5">
       <div>
-        <h2 className="text-sm font-semibold text-[#1d1d1f]">Backup & ripristino</h2>
-        <p className="mt-0.5 text-xs leading-relaxed text-black/40">Esporta configurazione, stanze e funzioni in JSON. Token Home Assistant e credenziali di accesso sono sempre esclusi.</p>
+        <h2 className="text-sm font-semibold text-[var(--ink)]">Backup & ripristino</h2>
+        <p className="mt-0.5 text-xs leading-relaxed text-[var(--ink-tertiary)]">Esporta configurazione, stanze e funzioni in JSON. Token Home Assistant e credenziali di accesso sono sempre esclusi.</p>
       </div>
       {readOnly && <p className="rounded-[10px] bg-orange-500/10 px-3 py-2 text-xs text-orange-700" role="status">Storage in sola lettura: puoi esportare, ma non ripristinare un backup.</p>}
       <div className="flex flex-wrap gap-2">
@@ -247,7 +247,7 @@ function BackupCard({ readOnly }: { readOnly: boolean }) {
           type="button"
           onClick={exportBackup}
           disabled={busy !== null}
-          className="flex min-h-[44px] items-center gap-2 rounded-full bg-black/[0.07] px-4 text-sm font-semibold text-black/60 transition hover:bg-black/10 active:scale-95 disabled:opacity-45"
+          className="flex min-h-[44px] items-center gap-2 rounded-full bg-[var(--fill-subtle)] px-4 text-sm font-semibold text-[var(--ink-secondary)] transition hover:bg-[var(--fill-subtle)] active:scale-95 disabled:opacity-45"
         >
           <Download size={15} /> {busy === 'export' ? 'Esportazione…' : 'Esporta'}
         </button>
@@ -255,7 +255,7 @@ function BackupCard({ readOnly }: { readOnly: boolean }) {
           type="button"
           onClick={() => fileRef.current?.click()}
           disabled={readOnly || busy !== null}
-          className="flex min-h-[44px] items-center gap-2 rounded-full bg-black/[0.07] px-4 text-sm font-semibold text-black/60 transition hover:bg-black/10 active:scale-95 disabled:opacity-45"
+          className="flex min-h-[44px] items-center gap-2 rounded-full bg-[var(--fill-subtle)] px-4 text-sm font-semibold text-[var(--ink-secondary)] transition hover:bg-[var(--fill-subtle)] active:scale-95 disabled:opacity-45"
         >
           <Upload size={15} /> {busy === 'import' ? 'Ripristino…' : 'Importa'}
         </button>

@@ -30,5 +30,8 @@ describe('climate visual state', () => {
   it('formatta le temperature con la virgola italiana', () => {
     expect(formatClimateTemp(24.5)).toBe('24,5°C')
     expect(formatClimateTemp(undefined)).toBe('--°C')
+    expect(formatClimateTemp(null)).toBe('--°C')
+    expect(formatClimateTemp('')).toBe('--°C')
+    expect(formatClimateTemp(77, '°F')).toBe('77,0°F')
   })
 })

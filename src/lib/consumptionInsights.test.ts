@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   detectSolarSelfSufficiency, detectSustainedWaterFlow, findSolarProductionSensor, findWaterFlowSensor,
-  WATER_FLOW_THRESHOLD_L_PER_MIN, WATER_FLOW_WINDOW_MINUTES,
+  WATER_FLOW_THRESHOLD_L_PER_MIN, WATER_FLOW_WINDOW_MINUTES, timeWeightedPowerKw,
 } from './consumptionInsights'
 
 const NOW = Date.parse('2026-06-10T15:00:00Z')
@@ -105,11 +105,11 @@ describe('detectSustainedWaterFlow', () => {
 })
 
 describe('findSolarProductionSensor', () => {
-  it('finds the most-active solar power sensor by keyword', () => {
+  it('uses the explicitly selected production sensor', () => {
     const found = findSolarProductionSensor([
       { entity_id: 'sensor.potenza_solare', state: '2500', attributes: { device_class: 'power', unit_of_measurement: 'W' } },
       { entity_id: 'sensor.potenza_forno', state: '1800', attributes: { device_class: 'power', unit_of_measurement: 'W' } },
-    ])
+    ], 'sensor.potenza_solare')
     expect(found).toEqual({ entityId: 'sensor.potenza_solare', kw: 2.5 })
   })
 
@@ -125,9 +125,30 @@ describe('detectSolarSelfSufficiency', () => {
 
   it('does not flag when solar falls meaningfully short of consumption', () => {
     expect(detectSolarSelfSufficiency(3, 1)).toBeNull()
+    expect(detectSolarSelfSufficiency(2, 1.99)).toBeNull()
   })
 
   it('does not flag negligible consumption (near-zero baseline)', () => {
     expect(detectSolarSelfSufficiency(0.02, 0.5)).toBeNull()
+  })
+})
+
+describe('solar and temporal energy evidence', () => {
+  it('ranks W and kW on the same scale and rejects unknown units and signs', () => {
+    const sensor = (id: string, state: string, unit: string) => ({ entity_id: id, state, attributes: { device_class: 'power', unit_of_measurement: unit } })
+    expect(findSolarProductionSensor([
+      sensor('sensor.solar_small', '500', 'W'), sensor('sensor.solar_large', '2', 'kW'),
+      sensor('sensor.solar_invalid', '9000', 'VA'), sensor('sensor.solar_negative', '-4', 'kW'),
+    ], 'sensor.solar_large')).toEqual({ entityId: 'sensor.solar_large', kw: 2 })
+    expect(detectSolarSelfSufficiency(NaN, 2)).toBeNull()
+    expect(detectSolarSelfSufficiency(2, Infinity)).toBeNull()
+  })
+  it('weights irregular transitions by duration instead of sample count', () => {
+    expect(timeWeightedPowerKw([point(100, 24 * 60), point(2500, 60)], 'W', NOW - 24 * 60 * 60_000, NOW)).toBeCloseTo(0.2)
+  })
+  it('requires window coverage and rejects unavailable spans', () => {
+    expect(timeWeightedPowerKw([point(100, 23 * 60)], 'W', NOW - 24 * 60 * 60_000, NOW)).toBeNull()
+    expect(timeWeightedPowerKw([point(100, 24 * 60), { ...point(100, 60), state: 'unavailable' }], 'W', NOW - 24 * 60 * 60_000, NOW)).toBeNull()
+    expect(timeWeightedPowerKw([point(100, 24 * 60)], 'VA', NOW - 24 * 60 * 60_000, NOW)).toBeNull()
   })
 })

@@ -1,4 +1,4 @@
-import { getHABaseUrl, getHAConfig } from './ha-config.js'
+import { getHABaseUrl, getHAConfig, currentHAGeneration } from './ha-config.js'
 import { closeHaWs, getHaWsState, startEntityFeed, stopEntityFeed } from './ha-ws.js'
 import { advertisedArtworkSources } from './ha-media.js'
 import { recordBridgeDown, recordBridgeUp, recordServiceError } from './service-health.js'
@@ -43,7 +43,7 @@ export type AlarmTestStreamEvent =
   | ({ type: 'alarm-test'; active: true; serverNow: string } & ActiveAlarmTest)
   | { type: 'alarm-test'; active: false; id?: string; serverNow: string }
 
-export type HaStreamEvent =
+export type HaStreamEvent = (
   | { type: 'snapshot'; entities: HaEntityLike[] }
   | { type: 'status'; connected: boolean; message?: string }
   | { type: 'delta'; changed: HaEntityLike[]; removed: string[] }
@@ -54,6 +54,7 @@ export type HaStreamEvent =
   | { type: 'kiosk-command'; commandId: string; target: string; command: string; value?: number | string }
   /** Simulazione emergenza coordinata dal server su tutti i kiosk. */
   | AlarmTestStreamEvent
+) & { haGeneration?: string }
 
 type Subscriber = (event: HaStreamEvent, id: number) => void
 
@@ -103,6 +104,7 @@ function broadcast(event: HaStreamEvent, id: number): void {
 }
 
 function pushEvent(event: HaStreamEvent): void {
+  event = { ...event, haGeneration: currentHAGeneration() }
   if (event.type === 'snapshot' || event.type === 'delta') {
     connectionStatus = { type: 'status', connected: true }
   } else if (event.type === 'error') {
@@ -412,7 +414,7 @@ export function subscribeHaStream(sub: Subscriber, sinceId?: number): () => void
   if (canResume) {
     for (const entry of ring) if (entry.id > sinceId) sub(entry.event, entry.id)
   } else if (snapshotKnown) {
-    sub({ type: 'snapshot', entities: [...snapshot.values()] }, eventSeq)
+    sub({ type: 'snapshot', entities: [...snapshot.values()], haGeneration: currentHAGeneration() }, eventSeq)
   }
   // Resume can have zero deltas. Report the actual bridge health explicitly,
   // including failure after a cached snapshot, without replaying commands.

@@ -28,10 +28,13 @@ export function TabletDashboard() {
   const { data: layout } = useTabletLayout('home')
   const mode = deviceOverride() ?? layout?.kiosk?.homeMode ?? 'composer'
   return (
-    <div className="h-full overflow-hidden">
+    <div className="flex h-full flex-col overflow-hidden">
+      {layout?.source === 'cache' && <div role="status" className="shrink-0 bg-[var(--fill-muted)] px-5 py-2 text-center text-xs font-semibold text-[var(--ink-secondary)]">Configurazione locale · server temporaneamente non raggiungibile</div>}
+      <div className="min-h-0 flex-1 overflow-hidden">
       {mode === 'grid'
         ? <Suspense fallback={null}><KioskWidgetHome /></Suspense>
         : <LayeredHome />}
+      </div>
     </div>
   )
 }

@@ -7,6 +7,7 @@ vi.mock('./ha-ws.js', () => ({
   stopEntityFeed: vi.fn(),
 }))
 vi.mock('./ha-config.js', () => ({
+  currentHAGeneration: () => 'test-generation',
   getHAConfig: vi.fn(async () => ({ haToken: 'secret' })),
   getHABaseUrl: vi.fn(async () => 'http://192.168.1.2:8123'),
 }))
@@ -77,7 +78,7 @@ describe.sequential('HA poll fallback', () => {
     invalidateHAConnection()
 
     expect(getStreamStats()).toMatchObject({ subscribers: 1, entities: 0 })
-    expect(events.at(-1)).toEqual({ type: 'snapshot', entities: [] })
+    expect(events.at(-1)).toEqual({ type: 'snapshot', entities: [], haGeneration: 'test-generation' })
     expect(isKnownHAImageSource('https://media.example/known.jpg')).toBe(false)
     unsubscribe()
     expect(getStreamStats().subscribers).toBe(0)
@@ -159,7 +160,7 @@ describe('stream connection recovery', () => {
       expect(resumed).toContainEqual(expect.objectContaining({ type: 'status', connected: false }))
       resume()
       await vi.advanceTimersByTimeAsync(getStreamStats().pollMs)
-      expect(events.at(-1)).toEqual({ type: 'delta', changed: [], removed: [] })
+      expect(events.at(-1)).toEqual({ type: 'delta', changed: [], removed: [], haGeneration: 'test-generation' })
       expect(getBridgeHealth().connectedSince).not.toBeNull()
     } finally { unsubscribe() }
   })
@@ -172,7 +173,7 @@ describe('complete hydration after reconnect', () => {
     vi.mocked(startEntityFeed).mock.calls.at(-1)![0].onSnapshot([])
     const events: unknown[] = []
     const late = subscribeHaStream((event) => events.push(event))
-    expect(events).toContainEqual({ type: 'snapshot', entities: [] })
+    expect(events).toContainEqual({ type: 'snapshot', entities: [], haGeneration: 'test-generation' })
     expect(events).toContainEqual(expect.objectContaining({ type: 'alarm-test', active: false }))
     late(); first()
   })
@@ -184,7 +185,7 @@ describe('complete hydration after reconnect', () => {
     const stop = subscribeHaStream((event) => events.push(event))
     vi.mocked(startEntityFeed).mock.calls.at(-1)![0].onDown('offline')
     await vi.advanceTimersByTimeAsync(0)
-    expect(events).toContainEqual({ type: 'snapshot', entities: [] })
+    expect(events).toContainEqual({ type: 'snapshot', entities: [], haGeneration: 'test-generation' })
     stop()
   })
 })

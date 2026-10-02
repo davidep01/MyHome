@@ -1,3 +1,4 @@
+import { clearTabletLayoutCache } from '../lib/tabletLayoutCache'
 const BASE = '/api'
 
 export class ApiError extends Error {
@@ -31,7 +32,7 @@ export async function request<T>(
   const abort = () => controller.abort(parent?.reason)
   if (parent?.aborted) abort()
   else parent?.addEventListener('abort', abort, { once: true })
-  const timeout = setTimeout(() => controller.abort(new Error('La richiesta non ha risposto in tempo')), path.startsWith('/ai/') ? 30_000 : 15_000)
+  const timeout = setTimeout(() => controller.abort(new Error('La richiesta non ha risposto in tempo')), (path.startsWith('/ai/') || path.startsWith('/ha/camera-webrtc-offer/')) ? 30_000 : 15_000)
   try {
   const res = await fetch(`${BASE}${path}`, {
     ...requestOptions,
@@ -44,6 +45,7 @@ export async function request<T>(
     },
   })
   if (!res.ok) {
+    if (res.status === 401 || res.status === 403) clearTabletLayoutCache()
     if (res.status === 401 && !path.startsWith('/auth/') && typeof window !== 'undefined') {
       window.dispatchEvent(new Event('myhome:auth-required'))
     }
@@ -73,7 +75,11 @@ export const authApi = {
     method: 'POST',
     body: JSON.stringify({ token }),
   }),
-  logout: () => request<{ ok: true }>('/auth/logout', { method: 'POST', body: '{}' }),
+  logout: async () => {
+    const result = await request<{ ok: true }>('/auth/logout', { method: 'POST', body: '{}' })
+    clearTabletLayoutCache()
+    return result
+  },
 }
 
 export interface ScreensaverPhoto {
@@ -110,6 +116,9 @@ export const calendarApi = {
 // ── Config ─────────────────────────────────────────────────────────────────
 
 export interface AppConfig {
+  haGeneration?: string
+  /** Compare-and-swap revision for all configuration writes. */
+  configVersion?: number
   haUrl: string
   haToken: string
   haConfigSource?: {
@@ -133,7 +142,11 @@ export interface AppConfig {
   dashboardName: string
   hiddenEntities?: string[]
   deviceOverrides?: Record<string, DeviceOverride>
+  /** @deprecated Backup compatibility only; HA units are preserved. */
   forceCelsius?: boolean
+  /** Explicit HA production sensor; unset disables the solar comparison. */
+  solarProductionEntityId?: string
+  /** @deprecated Use kiosk.homeMode. */
   advancedMode?: boolean
   doorbell?: DoorbellSettings
   doorbells?: DoorbellDevice[]
@@ -294,6 +307,8 @@ export interface DashboardPosition {
 }
 
 export interface TabletDashboardLayout {
+  solarProductionEntityId?: string
+  haGeneration?: string
   schemaVersion: 3
   dashboardId: string
   widgets: HomeWidget[]
@@ -612,6 +627,8 @@ export interface UpdateInfo {
 }
 
 export interface HomeRevisionSummary {
+  /** Semantic widget changes, optional for older saved revisions. */
+  widgetsUpdated?: number
   widgetsAdded: number
   widgetsRemoved: number
   widgetsMoved: number

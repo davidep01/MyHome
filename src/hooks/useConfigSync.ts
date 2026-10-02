@@ -1,3 +1,7 @@
+import { invalidateClientRegistry } from '../api/ha-registry'
+import { clearTabletLayoutCache, syncLayoutCacheGeneration } from '../lib/tabletLayoutCache'
+import { useEntityStore } from '../store/entities'
+import { isConfigWritePending } from './useDashboardConfig'
 import { useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 
@@ -12,8 +16,25 @@ export function useConfigSync() {
   useEffect(() => {
     if (typeof EventSource === 'undefined') return
     const es = new EventSource('/api/config/stream')
-    const refresh = () => {
+    let generation: string | null = null
+    const refresh = (event: Event) => {
+      try {
+        const incoming = (JSON.parse((event as MessageEvent).data) as { haGeneration?: string }).haGeneration
+        if (incoming && incoming !== generation) {
+          useEntityStore.getState().setSourceGeneration(incoming)
+          if (useEntityStore.getState().sourceGeneration !== incoming) return
+          const previous = generation
+          generation = incoming
+          syncLayoutCacheGeneration(incoming)
+          invalidateClientRegistry()
+          if (previous) clearTabletLayoutCache()
+          for (const key of ['ha-area-index', 'ha-entity-registry-dashboard-curation', 'ha-entity-registry-platforms', 'ha-registry-platforms', 'ha-history', 'energy-baseline', 'water-flow-history', 'screensaver-ai-recap']) {
+            void qc.cancelQueries({ queryKey: [key] }).then(() => qc.resetQueries({ queryKey: [key] }))
+          }
+        }
+      } catch { /* compatible with older servers' ready payload */ }
       for (const key of ['config', 'tablet-layout', 'weather', 'news', 'calendar-events', 'screensaver-photos']) {
+        if (key === 'config' && isConfigWritePending()) continue
         void qc.invalidateQueries({ queryKey: [key] })
       }
     }

@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
-import { ALARM_PHOTO_QUEUE_KEY, drainQueue, enqueuePhoto, MAX_QUEUED_PHOTOS, readQueue } from './alarmPhoto'
+import { describe, expect, it, vi } from 'vitest'
+import { ALARM_PHOTO_QUEUE_KEY, acknowledgePhoto, flushPhotoQueue, enqueuePhoto, MAX_QUEUED_PHOTOS, readQueue } from './alarmPhoto'
 
 function memoryStorage(initial: Record<string, string> = {}) {
   const map = new Map(Object.entries(initial))
@@ -28,10 +28,10 @@ describe('alarmPhoto queue', () => {
     expect(queue.map((p) => p.alertId)).toEqual(['b', 'c', 'd'])
   })
 
-  it('drain svuota la coda', () => {
+  it('rimuove solo la foto confermata', () => {
     const storage = memoryStorage()
     enqueuePhoto(storage, photo('a'))
-    expect(drainQueue(storage).map((p) => p.alertId)).toEqual(['a'])
+    acknowledgePhoto(storage, photo('a'))
     expect(readQueue(storage)).toEqual([])
   })
 
@@ -39,4 +39,32 @@ describe('alarmPhoto queue', () => {
     const storage = memoryStorage({ [ALARM_PHOTO_QUEUE_KEY]: '{not json' })
     expect(readQueue(storage)).toEqual([])
   })
+  it('retains a photo while uploading and after a failed request', async () => {
+    const storage = memoryStorage()
+    enqueuePhoto(storage, photo('a'))
+    const upload = vi.fn(async () => {
+      expect(readQueue(storage)).toEqual([photo('a')])
+      throw new Error('offline')
+    })
+    await expect(flushPhotoQueue(storage, upload)).rejects.toThrow('offline')
+    expect(readQueue(storage)).toEqual([photo('a')])
+    await flushPhotoQueue(storage, async () => {})
+    expect(readQueue(storage)).toEqual([])
+  })
+  it('preserves new entries added during an upload', async () => {
+    const storage = memoryStorage()
+    enqueuePhoto(storage, photo('a'))
+    await flushPhotoQueue(storage, async () => { enqueuePhoto(storage, photo('b')) })
+    expect(readQueue(storage)).toEqual([photo('b')])
+  })
+  it('deduplicates an episode and does not erase it when storage rejects acknowledgement', async () => {
+    const storage = memoryStorage()
+    enqueuePhoto(storage, photo('a'))
+    enqueuePhoto(storage, photo('a'))
+    expect(readQueue(storage)).toHaveLength(1)
+    storage.setItem = () => { throw new Error('storage denied') }
+    await expect(flushPhotoQueue(storage, async () => {})).rejects.toThrow('storage denied')
+    expect(readQueue(storage)).toHaveLength(1)
+  })
+
 })

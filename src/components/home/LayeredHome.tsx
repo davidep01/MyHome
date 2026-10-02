@@ -1,3 +1,7 @@
+import { performEntityAction } from '../../lib/entityActions'
+import { computeInsights } from '../../lib/insights'
+import { useAreaIndex } from '../../hooks/useAreaIndex'
+import { useScenes } from '../../hooks/useScenes'
 import { useMemo, useState } from 'react'
 import { StatusHeader } from './layers/StatusHeader'
 import { NowSection } from './layers/NowSection'
@@ -34,6 +38,7 @@ import { useCameraRowVisibility } from '../../hooks/useCameraRowVisibility'
  */
 export function LayeredHome() {
   const { data: layout } = useTabletLayout('home')
+  const { areaIdOf } = useAreaIndex(layout?.deviceOverrides)
   const composed = useComposedHome({
     hiddenEntities: layout?.hiddenEntities,
     deviceOverrides: layout?.deviceOverrides,
@@ -78,9 +83,19 @@ export function LayeredHome() {
   // Il tap sul bottone-azione del suggerimento È la conferma (mai auto-esecuzione).
   const runAlertAction = async (chip: HomeChip) => {
     if (!chip.action) return
+    const state = useEntityStore.getState()
+    if (!state.connected || !state.hydrated) throw new Error('Dati Home Assistant non disponibili')
+    const current = computeInsights(Object.values(state.entities), { areaIdOf, nowMs: Date.now() }).find((insight) => insight.id === chip.id)
+    if (!current?.action || JSON.stringify(current.action) !== JSON.stringify(chip.action)) throw new Error('Il suggerimento non è più attuale')
     medium()
     try {
-      await callService(chip.action.domain, chip.action.service, { entity_id: chip.action.entityIds })
+      const action = current.action!
+      await Promise.all(action.entityIds.map((id) => {
+        const previous = useEntityStore.getState().entities[id]
+        return performEntityAction(id, () => useEntityStore.getState().setOptimisticState(id, 'off', { hvac_action: 'off' }),
+          () => callService(action.domain, action.service, { entity_id: id }),
+          () => { if (previous) useEntityStore.getState().patchEntity(id, previous) })
+      }))
     } catch (error) {
       actionFailed()
       throw error
@@ -160,7 +175,7 @@ export function LayeredHome() {
 
 /** Quiete: niente in corso — Momenti (scene), meteo esteso ed energia (se c'è). */
 function QuietSection() {
-  const hasScenes = useEntityStore((state) => Object.keys(state.entities).some((id) => id.startsWith('scene.')))
+  const hasScenes = useScenes().length > 0
   const hasEnergy = useEntityStore((state) => Object.values(state.entities).some((entity) =>
     entity.attributes?.device_class === 'power'
     && entity.state !== 'unavailable'

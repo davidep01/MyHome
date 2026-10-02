@@ -1,3 +1,5 @@
+import { performEntityAction } from '../../lib/entityActions'
+import { useEntityStore } from '../../store/entities'
 import { useEffect, useRef, useState } from 'react'
 import { Check, DoorOpen, Lightbulb, Play, Power, Siren, Volume2 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -29,6 +31,9 @@ const DOMAIN_ICON: Record<string, LucideIcon> = {
 export function ShortcutActionButton({ shortcut, onDone, disabled = false }: { shortcut: ActionShortcut; onDone?: () => void; disabled?: boolean }) {
   const [phase, setPhase] = useState<'idle' | 'holding' | 'pending' | 'done' | 'failed'>('idle')
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const disabledRef = useRef(disabled)
+  const pendingRef = useRef(false)
+  useEffect(() => { disabledRef.current = disabled }, [disabled])
   const { heavy, light } = useHaptic()
 
   useEffect(() => () => {
@@ -41,11 +46,18 @@ export function ShortcutActionButton({ shortcut, onDone, disabled = false }: { s
   const fallbackIcon = DOMAIN_ICON[shortcutDomain(shortcut)] ?? Power
 
   const execute = () => {
-    if (disabled) return
+    if (disabledRef.current || pendingRef.current) return
+    pendingRef.current = true
     setPhase('pending')
     if (needsHold) heavy()
     else light()
-    callService(action.domain, action.service, { entity_id: shortcut.entityId })
+    const previous = useEntityStore.getState().entities[shortcut.entityId]
+    void performEntityAction(shortcut.entityId, () => {
+      if (action.domain === 'lock') useEntityStore.getState().setOptimisticState(shortcut.entityId, action.service === 'unlock' ? 'unlocking' : 'locking')
+    }, () => {
+      if (disabledRef.current) return Promise.reject(new Error('Azione disattivata'))
+      return callService(action.domain, action.service, { entity_id: shortcut.entityId })
+    }, () => { if (previous) useEntityStore.getState().patchEntity(shortcut.entityId, previous) })
       .then(() => {
         setPhase('done')
         onDone?.()
@@ -55,6 +67,7 @@ export function ShortcutActionButton({ shortcut, onDone, disabled = false }: { s
         setPhase('failed')
         timer.current = setTimeout(() => { timer.current = null; setPhase('idle') }, 3_000)
       })
+      .finally(() => { pendingRef.current = false })
   }
 
   const busy = phase === 'pending' || phase === 'done'

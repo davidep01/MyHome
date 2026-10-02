@@ -116,6 +116,8 @@ Sono presenti nuovi test per avvio, foto, SSE client e tema, oltre agli aggiorna
 ## 5. Persistenza, configurazione e backup
 
 ### F11 — P1 — Lost update delle impostazioni non-home
+**Stato al 2 ottobre 2026:** Implementato il 2 ottobre: configVersion obbligatoria e confronto atomico DB; coda frontend e rollback testati. Vedi §20.
+
 **Evidenza:** `backend/src/routes/config.ts` sostituisce oggetti come kiosk/ai/alarm; il guard di versione riguarda il layout. Coda DB e spread del client non proteggono due browser che scrivono copie obsolete.
 
 **Correzione obbligatoria:** introdurre versionamento della configurazione/sezione con confronto dentro la coda DB e 409, oppure patch atomiche validate per campo con semantica esplicita di cancellazione. Coordinare optimistic update e invalidazioni SSE affinché una risposta intermedia non cancelli lo stato pendente.
@@ -150,6 +152,8 @@ Sono presenti nuovi test per avvio, foto, SSE client e tema, oltre agli aggiorna
 **Accettazione:** primo persist fallisce, secondo riesce: migrazione eseguita correttamente e una sola volta; nessuno stato parzialmente migrato servito come sano.
 
 ### F15 — P2 — Cronologia home ignora cambiamenti semantici
+**Stato al 2 ottobre 2026:** Implementato: confronto semantico dei widget, riepilogo modifiche e conservazione dello snapshot precedente al primo edit. Test di ripristinabilità, copia indipendente e salvataggio identico.
+
 **Evidenza riprodotta:** `backend/src/lib/home-revisions.ts:6–61` confronta aggiunte, rimozioni, geometria e ordine. Cambiare tipo/configurazione dello stesso widget con stessa posizione può essere classificato no-op. Si registra solo lo snapshot successivo.
 
 **Correzione obbligatoria:** confrontare anche tipo, entity ID, titolo e configurazione significativa; ignorare solo metadati tecnici. Conservare lo stato precedente al primo edit per consentirne il ripristino. Adattare riepilogo e limite della cronologia.
@@ -203,6 +207,8 @@ Sono presenti nuovi test per avvio, foto, SSE client e tema, oltre agli aggiorna
 ## 7. Stato visualizzato, tema e accessibilità
 
 ### F22 — P2 — Climatizzatore in pausa segnalato come riscaldamento attivo
+**Stato al 2 ottobre 2026:** Implementato il 2 ottobre: derivazione HVAC condivisa tra riepilogo e card; idle non risulta attivo. Test per pausa e riscaldamento.
+
 **Evidenza:** `src/hooks/useRoomsOverview.ts:67–71` usa azione heating oppure modalità heat. La modalità resta heat anche con `hvac_action=idle`; controllare anche il mapping visuale clima per evitare criteri divergenti.
 
 **Correzione obbligatoria:** quando presente e valido, hvac_action determina l'attività; modalità come fallback solo in assenza di azione. Centralizzare la derivazione usata da riepiloghi e card.
@@ -210,6 +216,8 @@ Sono presenti nuovi test per avvio, foto, SSE client e tema, oltre agli aggiorna
 **Accettazione:** heat+idle → in pausa; heat+heating → riscaldamento attivo; modalità senza attributo → fallback documentato. Stessa risposta in chip, catalogo e card.
 
 ### F23 — P2 — Temperatura mancante convertita a zero e unità ambigue
+**Stato al 2 ottobre 2026:** Implementato il 2 ottobre nei riepiloghi: valori null/vuoti esclusi, zero reale conservato, unità °C/°F/K esplicite; valori senza unità nota omessi. Resta da estendere la preferenza di conversione globale dove necessaria.
+
 **Evidenza:** `useRoomsOverview.ts` converte `current_temperature` con Number; null diventa 0. I riepiloghi, incluso SpacesCatalog, visualizzano il valore senza garantire unità coerente con HA.
 
 **Correzione obbligatoria:** distinguere assente/non valido da zero reale. Trasportare unità con il valore e convertire solo secondo una preferenza implementata esplicitamente. Non etichettare implicitamente °F come °C.
@@ -217,6 +225,8 @@ Sono presenti nuovi test per avvio, foto, SSE client e tema, oltre agli aggiorna
 **Accettazione:** null e stringa vuota → dato assente; zero reale preservato; sensori °C e °F visualizzati correttamente, senza medie fra unità diverse.
 
 ### F24 — P2 — Calendario aggiornato dal fetch, non dal tempo corrente
+**Stato al 2 ottobre 2026:** Implementato il 2 ottobre: calendario derivato dal clock locale, tick al minuto e aggiornamento al ritorno dal background senza nuovo fetch.
+
 **Evidenza:** `src/components/home/widgets/CalendarWidget.tsx:37–39` usa dataUpdatedAt come “adesso”; tra due fetch può mostrare come futuro un evento già iniziato o mantenere uno terminato.
 
 **Correzione obbligatoria:** usare un clock locale con aggiornamento al minuto o alle scadenze rilevanti, senza richieste di rete aggiuntive. Ricalcolare al ritorno dal background.
@@ -440,6 +450,8 @@ Metodo: controllo del codice attualmente presente, delle catene asincrone e dei 
 **Accettazione:** unmount prima del resolve, visibilitychange ripetuti, release con pagina visibile e rifiuto per batteria. Nessun lock perso/orfano, nessun retry aggressivo; collaudo display reale.
 
 ### F48 — P1 — Coda foto rimossa prima della conferma e retry dipendente solo da online
+**Stato al 2 ottobre 2026:** Implementato il 2 ottobre: coda persistita fino all’ACK, retry periodico serializzato e upload idempotente. Vedi §20; storage negato e quota piena restano limiti espliciti.
+
 **Evidenza:** `useEmergencyMode.ts` chiama `drainQueue`, che rimuove subito tutte le foto dallo storage; le ricarica nella coda soltanto al catch. Un reload durante l'upload perde la foto. Il retry avviene al mount o evento browser online: se cade solo il backend e la rete resta connessa, non riparte da solo.
 
 **Correzione obbligatoria:** outbox persistente con rimozione dopo conferma, ID idempotente, upload seriale e retry con backoff su recupero backend. Distinguere errori permanenti da transitori. Rivalutare il consenso prima di inviare foto accodate; documentare cosa accade alla coda quando si disabilita la funzione.
@@ -447,6 +459,8 @@ Metodo: controllo del codice attualmente presente, delle catene asincrone e dei 
 **Accettazione:** backend offline con navigator online, ritorno backend, reload a metà upload, risposta persa dopo salvataggio, opzione foto disattivata durante attesa. Nessuna perdita silenziosa o duplicazione e nessun invio contrario alla configurazione corrente.
 
 ### F49 — P2 — Scatto emergenza segnato eseguito anche quando non esiste una foto
+**Stato al 2 ottobre 2026:** Implementato il 2 ottobre: tre tentativi limitati di acquisizione, cancellati alla chiusura, una sola foto valida per episodio. Vedi §20.
+
 **Evidenza:** `useEmergencyMode.ts` assegna `shotFor.current` prima di ottenere `getCamshotDataUrl`; se restituisce null non riprova nello stesso episodio. Seleziona inoltre soltanto il primo alert reale.
 
 **Correzione obbligatoria:** stato per episodio distinto fra pending, acquisito, accodato e fallito. Retry breve e limitato per fotocamera non ancora pronta; definire se la foto è per emergenza aggregata o per singolo evento e implementare coerentemente deduplicazione e concorrenza. Mai acquisire durante simulazioni.
@@ -592,6 +606,8 @@ Ulteriore estensione richiesta dall'utente: **F58–F69**, da trattare insieme a
 **Accettazione:** avviare prova dalla regia e premere/tenere premuti tutti i controlli: zero chiamate HA mutative, zero foto/AI; nella suonata reale comandi disponibili secondo le regole previste. Verificare tastiera e touch.
 
 ### F63 — P1 — Qualsiasi binary_sensor “problem” può attivare l'emergenza completa
+**Stato al 2 ottobre 2026:** Implementato il 2 ottobre: problem è avviso ordinario; escalation esplicita attraverso device_class safety in HA. Sensori fumo/gas/acqua/intrusione preservati e testati. Vedi §20.
+
 **Evidenza:** `src/lib/criticalAlerts.ts` classifica device_class problem tra gli alert critici; useCriticalAlerts passa l'intero insieme a schermo, audio e foto d'emergenza. La categoria generica problem non specifica da sola un pericolo: può rappresentare diagnostica ordinaria. Anche useNotifications la promuove a critical.
 
 **Correzione obbligatoria:** separare guasti diagnostici da emergenze di sicurezza usando metadati/registry e una politica esplicita di escalation per i casi ambigui. Conservare l'eccezione P0 visibile anche senza opt-in per veri sensori di sicurezza. Non silenziare indiscriminatamente smoke/gas/intrusione per correggere il rumore diagnostico.
@@ -599,6 +615,8 @@ Ulteriore estensione richiesta dall'utente: **F58–F69**, da trattare insieme a
 **Accettazione:** problema ordinario di dispositivo → avviso adeguato senza sirena/foto/fullscreen; smoke/gas/intrusione reali → percorso emergenza. Un problem esplicitamente classificato critico segue la politica configurata e testata.
 
 ### F64 — P2 — Scene della home ignorano selezione e disponibilità
+**Stato al 2 ottobre 2026:** Implementato il 2 ottobre: scene opt-in/registry, unavailable e connessione con controllo al tap. Vedi §20.
+
 **Evidenza:** `src/hooks/useScenes.ts` restituisce tutte le scene presenti nello store senza filtro opt-in/registry o stato unavailable; QuietSection decide la presenza della sezione da qualsiasi `scene.*`. SceneRow le rende azionabili.
 
 **Correzione obbligatoria:** applicare la stessa politica di curation prevista dal wizard; scene non selezionate non compaiono come azioni ordinarie. Gestire unavailable e stato della connessione senza dichiarare eseguibile ogni entità soltanto perché presente nella cache. Separare accettazione HA da completamento degli effetti della scena, se non osservabile.
@@ -622,6 +640,8 @@ Ulteriore estensione richiesta dall'utente: **F58–F69**, da trattare insieme a
 **Accettazione:** tre punti in due secondi → nessuna affermazione di 30 minuti; copertura reale continua → avviso; interruzione sotto soglia/unavailable → continuità interrotta; gal/min o unità sconosciuta non trattati come L/min. Nessuna azione fisica automatica derivata dall'insight.
 
 ### F67 — P2 — Confronto solare/consumo può usare lo stesso sensore e unità non normalizzate
+**Stato al 2 ottobre 2026:** Parzialmente corretto il 2 ottobre: unità e ordinamento normalizzati, consumo domestico distinto e copertura senza tolleranza ingannevole. Identificazione configurabile della produzione ancora aperta. Vedi §20.
+
 **Evidenza riprodotta localmente:** findSolarProductionSensor ordina i valori grezzi: con 500 W e 2 kW seleziona 500 W. EnergyCard seleziona analogamente qualunque sensore power come “consumo”, includendo quello solare; può quindi confrontare la produzione con sé stessa e dichiarare copertura della casa senza un sensore di consumo identificato.
 
 **Correzione obbligatoria:** normalizzare prima del confronto e distinguere produzione, consumo domestico e singolo sottocircuito tramite configurazione/capability affidabile. Richiedere sorgenti appropriate e distinte per l'autosufficienza; altrimenti omettere il giudizio. Non sommare sensori sovrapposti o dedurre il consumo della casa dal dispositivo più attivo.
@@ -629,6 +649,8 @@ Ulteriore estensione richiesta dall'utente: **F58–F69**, da trattare insieme a
 **Accettazione:** 2 kW prevale su 500 W; sola produzione solare non basta a dichiarare autosufficienza; produzione e consumo verificati danno il risultato corretto. Segni/unità non riconosciuti rendono il confronto indisponibile.
 
 ### F68 — P2 — Media energia non temporale e storico non rinnovato durante uso continuo
+**Stato al 2 ottobre 2026:** Parzialmente corretto il 2 ottobre: media temporale con copertura e refresh periodico; invalidazione specifica al cambio installazione ancora da completare. Vedi §20.
+
 **Evidenza:** EnergyCard fa media aritmetica dei punti HA, che possono essere cambi di stato irregolari, e la presenta come confronto con la media 24h. Query storico energia/acqua hanno staleTime ma non refetchInterval: staleTime non è un timer di fetch. Il tick nowMs ricalcola i giudizi su uno storico che può restare vecchio finché la card rimane montata.
 
 **Correzione obbligatoria:** media ponderata sulla durata con copertura e unità validate, oppure etichetta esplicita di media dei soli campioni senza attribuirle significato temporale. Aggiornare gli storici con frequenza controllata mentre visibili, su recupero connessione e cambio sensore; invalidare al cambio installazione HA. Non far crescere query in background inutilmente.
@@ -636,6 +658,8 @@ Ulteriore estensione richiesta dall'utente: **F58–F69**, da trattare insieme a
 **Accettazione:** potenza bassa per 23h e alta per 1h con campionamento irregolare → media temporale corretta; card aperta un'ora riceve storico nuovo; finestra acqua non si svuota per mancato refetch mascherando il problema.
 
 ### F69 — P1 — “Tutto è sicuro” e regole smart non distinguono dati mancanti da casa sana
+**Stato al 2 ottobre 2026:** Parzialmente corretto il 2 ottobre: stato iniziale/offline esplicito, suggerimenti sospesi offline; modello comune di freschezza e conservazione degli episodi ancora aperti. Vedi §20.
+
 **Evidenza:** useHomeStatus può restituire “Tutto è sicuro” con store vuoto e nessun avviso; useCriticalAlerts e le altre derivazioni smart lavorano sugli stati conservati senza un modello comune di freschezza/connessione. L'assenza di dati non prova assenza di problemi e uno stato vecchio non dimostra una nuova attivazione.
 
 **Correzione obbligatoria:** aggiungere qualità/freschezza della sorgente alle derivazioni: inizializzazione, online sincronizzato, degradato e obsoleto. Non annunciare sicurezza con snapshot sconosciuta; non cancellare un'emergenza reale solo perché cade la rete, ma mostrarla come ultima condizione nota da verificare. Non generare nuovi scatti, notifiche ripetute o azioni per la sola reidratazione di uno stesso episodio.
@@ -703,3 +727,126 @@ La richiesta di deploy pubblica lo stato implementato dopo l'interruzione del la
 **Quality gate dello stato da pubblicare:** lint PASS; Vitest **96 file / 520 test PASS**; `build:all` PASS; typecheck backend PASS; audit runtime frontend e backend **0 vulnerabilità**. I due errori TypeScript nei nuovi test request sono corretti. Nessuna installazione o verifica hardware HASS/Fully è stata eseguita durante questi controlli.
 
 Il deploy usa il workflow `Build & Publish Docker Image` su `main`, senza bump manuale della versione e senza includere `DomusUI-main.zip`. La pubblicazione GHCR e l'installazione dell'aggiornamento sul server Home Assistant sono passaggi distinti.
+
+
+## 20. Terzo gruppo di correzioni — 2 ottobre 2026
+
+- **Impostazioni concorrenti (F11):** tutte le scritture `PUT /api/config` richiedono `configVersion`; il confronto avviene dentro la coda del database. Ogni modifica reale della config, anche da layout/import o altri percorsi, incrementa la versione locale. Client obsoleti ricevono `409` senza sovrascrivere. Il frontend usa la versione su cui è stato renderizzato il form; coordina polling/SSE con gli update ottimistici e non ripristina valori ottimistici appartenenti a richieste già fallite. Test con due salvataggi concorrenti, scritture senza versione, coda e rollback.
+- **Foto allarme (F48–F49):** persistenza prima dell'upload, rimozione soltanto dopo risposta positiva, retry serializzato ogni 30 secondi e al ritorno online. ACK di una foto preserva quelle aggiunte durante la richiesta; errori di upload o di scrittura della coda non vengono scambiati per conferme. Hash deterministico di evento/dispositivo/data/byte evita file duplicati ai reinvii. Acquisizione fallita ritentata al massimo tre volte, con cancellazione al cleanup; le simulazioni non scattano. Rimane il limite documentato di tre foto accodate e della disponibilità di localStorage: con storage negato/pieno è possibile solo la consegna immediata.
+- **Sicurezza (F63):** `device_class: problem` produce un avviso ordinario senza fullscreen, sirena o foto. Per i problemi realmente critici la politica esplicita è classificarli `safety` in HASS. Fumo, gas, CO, acqua, calore, sirena e intrusione conservano il percorso di emergenza e l'eccezione all'opt-in.
+- **Scene (F64):** unica derivazione per la home e SceneRow, solo scene scelte nel wizard e non escluse da registry/nascondi. Stati unavailable/unknown o HA offline disabilitano il controllo con motivo; il tap rivalida la disponibilità corrente. La spunta indica richiesta accettata da HA, non prova degli effetti fisici completati.
+- **Energia (F67–F68):** confronto W/kW/MW normalizzato, unità sconosciute e valori invalidi scartati. Produzione distinta dal sensore domestico già identificato nella StatusHeader; nessun giudizio di copertura dal dispositivo più attivo e nessuna dichiarazione di copertura se la produzione è inferiore al consumo. Media 24h ponderata per durata degli stati, con baseline al confine e rifiuto degli intervalli unavailable; refresh energia ogni 5 minuti e acqua ogni minuto, senza fetch offline. Token semantici della card energia allineati a Light/Dark. Rimangono la scelta esplicita configurabile della sorgente solare e l'invalidazione degli storici al cambio installazione.
+- **Qualità dati (F69, parziale):** boot vuoto e HA offline mostrano stato da verificare; un allarme noto offline resta indicato come ultima condizione nota. Il testo normale è “Nessun avviso ricevuto”, senza certificare sicurezza assoluta. I suggerimenti con azioni non sono prodotti offline. Il modello completo di freschezza/episodi e la gestione delle reset-snapshot restano aperti.
+
+I test usano store/bridge simulati e storage temporaneo; non azionano serrature, scene o allarmi reali. Nuovi test: `useDashboardConfig.test.ts`, `useEmergencyMode.test.ts`, `useScenes.test.ts`, `homeDataStatus.test.ts`; estesi quelli di config atomica, foto, consumo e notifiche. Non è stato eseguito un nuovo deploy di questo gruppo.
+
+
+**Ulteriori correzioni nello stesso gruppo (F22–F24):** `climateAction` centralizza l'attività: `hvac_action=idle` prevale su modalità heat; modalità fallback solo se l'azione manca/non è riconosciuta. La stanza non conta il termostato in pausa come attivo. Temperature con unità esplicita, senza conversioni o medie arbitrarie; null e stringhe vuote non diventano zero. Calendario usa `useClock.now`, aggiornato al minuto e su visibilitychange; il cambio di giorno non viene perso se l'ora coincide con quella del giorno precedente. Test dedicati `climateState.test.ts`, `useRoomsOverview.test.ts`, `useClock.test.ts`.
+
+
+**Cronologia home (F15):** modifiche al contenuto del widget (tipo, entità, gruppo e altre proprietà persistite), anche senza movimenti, producono una revisione. Il confronto ignora l'ordine delle chiavi JSON. Prima della prima modifica reale viene conservata la versione precedente; snapshot indipendenti evitano modifiche accidentali della cronologia. Riepilogo italiano dei widget modificati, compatibile con revisioni precedenti senza il nuovo contatore; limite della cronologia invariato.
+
+**Verifica finale del gruppo §20:** `npm run lint` PASS; `npm test` **103 file / 547 test PASS**; `npm run build:all` PASS; `npm run --prefix backend typecheck` PASS; `git diff --check` PASS; audit delle dipendenze runtime frontend/backend **0 vulnerabilità**. Log locali `/tmp/myhome-next-fixes-{lint,tests,build,typecheck}.log`. Le modifiche di questo gruppo sono locali, senza commit/push o nuovo deploy. La versione pubblicata rimane **2.2.113**, workflow riuscito e manifest GHCR amd64/arm64 verificato. L'installazione su HASS e il collaudo del tablet non sono stati verificati.
+
+
+## 21. Ring live e ristrutturazione della regia — 2026-10-02
+
+Richiesta: correggere lo streaming Ring e rendere la regia amministrativa ordinata e funzionale. Modifiche locali, senza nuovo deploy.
+
+### Video Ring (F33–F41, F57)
+
+- Rimosso il cutoff WebRTC di **4 secondi** del percorso campanello. Le capacità ricevute da HA determinano il trasporto: una camera nativa con `web_rtc` senza `hls` ha fino a **45 secondi** per negoziare e non ripiega su MJPEG dell'ultima registrazione presentandolo come live. Le camere legacy mantengono HLS/MJPEG. L'offerta WebRTC ha un timeout HTTP di 30 secondi, superiore al timeout backend di 20 secondi.
+- Backoff dopo errore ICE: **10 secondi** per le camere native, compatibile con il tentativo automatico a 12 secondi; nessuna esclusione Ring per cinque minuti. Un errore ICE dopo il primo frame avvia il recupero anziché lasciare un LIVE falso.
+- LIVE solo dopo `playing` con dati video disponibili; fullscreen e diagnostica ricevono lo stato reale (connessione, WebRTC/HLS/MJPEG, foto, sospensione, errore, gesto necessario per autoplay). Aggiunti avvio con tocco quando il browser blocca autoplay e riprova manuale.
+- Eventi `waiting` ripetuti non spostano all'infinito la scadenza di un flusso bloccato. Snapshot fallback arresta il video precedente. Candidati remoti accodati limitati a 64.
+- Fully con schermo spento o screensaver attivo sospende i trasporti; il ritorno allo stato attivo rinegozia. Uscita dalla diagnostica o cambio camera chiude peer, segnalazione, tracce e sessione HA; un'offerta arrivata dopo la chiusura viene anch'essa cancellata. Il backend sveglia subito il listener SSE alla chiusura esplicita della sessione.
+- Fonti tecniche verificate: [Ring in Home Assistant](https://www.home-assistant.io/integrations/ring/), [implementazione Ring](https://github.com/home-assistant/core/blob/dev/homeassistant/components/ring/camera.py), [player WebRTC HA](https://github.com/home-assistant/frontend/blob/dev/src/components/ha-web-rtc-player.ts), [chiusura della sottoscrizione WebRTC](https://github.com/home-assistant/core/blob/dev/homeassistant/components/camera/webrtc.py). Ring distingue vista live e ultima registrazione; il percorso MJPEG può leggere un filmato precedente. Ricezione audio/video mantiene i transceiver `recvonly` del player ufficiale, senza richiedere il microfono.
+
+**Prova reale, browser desktop e HA LAN:** 258 entità ricevute; `camera.entrata_live_view` e `camera.giardino_live_view` dichiarano esclusivamente `web_rtc`. Entrata: video **1920×1080**, `readyState=4`, `paused=false`, `currentTime` avanzato da **8,68 a 25,04 secondi**. Giardino: video **1920×1080**, `readyState=4`, `paused=false`, avanzato oltre **20,33 secondi**. Badge e diagnostica entrambi `Diretta · WebRTC`. DELETE delle due sessioni riuscite all'arresto/cambio sezione. Nessun filmato o immagine privata salvato come evidenza. Questo prova le due Ring nel browser desktop, non il firmware Fully/Android o una suonata fisica del campanello.
+
+### Regia funzionale
+
+- Conservate le quattro viste canoniche: Stato, Entità, Funzioni, Sistema. Sidebar con etichette e descrizioni; unica definizione condivisa con la navigazione mobile.
+- Funzioni divisa in **Preferenze**, **Tablet e aspetto**, **Campanelli**, **Suoni e sicurezza**. Sistema diviso in **Connessione**, **Tablet**, **Video e Ring**, **Cronologia**. URL `?section=…`, back/forward e refresh verificati. Form esistenti e impostazioni conservati; bozze mantenute tra sottosezioni.
+- Nuova diagnostica video: selezione da entità HA, lettura delle capacità, avvio esplicito, stato del primo frame, arresto e retry. Nessun avvio automatico delle camere aprendo le impostazioni.
+- Palette delle quattro pagine e delle card operative migrata a token semantici Light/Dark. Target touch preservati. Corretto il bug mobile: `glass-border` sovrascriveva `position:fixed` della barra inferiore, creando una colonna laterale e tagliando il contenuto.
+- HA offline non blocca la regia: avviso di dati non aggiornati e accesso a configurazione/diagnostica; overlay del kiosk conservato. Provato con un backend separato senza HA: Funzioni → Entità → Verifica connessione → Sistema funziona.
+- Preferenze: versione della config acquisita alla prima modifica della bozza; un aggiornamento da un'altra finestra genera **409** senza clobber e offre il caricamento delle preferenze aggiornate. Verificati persistenza dopo refresh, mantenimento della bozza tra sottosezioni e conflitto tra due finestre su database isolato.
+- Cronologia e registro distinguono caricamento/errore da elenco vuoto, con retry. Ripristino home invalida `tablet-layout` e viene disabilitato con storage in sola lettura. Messaggio meteo distingue OpenWeather assente dal possibile fallback HA.
+- `docs/DESIGN_SYSTEM.md` allineato alla regia corrente.
+
+**Verifica UI:** quattro viste a **390 / 768 / 1024 / 1440 px** in Light e Dark; contenuto principale interamente nel viewport e nessun overflow orizzontale della pagina. Screenshot ispezionati per mobile, tablet e desktop; artefatti locali in `/tmp/myhome-ring-regia/`. Scorrimento orizzontale delle sottosezioni su schermi stretti intenzionale. Nessun errore console nella prova finale della regia.
+
+**Verifica automatica:** lint PASS; Vitest **105 file / 557 test PASS** (7 regressioni sul ciclo Ring, 2 sul criterio di trasporto, estensione della chiusura sessioni backend); build frontend/backend PASS; typecheck backend PASS; `git diff --check` PASS; audit runtime frontend/backend **0 vulnerabilità**. Log `/tmp/myhome-ring-{lint,tests,build,typecheck}.log`. La build conserva un warning informativo preesistente sul chunk `kioskDevice`, senza errori.
+
+**Confini:** server di collaudo con copia separata del database; preferenze reali non sovrascritte. Nessuna serratura, sirena o scena reale azionata. Restano necessari il collaudo Fully sul tablet, il comportamento durante una suonata fisica e prove prolungate di perdita rete/cloud: i test di regressione simulano timeout, ICE fallita, flusso fermo e chiusura tardiva. Le altre voci aperte dell'audit conservano il loro stato. Versione pubblicata ancora **2.2.113**; queste correzioni non sono state pubblicate.
+
+## 22. Chiusura implementativa dell'audit — 2 ottobre 2026
+
+Questo aggiornamento integra tutti i gruppi F01–F69. Le prescrizioni originali restano come evidenza dello snapshot iniziale; non descrivono più da sole lo stato corrente. Le correzioni dei §§20–22 sono nella working tree, **non ancora pubblicate in una nuova release**. Il commit di release 2.2.113 del §19 non include queste correzioni successive. Non viene dichiarata la chiusura hardware o il funzionamento perfetto di ogni dispositivo sulla base dei soli test sorgente.
+
+### Nuove correzioni
+
+- **Cache, sorgente e continuità critica (F06, F20, F68–F69):** generazione HA opaca propagata via config/layout/SSE; invalidazione registry, storico e cache alla sostituzione della connessione. Risposte della generazione precedente ignorate. Snapshot vuoto/unavailable non risolve un'emergenza già osservata: rimane un ultimo avviso noto da verificare fino a uno stato valido di risoluzione. Nessuna falsa quiete durante inizializzazione. Cache kiosk validata anche su geometria, gruppi e configurazione; solo guasti temporanei autorizzano fallback, con banner. Logout e 401/403 revocano cache e scritture tardive.
+- **Restore e ingressi (F16–F19):** backup v2 è uno snapshot, non un merge implicito; opzionali omessi tornano ai default, credenziali locali conservate. JPEG realmente decodificato prima del salvataggio, limite 4 MP. Parser calendario e decoder lavorano in worker limitati, deadline 3s e massimo due lavori contemporanei. Foto AI: limite condiviso 8 persone × 3 immagini, budget complessivo, nessuna omissione silenziosa; immagini false/invalide rifiutate anche su import.
+- **Meteo e unità (F21, F23, F67):** fuso IANA della località e giorno italiano calcolato per ogni istante, incluso DST; temperature null/vuote non diventano zero; recap e card conservano unità, medie convertite prima del calcolo. Produzione fotovoltaica scelta esplicitamente in Funzioni, distinta dal consumo; senza sensore il confronto è spento.
+- **Modalità, focus e storage (F10, F25–F27, F46, F52, F55–F56):** storage negato non interrompe inizializzazione/deduplicazione; audio condiviso reattivo; tema gestito da un solo controllore con fallback OS immediato, lux e luma distinti, priorità manuale e isteresi. Bridge Fully tardivo rilevato senza reload. Un solo stack coordina Escape, Tab, focus e background inert per sheet, catalogo Spazi, video, campanello ed emergenza; chiusure touch 44px, appearance semantiche.
+- **Video, campanelli e risorse (F36, F40–F44, F50–F51, F54, F57):** lease del MJPEG rinnova soltanto su frame JPEG completi, annulla letture bloccate e riconnette; anteprime sospese dietro campanello/video prioritario, ambient, display spento o emergenza. Campanelli disabilitati rimossi subito; reconnect/unavailable non simulano suonate; coda limitata per eventi simultanei recenti, consumo di tutte le transizioni. Test richiede ID configurato. AI abortita alla chiusura; schermata nativa svegliata da campanello/presenza. Foto screensaver fallite escluse con fallback orologio; preload e recap sospesi a schermo spento; perf-lite reattivo. Meteo/news/AI usano richieste con deadline e cancellazione.
+- **Azioni e standby (F53, F58–F62, F65):** mutex condiviso per entità, transizioni serratura non reinviabili, rollback soltanto se il dato ottimistico è ancora proprio. Simulazione impedisce comandi anche da hold già iniziati. Suggerimenti richiedono area conosciuta comune e rivalidano al tap stato/azione. Wake centralizzato: emergenza/campanello prioritari, spegnimento manuale sospende sensori per 30s; presenza ancora attiva rivalutata alla scadenza. Luminosità manuale mantenuta per 10 minuti. Touch e comando esplicito annullano il blocco.
+- **SPA, release e toolchain (F28–F32):** asset mancanti e API sconosciute restituiscono 404; chunk obsoleti propongono ricarica esplicita con avviso di editing non salvato, senza reload automatici o loop. Manifest aggiornato su main fresca con retry e divieto di downgrade; latest promosso solo dopo il manifest. Runtime Node24 come CI, smoke dell'immagine finale su amd64/arm64 con auth/persistenza/read-only e worker. Toolchain esbuild compatibile aggiornata, build verificata. Contratto completo in `SETTINGS_CONTRACT.md`; forceCelsius/advancedMode esplicitamente deprecati, geometria corrente 3×38 documentata.
+
+### Stato per ID
+
+**Legenda:** implementato = codice presente; verificato automatico = regressioni controllate in test; browser = prova specifica indicata sotto; hardware/CI finale = collaudo ancora necessario. Nessun ID è considerato chiuso hardware per deduzione.
+
+| ID | Stato implementativo e prova | Collaudo residuo |
+|---|---|---|
+| F01–F05 | Implementati: overlay kiosk, aggiornamento, stream dati/fallback/resync; test stream e stato | Disconnessione HA reale durante uso continuativo tablet |
+| F06 | Implementato: invalidazione registry/query/cache per generazione; test generazioni tardive | Cambio installazione HA con browser già aperto |
+| F07–F08 | Implementati: ACK correlati, completamento audio/restart onesto; test protocollo | Audio udibile e restart Fully reale |
+| F09–F10 | Implementati: volume default corretto, accesso storage protetto; test sound/storage | WebView con policy storage negata |
+| F11–F15 | Implementati: CAS config, errori storage, commit atomico/migrazione, revisioni semantiche; test concorrenti/fault injection | Volume del container finale |
+| F16 | Implementato: restore snapshot e credenziali locali; test export/import | Restore su add-on installato |
+| F17–F18 | Implementati: JPEG reale e calendario in worker; test payload ostili/deadline + JPEG su backend compilato | Gate container delle due architetture |
+| F19–F20 | Implementati: immagini/budget condivisi, cache validata e revocabile; test invalidità/budget/permessi/epoch | Foto Gemini reali e cache su WebView |
+| F21–F24 | Implementati: fuso/DST, HVAC action, null/unità, clock calendario; test specifici | Sensori reali con unità differenti |
+| F25–F27 | Implementati: stack focus, touch, theme fallback; test tema + browser stack | Tastiera/accessibilità Fully |
+| F28 | Implementato: SPA allowlist/404, recupero esplicito chunk; API/asset provati sul backend compilato | Sessione aperta attraverso deploy reale |
+| F29 | Implementato: retry manifest e latest condizionato; fixture git con main avanzata conserva commit umano e impedisce downgrade | Workflow reale dopo pubblicazione |
+| F30 | Implementato gate finale Docker e Node24 allineato | **Smoke Docker locale non eseguito: daemon non disponibile; CI amd64/arm64 non ancora eseguita su questi fix** |
+| F31 | Implementato esbuild aggiornato compatibile; build e audit completi | Ripetere audit nel workflow release |
+| F32 | Implementato censimento `SETTINGS_CONTRACT.md`, deprecazioni e allineamento geometria | Prova save→read→effetto su ogni setting nel tablet reale |
+| F33–F35 | Implementati cleanup/listener/deadline/playing/autoplay; test CameraStream; Ring live verificato nel §21 | Autoplay e ripresa sul tablet |
+| F36 | Implementato lease client + frame watchdog proxy; test stallo/chunk/header-only | MJPEG reale fermo dopo primo frame |
+| F37–F39 | Implementati retry snapshot, lease WebRTC e gestione ICE/sessioni; test player/proxy | Sessioni Ring lunghe e perdita rete fisica |
+| F40–F41 | Implementati sospensione per owner/stato native/emergenza e abort precoce/lettura bloccata | Verifica consumo risorse su GPU tablet |
+| F42–F44 | Implementati disattivazione/coda/baseline/recent timestamp/wake; test transizioni | Due suonate simultanee e display fisicamente spento |
+| F45–F47 | Implementati emergenza iniziale, priorità tema/brightness, wake lock cleanup; test hook | Screen-on/luminosità/wake lock Android |
+| F48–F49 | Implementati coda persistente con ACK, retry, idempotenza e scatto solo reale; test upload/route | Fotocamera e riavvio tablet offline |
+| F50–F52 | Implementati errori foto/perf-lite/recap offline/focus; test recap + browser stack | Tutte le foto guaste, sensore screenOff e accessibilità tablet |
+| F53–F57 | Implementati mutex/rollback, deadline/cancel, audio condiviso, bridge tardivo e testi onesti; test action/Fully/audio/player | Test udibile/native bridge e rete lenta reale |
+| F58–F62 | Implementati wake unico, presenza iniziale/permanenza, timer, cleanup sensore e simulazione sicura; test wake/Fully/azioni | Priorità e sensori Fully sul tablet |
+| F63–F65 | Implementati problem non critico, scene esplicite, clima correlato e rivalidato; test critical/scene/insight/actions | Pulsanti e attuatori solo in collaudo autorizzato |
+| F66–F69 | Implementati baseline acqua, unità/potenza esplicita, storico pesato/rinnovato, qualità dati e continuità allarmi; test acqua/energia/generazioni | Continuità di una giornata con HA e sensori reali |
+
+### Verifiche di questa consegna
+
+Suite completa, lint, build frontend/backend e typecheck backend rieseguiti; risultati finali riportati sotto. Backend compilato avviato con database isolato: upload JPEG autentico esercita il worker di produzione; `/api` e asset inesistenti 404, `/kiosk` SPA 200. Fixture git isolata esercita un push non-fast-forward, conserva il commit concorrente e rifiuta una release più vecchia. Non è stato eseguito alcun comando a serrature, scene, sirene o altri attuatori domestici per simulare i test.
+
+Browser: Funzioni → Tablet e aspetto in Light/Dark, selettore fotovoltaico e stato sorgente; a 390px nessun overflow orizzontale. Fixture browser del modulo stack reale: due modali, Escape chiude solo la superiore e ripristina focus prima sul trigger interno poi su quello iniziale. Screenshot in `/tmp/myhome-all-audit-smoke/screenshots`. È una prova del coordinatore, non una prova completa degli overlay con un'emergenza fisica.
+
+**Esito finale locale:** `npm run lint` PASS; `npm test` **116 file, 601 test PASS**; `npm run build:all` PASS; `npm run --prefix backend typecheck` PASS; audit frontend/backend runtime e backend completo **0 vulnerabilità**; `git diff --check` PASS. Worker calendario compilato provato separatamente oltre al JPEG nel backend. Prova browser aggiuntiva: Tab resta nella modale superiore, background inert durante lo stack, nessun elemento inert residuo dopo entrambe le chiusure.
+
+**Residui di accettazione, non mascherati come fix chiusi:** Docker daemon locale assente; gate dell'immagine amd64/arm64 predisposto ma non eseguito su questa working tree. Non verificati su dispositivo reale: accensione fisica display, sensori e audio Fully, wake lock Android, scatto camera, suonate simultanee, video continuativo e memoria di una giornata. Il §21 contiene la precedente prova Ring reale; questa sessione non la sostituisce con una nuova prova dopo tutte le modifiche. Pubblicazione e installazione di questi ulteriori fix non ancora effettuate.
+
+**Toolchain frontend aggiuntiva:** il controllo completo (incluse devDependencies) ha rilevato 9 advisory oltre all'ambito runtime inizialmente controllato. `npm audit fix` ha aggiornato 21 dipendenze compatibili senza force; dopo l'aggiornamento audit completo frontend e backend entrambi **0 vulnerabilità**, suite **601/601** e gate rieseguiti. Questo controllo estende F31 anche alla toolchain frontend.
+
+## 23. Rilascio e collaudo dell'immagine — 2 ottobre 2026
+
+Su autorizzazione «Procedi» è iniziata la pubblicazione dei fix dei §§20–22. Docker Desktop locale avviato; ricostruita l'immagine finale ARM64 e verificati avvio non-root, DB con permessi 0600, upload JPEG attraverso worker compilato, worker calendario, SPA/404, riavvio con persistenza, read-only e login admin/kiosk con cookie HttpOnly/SameSite. Il caso required senza credenziali deve fallire e viene verificato come tale. Nel test protetto `/api` anonimo restituisce 401, dopo login admin 404: l'asserzione iniziale del test container è stata corretta per rispettare l'autenticazione.
+
+Preflight LAN: HA raggiungibile, versione installata 2.2.113, bridge WebSocket con 258 entità; un tablet Fully online con canale audio dichiarato ready. Backup config v2 pre-rilascio salvato localmente in `/tmp/myhome-release-backup/config-before-release.json`, permessi 0600, contenuto non stampato. Le informazioni di heartbeat non dimostrano audio udibile né esecuzione fisica di screen-on.
+
+Gate locali ripetuti prima del rilascio: lint, 601 test, build frontend/backend e typecheck backend PASS. Pubblicazione, architettura AMD64 e installazione verranno registrate con gli esiti effettivi; nessun risultato ancora atteso viene dichiarato superato.
+
+**Immagini locali:** smoke ARM64 e AMD64 entrambi PASS nelle quattro modalità direct/restart/readonly/protected; caso auth required senza credenziali correttamente rifiutato. AMD64 è eseguito su host ARM64 tramite emulazione Docker Desktop, non su hardware x86 fisico. Questo chiude il precedente impedimento Docker locale di F30; resta da verificare il workflow e il digest realmente pubblicato.

@@ -1,3 +1,4 @@
+import { weatherDay } from '../lib/weather-day.js'
 import { Hono, type Context } from 'hono'
 import { db } from '../db/client.js'
 import {
@@ -30,6 +31,7 @@ interface OpenWeatherForecastItem {
 }
 
 interface OpenWeatherForecast {
+  city: { coord: { lat: number; lon: number } }
   list: OpenWeatherForecastItem[]
 }
 
@@ -135,7 +137,11 @@ function parseForecast(value: unknown): OpenWeatherForecast {
       weather,
     }
   })
-  return { list }
+  if (!isRecord(value.city) || !isRecord(value.city.coord)
+    || !finiteNumber(value.city.coord.lat, -90, 90) || !finiteNumber(value.city.coord.lon, -180, 180)) {
+    throw new OutboundRequestError('invalid_response')
+  }
+  return { list, city: { coord: { lat: value.city.coord.lat, lon: value.city.coord.lon } } }
 }
 
 async function fetchWeather(path: '/weather', city: string): Promise<OpenWeatherCurrent>
@@ -215,6 +221,9 @@ weatherRouter.get('/forecast', async (c) => {
   try {
     const d = await fetchWeather('/forecast', await configuredWeatherCity())
     const days = new Map<string, {
+      date: string
+      dayLabel: string
+      timeZone: string
       dt: number
       temp_min: number
       temp_max: number
@@ -223,10 +232,12 @@ weatherRouter.get('/forecast', async (c) => {
     }>()
 
     for (const item of d.list) {
-      const date = new Date(item.dt * 1_000).toDateString()
+      const local = weatherDay(item.dt, d.city.coord.lat, d.city.coord.lon)
+      const date = local.date
       const existing = days.get(date)
       if (!existing) {
         days.set(date, {
+          ...local,
           dt: item.dt,
           temp_min: Math.round(item.main.temp_min),
           temp_max: Math.round(item.main.temp_max),

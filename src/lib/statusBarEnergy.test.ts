@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { HassEntity } from 'home-assistant-js-websocket'
-import { energyWindowAt, formatHousePower, formatPowerKw, isEnergyRisk, isWallboxConnected, powerInKw, totalPowerInKw, wallboxMode } from './statusBarEnergy'
+import { energyWindowAt, formatHousePower, formatPowerKw, isEnergyRisk, isWallboxConnected, powerInKw, powerValueInKw, totalPowerInKw, wallboxMode } from './statusBarEnergy'
 
 function entity(state: string, unit?: string): HassEntity {
   return {
@@ -58,4 +58,10 @@ describe('status bar energy', () => {
     expect(isEnergyRisk(5.49, energyWindowAt(new Date('2026-07-19T10:00:00+02:00')))).toBe(false)
     expect(isEnergyRisk(5.5, energyWindowAt(new Date('2026-07-19T10:00:00+02:00')))).toBe(true)
   })
+})
+
+it('does not interpret invalid power units or empty states as watts', () => {
+  for (const value of ['', ' ', null, undefined, true, '2junk']) expect(powerValueInKw(value, 'W')).toBeNull()
+  expect(powerValueInKw('2', 'VA')).toBeNull()
+  expect(powerValueInKw('2', 'kWh')).toBeNull()
 })

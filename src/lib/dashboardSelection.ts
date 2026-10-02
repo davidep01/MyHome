@@ -1,3 +1,4 @@
+import { temperatureValue } from './climateState'
 import type { HassEntities, HassEntity } from 'home-assistant-js-websocket'
 import type { DeviceOverride } from '../api/backend'
 
@@ -42,8 +43,9 @@ export interface IndoorClimateTemperatureSource {
 export function indoorClimateTemperatureSources(entities: HassEntities): IndoorClimateTemperatureSource[] {
   return Object.values(entities).flatMap((entity) => {
     if (!entity.entity_id.startsWith('climate.') || entity.state === 'unavailable' || entity.state === 'unknown') return []
-    const value = Number(entity.attributes?.current_temperature)
-    if (!Number.isFinite(value)) return []
+    const reading = temperatureValue(entity.attributes?.current_temperature, entity.attributes?.temperature_unit ?? '°C')
+    if (!reading) return []
+    const value = reading.unit === '°F' ? (reading.value - 32) * 5 / 9 : reading.unit === 'K' ? reading.value - 273.15 : reading.value
     return [{
       entityId: entity.entity_id,
       label: String(entity.attributes?.friendly_name ?? entity.entity_id),
@@ -67,7 +69,8 @@ export function externalTemperatureFromEntities(entities: HassEntities): number 
       && entity.state !== 'unavailable'
       && entity.state !== 'unknown')
     .sort((a, b) => a.entity_id.localeCompare(b.entity_id))
-    .map((entity) => Number(entity.attributes?.temperature))
+    .map((entity) => temperatureValue(entity.attributes?.temperature, entity.attributes?.temperature_unit ?? '°C'))
+    .map((reading) => reading ? reading.unit === '°F' ? (reading.value - 32) * 5 / 9 : reading.unit === 'K' ? reading.value - 273.15 : reading.value : NaN)
     .find(Number.isFinite)
   if (weather !== undefined) return weather
 
@@ -79,7 +82,8 @@ export function externalTemperatureFromEntities(entities: HassEntities): number 
       && String(entity.attributes?.device_class ?? '').toLowerCase() === 'temperature'
       && OUTDOOR_WORDS.some((word) => `${entity.entity_id} ${String(entity.attributes?.friendly_name ?? '')}`.toLowerCase().includes(word)))
     .sort((a, b) => a.entity_id.localeCompare(b.entity_id))
-    .map((entity) => Number(entity.state))
+    .map((entity) => temperatureValue(entity.state, entity.attributes?.unit_of_measurement ?? '°C'))
+    .map((reading) => reading ? reading.unit === '°F' ? (reading.value - 32) * 5 / 9 : reading.unit === 'K' ? reading.value - 273.15 : reading.value : NaN)
     .find(Number.isFinite)
   return sensor ?? null
 }

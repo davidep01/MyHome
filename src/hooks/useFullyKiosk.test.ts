@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useFullyKioskStore, EMPTY_FULLY_KIOSK_CAPABILITIES } from '../store/fullyKiosk'
 import { useFullyKiosk } from './useFullyKiosk'
 
-const harness = vi.hoisted(() => ({ cleanups: [] as Array<() => void> }))
+const harness = vi.hoisted(() => ({ cleanups: [] as Array<() => void>, available: true }))
 const bridge = vi.hoisted(() => ({
   capabilities: { motionStart: false, motionStop: false, soundPlayback: false },
   getBrightness: vi.fn(() => 80),
@@ -18,8 +18,8 @@ vi.mock('react', () => ({ useEffect: (effect: () => (() => void) | undefined) =>
 } }))
 vi.mock('../lib/fullyKiosk', () => ({
   adaptiveBrightnessFor: vi.fn(),
-  createFullyKioskBridge: () => bridge,
-  fullyKioskAvailability: () => 'available',
+  createFullyKioskBridge: () => harness.available ? bridge : null,
+  fullyKioskAvailability: () => harness.available ? 'available' : 'unavailable',
   ensureFullyAlarmAudioSetting: vi.fn(),
   ensureFullyEventBindings: vi.fn(),
   isFullyKioskEventName: () => false,
@@ -29,6 +29,7 @@ vi.mock('../lib/fullyKiosk', () => ({
 beforeEach(() => {
   vi.useFakeTimers()
   vi.clearAllMocks()
+  harness.available = true
   vi.stubGlobal('window', Object.assign(new EventTarget(), {
     location: { hostname: '192.168.1.10' },
     setInterval, clearInterval,
@@ -70,4 +71,18 @@ describe('Fully bridge emergency lifecycle', () => {
     expect(bridge.turnScreenOn).not.toHaveBeenCalled()
     expect(bridge.setBrightness).not.toHaveBeenCalledWith(255)
   })
+  it('adopts a bridge injected after the first render and cleans up its probe', () => {
+    harness.available = false
+    useFullyKiosk()
+    expect(useFullyKioskStore.getState().availability).toBe('unavailable')
+    expect(bridge.getBrightness).not.toHaveBeenCalled()
+    harness.available = true
+    vi.advanceTimersByTime(5000)
+    expect(bridge.getBrightness).toHaveBeenCalled()
+    harness.cleanups.pop()!()
+    bridge.getBrightness.mockClear()
+    vi.advanceTimersByTime(10000)
+    expect(bridge.getBrightness).not.toHaveBeenCalled()
+  })
+
 })

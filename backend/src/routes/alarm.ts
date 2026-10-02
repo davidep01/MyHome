@@ -1,6 +1,8 @@
+import { createHash } from 'node:crypto'
 import { lstat, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { basename, dirname, join, resolve } from 'node:path'
 import { Hono } from 'hono'
+import { runBoundedWorker } from '../lib/bounded-worker.js'
 import { adminOnly } from '../lib/security.js'
 import { db } from '../db/client.js'
 import {
@@ -94,10 +96,23 @@ alarmRouter.post('/photo', async (c) => {
   }
 
   const bytes = Buffer.from(match[1], 'base64')
-  if (bytes.byteLength < 128) return c.json({ error: 'Foto non valida' }, 400)
+  if (bytes.byteLength < 128 || bytes[0] !== 0xff || bytes[1] !== 0xd8
+    || bytes[bytes.length - 2] !== 0xff || bytes[bytes.length - 1] !== 0xd9) {
+    return c.json({ error: 'JPEG non valido o incompleto' }, 400)
+  }
+  try {
+    await runBoundedWorker('jpeg-worker', bytes)
+  } catch {
+    return c.json({ error: 'JPEG non valido o troppo grande (massimo 4 megapixel)' }, 400)
+  }
+  // Consent can change while the worker is decoding.
+  if ((await db.read()).config.alarm?.photo !== true) {
+    return c.json({ error: 'Foto di emergenza disattivate' }, 403)
+  }
 
   const stamp = when.toISOString().replace(/[-:.]/g, '').slice(0, 15) // YYYYMMDDTHHmmss
-  const name = `${stamp}-${Math.random().toString(36).slice(2, 8)}.jpg`
+  const identity = createHash('sha256').update(String(body.alertId ?? '')).update(String(body.deviceId ?? '')).update(when.toISOString()).update(bytes).digest('hex').slice(0, 24)
+  const name = `${stamp}-${identity}.jpg`
   const directory = dataDirectory()
   try {
     await mkdir(directory, { recursive: true })

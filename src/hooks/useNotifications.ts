@@ -1,3 +1,4 @@
+import { withRetainedCriticalEntities } from '../lib/criticalEpisodes'
 import { useMemo } from 'react'
 import type { HassEntities } from 'home-assistant-js-websocket'
 import { useEntityStore } from '../store/entities'
@@ -47,9 +48,9 @@ export function notificationsFromEntities(
           id: `safety-${entityId}`,
           type: 'safety',
           title: friendlyName,
-          message: deviceClass === 'moisture' ? 'Possibile perdita d’acqua' : 'Sensore di sicurezza attivo',
+          message: deviceClass === 'problem' ? 'Il dispositivo segnala un problema' : deviceClass === 'moisture' ? 'Possibile perdita d’acqua' : 'Sensore di sicurezza attivo',
           entityId,
-          severity: 'critical',
+          severity: deviceClass === 'problem' ? 'warning' : 'critical',
         })
       }
 
@@ -117,9 +118,10 @@ export function notificationsFromEntities(
 
 export function useNotifications(): HANotification[] {
   const entities = useEntityStore((s) => s.entities)
+  const episodes = useEntityStore((state) => state.criticalEpisodes)
   const excludedEntityIds = useDashboardEntityCuration()
   return useMemo(
-    () => notificationsFromEntities(entities, { excludedEntityIds }),
-    [entities, excludedEntityIds],
+    () => notificationsFromEntities(withRetainedCriticalEntities(entities, episodes), { excludedEntityIds }),
+    [entities, episodes, excludedEntityIds],
   )
 }

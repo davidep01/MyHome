@@ -259,7 +259,7 @@ export function EntitiesPage() {
     setSelected((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n })
 
   if (configPending && !config) {
-    return <div className="flex h-full items-center justify-center text-sm text-black/45" role="status">Caricamento delle entità…</div>
+    return <div className="flex h-full items-center justify-center text-sm text-[var(--ink-secondary)]" role="status">Caricamento delle entità…</div>
   }
 
   if (configError && !config) {
@@ -274,8 +274,8 @@ export function EntitiesPage() {
     <div className="flex h-full flex-col gap-3 overflow-hidden">
       <div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold text-[#1d1d1f] sm:text-3xl">Entità</h1>
-          <p className="mt-1 text-sm text-black/45" aria-live="polite">
+          <h1 className="text-2xl font-semibold text-[var(--ink)] sm:text-3xl">Entità</h1>
+          <p className="mt-1 text-sm text-[var(--ink-secondary)]" aria-live="polite">
             {rows.length} di {Object.keys(entities).length} · {hidden.length} nascoste
             {readOnly ? ' · sola lettura' : saveState === 'saving' || isPending ? ' · salvataggio…' : saveState === 'error' ? ' · salvataggio non riuscito' : saveState === 'saved' ? ' · salvato' : ' · salvataggio automatico'}
           </p>
@@ -289,7 +289,7 @@ export function EntitiesPage() {
           <button
             type="button"
             onClick={() => setWizardInvocation({})}
-            className="flex min-h-[48px] items-center gap-2 rounded-full bg-[#0066cc] px-5 text-sm font-semibold text-white shadow-sm transition active:scale-95"
+            className="flex min-h-[48px] items-center gap-2 rounded-full bg-[var(--action-blue)] px-5 text-sm font-semibold text-[var(--on-accent)] transition active:scale-95"
           >
             <WandSparkles size={16} /> Configura dispositivo
           </button>
@@ -297,7 +297,7 @@ export function EntitiesPage() {
             type="button"
             onClick={() => { setGroupQuery(''); setGroupDraft({ id: uid('g'), label: '', entityIds: [] }) }}
             disabled={readOnly}
-            className="flex min-h-[48px] items-center gap-2 rounded-full bg-black/[0.07] px-4 text-sm font-semibold text-black/60 transition active:scale-95"
+            className="flex min-h-[48px] items-center gap-2 rounded-full bg-[var(--fill-subtle)] px-4 text-sm font-semibold text-[var(--ink-secondary)] transition active:scale-95"
           >
             <Layers size={15} /> Nuovo gruppo
           </button>
@@ -313,11 +313,11 @@ export function EntitiesPage() {
       {groups.length > 0 && (
         <div className="flex shrink-0 flex-wrap gap-2">
           {groups.map((g) => (
-            <div key={g.id} className="flex items-center gap-2 rounded-full bg-black/[0.05] py-1.5 pl-3 pr-1.5">
-              <DynamicIcon name={g.icon} fallback={Layers} size={14} className="text-black/50" />
-              <span className="text-sm font-semibold text-[#1d1d1f]">{g.label}</span>
-              <span className="text-xs text-black/35">{g.entityIds.length}</span>
-              <button type="button" onClick={() => { setGroupQuery(''); setGroupDraft({ ...g }) }} disabled={readOnly} className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-black/55" aria-label={`Modifica gruppo ${g.label}`}>
+            <div key={g.id} className="flex items-center gap-2 rounded-full bg-[var(--fill-subtle)] py-1.5 pl-3 pr-1.5">
+              <DynamicIcon name={g.icon} fallback={Layers} size={14} className="text-[var(--ink-secondary)]" />
+              <span className="text-sm font-semibold text-[var(--ink)]">{g.label}</span>
+              <span className="text-xs text-[var(--ink-tertiary)]">{g.entityIds.length}</span>
+              <button type="button" onClick={() => { setGroupQuery(''); setGroupDraft({ ...g }) }} disabled={readOnly} className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--surface-solid)] text-[var(--ink-secondary)]" aria-label={`Modifica gruppo ${g.label}`}>
                 <Pencil size={12} />
               </button>
             </div>
@@ -330,34 +330,34 @@ export function EntitiesPage() {
         <div className="flex flex-wrap items-center gap-2">
           <div className="relative min-w-[220px] flex-1">
             <label htmlFor="entities-search" className="sr-only">Cerca entità</label>
-            <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-black/35" />
+            <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--ink-tertiary)]" />
             <input
               id="entities-search"
               type="search"
               value={query}
               onChange={(e) => { setQuery(e.target.value); setCap(PAGE) }}
               placeholder="Cerca per nome o entity_id…"
-              className="min-h-[44px] w-full rounded-full border border-black/10 bg-white py-2.5 pl-9 pr-4 text-sm text-[#1d1d1f] outline-none focus:border-[#0066cc]"
+              className="min-h-[44px] w-full rounded-full border border-[var(--hairline)] bg-[var(--surface-solid)] py-2.5 pl-9 pr-4 text-sm text-[var(--ink)] outline-none focus:border-[#0066cc]"
             />
           </div>
           <label htmlFor="entities-domain" className="sr-only">Filtra per dominio</label>
-          <select id="entities-domain" aria-label="Filtra per dominio" value={domain} onChange={(e) => { setDomain(e.target.value); setCap(PAGE) }} className="min-h-[44px] rounded-full border border-black/10 bg-white px-3 text-sm text-black/70 outline-none">
+          <select id="entities-domain" aria-label="Filtra per dominio" value={domain} onChange={(e) => { setDomain(e.target.value); setCap(PAGE) }} className="min-h-[44px] rounded-full border border-[var(--hairline)] bg-[var(--surface-solid)] px-3 text-sm text-[var(--ink-secondary)] outline-none">
             <option value="all">Tutti i domini</option>
             {domains.map((d) => <option key={d} value={d}>{d}</option>)}
           </select>
           <label htmlFor="entities-area" className="sr-only">Filtra per area</label>
-          <select id="entities-area" aria-label="Filtra per area" value={area} onChange={(e) => { setArea(e.target.value); setCap(PAGE) }} className="min-h-[44px] rounded-full border border-black/10 bg-white px-3 text-sm text-black/70 outline-none">
+          <select id="entities-area" aria-label="Filtra per area" value={area} onChange={(e) => { setArea(e.target.value); setCap(PAGE) }} className="min-h-[44px] rounded-full border border-[var(--hairline)] bg-[var(--surface-solid)] px-3 text-sm text-[var(--ink-secondary)] outline-none">
             <option value="all">Tutte le aree</option>
             {(registry?.areaNames ?? []).map((a) => <option key={a} value={a}>{a}</option>)}
           </select>
-          <div className="flex rounded-full bg-black/[0.05] p-1" role="group" aria-label="Filtra per visibilità">
+          <div className="flex rounded-full bg-[var(--fill-subtle)] p-1" role="group" aria-label="Filtra per visibilità">
             {([['all', 'Tutte'], ['visible', 'Visibili'], ['hidden', 'Nascoste'], ['unavailable', 'Giù']] as const).map(([v, label]) => (
               <button
                 key={v}
                 type="button"
                 onClick={() => { setVisibility(v); setCap(PAGE) }}
                 aria-pressed={visibility === v}
-                className={cn('min-h-[44px] rounded-full px-3 py-1.5 text-xs font-semibold transition', visibility === v ? 'bg-white text-[#1d1d1f] shadow-sm' : 'text-black/45')}
+                className={cn('min-h-[44px] rounded-full px-3 py-1.5 text-xs font-semibold transition', visibility === v ? 'bg-[var(--surface-solid)] text-[var(--ink)]' : 'text-[var(--ink-secondary)]')}
               >
                 {label}
               </button>
@@ -366,15 +366,15 @@ export function EntitiesPage() {
         </div>
 
         {selected.size > 0 && (
-          <div className="flex flex-wrap items-center gap-2 rounded-[12px] bg-[#0066cc]/8 px-3 py-2">
-            <span className="text-sm font-semibold text-[#0066cc]">{selected.size} selezionate</span>
-            <button type="button" disabled={readOnly} onClick={() => { toggleHide([...selected], true); setSelected(new Set()) }} className="flex min-h-[44px] items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-black/60 active:scale-95">
+          <div className="flex flex-wrap items-center gap-2 rounded-[12px] bg-[var(--action-blue)]/8 px-3 py-2">
+            <span className="text-sm font-semibold text-[var(--action-blue)]">{selected.size} selezionate</span>
+            <button type="button" disabled={readOnly} onClick={() => { toggleHide([...selected], true); setSelected(new Set()) }} className="flex min-h-[44px] items-center gap-1.5 rounded-full bg-[var(--surface-solid)] px-3 py-1.5 text-xs font-semibold text-[var(--ink-secondary)] active:scale-95">
               <EyeOff size={13} /> Nascondi
             </button>
-            <button type="button" disabled={readOnly} onClick={() => { toggleHide([...selected], false); setSelected(new Set()) }} className="flex min-h-[44px] items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-black/60 active:scale-95">
+            <button type="button" disabled={readOnly} onClick={() => { toggleHide([...selected], false); setSelected(new Set()) }} className="flex min-h-[44px] items-center gap-1.5 rounded-full bg-[var(--surface-solid)] px-3 py-1.5 text-xs font-semibold text-[var(--ink-secondary)] active:scale-95">
               <Eye size={13} /> Mostra
             </button>
-            <button type="button" onClick={() => setSelected(new Set())} className="ml-auto flex min-h-[44px] items-center gap-1 rounded-full px-2 py-1.5 text-xs text-black/40">
+            <button type="button" onClick={() => setSelected(new Set())} className="ml-auto flex min-h-[44px] items-center gap-1 rounded-full px-2 py-1.5 text-xs text-[var(--ink-tertiary)]">
               <X size={13} /> Annulla
             </button>
           </div>
@@ -384,15 +384,15 @@ export function EntitiesPage() {
       {/* Tabella */}
       <GlassCard className="min-h-0 flex-1 overflow-y-auto !p-2">
         {!connected && Object.keys(entities).length === 0 ? (
-          <div className="flex h-full flex-col items-center justify-center gap-2 px-4 text-center text-black/40" role="status">
+          <div className="flex h-full flex-col items-center justify-center gap-2 px-4 text-center text-[var(--ink-tertiary)]" role="status">
             <Boxes size={28} />
-            <p className="text-sm font-semibold text-black/55">Home Assistant non è connesso</p>
+            <p className="text-sm font-semibold text-[var(--ink-secondary)]">Home Assistant non è connesso</p>
             <p className="max-w-sm text-xs">Verifica la connessione nella pagina Sistema. MyHome comunica con Home Assistant direttamente nella rete LAN.</p>
           </div>
         ) : registryPending && connected && Object.keys(entities).length === 0 ? (
-          <div className="flex h-full items-center justify-center text-sm text-black/45" role="status">Caricamento del registro Home Assistant…</div>
+          <div className="flex h-full items-center justify-center text-sm text-[var(--ink-secondary)]" role="status">Caricamento del registro Home Assistant…</div>
         ) : rows.length === 0 ? (
-          <div className="flex h-full flex-col items-center justify-center gap-2 text-black/30">
+          <div className="flex h-full flex-col items-center justify-center gap-2 text-[var(--ink-tertiary)]">
             <Boxes size={28} />
             <p className="text-sm">Nessuna entità con questi filtri</p>
           </div>
@@ -412,7 +412,7 @@ export function EntitiesPage() {
               />
             ))}
             {rows.length > cap && (
-              <button type="button" onClick={() => setCap((c) => c + PAGE)} className="flex w-full min-h-[44px] items-center justify-center rounded-[12px] bg-black/[0.04] text-sm font-semibold text-black/50 active:scale-[0.99]">
+              <button type="button" onClick={() => setCap((c) => c + PAGE)} className="flex w-full min-h-[44px] items-center justify-center rounded-[12px] bg-[var(--fill-subtle)] text-sm font-semibold text-[var(--ink-secondary)] active:scale-[0.99]">
                 Mostra altre {Math.min(PAGE, rows.length - cap)} (su {rows.length - cap})
               </button>
             )}
@@ -529,7 +529,7 @@ function EntityRow({
   }
 
   return (
-    <div className={cn('flex min-h-[48px] items-center gap-2.5 rounded-[12px] px-2.5 py-1.5', row.isHidden || row.haHidden ? 'bg-black/[0.02] opacity-60' : 'bg-black/[0.04]')}>
+    <div className={cn('flex min-h-[48px] items-center gap-2.5 rounded-[12px] px-2.5 py-1.5', row.isHidden || row.haHidden ? 'bg-[var(--fill-subtle)] opacity-60' : 'bg-[var(--fill-subtle)]')}>
       <button
         type="button"
         onClick={onCheck}
@@ -538,7 +538,7 @@ function EntityRow({
         aria-label={`${checked ? 'Deseleziona' : 'Seleziona'} ${row.name}`}
         aria-pressed={checked}
       >
-        <span className={cn('flex h-5 w-5 items-center justify-center rounded border transition', checked ? 'border-[#0066cc] bg-[#0066cc] text-white' : 'border-black/25 bg-white')}>
+        <span className={cn('flex h-5 w-5 items-center justify-center rounded border transition', checked ? 'border-[#0066cc] bg-[var(--action-blue)] text-[var(--on-accent)]' : 'border-[var(--hairline)] bg-[var(--surface-solid)]')}>
           {checked && <Check size={12} />}
         </span>
       </button>
@@ -560,29 +560,29 @@ function EntityRow({
                 setEditing(false)
               }
             }}
-            className="w-full rounded-[8px] bg-white px-2 py-1 text-sm text-[#1d1d1f] outline-none ring-1 ring-[#0066cc]"
+            className="w-full rounded-[8px] bg-[var(--surface-solid)] px-2 py-1 text-sm text-[var(--ink)] outline-none ring-1 ring-[#0066cc]"
           />
         ) : (
-          <button type="button" disabled={disabled} onClick={() => { skipBlurCommit.current = false; setDraft(row.name); setEditing(true) }} className="block min-h-[44px] w-full truncate text-left text-sm font-semibold text-[#1d1d1f] hover:underline decoration-black/20" aria-label={`Rinomina ${row.name}`}>
-            {row.name}{row.hasOverride && <span className="ml-1.5 align-middle text-[9px] font-bold uppercase text-[#0066cc]">mod</span>}
+          <button type="button" disabled={disabled} onClick={() => { skipBlurCommit.current = false; setDraft(row.name); setEditing(true) }} className="block min-h-[44px] w-full truncate text-left text-sm font-semibold text-[var(--ink)] hover:underline decoration-black/20" aria-label={`Rinomina ${row.name}`}>
+            {row.name}{row.hasOverride && <span className="ml-1.5 align-middle text-[9px] font-bold uppercase text-[var(--action-blue)]">mod</span>}
           </button>
         )}
-        <p className="truncate font-mono text-[10px] text-black/30">
-          {row.id}<span className={cn('font-sans sm:hidden', row.state === 'unavailable' ? 'text-orange-600' : 'text-black/45')}> · {stateLabel(row.state)}</span>
+        <p className="truncate font-mono text-[10px] text-[var(--ink-tertiary)]">
+          {row.id}<span className={cn('font-sans sm:hidden', row.state === 'unavailable' ? 'text-orange-600' : 'text-[var(--ink-secondary)]')}> · {stateLabel(row.state)}</span>
         </p>
       </div>
 
-      <span className="hidden shrink-0 rounded-full bg-black/[0.06] px-2 py-0.5 text-[10px] font-semibold text-black/45 md:block">{row.domain}</span>
+      <span className="hidden shrink-0 rounded-full bg-[var(--fill-subtle)] px-2 py-0.5 text-[10px] font-semibold text-[var(--ink-secondary)] md:block">{row.domain}</span>
       {(row.cardSizes?.length || row.cardSize) && (
         <span
-          className="hidden h-6 min-w-6 shrink-0 items-center justify-center rounded-full bg-[#0066cc]/12 px-1.5 text-[10px] font-bold text-[#0066cc] md:flex"
+          className="hidden h-6 min-w-6 shrink-0 items-center justify-center rounded-full bg-[var(--action-blue)]/12 px-1.5 text-[10px] font-bold text-[var(--action-blue)] md:flex"
           title={`Dimensioni card ${(row.cardSizes?.length ? row.cardSizes : [row.cardSize]).filter(Boolean).join(', ')}`}
         >
           {(row.cardSizes?.length ? row.cardSizes : [row.cardSize]).filter(Boolean).join('·')}
         </span>
       )}
-      <span className={cn('hidden w-24 shrink-0 truncate text-xs lg:block', row.areaManual ? 'font-semibold text-[#0066cc]' : 'text-black/45')} title={row.areaManual ? 'Stanza assegnata nel wizard' : undefined}>{row.areaName ?? '—'}</span>
-      <span className={cn('hidden w-28 shrink-0 truncate text-right text-xs font-semibold sm:block', row.state === 'unavailable' ? 'text-orange-600' : 'text-black/55')}>
+      <span className={cn('hidden w-24 shrink-0 truncate text-xs lg:block', row.areaManual ? 'font-semibold text-[var(--action-blue)]' : 'text-[var(--ink-secondary)]')} title={row.areaManual ? 'Stanza assegnata nel wizard' : undefined}>{row.areaName ?? '—'}</span>
+      <span className={cn('hidden w-28 shrink-0 truncate text-right text-xs font-semibold sm:block', row.state === 'unavailable' ? 'text-orange-600' : 'text-[var(--ink-secondary)]')}>
         {stateLabel(row.state)}
       </span>
 
@@ -590,16 +590,16 @@ function EntityRow({
         type="button"
         onClick={onToggleHide}
         disabled={disabled || row.haHidden}
-        className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-full', row.isHidden ? 'bg-black/8 text-black/40' : 'bg-[#0066cc]/12 text-[#0066cc]')}
+        className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-full', row.isHidden ? 'bg-[var(--fill-subtle)] text-[var(--ink-tertiary)]' : 'bg-[var(--action-blue)]/12 text-[var(--action-blue)]')}
         aria-label={row.haHidden ? `${row.name} è nascosta in Home Assistant` : `${row.isHidden ? 'Mostra' : 'Nascondi'} ${row.name}`}
         title={row.haHidden ? 'Nascosta in Home Assistant' : undefined}
       >
         {row.isHidden || row.haHidden ? <EyeOff size={15} /> : <Eye size={15} />}
       </button>
-      <button type="button" onClick={onSetup} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#0066cc]/12 text-[#0066cc] hover:bg-[#0066cc]/18" aria-label={`Configura categoria e stanza di ${row.name}`}>
+      <button type="button" onClick={onSetup} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--action-blue)]/12 text-[var(--action-blue)] hover:bg-[var(--action-blue)]/18" aria-label={`Configura categoria e stanza di ${row.name}`}>
         <WandSparkles size={15} />
       </button>
-      <button type="button" onClick={onEdit} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-black/8 text-black/55 hover:text-[#1d1d1f]" aria-label={`Dettagli ${row.name}`}>
+      <button type="button" onClick={onEdit} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--fill-subtle)] text-[var(--ink-secondary)] hover:text-[var(--ink)]" aria-label={`Dettagli ${row.name}`}>
         <Pencil size={14} />
       </button>
     </div>
@@ -647,8 +647,8 @@ function EntityDetail({
       <div className="space-y-2">
         <div className="flex items-end justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold text-black/50" id={`${id}-size-label`}>Dimensione card</p>
-            <p className="mt-0.5 text-[11px] text-black/35">Tre slot per riga; tre XS impilate equivalgono a una L. Seleziona una o più footprint consentite all’autocomposer.</p>
+            <p className="text-xs font-semibold text-[var(--ink-secondary)]" id={`${id}-size-label`}>Dimensione card</p>
+            <p className="mt-0.5 text-[11px] text-[var(--ink-tertiary)]">Tre slot per riga; tre XS impilate equivalgono a una L. Seleziona una o più footprint consentite all’autocomposer.</p>
           </div>
           <button
             type="button"
@@ -657,7 +657,7 @@ function EntityDetail({
             aria-pressed={sizeDraft.length === 0}
             className={cn(
               'min-h-[40px] shrink-0 rounded-full px-3 text-xs font-semibold transition',
-              sizeDraft.length === 0 ? 'bg-[#0066cc] text-white' : 'bg-black/[0.07] text-black/50',
+              sizeDraft.length === 0 ? 'bg-[var(--action-blue)] text-[var(--on-accent)]' : 'bg-[var(--fill-subtle)] text-[var(--ink-secondary)]',
             )}
           >
             Auto
@@ -677,12 +677,12 @@ function EntityDetail({
                 className={cn(
                   'relative min-w-0 rounded-[20px] p-1 text-left transition active:scale-[0.99]',
                   option.className,
-                  selected ? 'bg-[#0066cc]/12 ring-2 ring-[#0066cc]' : 'bg-black/[0.025] ring-1 ring-black/[0.05]',
+                  selected ? 'bg-[var(--action-blue)]/12 ring-2 ring-[#0066cc]' : 'bg-[var(--fill-subtle)] ring-1 ring-[var(--hairline)]',
                 )}
               >
                 <span className={cn(
-                  'absolute left-2 top-2 z-40 rounded-full px-2 py-1 text-[10px] font-bold shadow-sm',
-                  selected ? 'bg-[#0066cc] text-white' : 'bg-white/90 text-black/55',
+                  'absolute left-2 top-2 z-40 rounded-full px-2 py-1 text-[10px] font-bold',
+                  selected ? 'bg-[var(--action-blue)] text-[var(--on-accent)]' : 'bg-[var(--surface-solid)] text-[var(--ink-secondary)]',
                 )}>
                   {option.label} · {option.footprint}
                 </span>
@@ -693,8 +693,8 @@ function EntityDetail({
             )
           })}
         </div>
-        <div className="flex items-center justify-between gap-3 rounded-[14px] bg-black/[0.04] p-2 pl-3">
-          <p className="min-w-0 text-[11px] text-black/45" role="status" aria-live="polite">
+        <div className="flex items-center justify-between gap-3 rounded-[14px] bg-[var(--fill-subtle)] p-2 pl-3">
+          <p className="min-w-0 text-[11px] text-[var(--ink-secondary)]" role="status" aria-live="polite">
             {sizeDraft.length === 0
               ? 'Auto: nessun vincolo di dimensione.'
               : `Abilitate: ${sizeDraft.join(', ')}${sizeDraft.length === 1 ? ' (dimensione fissa)' : ''}.`}
@@ -705,7 +705,7 @@ function EntityDetail({
             onClick={() => { setSizeSaveRequested(true); onSaveSizes(sizeDraft) }}
             className={cn(
               'flex min-h-[42px] shrink-0 items-center gap-1.5 rounded-full px-4 text-xs font-semibold transition active:scale-95 disabled:active:scale-100',
-              sizesDirty ? 'bg-[#0066cc] text-white' : 'bg-black/[0.07] text-black/35',
+              sizesDirty ? 'bg-[var(--action-blue)] text-[var(--on-accent)]' : 'bg-[var(--fill-subtle)] text-[var(--ink-tertiary)]',
             )}
           >
             <Save size={14} />
@@ -729,13 +729,13 @@ function EntityDetail({
       )}
 
       {isCameraEntity(entityId) ? (
-        <p className="rounded-[10px] bg-black/[0.04] px-3 py-2 text-[11px] leading-relaxed text-black/45">
+        <p className="rounded-[10px] bg-[var(--fill-subtle)] px-3 py-2 text-[11px] leading-relaxed text-[var(--ink-secondary)]">
           Le videocamere restano solo nella tendina video: non possono diventare una card fissa sulla home.
         </p>
       ) : (
       <div className="space-y-1.5">
-        <p className="text-xs font-semibold text-black/50" id={`${id}-hero-label`}>Nello strato “Adesso” del kiosk</p>
-        <div className="flex rounded-full bg-black/[0.05] p-1" role="group" aria-labelledby={`${id}-hero-label`}>
+        <p className="text-xs font-semibold text-[var(--ink-secondary)]" id={`${id}-hero-label`}>Nello strato “Adesso” del kiosk</p>
+        <div className="flex rounded-full bg-[var(--fill-subtle)] p-1" role="group" aria-labelledby={`${id}-hero-label`}>
           {([['', 'Auto'], ['always', 'Sempre'], ['never', 'Mai']] as const).map(([v, label]) => (
             <button
               key={v}
@@ -745,22 +745,22 @@ function EntityDetail({
               aria-pressed={(override?.hero ?? '') === v}
               className={cn(
                 'min-h-[44px] flex-1 rounded-full text-xs font-semibold transition',
-                (override?.hero ?? '') === v ? 'bg-white text-[#1d1d1f] shadow-sm' : 'text-black/45',
+                (override?.hero ?? '') === v ? 'bg-[var(--surface-solid)] text-[var(--ink)]' : 'text-[var(--ink-secondary)]',
               )}
             >
               {label}
             </button>
           ))}
         </div>
-        <p className="text-[11px] text-black/35">Auto = il composer decide per rilevanza. Sempre = card fissa in evidenza. Mai = resta solo nelle stanze.</p>
+        <p className="text-[11px] text-[var(--ink-tertiary)]">Auto = il composer decide per rilevanza. Sempre = card fissa in evidenza. Mai = resta solo nelle stanze.</p>
       </div>
       )}
 
       {entityId.startsWith('climate.') && (
-        <div className="flex items-center justify-between gap-4 rounded-[16px] bg-black/[0.045] px-4 py-3">
+        <div className="flex items-center justify-between gap-4 rounded-[16px] bg-[var(--fill-subtle)] px-4 py-3">
           <span className="min-w-0">
-            <span className="block text-xs font-semibold text-black/60">Mostra quando il clima è attivo</span>
-            <span className="mt-0.5 block text-[11px] leading-snug text-black/35">La card entra sempre nella Home automatica quando il climate non è su “off”.</span>
+            <span className="block text-xs font-semibold text-[var(--ink-secondary)]">Mostra quando il clima è attivo</span>
+            <span className="mt-0.5 block text-[11px] leading-snug text-[var(--ink-tertiary)]">La card entra sempre nella Home automatica quando il climate non è su “off”.</span>
           </span>
           <button
             type="button"
@@ -771,11 +771,11 @@ function EntityDetail({
             onClick={() => onPatch({ showWhenActive: override?.showWhenActive ? undefined : true })}
             className={cn(
               'relative h-7 w-12 shrink-0 rounded-full transition-colors disabled:opacity-40',
-              override?.showWhenActive ? 'bg-[#0066cc]' : 'bg-black/20',
+              override?.showWhenActive ? 'bg-[var(--action-blue)]' : 'bg-[var(--fill-subtle)]',
             )}
           >
             <span className={cn(
-              'absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition-all',
+              'absolute top-1 h-5 w-5 rounded-full bg-[var(--surface-solid)] transition-all',
               override?.showWhenActive ? 'left-6' : 'left-1',
             )} aria-hidden="true" />
           </button>
@@ -783,19 +783,19 @@ function EntityDetail({
       )}
 
       <div className="space-y-1.5">
-        <label htmlFor={`${id}-name`} className="text-xs font-semibold text-black/50">Nome</label>
+        <label htmlFor={`${id}-name`} className="text-xs font-semibold text-[var(--ink-secondary)]">Nome</label>
         <input
           id={`${id}-name`}
           value={override?.label ?? ''}
           disabled={disabled}
           onChange={(e) => onPatch({ label: e.target.value })}
           placeholder={(entities[entityId]?.attributes?.friendly_name as string | undefined) ?? entityId}
-          className="w-full rounded-[12px] bg-black/8 px-3 py-3 text-sm text-[#1d1d1f] outline-none focus:bg-black/12 min-h-[44px]"
+          className="w-full rounded-[12px] bg-[var(--fill-subtle)] px-3 py-3 text-sm text-[var(--ink)] outline-none focus:bg-[var(--fill-subtle)] min-h-[44px]"
         />
       </div>
 
       <div className="space-y-1.5">
-        <p className="text-xs font-semibold text-black/50" id={`${id}-type-label`}>Tipo card</p>
+        <p className="text-xs font-semibold text-[var(--ink-secondary)]" id={`${id}-type-label`}>Tipo card</p>
         <div className="grid grid-cols-2 gap-2" role="group" aria-labelledby={`${id}-type-label`}>
           {TYPE_OPTIONS.map((t) => (
             <button
@@ -804,17 +804,17 @@ function EntityDetail({
               disabled={disabled}
               onClick={() => onPatch({ type: override?.type === t.value ? undefined : t.value })}
               aria-pressed={override?.type === t.value}
-              className={cn('min-h-[44px] rounded-[10px] px-2 py-2 text-xs font-semibold transition', override?.type === t.value ? 'bg-[#0066cc] text-white' : 'bg-black/8 text-black/60 hover:bg-black/12')}
+              className={cn('min-h-[44px] rounded-[10px] px-2 py-2 text-xs font-semibold transition', override?.type === t.value ? 'bg-[var(--action-blue)] text-[var(--on-accent)]' : 'bg-[var(--fill-subtle)] text-[var(--ink-secondary)] hover:bg-[var(--fill-subtle)]')}
             >
               {t.label}
             </button>
           ))}
         </div>
-        <p className="text-[11px] text-black/35">Vuoto = tipo automatico dal dominio.</p>
+        <p className="text-[11px] text-[var(--ink-tertiary)]">Vuoto = tipo automatico dal dominio.</p>
       </div>
 
       <div className="space-y-1.5">
-        <label htmlFor={`${id}-icon`} className="text-xs font-semibold text-black/50">Icona (nome Lucide)</label>
+        <label htmlFor={`${id}-icon`} className="text-xs font-semibold text-[var(--ink-secondary)]">Icona (nome Lucide)</label>
         <div className="flex items-center gap-2">
           <input
             id={`${id}-icon`}
@@ -822,12 +822,12 @@ function EntityDetail({
             disabled={disabled}
             onChange={(e) => onPatch({ icon: e.target.value })}
             placeholder="es. lightbulb"
-            className="w-full rounded-[12px] bg-black/8 px-3 py-3 font-mono text-sm text-[#1d1d1f] outline-none focus:bg-black/12 min-h-[44px]"
+            className="w-full rounded-[12px] bg-[var(--fill-subtle)] px-3 py-3 font-mono text-sm text-[var(--ink)] outline-none focus:bg-[var(--fill-subtle)] min-h-[44px]"
           />
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[12px] bg-black/8 text-black/60" aria-hidden="true">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[12px] bg-[var(--fill-subtle)] text-[var(--ink-secondary)]" aria-hidden="true">
             {iconExists(override?.icon)
               ? <DynamicIcon name={override?.icon} fallback={Pencil} size={18} />
-              : <span className="text-[10px] text-black/30">—</span>}
+              : <span className="text-[10px] text-[var(--ink-tertiary)]">—</span>}
           </div>
         </div>
       </div>
@@ -836,7 +836,7 @@ function EntityDetail({
         type="button"
         onClick={onToggleHide}
         disabled={disabled || meta?.haHidden}
-        className={cn('flex w-full min-h-[44px] items-center justify-center gap-2 rounded-[14px] text-sm font-semibold transition active:scale-[0.99]', isHidden ? 'bg-[#0066cc] text-white' : 'bg-black/[0.07] text-black/60')}
+        className={cn('flex w-full min-h-[44px] items-center justify-center gap-2 rounded-[14px] text-sm font-semibold transition active:scale-[0.99]', isHidden ? 'bg-[var(--action-blue)] text-[var(--on-accent)]' : 'bg-[var(--fill-subtle)] text-[var(--ink-secondary)]')}
       >
         {isHidden ? <><Eye size={15} /> Mostra in dashboard</> : <><EyeOff size={15} /> Nascondi dalla dashboard</>}
       </button>
@@ -846,9 +846,9 @@ function EntityDetail({
 
 function Meta({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[10px] bg-black/[0.05] px-2 py-2">
-      <p className="text-[10px] uppercase tracking-[0.12em] text-black/30">{label}</p>
-      <p className="mt-0.5 truncate text-xs font-semibold text-black/65">{value}</p>
+    <div className="rounded-[10px] bg-[var(--fill-subtle)] px-2 py-2">
+      <p className="text-[10px] uppercase tracking-[0.12em] text-[var(--ink-tertiary)]">{label}</p>
+      <p className="mt-0.5 truncate text-xs font-semibold text-[var(--ink-secondary)]">{value}</p>
     </div>
   )
 }
@@ -885,48 +885,48 @@ function GroupEditor({
   return (
     <div className="space-y-4">
       <div className="space-y-1.5">
-        <label htmlFor={`${id}-name`} className="text-xs font-semibold text-black/50">Nome gruppo</label>
+        <label htmlFor={`${id}-name`} className="text-xs font-semibold text-[var(--ink-secondary)]">Nome gruppo</label>
         <input
           id={`${id}-name`}
           value={draft.label}
           disabled={disabled}
           onChange={(e) => setDraft({ ...draft, label: e.target.value })}
           placeholder="es. Luci salotto"
-          className="w-full rounded-[12px] bg-black/8 px-3 py-3 text-sm text-[#1d1d1f] outline-none focus:bg-black/12 min-h-[44px]"
+          className="w-full rounded-[12px] bg-[var(--fill-subtle)] px-3 py-3 text-sm text-[var(--ink)] outline-none focus:bg-[var(--fill-subtle)] min-h-[44px]"
         />
       </div>
 
       <div className="grid grid-cols-2 gap-2">
         <div className="space-y-1.5">
-          <label htmlFor={`${id}-type`} className="text-xs font-semibold text-black/50">Tipo</label>
+          <label htmlFor={`${id}-type`} className="text-xs font-semibold text-[var(--ink-secondary)]">Tipo</label>
           <select
             id={`${id}-type`}
             value={draft.type ?? ''}
             disabled={disabled}
             onChange={(e) => setDraft({ ...draft, type: (e.target.value || undefined) as EntityType | undefined })}
-            className="w-full rounded-[12px] bg-black/8 px-3 py-3 text-sm text-[#1d1d1f] outline-none focus:bg-black/12 min-h-[44px]"
+            className="w-full rounded-[12px] bg-[var(--fill-subtle)] px-3 py-3 text-sm text-[var(--ink)] outline-none focus:bg-[var(--fill-subtle)] min-h-[44px]"
           >
             <option value="">Auto</option>
             {TYPE_OPTIONS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
           </select>
         </div>
         <div className="space-y-1.5">
-          <label htmlFor={`${id}-icon`} className="text-xs font-semibold text-black/50">Icona</label>
+          <label htmlFor={`${id}-icon`} className="text-xs font-semibold text-[var(--ink-secondary)]">Icona</label>
           <input
             id={`${id}-icon`}
             value={draft.icon ?? ''}
             disabled={disabled}
             onChange={(e) => setDraft({ ...draft, icon: e.target.value || undefined })}
             placeholder="es. sofa"
-            className="w-full rounded-[12px] bg-black/8 px-3 py-3 font-mono text-sm text-[#1d1d1f] outline-none focus:bg-black/12 min-h-[44px]"
+            className="w-full rounded-[12px] bg-[var(--fill-subtle)] px-3 py-3 font-mono text-sm text-[var(--ink)] outline-none focus:bg-[var(--fill-subtle)] min-h-[44px]"
           />
         </div>
       </div>
 
       <div className="space-y-1.5">
-        <label htmlFor={`${id}-members`} className="text-xs font-semibold text-black/50">Membri ({draft.entityIds.length})</label>
+        <label htmlFor={`${id}-members`} className="text-xs font-semibold text-[var(--ink-secondary)]">Membri ({draft.entityIds.length})</label>
         <div className="relative">
-          <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-black/35" />
+          <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--ink-tertiary)]" />
           <input
             id={`${id}-members`}
             type="search"
@@ -934,11 +934,11 @@ function GroupEditor({
             disabled={disabled}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Cerca entità…"
-            className="min-h-[44px] w-full rounded-full border border-black/10 bg-white py-2 pl-9 pr-3 text-sm text-[#1d1d1f] outline-none focus:border-[#0066cc]"
+            className="min-h-[44px] w-full rounded-full border border-[var(--hairline)] bg-[var(--surface-solid)] py-2 pl-9 pr-3 text-sm text-[var(--ink)] outline-none focus:border-[#0066cc]"
           />
         </div>
-        <div className="max-h-[34vh] space-y-1 overflow-y-auto pr-1">
-          {filteredEntities.length === 0 && <p className="py-4 text-center text-sm text-black/40">Nessuna entità corrisponde alla ricerca.</p>}
+        <div className="max-h-[34vh] space-y-1 overflow-y-auto pr-1 pb-6">
+          {filteredEntities.length === 0 && <p className="py-4 text-center text-sm text-[var(--ink-tertiary)]">Nessuna entità corrisponde alla ricerca.</p>}
           {filteredEntities.map((e) => {
               const checked = draft.entityIds.includes(e.entity_id)
               return (
@@ -948,20 +948,20 @@ function GroupEditor({
                   disabled={disabled}
                   onClick={() => toggleMember(e.entity_id)}
                   aria-pressed={checked}
-                  className={cn('flex min-h-[44px] w-full items-center gap-2 rounded-[10px] px-3 py-2 text-left', checked ? 'bg-[#0066cc]/12' : 'bg-black/[0.04]')}
+                  className={cn('flex min-h-[44px] w-full items-center gap-2 rounded-[10px] px-3 py-2 text-left', checked ? 'bg-[var(--action-blue)]/12' : 'bg-[var(--fill-subtle)]')}
                 >
-                  <div className={cn('flex h-4 w-4 shrink-0 items-center justify-center rounded border', checked ? 'border-[#0066cc] bg-[#0066cc] text-white' : 'border-black/25')}>
+                  <div className={cn('flex h-4 w-4 shrink-0 items-center justify-center rounded border', checked ? 'border-[#0066cc] bg-[var(--action-blue)] text-[var(--on-accent)]' : 'border-[var(--hairline)]')}>
                     {checked && <Check size={11} />}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm text-[#1d1d1f]">{(e.attributes?.friendly_name as string | undefined) ?? e.entity_id}</p>
-                    <p className="truncate font-mono text-[10px] text-black/35">{e.entity_id}</p>
+                    <p className="truncate text-sm text-[var(--ink)]">{(e.attributes?.friendly_name as string | undefined) ?? e.entity_id}</p>
+                    <p className="truncate font-mono text-[10px] text-[var(--ink-tertiary)]">{e.entity_id}</p>
                   </div>
                 </button>
               )
             })}
           {matchingEntities.length > filteredEntities.length && (
-            <p className="py-2 text-center text-[11px] text-black/40">Mostrate le prime 80 di {matchingEntities.length}; restringi la ricerca per trovare le altre.</p>
+            <p className="py-2 text-center text-[11px] text-[var(--ink-tertiary)]">Mostrate le prime 80 di {matchingEntities.length}; restringi la ricerca per trovare le altre.</p>
           )}
         </div>
       </div>
@@ -971,7 +971,7 @@ function GroupEditor({
           type="button"
           onClick={onSave}
           disabled={disabled || !draft.label.trim() || draft.entityIds.length === 0}
-          className="flex flex-1 min-h-[44px] items-center justify-center gap-2 rounded-[14px] bg-[#0066cc] text-sm font-semibold text-white transition active:scale-95 disabled:opacity-40"
+          className="flex flex-1 min-h-[44px] items-center justify-center gap-2 rounded-[14px] bg-[var(--action-blue)] text-sm font-semibold text-[var(--on-accent)] transition active:scale-95 disabled:opacity-40"
         >
           <Save size={14} /> Salva gruppo
         </button>
@@ -980,7 +980,7 @@ function GroupEditor({
             <Trash2 size={15} />
           </button>
         )}
-        <button type="button" onClick={() => setDraft(null)} className="flex h-11 w-11 items-center justify-center rounded-[14px] bg-black/8 text-black/50 active:scale-95" aria-label="Chiudi senza salvare">
+        <button type="button" onClick={() => setDraft(null)} className="flex h-11 w-11 items-center justify-center rounded-[14px] bg-[var(--fill-subtle)] text-[var(--ink-secondary)] active:scale-95" aria-label="Chiudi senza salvare">
           <Plus size={15} className="rotate-45" />
         </button>
       </div>

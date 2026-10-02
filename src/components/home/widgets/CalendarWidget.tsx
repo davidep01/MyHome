@@ -1,3 +1,4 @@
+import { useClock } from '../../../hooks/useClock'
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { CalendarDays, Clock } from 'lucide-react'
@@ -23,6 +24,7 @@ function formatWhen(start: number, ongoing: boolean, allDay: boolean): string {
 
 /** Upcoming events from the calendar link configured in the S.I.M.I. backend. */
 export function CalendarWidget({ size }: { size: WidgetSize }) {
+  const { now } = useClock()
   const showList = size === 'lg' || size === 'wide'
   const linkedCalendar = useQuery({
     queryKey: ['calendar-events'],
@@ -33,10 +35,8 @@ export function CalendarWidget({ size }: { size: WidgetSize }) {
   })
 
   const events = useMemo(() => {
-    // React Query supplies a stable clock tick whenever this feed refreshes.
-    const now = linkedCalendar.dataUpdatedAt
-    return calendarEventsFromBackend(linkedCalendar.data?.events ?? [], now)
-  }, [linkedCalendar.data?.events, linkedCalendar.dataUpdatedAt])
+    return calendarEventsFromBackend(linkedCalendar.data?.events ?? [], now.getTime())
+  }, [linkedCalendar.data?.events, now])
 
   const next = events[0]
 

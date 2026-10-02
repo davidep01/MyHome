@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Check, Music, DoorOpen, Moon, Film, Sunrise, Home as House, Sparkles } from 'lucide-react'
 import { useHAService } from '../../hooks/useHAService'
 import { useHaptic } from '../../hooks/useHaptic'
+import { useEntityStore } from '../../store/entities'
 import { useScenes } from '../../hooks/useScenes'
 import { framerSpringBounce } from '../../design/tokens'
 import { cn } from '../../lib/utils'
@@ -28,12 +29,12 @@ export function SceneRow({ size = 'wide' }: { size?: WidgetSize }) {
 
   if (scenes.length === 0) {
     return (
-      <div className="flex h-full w-full items-center gap-3 text-black/40">
+      <div className="flex h-full w-full items-center gap-3 text-[var(--ink-tertiary)]">
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-violet-500/10 text-violet-600">
           <Sparkles size={19} aria-hidden="true" />
         </span>
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-black/65">Scene</p>
+          <p className="text-sm font-semibold text-[var(--ink-secondary)]">Scene</p>
           <p className="truncate text-xs">Nessuna scena configurata</p>
         </div>
       </div>
@@ -45,7 +46,9 @@ export function SceneRow({ size = 'wide' }: { size?: WidgetSize }) {
   const setPhase = (entityId: string, phase: ScenePhase) => setPhases((current) => ({ ...current, [entityId]: phase }))
 
   const activate = async (entityId: string) => {
-    if (phases[entityId] === 'pending') return
+    const live = useEntityStore.getState()
+    const scene = scenes.find((candidate) => candidate.entityId === entityId)
+    if (phases[entityId] === 'pending' || !scene || scene.unavailableReason || !live.connected || !live.entities[entityId] || ['unavailable', 'unknown'].includes(live.entities[entityId].state)) return
     medium()
     setPhase(entityId, 'pending')
     try {
@@ -71,10 +74,12 @@ export function SceneRow({ size = 'wide' }: { size?: WidgetSize }) {
             key={scene.entityId}
             type="button"
             onClick={() => void activate(scene.entityId)}
-            disabled={phase === 'pending'}
+            disabled={phase === 'pending' || Boolean(scene.unavailableReason)}
+            title={scene.unavailableReason ?? (phase === 'done' ? 'Richiesta accettata da Home Assistant' : scene.label)}
+            aria-label={`${scene.label}${scene.unavailableReason ? `: ${scene.unavailableReason}` : ''}`}
             whileTap={{ scale: 0.92 }}
             transition={framerSpringBounce}
-            className={cn('flex shrink-0 flex-col items-center gap-2', phase === 'failed' && 'widget-anim-errorShake')}
+            className={cn('flex min-h-11 min-w-11 shrink-0 flex-col items-center gap-2 disabled:opacity-45', phase === 'failed' && 'widget-anim-errorShake')}
             style={{ width: large ? '100%' : 68 }}
           >
             {/* Scene orb — uses the .scene-orb CSS class from index.css */}

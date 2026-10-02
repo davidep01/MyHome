@@ -47,9 +47,7 @@ export function computeInsights(entities: ComposerEntity[], opts: InsightOptions
       const climateArea = areaIdOf?.(climate.entity_id)
       const related = openOpenings.filter((o) => {
         const openingArea = areaIdOf?.(o.entity_id)
-        // Senza aree correliamo comunque: una finestra aperta col clima acceso
-        // è un'anomalia anche se non sappiamo in quale stanza.
-        return !climateArea || !openingArea || climateArea === openingArea
+        return Boolean(climateArea && openingArea && climateArea === openingArea)
       })
       if (related.length) {
         const heating = String(climate.attributes?.hvac_action) === 'heating'

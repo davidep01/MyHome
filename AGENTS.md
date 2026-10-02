@@ -412,7 +412,7 @@ Font: `-apple-system, "SF Pro Display/Text", Inter, system-ui`. Body **17px** (m
 ### Griglia — DUE griglie legittime, UN kernel (vedi §5.bis)
 Esistono **due griglie legittime e distinte**; la terza (CSS premium S/M/L) è solo un *trattamento visivo*, non una griglia:
 
-1. **Home widget grid (canonica):** modello di `backend/src/lib/home-layout.ts` — **8 colonne**, riga **64px**, taglie `sm 2×2 · md 4×2 · lg 4×4 · wide 8×2`. È ciò che viene **persistito ed editato** (react-grid-layout). È l'unica sorgente per posizioni/taglie dei widget home.
+1. **Home widget grid (canonica):** modello di `backend/src/lib/home-layout.ts` — **3 colonne**, riga **38px**, schema 3, taglie `xs 1×2 · sm 1×3 · md 2×3 · lg 3×6 · wide 3×3`. È ciò che viene **persistito ed editato** (react-grid-layout). È l'unica sorgente per posizioni/taglie dei widget home.
 2. **Bento device sections:** card entità auto-scoperte per dominio — `repeat(auto-fill, minmax(150px,1fr))`, riga **112px**, `grid-auto-flow: row dense`. Footprint per tipo in `docs/DESIGN_SYSTEM.md`.
 3. **"Premium widget card" (CSS, `.widget-card-shell`):** **solo estetica** (gradienti/gloss/glow/animazioni). Le sue taglie `S/M/L` **devono mappare** su `sm/md/lg/wide`, non introdurre una terza geometria. → da allineare in Fase 2.
 
@@ -507,3 +507,7 @@ Vedi `docs/SMART_FUNCTIONS_ROADMAP.md`: campanello (✅, two-way audio 🔜 via 
 ---
 
 *Quando aggiorni l'architettura o il design, aggiorna QUESTO file per primo, poi `docs/DESIGN_SYSTEM.md`. È la fonte di verità della ristrutturazione.*
+
+### Contratto corrente verificabile (2 ottobre 2026)
+
+Il kernel attuale usa schema 3, 3 colonne e riga 38px; i riferimenti 8×64 nelle sezioni storiche descrivono la geometria precedente. `forceCelsius` e `advancedMode` sono deprecati e conservati solo per leggere backup legacy. Impostazioni, consumer, priorità standby e limiti sono censiti in `docs/SETTINGS_CONTRACT.md`. Lo stato di chiusura e i collaudi ancora necessari sono in §22 di `docs/AUDIT_TECNICO_FIX_2026-10-01.md`.

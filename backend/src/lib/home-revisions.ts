@@ -3,10 +3,17 @@ import type { DbStore, HomeConfig, HomeRevision, HomeRevisionSummary } from '../
 /** Quante versioni tenere: la più recente più MAX_HOME_REVISIONS - 1 precedenti. */
 export const MAX_HOME_REVISIONS = 10
 
+function semanticWidget(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(semanticWidget).join(',')}]`
+  if (value && typeof value === 'object') return `{${Object.entries(value).sort(([a], [b]) => a.localeCompare(b)).map(([key, child]) => `${JSON.stringify(key)}:${semanticWidget(child)}`).join(',')}}`
+  return JSON.stringify(value) ?? 'null'
+}
+
 function summarize(previous: HomeConfig | undefined, next: HomeConfig): HomeRevisionSummary {
   const prevById = new Map((previous?.widgets ?? []).map((widget) => [widget.id, widget]))
   const nextIds = new Set(next.widgets.map((widget) => widget.id))
 
+  let widgetsUpdated = 0
   let widgetsAdded = 0
   let widgetsMoved = 0
   let widgetsResized = 0
@@ -16,6 +23,7 @@ function summarize(previous: HomeConfig | undefined, next: HomeConfig): HomeRevi
       widgetsAdded += 1
       continue
     }
+    if (semanticWidget(prevById.get(widget.id)) !== semanticWidget(widget)) widgetsUpdated += 1
     const prevPos = previous?.positions?.[widget.id]
     const nextPos = next.positions?.[widget.id]
     if (!prevPos || !nextPos) continue
@@ -30,12 +38,12 @@ function summarize(previous: HomeConfig | undefined, next: HomeConfig): HomeRevi
     && widgetsRemoved === 0
     && JSON.stringify(previous?.order ?? []) !== JSON.stringify(next.order ?? [])
 
-  return { widgetsAdded, widgetsRemoved, widgetsMoved, widgetsResized, reordered }
+  return { widgetsAdded, widgetsRemoved, widgetsMoved, widgetsResized, widgetsUpdated, reordered }
 }
 
 function isNoop(summary: HomeRevisionSummary): boolean {
   return !summary.widgetsAdded && !summary.widgetsRemoved
-    && !summary.widgetsMoved && !summary.widgetsResized && !summary.reordered
+    && !summary.widgetsMoved && !summary.widgetsResized && !summary.widgetsUpdated && !summary.reordered
 }
 
 export interface RecordHomeRevisionMeta {
@@ -70,7 +78,13 @@ export function recordHomeRevision(
     home: next,
   }
 
-  const revisions = [...(store.homeRevisions ?? []), revision]
+  const existing = [...(store.homeRevisions ?? [])]
+  // Preserve the state before the first real edit so that edit is reversible.
+  if (previous && (previous.layoutVersion ?? 1) < revision.version && !existing.some((entry) => entry.version === (previous.layoutVersion ?? 1))) {
+    existing.push({ version: previous.layoutVersion ?? 1, createdAt: previous.updatedAt ?? revision.createdAt,
+      createdBy: previous.updatedBy ?? 'system', source: 'edit', summary: summarize(previous, previous), home: structuredClone(previous) })
+  }
+  const revisions = [...existing, { ...revision, home: structuredClone(next) }]
   store.homeRevisions = revisions.length > MAX_HOME_REVISIONS
     ? revisions.slice(revisions.length - MAX_HOME_REVISIONS)
     : revisions

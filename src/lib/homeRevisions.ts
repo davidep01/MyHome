@@ -7,6 +7,7 @@ export function summaryLabel(summary: HomeRevisionSummary): string {
   if (summary.widgetsRemoved > 0) parts.push(`-${summary.widgetsRemoved} widget`)
   if (summary.widgetsMoved > 0) parts.push(`${summary.widgetsMoved} spostat${summary.widgetsMoved === 1 ? 'o' : 'i'}`)
   if (summary.widgetsResized > 0) parts.push(`${summary.widgetsResized} ridimensionat${summary.widgetsResized === 1 ? 'o' : 'i'}`)
+  if (summary.widgetsUpdated) parts.push(`${summary.widgetsUpdated} modificat${summary.widgetsUpdated === 1 ? 'o' : 'i'}`)
   if (summary.reordered) parts.push('riordinati')
   return parts.length > 0 ? parts.join(' · ') : 'Nessuna modifica'
 }

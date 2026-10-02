@@ -4,6 +4,7 @@ import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { existsSync, readFileSync } from 'node:fs'
 import { networkInterfaces } from 'node:os'
+import { isSpaPath } from './lib/spa-fallback.js'
 import { app } from './app.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -39,7 +40,8 @@ if (existsSync(DIST)) {
     // Never let the SPA fallback answer an API path with HTML — an unmatched
     // /api/* route must return a clean 404, not index.html (which would break
     // EventSource/fetch consumers expecting JSON or text/event-stream).
-    if (c.req.path.startsWith('/api/')) return c.json({ error: 'Not found' }, 404)
+    if (c.req.path === '/api' || c.req.path.startsWith('/api/')) return c.json({ error: 'Not found' }, 404)
+    if (!isSpaPath(c.req.path)) return c.text('Risorsa non trovata', 404)
     c.header('Cache-Control', 'no-cache, no-store, must-revalidate')
     return c.html(readFileSync(join(DIST, 'index.html'), 'utf-8'))
   })

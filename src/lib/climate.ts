@@ -1,3 +1,4 @@
+import { temperatureValue } from './climateState'
 import type { HassEntity } from 'home-assistant-js-websocket'
 
 const ACTIVE_ACTIONS = new Set(['heating', 'cooling', 'drying', 'fan'])
@@ -115,6 +116,6 @@ export function pickOnHvacMode(modes: string[], currentMode?: string | null): st
 }
 
 export function formatClimateTemp(value: unknown, unit = '°C'): string {
-  const n = Number(value)
-  return Number.isFinite(n) ? `${n.toFixed(1).replace('.', ',')}${unit}` : `--${unit}`
+  const n = temperatureValue(value, unit)?.value
+  return n !== undefined ? `${n.toFixed(1).replace('.', ',')}${unit}` : `--${unit}`
 }

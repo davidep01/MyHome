@@ -80,6 +80,15 @@ describe('HA WebRTC session bridge', () => {
     await vi.waitFor(() => expect(listener).toHaveBeenCalledWith({ type: 'error', code: 'ice_candidate', message: 'HA offline' }))
   })
 
+  it('wakes connected signaling listeners when the session is explicitly closed', async () => {
+    activeSession = await startWebRtcSession('camera.entrata', 'offer')
+    const listener = vi.fn()
+    listenWebRtcSession(activeSession, listener)
+    closeWebRtcSession(activeSession)
+    expect(listener).toHaveBeenCalledWith({ type: 'error', code: 'session_closed', message: 'Sessione video chiusa' })
+    expect(hasWebRtcSession(activeSession)).toBe(false)
+  })
+
   it('refuses capacity overflow without evicting a viewed camera', async () => {
     const ids: string[] = []
     try {

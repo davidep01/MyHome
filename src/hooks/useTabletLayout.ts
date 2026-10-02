@@ -1,42 +1,21 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { layoutApi, type TabletDashboardLayout, type TabletLayoutPatch } from '../api/backend'
 
-const CACHE_PREFIX = 'myhome.kiosk.layout.'
-
-function cacheKey(dashboardId: string) {
-  return `${CACHE_PREFIX}${dashboardId}`
-}
-
-function readCachedLayout(dashboardId: string): TabletDashboardLayout | null {
-  if (typeof window === 'undefined') return null
-  try {
-    const raw = window.localStorage.getItem(cacheKey(dashboardId))
-    if (!raw) return null
-    const parsed = JSON.parse(raw) as Partial<TabletDashboardLayout>
-    // La v3 introduce le sotto-righe necessarie a XS: una cache precedente
-    // avrebbe rowHeight/footprint incompatibili e produrrebbe sovrapposizioni.
-    if (parsed.schemaVersion !== 3) return null
-    return { ...parsed, source: 'cache' } as TabletDashboardLayout
-  } catch {
-    return null
-  }
-}
-
-function writeCachedLayout(dashboardId: string, layout: TabletDashboardLayout) {
-  if (typeof window === 'undefined') return
-  try {
-    window.localStorage.setItem(cacheKey(dashboardId), JSON.stringify(layout))
-  } catch {
-    // Cache is best-effort only; backend remains the source of truth.
-  }
-}
+import { clearTabletLayoutCache, layoutCacheEpoch, readCachedLayout, temporaryLayoutFailure, writeCachedLayout } from '../lib/tabletLayoutCache'
+import { ApiError } from '../api/backend'
 
 async function fetchLayoutWithFallback(dashboardId: string): Promise<TabletDashboardLayout> {
+  const epoch = layoutCacheEpoch()
   try {
     const layout = await layoutApi.get(dashboardId)
-    writeCachedLayout(dashboardId, layout)
+    writeCachedLayout(dashboardId, layout, epoch)
     return layout
   } catch (error) {
+    if (error instanceof ApiError && error.status < 500) {
+      if (error.status === 401 || error.status === 403) clearTabletLayoutCache()
+      throw error
+    }
+    if (epoch !== layoutCacheEpoch() || !temporaryLayoutFailure(error)) throw error
     const cached = readCachedLayout(dashboardId)
     if (cached) return cached
     throw error

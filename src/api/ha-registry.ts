@@ -32,11 +32,18 @@ interface RegistryPayload {
 
 // One in-flight request shared by all callers; the backend caches for 60s, so
 // areas()+entities() on the same screen cost a single round trip.
+let registryGeneration = 0
+export function invalidateClientRegistry(): void { registryGeneration += 1; inFlight = null }
+
 let inFlight: Promise<RegistryPayload> | null = null
 function fetchRegistry(): Promise<RegistryPayload> {
   if (!inFlight) {
-    inFlight = (haApi.registry() as Promise<RegistryPayload>)
-      .finally(() => { inFlight = null })
+    const generation = registryGeneration
+    const task = (haApi.registry() as Promise<RegistryPayload>).then((value) => {
+      if (generation !== registryGeneration) throw new Error('Connessione Home Assistant cambiata')
+      return value
+    }).finally(() => { if (inFlight === task) inFlight = null })
+    inFlight = task
   }
   return inFlight
 }

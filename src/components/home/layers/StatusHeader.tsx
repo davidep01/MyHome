@@ -1,3 +1,4 @@
+import { readStorage, writeStorage, removeStorage } from '../../../lib/browserStorage'
 import { AlertTriangle, CarFront, HousePlug, LoaderCircle, ShieldAlert, ShieldCheck, Thermometer, Video, VideoOff, Zap } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { HassEntity } from 'home-assistant-js-websocket'
@@ -11,7 +12,7 @@ import { WeatherIcon } from '../../weather/WeatherIcon'
 import { NotificationBell } from '../../notifications/NotificationCenter'
 import { BRAND_EXPANDED, BRAND_NAME } from '../../../lib/brand'
 import { externalTemperatureFromEntities, indoorClimateTemperatureSources } from '../../../lib/dashboardSelection'
-import { energyWindowAt, formatPowerKw, isEnergyRisk, powerInKw, totalPowerInKw, wallboxMode } from '../../../lib/statusBarEnergy'
+import { HOUSE_CONSUMPTION_ID, energyWindowAt, formatPowerKw, isEnergyRisk, powerInKw, totalPowerInKw, wallboxMode } from '../../../lib/statusBarEnergy'
 import { ALARM_STATE_LABELS, isArmed } from '../../../lib/alarm'
 import { GlassSheet } from '../../glass/GlassSheet'
 import { AlarmDetail } from '../../contextual/AlarmDetail'
@@ -24,7 +25,6 @@ import {
 } from './EnergyStatusDetails'
 
 const WALLBOX_STATUS_ID = 'sensor.chargesplit_domus_wallbox_status'
-const HOUSE_CONSUMPTION_ID = 'sensor.chargesplit_domus_actual_house_consumption'
 
 /**
  * Strato 1 — Stato di casa. Sempre presente, mai configurato: ora, saluto,
@@ -105,15 +105,15 @@ export function StatusHeader({
     if (totalPowerKw === null || typeof window === 'undefined') return
     // Isteresi: un nuovo avviso è consentito solo dopo che il carico è
     // rientrato con un margine reale, non a ogni oscillazione sul confine.
-    if (totalPowerKw < 2.3) window.sessionStorage.removeItem('simi.energy-risk-alert.3')
-    if (totalPowerKw < 5.3) window.sessionStorage.removeItem('simi.energy-risk-alert.6')
+    if (totalPowerKw < 2.3) removeStorage('simi.energy-risk-alert.3', 'session')
+    if (totalPowerKw < 5.3) removeStorage('simi.energy-risk-alert.6', 'session')
     if (!energyRisk) return
     const key = `simi.energy-risk-alert.${energyWindow.limitKw}`
-    if (window.sessionStorage.getItem(key) === 'shown') return
+    if (readStorage(key, 'session') === 'shown') return
     // La chiave va scritta insieme all'apertura effettiva: in Strict Mode il
     // primo effect viene annullato intenzionalmente e non deve bruciare l'avviso.
     const timer = window.setTimeout(() => {
-      window.sessionStorage.setItem(key, 'shown')
+      writeStorage(key, 'shown', 'session')
       setEnergyAlert({ powerKw: totalPowerKw, window: energyWindow })
     }, 0)
     return () => clearTimeout(timer)

@@ -1,5 +1,6 @@
+import { useFullyKioskStore } from '../../../store/fullyKiosk'
 import { useEffect, useRef, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Sparkles } from 'lucide-react'
 import { aiApi } from '../../../api/ai'
 import {
@@ -18,6 +19,13 @@ const AI_MAX_WAIT_MS = 30_000
 
 export function AmbientAIRecap({ entityIds }: { entityIds?: string[] }) {
   const selectionKey = entityIds?.join('\u0000') ?? 'automatic'
+  const connected = useEntityStore((state) => state.connected && state.hydrated)
+  const lastSyncAt = useEntityStore((state) => state.lastSyncAt)
+  const screenOn = useFullyKioskStore((state) => state.screenOn !== false)
+  const qc = useQueryClient()
+  useEffect(() => {
+    if (!connected || !screenOn) void qc.cancelQueries({ queryKey: ['screensaver-ai-recap'] })
+  }, [connected, screenOn, qc])
   const [input, setInput] = useState(() => buildScreensaverRecapInput(
     useEntityStore.getState().entities,
     new Date(),
@@ -96,8 +104,8 @@ export function AmbientAIRecap({ entityIds }: { entityIds?: string[] }) {
 
   const recap = useQuery({
     queryKey: ['screensaver-ai-recap', aiInput.signature],
-    queryFn: () => aiApi.recap(aiInput.context),
-    enabled: aiInput.context.length > 0,
+    queryFn: ({ signal }) => aiApi.recap(aiInput.context, signal),
+    enabled: connected && screenOn && aiInput.context.length > 0,
     staleTime: AI_MIN_INTERVAL_MS,
     gcTime: 30 * 60_000,
     retry: false,
@@ -105,9 +113,9 @@ export function AmbientAIRecap({ entityIds }: { entityIds?: string[] }) {
   })
 
   const aiIsCurrent = aiInput.signature === input.signature
-  const aiText = aiIsCurrent ? recap.data?.trim() : undefined
-  const text = aiText || input.localText
-  const label = aiText ? 'Recap AI live' : recap.isError ? 'Casa in diretta' : 'Recap live'
+  const aiText = connected && aiIsCurrent ? recap.data?.trim() : undefined
+  const text = connected ? aiText || input.localText : 'Ultimi dati noti. Home Assistant non è disponibile: lo stato della casa è da verificare.'
+  const label = !connected ? 'Stato da verificare' : aiText ? 'Recap AI live' : recap.isError ? 'Casa in diretta' : 'Recap live'
   const updating = recap.isFetching || !aiIsCurrent
 
   return (
@@ -123,8 +131,8 @@ export function AmbientAIRecap({ entityIds }: { entityIds?: string[] }) {
         </span>
         <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-white/65">{label}</span>
         <span className="ml-auto flex items-center gap-1.5 text-[10px] font-semibold text-white/55">
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#30d158]" aria-hidden="true" />
-          Live
+          <span className={`h-1.5 w-1.5 rounded-full ${connected ? 'animate-pulse bg-[var(--ok-green)]' : 'bg-[var(--alert-orange)]'}`} aria-hidden="true" />
+          {connected ? 'Live' : 'Non aggiornato'}
         </span>
         {updating && (
           <span className="flex items-center gap-1.5 text-[10px] font-medium text-white/45">
@@ -136,7 +144,7 @@ export function AmbientAIRecap({ entityIds }: { entityIds?: string[] }) {
       <p className="line-clamp-3 text-[clamp(15px,1.7vw,20px)] font-medium leading-[1.38] tracking-[-0.01em] text-white/90">
         {text}
       </p>
-      <span className="sr-only">Aggiornato alle {new Date(updatedAt).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}</span>
+      <span className="sr-only">Ultimi dati ricevuti alle {new Date(lastSyncAt ?? updatedAt).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}</span>
     </section>
   )
 }

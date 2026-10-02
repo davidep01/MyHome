@@ -1,6 +1,7 @@
+import { validateFaceImages } from '../lib/validate-face-images.js'
 import { Hono } from 'hono'
 import { streamSSE } from 'hono/streaming'
-import { db } from '../db/client.js'
+import { db, defaultConfig } from '../db/client.js'
 import type { DbStore } from '../db/types.js'
 import { getHAConfig, normalizeHAUrl } from '../lib/ha-config.js'
 import { configEvents, emitConfigChange } from '../lib/configEvents.js'
@@ -30,11 +31,11 @@ configRouter.get('/stream', (c) => {
     stream.onAbort(() => { closed = true; wake?.() })
 
     try {
-      await stream.writeSSE({ event: 'ready', data: 'ok' })
+      await stream.writeSSE({ event: 'ready', data: JSON.stringify({ haGeneration: (await getHAConfig()).generation }) })
       while (!closed) {
         if (dirty) {
           dirty = false
-          await stream.writeSSE({ event: 'config', data: String(Date.now()) })
+          await stream.writeSSE({ event: 'config', data: JSON.stringify({ haGeneration: (await getHAConfig()).generation }) })
           continue
         }
         // Sleep until a change wakes us, with a 25s heartbeat to keep the
@@ -61,6 +62,8 @@ configRouter.get('/', async (c) => {
   // Never return the HA token in plaintext — mask it
   return c.json({
     ...config,
+    haGeneration: ha.generation,
+    configVersion: config.configVersion ?? 1,
     home: normalizeHomeConfig(config.home),
     haUrl: ha.haUrl,
     haToken: ha.haToken ? '***' : '',
@@ -96,6 +99,9 @@ configRouter.post('/import', async (c) => {
   const incoming = body?.store
   if (!body || (body.version !== 1 && body.version !== 2) || !incoming || typeof incoming !== 'object' || !incoming.config || typeof incoming.config !== 'object') {
     return c.json({ error: 'Backup non valido: atteso { store: { config, rooms, entities } }' }, 400)
+  }
+  if (body.version === 2 && ['weatherCity', 'newsCategory', 'userName', 'dashboardName', 'hiddenEntities', 'home'].some((key) => !(key in incoming.config!))) {
+    return c.json({ error: 'Backup v2 incompleto: mancano impostazioni obbligatorie' }, 400)
   }
   const configResult = validateConfigPatch(incoming.config)
   if (!configResult.ok) return c.json({ error: `Backup non valido: ${configResult.error}` }, 400)
@@ -143,13 +149,17 @@ configRouter.post('/import', async (c) => {
     })
   }
 
+  try { await validateFaceImages(configResult.value.ai?.faces ?? []) }
+  catch (error) { return c.json({ error: error instanceof Error ? error.message : 'Foto dei volti non valide' }, 400) }
+
   const ok = await db.write((store) => {
     const importedConfig = configResult.value
     const previousHome = store.config.home
     const importedHome = normalizeHomeConfig(importedConfig.home)
     store.config = {
-      ...store.config,
+      ...defaultConfig(),
       ...importedConfig,
+      configVersion: store.config.configVersion,
       // Connection credentials are installation-local and never restored from
       // portable backups, including legacy v1 exports.
       haUrl: store.config.haUrl,
@@ -175,6 +185,9 @@ configRouter.put('/', async (c) => {
   const validation = validateConfigPatch(input)
   if (!validation.ok) return c.json({ error: validation.error }, 400)
   const body = validation.value
+  try { await validateFaceImages(body.ai?.faces ?? []) }
+  catch (error) { return c.json({ error: error instanceof Error ? error.message : 'Foto dei volti non valide' }, 400) }
+  if (body.configVersion === undefined) return c.json({ error: 'Ricarica la configurazione prima di salvare: configVersion obbligatoria' }, 409)
   const requestedLayoutVersion = isRecord(input)
     && isRecord(input.home)
     && Number.isSafeInteger(input.home.layoutVersion)
@@ -207,9 +220,12 @@ configRouter.put('/', async (c) => {
     }
   }
 
+  let configConflictVersion: number | null = null
   let atomicConflictVersion: number | null = null
   let haConnectionChanged = false
   const ok = await db.write((store) => {
+    const currentConfigVersion = store.config.configVersion ?? 1
+    if (body.configVersion !== currentConfigVersion) { configConflictVersion = currentConfigVersion; return }
     // Repeat the compare-and-swap inside the serialized DB queue. The early
     // check above gives fast feedback, while this one prevents two requests
     // that both observed the same version from being committed in sequence.
@@ -252,6 +268,7 @@ configRouter.put('/', async (c) => {
     if (body.ai !== undefined) store.config.ai = body.ai
   })
   if (!ok) return c.json({ error: 'Configurazione in sola lettura in questo deployment' }, 409)
+  if (configConflictVersion !== null) return c.json({ error: 'Configurazione modificata da un altro dispositivo. Ricarica e riprova.', currentVersion: configConflictVersion }, 409)
   if (atomicConflictVersion !== null) {
     return c.json({ error: 'Layout modificato da un altro dispositivo', currentVersion: atomicConflictVersion }, 409)
   }

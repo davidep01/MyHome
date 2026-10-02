@@ -21,7 +21,7 @@ export function useCurrentWeather() {
   const fallback = useMemo(() => currentWeatherFromHA(entities), [entities])
   const query = useQuery({
     queryKey: ['weather', 'current'],
-    queryFn: fetchCurrentWeather,
+    queryFn: ({ signal }) => fetchCurrentWeather(signal),
     enabled: openWeatherEnabled,
     staleTime: 10 * 60 * 1000,
     retry: 2,
@@ -37,7 +37,7 @@ export function useWeatherForecast() {
   const openWeatherEnabled = useOpenWeatherAvailability()
   return useQuery({
     queryKey: ['weather', 'forecast'],
-    queryFn: fetchForecast,
+    queryFn: ({ signal }) => fetchForecast(signal),
     enabled: openWeatherEnabled,
     staleTime: 30 * 60 * 1000,
     retry: 2,

@@ -22,9 +22,11 @@ interface ThemeStore {
   source: ThemeSource
   sensorState: SensorState
   lastLux: number | null
+  lightSource: 'browser-lux' | 'hardware-lux' | 'average-luma' | null
+  lastLuma: number | null
   setThemeMode: (m: ThemeMode) => void
   /** internal: updated by useAutoTheme */
-  _patch: (p: Partial<Pick<ThemeStore, 'effectiveDark' | 'source' | 'sensorState' | 'lastLux'>>) => void
+  _patch: (p: Partial<Pick<ThemeStore, 'effectiveDark' | 'source' | 'sensorState' | 'lastLux' | 'lightSource' | 'lastLuma'>>) => void
 }
 
 export const useThemeStore = create<ThemeStore>((set) => ({
@@ -33,6 +35,8 @@ export const useThemeStore = create<ThemeStore>((set) => ({
   source: 'prefers',
   sensorState: 'disabled',
   lastLux: null,
+  lightSource: null,
+  lastLuma: null,
   setThemeMode: (themeMode) => {
     try { localStorage.setItem(KEY, themeMode) } catch { /* private mode */ }
     set({ themeMode })

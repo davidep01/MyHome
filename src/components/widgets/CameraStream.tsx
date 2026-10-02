@@ -3,7 +3,7 @@
    connection effect (and on capability/error/timeout) is the intended behaviour. */
 import { useEffect, useRef, useState } from 'react'
 import type Hls from 'hls.js'
-import { Video } from 'lucide-react'
+import { Play, RotateCw, Video } from 'lucide-react'
 import { useHAEntity } from '../../hooks/useHAEntity'
 import { useActiveWhenVisible } from '../../hooks/useActiveWhenVisible'
 import { haApi } from '../../api/backend'
@@ -17,6 +17,8 @@ import {
 import { cn } from '../../lib/utils'
 import { entityName } from './utils/mapEntityToWidgetCard'
 import { useUIStore } from '../../store/ui'
+import { useFullyKioskStore } from '../../store/fullyKiosk'
+import { cameraTransportPolicy, type CameraPlaybackStatus } from '../../lib/cameraTransport'
 import { cameraWebRtcHealth } from '../../lib/cameraWebRtcHealth'
 import {
   createSerialIceCandidateSender,
@@ -29,16 +31,15 @@ interface CameraStreamProps {
   className?: string
   muted?: boolean
   /**
-   * Latenza minima per rispondere alla porta: MJPEG e HLS partono IN PARALLELO
-   * e vince il primo che consegna un frame (le Ring non emettono mai MJPEG,
-   * l'HLS cloud impiega 5–10s: in serie era nero troppo a lungo). Usato dal
-   * campanello.
+   * Priorità alla diretta alla porta. WebRTC segue le capacità HA; HLS e
+   * MJPEG competono soltanto quando esistono fallback live disponibili.
    */
   preferLive?: boolean
   /** Pill di stato (LIVE / FOTO) nell'angolo — per le card. */
   badge?: boolean
   /** Stream di overlay che resta attivo mentre le anteprime dietro sono sospese. */
   priority?: boolean
+  onStatusChange?: (status: CameraPlaybackStatus) => void
 }
 
 /**
@@ -66,22 +67,28 @@ const HLS_CONFIG = {
 }
 
 const LIVE_NEGOTIATION_MS = 20_000
-const WEBRTC_NEGOTIATION_MS = 18_000
 const LIVE_RETRY_MS = 12_000
 const STALL_RETRY_MS = 10_000
 
-export function CameraStream({ entityId, fit = 'cover', className, muted = true, preferLive = false, badge = false, priority = false }: CameraStreamProps) {
+export function CameraStream({ entityId, fit = 'cover', className, muted = true, preferLive = false, badge = false, priority = false, onStatusChange }: CameraStreamProps) {
   const entity = useHAEntity(entityId)
   const videoRef = useRef<HTMLVideoElement>(null)
   const { ref: containerRef, active } = useActiveWhenVisible<HTMLDivElement>()
   const fullscreenCameraId = useUIStore((s) => s.fullscreenCameraId)
-  const streamActive = active && (priority || !fullscreenCameraId)
+  const doorbellCameraId = useUIStore((s) => s.doorbellCameraId)
+  const emergencyActive = useFullyKioskStore((s) => s.emergencyActive)
+  const screenOn = useFullyKioskStore((s) => s.screenOn)
+  const screensaverActive = useFullyKioskStore((s) => s.screensaverActive)
+  const owner = doorbellCameraId ?? fullscreenCameraId
+  const streamActive = active && screenOn !== false && !screensaverActive && !emergencyActive
+    && (priority ? owner === null || owner === entityId : owner === null)
   const [mode, setMode] = useState<Mode>('connecting')
   const [snap, setSnap] = useState('')
   const [placeholder, setPlaceholder] = useState('')
   const [mjpegLive, setMjpegLive] = useState(false)
+  const [playRequired, setPlayRequired] = useState(false)
   const [retryKey, setRetryKey] = useState(0)
-  const unavailable = !entity || entity.state === 'unavailable'
+  const unavailable = !entity || ['unavailable', 'unknown'].includes(entity.state)
   const previewEntityId = getCameraPreviewEntityId(entityId)
   const previewEntity = useHAEntity(previewEntityId)
   const previewAvailable = isCameraPreviewAvailable(entityId, previewEntityId, previewEntity?.attributes)
@@ -93,11 +100,16 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
   const mjpegFailRef = useRef<() => void>(() => {})
 
   useEffect(() => {
+    onStatusChange?.(playRequired ? 'play-required' : mode === 'mjpeg' && !mjpegLive ? 'connecting' : mode)
+  }, [mode, mjpegLive, playRequired, onStatusChange])
+
+  useEffect(() => {
     if (unavailable) { setMode('error'); return }
     // Fuori dallo schermo o display spento → nessun flusso attivo.
     if (!streamActive) { setMode('paused'); return }
 
     let cancelled = false
+    let mjpegLease: ReturnType<typeof setTimeout> | null = null
     let hls: Hls | null = null
     let peer: RTCPeerConnection | null = null
     let eventSource: EventSource | null = null
@@ -109,9 +121,11 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
     let mediaRecoveries = 0
     let settled = false
     let fallbackStarted = false
+    let policy = cameraTransportPolicy(entityId.endsWith('_live_view') ? ['web_rtc'] : undefined)
     const pendingLocalCandidates: RTCIceCandidateInit[] = []
     const streamVideo = videoRef.current
     setMode('connecting')
+    setPlayRequired(false)
     setSnap('')
     setMjpegLive(false)
     mjpegLoadedRef.current = false
@@ -131,6 +145,7 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
         removeHlsListeners()
         hls?.destroy()
         hls = null
+        if (streamVideo) { streamVideo.pause(); streamVideo.removeAttribute('src'); streamVideo.load() }
         setMode(previewAvailable ? 'snapshot' : 'error')
       }
     }
@@ -144,6 +159,17 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
       setRetryKey((key) => key + 1)
     }
 
+    const requestPlayback = (video: HTMLVideoElement, onFail: () => void) => {
+      void video.play().catch((error: unknown) => {
+        if (cancelled) return
+        if (error instanceof Error && error.name === 'NotAllowedError') {
+          if (webRtcWatchdog) clearTimeout(webRtcWatchdog)
+          if (liveWatchdog) clearTimeout(liveWatchdog)
+          setPlayRequired(true)
+        } else onFail()
+      })
+    }
+
     const watchPlayback = (video: HTMLVideoElement) => {
       let lastTime = video.currentTime
       const onHealthy = () => {
@@ -154,8 +180,8 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
       }
       stallTimer = setTimeout(reconnect, STALL_RETRY_MS)
       const onWaiting = () => {
-        clearStallTimer()
-        stallTimer = setTimeout(reconnect, STALL_RETRY_MS)
+        // Repeated stalled events must not postpone the deadline forever.
+        if (!stallTimer) stallTimer = setTimeout(reconnect, STALL_RETRY_MS)
       }
       video.addEventListener('playing', onHealthy)
       video.addEventListener('timeupdate', onHealthy)
@@ -221,7 +247,7 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
           hls?.destroy()
           hls = new Hls(HLS_CONFIG)
           hls.loadSource(src); hls.attachMedia(video)
-          hls.on(Hls.Events.MANIFEST_PARSED, () => { video.play().catch(() => { if (!cancelled && !settled) onFail() }) })
+          hls.on(Hls.Events.MANIFEST_PARSED, () => { requestPlayback(video, onFail) })
           hls.on(Hls.Events.ERROR, (_e, data) => {
             if (!data.fatal || cancelled) return
             if (data.type === Hls.ErrorTypes.MEDIA_ERROR && mediaRecoveries < 1) {
@@ -237,7 +263,7 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
           })
         } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
           video.src = src
-          void video.play().catch(() => { if (!cancelled && !settled) onFail() })
+          requestPlayback(video, onFail)
         } else onFail()
       } catch {
         if (!settled) onFail() // HLS non supportato da questa camera → fallback
@@ -248,12 +274,15 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
       if (cancelled || settled || fallbackStarted) return
       fallbackStarted = true
       stopWebRtc()
+      if (!policy.mjpeg && !policy.hls) return goSnapshot()
       if (preferLive) {
         // ── Gara MJPEG ‖ HLS: vince il primo frame ────────────────────────────
         setMode('mjpeg')
         mjpegLoadedRef.current = false
         mjpegWinRef.current = () => {
           if (cancelled || settled) return
+          if (mjpegLease) clearTimeout(mjpegLease)
+          mjpegLease = setTimeout(reconnect, 30_000)
           settled = true
           if (liveWatchdog) clearTimeout(liveWatchdog)
           removeHlsListeners()
@@ -263,37 +292,42 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
         }
         // Un errore MJPEG in gara non decide nulla: l'HLS sta già correndo.
         mjpegFailRef.current = () => {}
-        void startHls(() => {})
+        if (policy.hls) void startHls(() => {})
         liveWatchdog = setTimeout(() => { if (!mjpegLoadedRef.current) goSnapshot() }, LIVE_NEGOTIATION_MS)
       } else {
         // ── Catena classica: HLS → MJPEG → snapshot ──────────────────────────
         liveWatchdog = setTimeout(goSnapshot, LIVE_NEGOTIATION_MS)
-        void startHls(() => {
+        const startMjpeg = () => {
           if (cancelled || settled) return
           removeHlsListeners()
           hls?.destroy()
           hls = null
           mjpegLoadedRef.current = false
           setMode('mjpeg')
-          mjpegWinRef.current = () => { settled = true; if (liveWatchdog) clearTimeout(liveWatchdog); mjpegFailRef.current = reconnect }
+          mjpegWinRef.current = () => {
+            if (mjpegLease) clearTimeout(mjpegLease)
+            mjpegLease = setTimeout(reconnect, 30_000)
+            settled = true; if (liveWatchdog) clearTimeout(liveWatchdog); mjpegFailRef.current = reconnect }
           mjpegFailRef.current = goSnapshot
           if (liveWatchdog) clearTimeout(liveWatchdog)
           liveWatchdog = setTimeout(() => {
             if (!cancelled && !mjpegLoadedRef.current) goSnapshot()
           }, 6_000)
-        })
+        }
+        if (policy.hls) void startHls(startMjpeg)
+        else startMjpeg()
       }
     }
 
     const startWebRtc = async () => {
       const video = streamVideo
       if (!video || typeof RTCPeerConnection === 'undefined') return startFallback()
-      if (!cameraWebRtcHealth.canAttempt(entityId)) return startFallback()
       try {
-        webRtcWatchdog = setTimeout(startFallback, preferLive ? 4_000 : WEBRTC_NEGOTIATION_MS)
         const capabilities = await haApi.cameraCapabilities(entityId)
         if (cancelled || settled || fallbackStarted) return
-        if (!capabilities.frontend_stream_types.includes('web_rtc')) return startFallback()
+        policy = cameraTransportPolicy(capabilities.frontend_stream_types)
+        if (!policy.webRtc || !cameraWebRtcHealth.canAttempt(entityId)) return startFallback()
+        webRtcWatchdog = setTimeout(startFallback, policy.negotiationMs)
 
         const clientConfig = await haApi.cameraWebRtcConfig(entityId)
         if (cancelled || settled || fallbackStarted) return
@@ -310,7 +344,7 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
           if (webRtcWatchdog) clearTimeout(webRtcWatchdog)
           setMode('webrtc')
           stopWatchingPlayback = watchPlayback(video)
-          video.play().catch(() => {})
+          requestPlayback(video, () => { if (settled) reconnect(); else startFallback() })
         }
         video.addEventListener('playing', firstFrame)
         removeWebRtcListeners = () => video.removeEventListener('playing', firstFrame)
@@ -318,7 +352,7 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
           if (event.track.kind === 'audio' && muted) return
           remoteStream.addTrack(event.track)
           video.srcObject = remoteStream
-          video.play().catch(() => {})
+          requestPlayback(video, () => { if (settled) reconnect(); else startFallback() })
         }
         peer.onicecandidate = (event) => {
           if (!event.candidate?.candidate) return
@@ -348,8 +382,8 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
         localCandidateSender = createSerialIceCandidateSender(
           (candidate) => haApi.cameraWebRtcCandidate(session.sessionId, candidate),
           () => {
-            cameraWebRtcHealth.recordFailure(entityId)
-            if (!cancelled && !settled) startFallback()
+            cameraWebRtcHealth.recordFailure(entityId, Date.now(), policy.failureBackoffMs)
+            if (!cancelled) { if (settled) reconnect(); else startFallback() }
           },
         )
         for (const candidate of pendingLocalCandidates.splice(0)) {
@@ -376,7 +410,8 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
                 ? event.candidate
                 : { ...event.candidate, sdpMid: '0' }
               if (remoteDescriptionReady) await peer.addIceCandidate(candidate)
-              else pendingRemoteCandidates.push(candidate)
+              else if (pendingRemoteCandidates.length < 64) pendingRemoteCandidates.push(candidate)
+              else throw new Error('Troppi candidati ICE')
             } else if (event.type === 'error') {
               throw new Error(event.message || 'WebRTC signaling failed')
             }
@@ -392,6 +427,7 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
 
     return () => {
       cancelled = true
+      if (mjpegLease) clearTimeout(mjpegLease)
       settled = true
       if (liveWatchdog) clearTimeout(liveWatchdog)
       clearStallTimer()
@@ -475,7 +511,16 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
         <img onError={() => setMode('error')} src={snap} alt={`Immagine videocamera: ${cameraLabel}`} className={cn('absolute inset-0 h-full w-full', fitClass)} />
       )}
 
-      {mode === 'connecting' && !showPlaceholder && (
+      {playRequired && (
+        <button type="button" className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 text-white" onClick={() => {
+          const video = videoRef.current
+          if (!video) return
+          void video.play().then(() => setPlayRequired(false)).catch(() => setRetryKey((key) => key + 1))
+        }}>
+          <Play size={36} /><span>Avvia video</span>
+        </button>
+      )}
+      {mode === 'connecting' && !playRequired && !showPlaceholder && (
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-white/20 border-t-white/70" />
         </div>
@@ -499,7 +544,8 @@ export function CameraStream({ entityId, fit = 'cover', className, muted = true,
       {(mode === 'error' || unavailable) && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-white/45">
           <Video size={32} strokeWidth={1.5} />
-          <span className="text-xs">Flusso non disponibile</span>
+          <span className="text-xs">{unavailable ? 'Videocamera non disponibile in Home Assistant' : 'Diretta non disponibile'}</span>
+          {!unavailable && <button type="button" className="mt-2 flex min-h-11 items-center gap-2 rounded-full bg-white/15 px-4 text-sm text-white" onClick={() => { cameraWebRtcHealth.recordSuccess(entityId); setRetryKey((key) => key + 1) }}><RotateCw size={16} /> Riprova</button>}
         </div>
       )}
     </div>

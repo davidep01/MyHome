@@ -1,3 +1,4 @@
+import { performEntityAction } from '../../lib/entityActions'
 import { ChevronDown, ChevronUp, Home, Minus, Pause, Play, Plus, Square } from 'lucide-react'
 import { useMemo, useRef, useState, type CSSProperties, type ElementType } from 'react'
 import { haApi, type RoomEntity } from '../../api/backend'
@@ -102,11 +103,8 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
     busyRef.current = true
     setPendingAction(key)
     setActionError(null)
-    start()
-    void Promise.resolve()
-      .then(task)
+    void performEntityAction(entityId, start, task, rollback)
       .catch(() => {
-        rollback?.()
         actionFailed()
         setActionError('Comando non eseguito · riprova')
       })
@@ -324,7 +322,7 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
       )
     }
     if (mapped.family === 'lock') {
-      return <WidgetCardHoldButton locked={entity?.state !== 'unlocked'} disabled={busy} onUnlock={unlock} onLock={lock} accentColor={mapped.accentColor} />
+      return <WidgetCardHoldButton locked={entity?.state !== 'unlocked'} disabled={busy || ['locking', 'unlocking'].includes(entity?.state ?? '')} onUnlock={unlock} onLock={lock} accentColor={mapped.accentColor} />
     }
     if (MEDIA_FAMILIES.has(mapped.family)) {
       return (

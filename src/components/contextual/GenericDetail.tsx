@@ -1,3 +1,4 @@
+import { performEntityAction } from '../../lib/entityActions'
 import { useEffect, useId, useRef, useState } from 'react'
 import type { HassEntity } from 'home-assistant-js-websocket'
 import {
@@ -37,11 +38,8 @@ export function GenericDetail({ entity }: { entity: HassEntity }) {
     busyRef.current = true
     setPending(true)
     setError(null)
-    optimistic?.()
-    void Promise.resolve()
-      .then(action)
+    void performEntityAction(entity.entity_id, () => optimistic?.(), action, rollback)
       .catch(() => {
-        rollback?.()
         actionFailed()
         setError('Comando non eseguito. Riprova.')
       })
@@ -182,7 +180,7 @@ export function GenericDetail({ entity }: { entity: HassEntity }) {
         </>
       )}
 
-      {domain === 'lock' && <LockControl entity={entity} act={act} call={call} haptic={heavy} setOptimistic={setOptimisticState} disabled={disabled} />}
+      {domain === 'lock' && <LockControl entity={entity} act={act} call={call} haptic={heavy} setOptimistic={setOptimisticState} disabled={disabled || ['locking', 'unlocking'].includes(entity.state)} />}
 
       {(domain === 'vacuum' || domain === 'lawn_mower') && (
         <div className="grid grid-cols-3 gap-2">
@@ -503,7 +501,7 @@ function LockControl({
     if (!locked) { // bloccare è immediato
       act(
         () => call('lock'),
-        () => { haptic(); setOptimistic(entity.entity_id, 'locked') },
+        () => { haptic(); setOptimistic(entity.entity_id, 'locking') },
         () => setOptimistic(entity.entity_id, entity.state),
       )
       return
@@ -515,7 +513,7 @@ function LockControl({
       setHolding(false)
       act(
         () => call('unlock'),
-        () => { haptic(); setOptimistic(entity.entity_id, 'unlocked') },
+        () => { haptic(); setOptimistic(entity.entity_id, 'unlocking') },
         () => setOptimistic(entity.entity_id, entity.state),
       )
     }, 900)

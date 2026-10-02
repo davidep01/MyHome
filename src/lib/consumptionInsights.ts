@@ -22,7 +22,6 @@ const WATER_KEYWORDS = /water|acqua|flow|portata/i
  * (L, m³) va deliberatamente ignorato — una perdita "a delta" su un contatore
  * cumulativo non è verificabile qui contro hardware reale, e un falso allarme
  * "possibile perdita" è peggio del silenzio. */
-const SOLAR_KEYWORDS = /solar|solare|fotovoltaic|pv\b/i
 
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' ? Number.isFinite(value)
@@ -96,28 +95,43 @@ export function detectSustainedWaterFlow(points: HAHistoryPoint[], unit: string,
   }
 }
 
-/** Sensore di produzione solare più attivo (device_class power, nome/id "solare"). */
-export function findSolarProductionSensor(entities: EntityLike[]): { entityId: string; kw: number } | null {
-  const candidates = entities.filter((entity) => (
-    entity.attributes?.device_class === 'power'
-    && SOLAR_KEYWORDS.test(entity.entity_id)
-    && entity.state !== 'unavailable'
-    && isFiniteNumber(entity.state)
-  ))
-  if (candidates.length === 0) return null
-  const best = [...candidates].sort((a, b) => numberOf(b.state) - numberOf(a.state))[0]
-  const kw = powerValueInKw(best.state, best.attributes?.unit_of_measurement)
-  if (kw === null) return null
-  return { entityId: best.entity_id, kw }
+/** Never infer production from names: the user selects the actual HA sensor. */
+export function findSolarProductionSensor(entities: EntityLike[], selectedId?: string): { entityId: string; kw: number } | null {
+  if (!selectedId) return null
+  const entity = entities.find((candidate) => candidate.entity_id === selectedId)
+  if (!entity || entity.attributes?.device_class !== 'power') return null
+  const kw = powerValueInKw(entity.state, entity.attributes?.unit_of_measurement)
+  return kw !== null && kw >= 0 ? { entityId: entity.entity_id, kw } : null
 }
 
 /** Confronto onesto: un solo sensore di produzione contro un solo sensore di consumo, mai una somma arbitraria. */
 export function detectSolarSelfSufficiency(consumptionKw: number, solarKw: number): ConsumptionInsight | null {
-  if (consumptionKw <= 0.05) return null
-  if (solarKw < consumptionKw * 0.95) return null
+  if (!Number.isFinite(consumptionKw) || !Number.isFinite(solarKw) || consumptionKw <= 0.05 || solarKw < 0) return null
+  if (solarKw < consumptionKw) return null
   return {
     id: 'solar-self-sufficiency',
     severity: 'info',
     text: 'Produzione solare copre il consumo attuale.',
   }
+}
+
+/** HA state transitions are held until the next transition; invalid spans make
+ * a full-window baseline unknowable. Units are validated on every point. */
+export function timeWeightedPowerKw(points: HAHistoryPoint[], unit: string, start: number, end: number): number | null {
+  if (!Number.isFinite(start) || !Number.isFinite(end) || start >= end) return null
+  const ordered = points.map((point) => ({ point, at: Date.parse(point.last_updated) }))
+    .filter(({ at }) => Number.isFinite(at) && at <= end).sort((a, b) => a.at - b.at)
+  const baseline = ordered.findLastIndex(({ at }) => at <= start)
+  if (baseline < 0) return null
+  let total = 0
+  for (let i = baseline; i < ordered.length; i++) {
+    const from = Math.max(start, ordered[i].at)
+    const to = i + 1 < ordered.length ? ordered[i + 1].at : end
+    if (to <= from) continue
+    const pointUnit = ordered[i].point.attributes?.unit_of_measurement ?? unit
+    const kw = powerValueInKw(ordered[i].point.state, pointUnit)
+    if (kw === null || kw < 0) return null
+    total += kw * (to - from)
+  }
+  return total / (end - start)
 }

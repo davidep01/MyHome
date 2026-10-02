@@ -21,6 +21,8 @@ export interface Room {
 }
 
 export interface AppConfig {
+  /** Compare-and-swap revision for all configuration writes. */
+  configVersion?: number
   haUrl: string
   haToken: string
   weatherCity: string
@@ -34,9 +36,11 @@ export interface AppConfig {
   hiddenEntities: string[]
   /** Per-entity admin overrides: custom name, icon, card type, enable/disable. */
   deviceOverrides?: Record<string, DeviceOverride>
-  /** Force temperatures to display in Celsius. */
+  /** @deprecated Retained for backup compatibility; displays respect HA units. */
   forceCelsius?: boolean
-  /** Advanced mode: allow widget editing on touch devices (tablet/kiosk) too. */
+  /** Explicit HA production sensor; unset disables the solar comparison. */
+  solarProductionEntityId?: string
+  /** @deprecated Retained for backup compatibility; editing uses kiosk.homeMode. */
   advancedMode?: boolean
   /** Legacy single doorbell — migrated into `doorbells` on read. */
   doorbell?: DoorbellSettings
@@ -204,6 +208,8 @@ export interface DeviceOverride {
 }
 
 export interface HomeRevisionSummary {
+  /** Semantic widget changes, optional for older saved revisions. */
+  widgetsUpdated?: number
   widgetsAdded: number
   widgetsRemoved: number
   widgetsMoved: number

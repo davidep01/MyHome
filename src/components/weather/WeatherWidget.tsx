@@ -25,8 +25,8 @@ export function WeatherWidget({ size = 'md' }: { size?: WidgetSize }) {
           <CloudSun size={27} strokeWidth={1.7} aria-hidden="true" />
         </div>
         <div>
-          <p className="text-sm font-semibold text-[#1d1d1f]">Meteo da configurare</p>
-          <p className="mx-auto mt-1 max-w-[280px] text-xs leading-5 text-black/40">
+          <p className="text-sm font-semibold text-[var(--ink)]">Meteo da configurare</p>
+          <p className="mx-auto mt-1 max-w-[280px] text-xs leading-5 text-[var(--ink-tertiary)]">
             Aggiungi la chiave OpenWeather dalla regia per vedere condizioni e previsioni.
           </p>
         </div>
@@ -46,13 +46,13 @@ export function WeatherWidget({ size = 'md' }: { size?: WidgetSize }) {
       <div className="flex items-start justify-between">
         <div>
           <div className="flex items-end gap-1">
-            <span className={compact ? 'text-3xl font-light text-[#1d1d1f]' : size === 'wide' ? 'text-6xl font-light text-[#1d1d1f]' : 'text-4xl font-light text-[#1d1d1f]'}>{current.temp}°</span>
-            <span className="text-sm text-black/40 mb-1.5">C</span>
+            <span className={compact ? 'text-3xl font-light text-[var(--ink)]' : size === 'wide' ? 'text-6xl font-light text-[var(--ink)]' : 'text-4xl font-light text-[var(--ink)]'}>{current.temp}°</span>
+            <span className="text-sm text-[var(--ink-tertiary)] mb-1.5">C</span>
           </div>
-          <p className="text-sm capitalize text-black/60 mt-0.5">{current.description}</p>
-          {!compact && <p className="mt-0.5 text-xs text-black/30">{current.city}</p>}
+          <p className="text-sm capitalize text-[var(--ink-secondary)] mt-0.5">{current.description}</p>
+          {!compact && <p className="mt-0.5 text-xs text-[var(--ink-tertiary)]">{current.city}</p>}
         </div>
-        <WeatherIcon code={current.icon} size={compact ? 42 : size === 'wide' ? 72 : 54} label={current.description} className="-mr-1 mt-0 text-[#0066cc]" />
+        <WeatherIcon code={current.icon} size={compact ? 42 : size === 'wide' ? 72 : 54} label={current.description} className="-mr-1 mt-0 text-[var(--action-blue)]" />
       </div>
 
       {/* Details */}
@@ -62,11 +62,11 @@ export function WeatherWidget({ size = 'md' }: { size?: WidgetSize }) {
           <span className="text-xs text-black/50">{current.humidity}%</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <Wind size={12} className="text-black/30" />
+          <Wind size={12} className="text-[var(--ink-tertiary)]" />
           <span className="text-xs text-black/50">{current.wind_speed} km/h</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <Thermometer size={12} className="text-black/30" />
+          <Thermometer size={12} className="text-[var(--ink-tertiary)]" />
           <span className="text-xs text-black/50">Percepita {current.feels_like}°</span>
         </div>
       </div>}
@@ -79,12 +79,12 @@ export function WeatherWidget({ size = 'md' }: { size?: WidgetSize }) {
             return (
               <div
                 key={day.dt}
-                className="flex flex-col items-center gap-1 rounded-[12px] bg-black/6 p-2 min-w-[52px]"
+                className="flex flex-col items-center gap-1 rounded-[12px] bg-[var(--fill-subtle)] p-2 min-w-[52px]"
               >
-                <span className="text-xs text-black/40">{DAYS[d.getDay()]}</span>
+                <span className="text-xs text-[var(--ink-tertiary)]">{day.dayLabel ?? DAYS[d.getUTCDay()]}</span>
                 <WeatherIcon code={day.icon} size={27} />
-                <span className="text-xs font-semibold text-black/80">{day.temp_max}°</span>
-                <span className="text-xs text-black/30">{day.temp_min}°</span>
+                <span className="text-xs font-semibold text-[var(--ink)]">{day.temp_max}°</span>
+                <span className="text-xs text-[var(--ink-tertiary)]">{day.temp_min}°</span>
               </div>
             )
           })}

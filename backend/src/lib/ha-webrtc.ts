@@ -168,6 +168,9 @@ export function closeWebRtcSession(id: string): boolean {
   sessions.delete(id)
   clearTimeout(session.expires)
   session.unsubscribe?.()
+  // Wake a signaling stream waiting for its next event, without a 15s ping
+  // delay after explicit close or eviction. SSE observes the deleted session.
+  for (const listener of session.listeners) listener({ type: 'error', code: 'session_closed', message: 'Sessione video chiusa' })
   session.listeners.clear()
   session.pendingCandidates.length = 0
   session.queuedEvents.length = 0

@@ -1,3 +1,4 @@
+import { getHAConfig } from '../lib/ha-config.js'
 import { Hono } from 'hono'
 import { db } from '../db/client.js'
 import type { HomeWidget } from '../db/types.js'
@@ -97,7 +98,7 @@ layoutRouter.get('/:dashboardId', async (c) => {
   const dashboardId = c.req.param('dashboardId')
   if (dashboardId !== HOME_DASHBOARD_ID) return c.json({ error: 'Dashboard non trovata' }, 404)
   const { config } = await db.read()
-  return c.json(tabletHomeLayout(config))
+  return c.json({ ...tabletHomeLayout(config), haGeneration: (await getHAConfig()).generation })
 })
 
 layoutRouter.put('/:dashboardId', adminOnly, async (c) => {
@@ -140,5 +141,5 @@ layoutRouter.put('/:dashboardId', adminOnly, async (c) => {
 
   emitConfigChange()
   const updated = await db.read()
-  return c.json(tabletHomeLayout(updated.config))
+  return c.json({ ...tabletHomeLayout(updated.config), haGeneration: (await getHAConfig()).generation })
 })

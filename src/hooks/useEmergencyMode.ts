@@ -3,7 +3,7 @@ import type { CriticalAlert } from '../lib/criticalAlerts'
 import { useFullyKioskStore } from '../store/fullyKiosk'
 import { createFullyKioskBridge } from '../lib/fullyKiosk'
 import { alarmApi } from '../api/backend'
-import { drainQueue, enqueuePhoto } from '../lib/alarmPhoto'
+import { flushPhotoQueue, enqueuePhoto } from '../lib/alarmPhoto'
 import { criticalAlertEventKey } from '../lib/criticalAlerts'
 
 /**
@@ -35,29 +35,50 @@ export function useEmergencyMode(alerts: CriticalAlert[], photoEnabled: boolean)
       return
     }
     if (!photoEnabled || shotFor.current === alertId) return
-    shotFor.current = alertId
-    const bridge = createFullyKioskBridge(window.fully, window.location)
-    const image = bridge?.getCamshotDataUrl() ?? null
-    if (!image) return
-    const photo = {
-      image,
-      alertId,
-      takenAt: new Date().toISOString(),
-      deviceId: bridge?.getDeviceId() ?? undefined,
+    let cancelled = false
+    let attempts = 0
+    let retry: ReturnType<typeof setTimeout> | undefined
+    const capture = () => {
+      if (cancelled) return
+      attempts += 1
+      const bridge = createFullyKioskBridge(window.fully, window.location)
+      const image = bridge?.getCamshotDataUrl() ?? null
+      if (!image) {
+        if (attempts < 3) retry = setTimeout(capture, 2_000)
+        return
+      }
+      shotFor.current = alertId
+      const photo = { image, alertId, takenAt: new Date().toISOString(), deviceId: bridge?.getDeviceId() ?? undefined }
+      let storage: Storage | null = null
+      try { storage = window.localStorage } catch { /* immediate delivery */ }
+      if (storage && enqueuePhoto(storage, photo)) {
+        window.dispatchEvent(new Event('myhome:alarm-photo-pending'))
+      } else {
+        void alarmApi.uploadPhoto(photo).catch(() => { /* persistence unavailable */ })
+      }
     }
-    void alarmApi.uploadPhoto(photo).catch(() => enqueuePhoto(localStorage, photo))
+    capture()
+    return () => { cancelled = true; clearTimeout(retry) }
   }, [photoEnabled, alertId])
 
   // Le foto rimaste in coda (rete giù durante l'allarme) partono al ritorno online.
   useEffect(() => {
     if (!photoEnabled) return
+    let cancelled = false
+    let inFlight = false
     const flush = () => {
-      for (const photo of drainQueue(localStorage)) {
-        void alarmApi.uploadPhoto(photo).catch(() => enqueuePhoto(localStorage, photo))
-      }
+      if (cancelled || inFlight) return
+      let storage: Storage
+      try { storage = window.localStorage } catch { return }
+      inFlight = true
+      void flushPhotoQueue(storage, alarmApi.uploadPhoto, () => !cancelled)
+        .catch(() => { /* retain the unacknowledged entry for retry */ })
+        .finally(() => { inFlight = false })
     }
     flush()
+    const retry = setInterval(flush, 30_000)
     window.addEventListener('online', flush)
-    return () => window.removeEventListener('online', flush)
+    window.addEventListener('myhome:alarm-photo-pending', flush)
+    return () => { cancelled = true; clearInterval(retry); window.removeEventListener('online', flush); window.removeEventListener('myhome:alarm-photo-pending', flush) }
   }, [photoEnabled])
 }

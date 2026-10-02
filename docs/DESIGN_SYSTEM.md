@@ -127,36 +127,31 @@ L'elevazione viene dal cambiamento di superficie (glass su parchment) e dal `bac
 
 ## Layout
 
-### Struttura a tre colonne (desktop/tablet)
+### Regia amministrativa (2026-10-02)
 
 ```
-┌──────┬──────────────────────────────────┬──────────┐
-│      │  Header: saluto + meteo           │          │
-│      │  Scene circolari                  │ Pannello │
-│ RAIL │  ──────────────────────────────── │ on-demand│
-│ 68px │  BENTO GRID                       │  320px   │
-│      │  (sezioni per dominio / area HA)  │          │
-│      │                                   │          │
-└──────┴──────────────────────────────────┴──────────┘
+┌──────────────────┬────────────────────────────────────────┐
+│ S.I.M.I. · Regia  │ Attività della casa / stato connessione │
+│                  ├────────────────────────────────────────┤
+│ Stato            │ Titolo e descrizione della vista        │
+│ Entità           │ Sottosezioni quando necessarie          │
+│ Funzioni         │                                        │
+│ Sistema          │ Contenuto adattivo, scorrimento interno  │
+│                  │                                        │
+│ Apri dashboard   │ Dettagli dispositivo in un pannello      │
+└──────────────────┴────────────────────────────────────────┘
 ```
 
-- **Mobile** (`< 768px`): bottom tab bar, pannello → bottom sheet fullscreen.
-- **Tablet** (`768–1024px`): rail icone 68px + main, pannello → bottom sheet.
-- **Desktop** (`> 1024px`): layout a tre colonne, pannello sempre a destra.
+- **Mobile** (`<768px`): contenuto a tutta larghezza e barra inferiore fissa con le quattro destinazioni. La posizione `fixed` va preservata anche con `glass-border`.
+- **Tablet / regia** (`768–1023px`): sidebar 204px con icone ed etichette; contenuto a una colonna quando necessario.
+- **Desktop** (`≥1024px`): sidebar 232px, contenuto a due colonne da 1280px; dettagli on-demand, nessuna terza colonna permanente.
+- Il kiosk mantiene la propria shell e la propria home. Si apre dalla regia tramite il collegamento esplicito alla dashboard.
 
-### Rail sidebar (tablet/desktop)
+### Navigazione della regia
 
-Larghezza fissa **68px**. Solo icone. Dall'alto verso il basso:
+Un solo catalogo definisce Stato, Entità, Funzioni e Sistema per sidebar e barra mobile. L'etichetta è sempre visibile e la destinazione attiva usa `aria-current`; un tooltip non è necessario per comprenderla. In fondo alla sidebar: stato HA, collegamento al kiosk, notifiche, versione e logout soltanto con autenticazione richiesta.
 
-1. Avatar / logo app + dot connessione HA (verde / arancio / rosso)
-2. Divisore hairline
-3. Nav: Home · Aree · Clima · Sicurezza · Energia
-4. `margin-top: auto` →
-5. Pulsante AI (gradiente blu→viola)
-6. Pulsante Impostazioni
-7. NotificationBell
-
-Tooltip a comparsa su hover (label testuale). Active state: pill background `rgba(0,0,0,0.10)` con `layoutId` animato.
+Le sottosezioni sono linkabili con `?section=…` e seguono back/forward e refresh. Le modifiche non salvate dei form restano al cambio di sottosezione. I video diagnostici vengono chiusi, evitando sessioni cloud lasciate attive dietro la pagina. HA offline mostra un avviso senza impedire la navigazione della regia.
 
 ---
 
@@ -471,9 +466,11 @@ La home kiosk **si compone da sola**: nessuna tile da disporre. Quattro strati:
 
 **Dusk shift** (`DuskLayer`): velo `#ff9a3c` multiply, opacità 0→6% per elevazione solare 10°→−6°, transizione 2s. Se banda su pannelli scadenti → si elimina senza rimpianti.
 
-**Regia desktop** (4 viste): Stato (salute+problemi+backup), Entità (workbench con anteprima live card), Funzioni (feature card con stato), Sistema (connessione+diagnostica da `entity_category`). Touch target ≥44px ovunque; nessun PIN (gate = `desktopOnly`).
+**Regia desktop** (4 viste): Stato (salute, problemi e backup), Entità (workbench con anteprima live card), Funzioni (Preferenze, Tablet e aspetto, Campanelli, Suoni e sicurezza), Sistema (Connessione, Tablet, Video e Ring, Cronologia). Sidebar con icone ed etichette 204px / 232px; sottosezioni linkabili via `?section=…`, con back/forward e refresh. Le bozze dei form restano montate al cambio di sottosezione; i video diagnostici vengono invece chiusi. Palette semantica nativa Light/Dark, touch target ≥44px. HA offline mostra un avviso senza bloccare la regia; il kiosk mantiene il proprio overlay. Autenticazione locale opzionale secondo il backend, nessun PIN frontend.
 
-> La "premium widget card" e le card di dominio restano il mattone invariato (vedi matrice famiglie sopra): è cambiato il contenitore, non il mattone. La griglia widget 8col×64px è **legacy**: vive solo dietro `localStorage['myhome.home']='grid'`.
+**Diagnostica video:** avvio esplicito di una camera alla volta, selezione dalle entità HA, capacità live dichiarate, stato della riproduzione e arresto. LIVE solo dopo il primo frame; foto, sospensione e autoplay da sbloccare con un tocco sono stati distinti. Una camera WebRTC nativa senza HLS non può ripiegare su una registrazione MJPEG presentandola come diretta.
+
+> La "premium widget card" e le card di dominio restano il mattone invariato (vedi matrice famiglie sopra): è cambiato il contenitore, non il mattone. La griglia widget corrente usa schema 3: 3 colonne × 38px, taglie xs 1×2, sm 1×3, md 2×3, lg 3×6, wide 3×3. Si seleziona in Funzioni tramite `kiosk.homeMode`; localStorage resta solo un override diagnostico.
 
 ---
 

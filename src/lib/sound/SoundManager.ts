@@ -69,6 +69,15 @@ const PRESETS: Record<Exclude<SoundPreset, 'none'>, Tone[]> = {
 class SoundManager {
   private ctx: AudioContext | null = null
   private unlocked = false
+  private initialized = false
+  private listeners = new Set<() => void>()
+
+  subscribe = (listener: () => void) => {
+    this.listeners.add(listener)
+    return () => { this.listeners.delete(listener) }
+  }
+
+  private notify() { for (const listener of this.listeners) listener() }
   private muted = false
   private volume = 0.7
   private lastPlay: Record<string, number> = {}
@@ -86,7 +95,8 @@ class SoundManager {
 
   /** Attach one-shot listeners that unlock audio on the first interaction. */
   init() {
-    if (typeof window === 'undefined' || this.unlocked) return
+    if (typeof window === 'undefined' || this.unlocked || this.initialized) return
+    this.initialized = true
     const unlock = () => {
       this.ensureCtx()
       this.ctx?.resume().catch(() => {})
@@ -101,12 +111,17 @@ class SoundManager {
   isMuted() { return this.muted }
   getVolume() { return this.volume }
   setMuted(m: boolean) {
+    if (this.muted === m) return
     this.muted = m
+    this.notify()
     try { localStorage.setItem(MUTE_KEY, String(m)) } catch { /* best effort */ }
   }
   setVolume(v: number) {
     if (!Number.isFinite(v)) return
-    this.volume = Math.min(1, Math.max(0, v))
+    const next = Math.min(1, Math.max(0, v))
+    if (this.volume === next) return
+    this.volume = next
+    this.notify()
     try { localStorage.setItem(VOL_KEY, String(this.volume)) } catch { /* best effort */ }
   }
 

@@ -23,10 +23,12 @@ export function useClock() {
     const id = setInterval(() => {
       setClock((current) => {
         const next = getClockState()
-        return next.time === current.time ? current : next
+        return Math.floor(next.now.getTime() / 60_000) === Math.floor(current.now.getTime() / 60_000) ? current : next
       })
     }, 1000)
-    return () => clearInterval(id)
+    const onVisible = () => { if (document.visibilityState === 'visible') setClock(getClockState()) }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => { clearInterval(id); document.removeEventListener('visibilitychange', onVisible) }
   }, [])
 
   return clock

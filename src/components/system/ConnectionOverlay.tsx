@@ -13,12 +13,11 @@ import { connectHAStream, disconnectHAStream } from '../../api/ha-websocket'
 export function ConnectionOverlay({ kiosk = false }: { kiosk?: boolean }) {
   const status = useEntityStore((s) => s.connectionStatus)
   const lastError = useEntityStore((s) => s.lastError)
-  const activeView = useUIStore((s) => s.activeView)
   const setActiveView = useUIStore((s) => s.setActiveView)
   const [show, setShow] = useState(false)
 
   // Never block the System page — that's where the user fixes the credentials.
-  const down = (status !== 'connected') && (kiosk || activeView !== 'system')
+  const down = (status !== 'connected') && kiosk
 
   useEffect(() => {
     if (!down) {

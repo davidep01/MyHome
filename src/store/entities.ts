@@ -1,3 +1,4 @@
+import { updateCriticalEpisodes } from '../lib/criticalEpisodes'
 import { create } from 'zustand'
 import type { HassEntities, HassEntity } from 'home-assistant-js-websocket'
 
@@ -6,6 +7,11 @@ export type HAConnectionStatus = 'idle' | 'connecting' | 'connected' | 'disconne
 interface EntityStore {
   entities: HassEntities
   connected: boolean
+  hydrated: boolean
+  lastSyncAt: number | null
+  sourceGeneration: string | null
+  criticalEpisodes: HassEntities
+  setSourceGeneration: (generation: string) => void
   connectionStatus: HAConnectionStatus
   lastError?: string
   setEntities: (entities: HassEntities) => void
@@ -22,17 +28,32 @@ interface EntityStore {
   getEntity: (entityId: string) => HassEntity | undefined
 }
 
+const retiredGenerations = new Set<string>()
+
 export const useEntityStore = create<EntityStore>((set, get) => ({
   entities: {},
   connected: false,
+  hydrated: false,
+  lastSyncAt: null,
+  sourceGeneration: null,
+  criticalEpisodes: {},
+  setSourceGeneration: (sourceGeneration) => set((state) => {
+    if (state.sourceGeneration === sourceGeneration || retiredGenerations.has(sourceGeneration)) return state
+    if (state.sourceGeneration) retiredGenerations.add(state.sourceGeneration)
+    if (retiredGenerations.size > 64) retiredGenerations.delete(retiredGenerations.values().next().value!)
+    return { sourceGeneration, entities: {}, criticalEpisodes: {}, hydrated: false, lastSyncAt: null, connected: false, connectionStatus: 'connecting' }
+  }),
   connectionStatus: 'idle',
-  setEntities: (entities) => set({ entities }),
+  setEntities: (entities) => set((state) => ({
+    entities, hydrated: Object.keys(entities).length > 0, lastSyncAt: Date.now(),
+    criticalEpisodes: updateCriticalEpisodes(state.criticalEpisodes, Object.values(entities)),
+  })),
   applyEntityDelta: (changed, removed) => set((s) => {
     if (changed.length === 0 && removed.length === 0) return s
     const entities: HassEntities = { ...s.entities }
     for (const entity of changed) entities[entity.entity_id] = entity
     for (const id of removed) delete entities[id]
-    return { entities }
+    return { entities, lastSyncAt: Date.now(), criticalEpisodes: updateCriticalEpisodes(s.criticalEpisodes, changed) }
   }),
   setConnected: (connected) => set({ connected }),
   setConnectionStatus: (connectionStatus, lastError) => set({

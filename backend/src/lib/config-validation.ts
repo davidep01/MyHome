@@ -1,3 +1,4 @@
+import { HOUSE_CONSUMPTION_ID } from './energy-entities.js'
 import type {
   ActionShortcut, AppConfig, DashboardLayout, DeviceOverride, DoorbellDevice, DoorbellSettings,
   EntityGroup, KnownFace,
@@ -8,7 +9,8 @@ import {
   SIMPLE_ID_PATTERN,
 } from './validation.js'
 
-export const MAX_KNOWN_FACES = 8
+import { faceImageBudgetError, MAX_KNOWN_FACES, MAX_FACE_PHOTOS, MAX_FACE_DATA_URL_LENGTH } from './face-limits.js'
+export { MAX_KNOWN_FACES } from './face-limits.js'
 
 type Result = { ok: true; value: Partial<AppConfig> } | { ok: false; error: string }
 
@@ -16,8 +18,8 @@ const ALLOWED_KEYS = new Set<keyof AppConfig>([
   'haUrl', 'haToken', 'weatherCity', 'newsCategory', 'newsFeedUrl', 'userName',
   'calendarFeedUrl',
   'dashboardName', 'hiddenEntities', 'deviceOverrides', 'forceCelsius',
-  'advancedMode', 'doorbell', 'doorbells', 'groups', 'home', 'dashboardLayout',
-  'kiosk', 'alarm', 'ai',
+  'solarProductionEntityId', 'advancedMode', 'doorbell', 'doorbells', 'groups', 'home', 'dashboardLayout',
+  'kiosk', 'alarm', 'ai', 'configVersion',
 ])
 
 const MAX_SHORTCUTS = 4
@@ -219,8 +221,8 @@ function parseFaces(value: unknown): KnownFace[] | null {
   for (const raw of value) {
     if (!isRecord(raw) || !onlyKeys(raw, ['id', 'name', 'images'])) return null
     const name = cleanText(raw.name, 80)
-    if (typeof raw.id !== 'string' || !SIMPLE_ID_PATTERN.test(raw.id) || ids.has(raw.id) || !name || !Array.isArray(raw.images) || raw.images.length < 1 || raw.images.length > 3) return null
-    if (!raw.images.every((image) => typeof image === 'string' && image.length <= 400_000 && /^data:image\/jpeg;base64,[a-z0-9+/]+=*$/i.test(image))) return null
+    if (typeof raw.id !== 'string' || !SIMPLE_ID_PATTERN.test(raw.id) || ids.has(raw.id) || !name || !Array.isArray(raw.images) || raw.images.length < 1 || raw.images.length > MAX_FACE_PHOTOS) return null
+    if (!raw.images.every((image) => typeof image === 'string' && image.length <= MAX_FACE_DATA_URL_LENGTH && /^data:image\/jpeg;base64,[a-z0-9+/]+=*$/i.test(image))) return null
     ids.add(raw.id)
     result.push({ id: raw.id, name, images: raw.images as string[] })
   }
@@ -232,6 +234,15 @@ export function validateConfigPatch(input: unknown): Result {
   const unknown = Object.keys(input).filter((key) => !ALLOWED_KEYS.has(key as keyof AppConfig))
   if (unknown.length) return { ok: false, error: `Campi non consentiti: ${unknown.join(', ')}` }
   const value: Partial<AppConfig> = {}
+  if (input.solarProductionEntityId !== undefined) {
+    if (input.solarProductionEntityId === HOUSE_CONSUMPTION_ID) return { ok: false, error: 'Produzione e consumo devono usare sensori distinti' }
+    if (input.solarProductionEntityId !== '' && (!isEntityId(input.solarProductionEntityId) || !String(input.solarProductionEntityId).startsWith('sensor.'))) return { ok: false, error: 'Sensore di produzione solare non valido' }
+    value.solarProductionEntityId = input.solarProductionEntityId as string
+  }
+  if (input.configVersion !== undefined) {
+    if (!Number.isSafeInteger(input.configVersion) || Number(input.configVersion) < 1) return { ok: false, error: 'configVersion non valida' }
+    value.configVersion = Number(input.configVersion)
+  }
 
   const textFields: [keyof Pick<AppConfig, 'weatherCity' | 'newsCategory' | 'userName' | 'dashboardName'>, number][] = [
     ['weatherCity', 100], ['newsCategory', 60], ['userName', 80], ['dashboardName', 80],
@@ -356,6 +367,7 @@ export function validateConfigPatch(input: unknown): Result {
     if (!isRecord(input.ai) || !onlyKeys(input.ai, ['doorbellVision', 'faces'])) return { ok: false, error: 'Configurazione AI non valida' }
     if (input.ai.doorbellVision !== undefined && typeof input.ai.doorbellVision !== 'boolean') return { ok: false, error: 'Configurazione AI non valida' }
     const faces = input.ai.faces === undefined ? undefined : parseFaces(input.ai.faces)
+    if (faces && faceImageBudgetError(faces)) return { ok: false, error: faceImageBudgetError(faces)! }
     if (faces === null) return { ok: false, error: 'Volti AI non validi' }
     value.ai = {
       ...(typeof input.ai.doorbellVision === 'boolean' ? { doorbellVision: input.ai.doorbellVision } : {}),

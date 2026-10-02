@@ -5,9 +5,10 @@ import { configApi, type AppConfig } from '../api/backend'
 // FIFO queue so an older, slower request can never overwrite a newer choice.
 let configWriteQueue: Promise<unknown> = Promise.resolve()
 let queuedWrites = 0
+const failedOptimisticValues = new Map<keyof AppConfig, Map<unknown, unknown>>()
+export const isConfigWritePending = () => queuedWrites > 0
 
 function enqueueConfigWrite(data: Partial<AppConfig>) {
-  queuedWrites += 1
   const request = configWriteQueue.then(() => configApi.update(data))
   configWriteQueue = request.then(
     () => undefined,
@@ -17,15 +18,16 @@ function enqueueConfigWrite(data: Partial<AppConfig>) {
 }
 
 export function useDashboardConfig(enabled = true) {
+  const qc = useQueryClient()
   return useQuery({
     queryKey: ['config'],
-    queryFn: configApi.get,
+    queryFn: () => isConfigWritePending() && qc.getQueryData<AppConfig>(['config']) ? Promise.resolve(qc.getQueryData<AppConfig>(['config'])!) : configApi.get(),
     enabled,
     // One global dashboard for every device: SSE pushes changes instantly, and
     // this short polling guarantees convergence even if the SSE stream is
     // blocked/buffered in some environment (kiosk WebView, proxy…).
     staleTime: 2000,
-    refetchInterval: 4000,
+    refetchInterval: () => isConfigWritePending() ? false : 4000,
     refetchIntervalInBackground: true,
     refetchOnWindowFocus: true,
     refetchOnReconnect: true,
@@ -34,14 +36,20 @@ export function useDashboardConfig(enabled = true) {
 
 export function useUpdateConfig() {
   const qc = useQueryClient()
+  // Capture the revision the form rendered. Two edits based on an older
+  // object must conflict rather than silently authorize stale nested fields.
+  const renderVersion = qc.getQueryData<AppConfig>(['config'])?.configVersion ?? 1
   return useMutation({
     mutationFn: enqueueConfigWrite,
+    mutationKey: ['config-write'],
     onMutate: async (data) => {
+      queuedWrites += 1
       await qc.cancelQueries({ queryKey: ['config'] })
       const prev = qc.getQueryData<AppConfig>(['config'])
+      data.configVersion ??= renderVersion
       qc.setQueryData<AppConfig>(['config'], (old) => {
         if (!old) return old
-        const next = { ...old, ...data }
+        const next = { ...old, ...data, configVersion: (old.configVersion ?? 1) + 1 }
         // Mirror the server's optimistic-concurrency bump so a rapid second home
         // edit sends a fresh layoutVersion instead of 409-ing against itself.
         if (data.home && Number.isInteger(data.home.layoutVersion)) {
@@ -58,17 +66,33 @@ export function useUpdateConfig() {
       // contain the failed mutation's optimistic value.
       const prev = ctx?.prev
       if (!prev) return
+      for (const key of ctx.keys) {
+        const values = failedOptimisticValues.get(key) ?? new Map<unknown, unknown>()
+        values.set(ctx.optimistic?.[key], prev[key])
+        failedOptimisticValues.set(key, values)
+      }
       qc.setQueryData<AppConfig>(['config'], (current) => {
         if (!current) return prev
         const next = { ...current }
         for (const key of ctx.keys) {
-          if (Object.is(current[key], ctx.optimistic?.[key])) next[key] = prev[key] as never
+          if (!Object.is(current[key], ctx.optimistic?.[key])) continue
+          let restored: unknown = prev[key]
+          const failed = failedOptimisticValues.get(key)
+          const seen = new Set<unknown>()
+          while (failed?.has(restored) && !seen.has(restored)) {
+            seen.add(restored)
+            restored = failed.get(restored)
+          }
+          next[key] = restored as never
         }
         return next
       })
     },
     onSettled: () => {
-      if (queuedWrites === 0) void qc.invalidateQueries({ queryKey: ['config'] })
+      if (queuedWrites === 0) {
+        failedOptimisticValues.clear()
+        void qc.invalidateQueries({ queryKey: ['config'] })
+      }
     },
   })
 }

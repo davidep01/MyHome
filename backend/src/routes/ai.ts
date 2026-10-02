@@ -14,7 +14,8 @@ import {
   stripControlCharacters,
 } from '../lib/request-safety.js'
 import { desktopOnly } from '../lib/security.js'
-import { MAX_KNOWN_FACES } from '../lib/config-validation.js'
+import { FACE_DATA_URL_PATTERN, faceImageBudgetError } from '../lib/face-limits.js'
+import { validateFaceImages } from '../lib/validate-face-images.js'
 import { validProviderKey } from '../lib/integration-config.js'
 import { recentDoorbellActivityKey } from '../lib/ha-stream.js'
 
@@ -33,8 +34,6 @@ const MAX_GEMINI_RESPONSE_BYTES = 1_000_000
 const MAX_GEMINI_REQUEST_BYTES = 8_000_000
 const MAX_AI_BODY_BYTES = 64_000
 const MAX_SNAPSHOT_BYTES = 4_000_000
-const MAX_REFERENCE_IMAGE_BYTES = 600_000
-const MAX_REFERENCE_BYTES = 3_000_000
 const RECAP_CACHE_TTL_MS = 5 * 60_000
 
 const textAiRateLimiter = new FixedWindowRateLimiter(20, 10 * 60 * 1_000)
@@ -373,22 +372,19 @@ aiRouter.post('/recognize', async (c) => {
   const configuredFaces = Array.isArray(config.ai?.faces) ? config.ai.faces : []
   const knownNames: string[] = []
   const referenceParts: GeminiPart[] = []
-  let referenceBytes = 0
-  for (const face of configuredFaces.slice(0, MAX_KNOWN_FACES)) {
-    const name = inputText(face?.name, 80, false)
-    if (!name || !Array.isArray(face?.images)) continue
-    knownNames.push(name)
-    for (const image of face.images.slice(0, 3)) {
-      if (typeof image !== 'string' || image.length > Math.ceil(MAX_REFERENCE_IMAGE_BYTES * 4 / 3) + 64) continue
-      const match = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/]+={0,2})$/.exec(image)
-      if (!match) continue
-      const padding = match[2].endsWith('==') ? 2 : match[2].endsWith('=') ? 1 : 0
-      const byteLength = Math.floor(match[2].length * 3 / 4) - padding
-      if (byteLength <= 0 || byteLength > MAX_REFERENCE_IMAGE_BYTES || referenceBytes + byteLength > MAX_REFERENCE_BYTES) continue
-      referenceBytes += byteLength
+  const referenceError = faceImageBudgetError(configuredFaces)
+  if (referenceError) return c.json({ error: referenceError }, 400)
+  try { await validateFaceImages(configuredFaces) }
+  catch { return c.json({ error: 'Foto dei volti non valide: aggiornale in Funzioni → Campanelli.' }, 400) }
+  for (const face of configuredFaces) {
+    const name = inputText(face.name, 80, false)
+    if (!name || face.images.length === 0) return c.json({ error: 'Persona senza foto di riferimento valida' }, 400)
+    for (const image of face.images) {
+      const match = FACE_DATA_URL_PATTERN.exec(image)!
       referenceParts.push({ text: `Foto di riferimento; nome atteso: ${JSON.stringify(name)}` })
-      referenceParts.push({ inline_data: { mime_type: match[1], data: match[2] } })
+      referenceParts.push({ inline_data: { mime_type: 'image/jpeg', data: match[1] } })
     }
+    knownNames.push(name)
   }
 
   const allNames = knownNames.filter((name, index, list) =>

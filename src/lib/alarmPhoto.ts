@@ -38,20 +38,27 @@ export function readQueue(storage: StorageLike): AlarmPhoto[] {
   }
 }
 
-export function enqueuePhoto(storage: StorageLike, photo: AlarmPhoto): void {
-  const queue = [...readQueue(storage), photo].slice(-MAX_QUEUED_PHOTOS)
+export function enqueuePhoto(storage: StorageLike, photo: AlarmPhoto): boolean {
+  const queue = [...readQueue(storage).filter((entry) => entry.alertId !== photo.alertId || entry.takenAt !== photo.takenAt), photo].slice(-MAX_QUEUED_PHOTOS)
   try {
     storage.setItem(ALARM_PHOTO_QUEUE_KEY, JSON.stringify(queue))
+    return true
   } catch {
-    // storage pieno (le foto sono grandi): meglio perdere la coda che bloccare l'allarme
+    // Deliver immediately if persistence is unavailable.
+    return false
   }
 }
 
-/** Svuota e restituisce la coda: il chiamante ritenta l'upload di ciascuna. */
-export function drainQueue(storage: StorageLike): AlarmPhoto[] {
-  const queue = readQueue(storage)
-  if (queue.length) {
-    try { storage.removeItem(ALARM_PHOTO_QUEUE_KEY) } catch { /* noop */ }
+/** Remove only the acknowledged entry; preserve photos added during upload. */
+export function acknowledgePhoto(storage: StorageLike, photo: AlarmPhoto): void {
+  const queue = readQueue(storage).filter((entry) => entry.alertId !== photo.alertId || entry.takenAt !== photo.takenAt)
+  storage.setItem(ALARM_PHOTO_QUEUE_KEY, JSON.stringify(queue))
+}
+
+export async function flushPhotoQueue(storage: StorageLike, upload: (photo: AlarmPhoto) => Promise<unknown>, shouldContinue = () => true): Promise<void> {
+  for (const photo of readQueue(storage)) {
+    if (!shouldContinue()) return
+    await upload(photo)
+    acknowledgePhoto(storage, photo)
   }
-  return queue
 }

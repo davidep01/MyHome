@@ -66,4 +66,22 @@ describe('iCalendar feed parser', () => {
 
     expect(events[0]).toMatchObject({ title: 'Festa', allDay: true })
   })
+  it('rejects oversized sources before allocating a worker', async () => {
+    await expect(parseCalendarFeed(' '.repeat(1024 * 1024 + 1))).rejects.toThrow('troppo grande')
+  })
+
+  it('interrupts dense recurrence expansion while the main event loop stays available', async () => {
+    let ticks = 0
+    const timer = setInterval(() => { ticks += 1 }, 10)
+    try {
+      await expect(parseCalendarFeed(calendar(
+        'BEGIN:VEVENT', 'UID:dense', 'DTSTART:20260718T120000Z',
+        'RRULE:FREQ=SECONDLY', 'SUMMARY:Troppo frequente', 'END:VEVENT',
+      ), new Date('2026-07-18T12:00:00Z'), 366)).rejects.toThrow()
+      expect(ticks).toBeGreaterThan(3)
+      // The failed worker releases its slot; ordinary feeds still work.
+      await expect(parseCalendarFeed(calendar(), new Date('2026-07-18T12:00:00Z'))).resolves.toEqual([])
+    } finally { clearInterval(timer) }
+  }, 6000)
+
 })

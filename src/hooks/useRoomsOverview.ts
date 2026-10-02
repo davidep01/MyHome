@@ -1,3 +1,4 @@
+import { climateAction, temperatureValue } from '../lib/climateState'
 import { useMemo } from 'react'
 import type { HassEntity } from 'home-assistant-js-websocket'
 import { useAreaIndex } from './useAreaIndex'
@@ -35,15 +36,17 @@ export interface RoomOverview {
   mediaTitle: string | null
   /** Prima temperatura ambiente disponibile (sensore o clima). */
   temperature: number | null
+  temperatureUnit?: string
   /** Attività dominante, per l'icona animata della stanza. */
   activity: RoomActivity
 }
 
 function isActive(e: HassEntity): boolean {
+  if (e.entity_id.startsWith('climate.')) return ['heating', 'cooling', 'drying', 'fan', 'defrosting'].includes(climateAction(e.state, e.attributes))
   return e.state === 'on' || e.state === 'playing' || e.state === 'cleaning' || e.state === 'heat' || e.state === 'cool'
 }
 
-function summarize(key: string, title: string, list: HassEntity[]): RoomOverview {
+export function summarizeRoom(key: string, title: string, list: HassEntity[]): RoomOverview {
   let lightsOn = 0
   let fansOn = 0
   let coversOpen = 0
@@ -53,6 +56,7 @@ function summarize(key: string, title: string, list: HassEntity[]): RoomOverview
   let vacuumBusy = false
   let mediaTitle: string | null = null
   let temperature: number | null = null
+  let temperatureUnit: string | undefined
   let active = 0
 
   for (const e of list) {
@@ -65,11 +69,11 @@ function summarize(key: string, title: string, list: HassEntity[]): RoomOverview
     if (domain === 'vacuum' && e.state === 'cleaning') vacuumBusy = true
     if (domain === 'lawn_mower' && e.state === 'mowing') vacuumBusy = true
     if (domain === 'climate') {
-      const action = String(e.attributes?.hvac_action ?? e.state)
-      if (action === 'heating' || e.state === 'heat') heating = true
-      if (action === 'cooling' || e.state === 'cool') cooling = true
-      const current = Number(e.attributes?.current_temperature)
-      if (temperature === null && Number.isFinite(current)) temperature = current
+      const action = climateAction(e.state, e.attributes)
+      if (action === 'heating') heating = true
+      if (action === 'cooling') cooling = true
+      const current = temperatureValue(e.attributes?.current_temperature, e.attributes?.temperature_unit ?? e.attributes?.unit_of_measurement)
+      if (temperature === null && current) { temperature = current.value; temperatureUnit = current.unit }
     }
     if (domain === 'media_player' && e.state === 'playing' && !mediaTitle) {
       mediaTitle = (e.attributes?.media_title as string | undefined)
@@ -78,8 +82,8 @@ function summarize(key: string, title: string, list: HassEntity[]): RoomOverview
     }
     if (domain === 'sensor' && temperature === null
       && String(e.attributes?.device_class ?? '') === 'temperature') {
-      const v = Number(e.state)
-      if (Number.isFinite(v)) temperature = v
+      const current = temperatureValue(e.state, e.attributes?.unit_of_measurement)
+      if (current) { temperature = current.value; temperatureUnit = current.unit }
     }
   }
 
@@ -93,7 +97,7 @@ function summarize(key: string, title: string, list: HassEntity[]): RoomOverview
     : null
 
   const entityIds = list.map((e) => e.entity_id).sort((a, b) => domainRank(a) - domainRank(b) || a.localeCompare(b))
-  return { key, title, entityIds, active, lightsOn, fansOn, coversOpen, unlocked, heating, cooling, vacuumBusy, mediaTitle, temperature, activity }
+  return { key, title, entityIds, active, lightsOn, fansOn, coversOpen, unlocked, heating, cooling, vacuumBusy, mediaTitle, temperature, temperatureUnit, activity }
 }
 
 /**
@@ -131,13 +135,13 @@ export function useRoomsOverview(cfg?: {
 
     const list = areas
       .filter((a) => byArea.has(a.area_id))
-      .map((a) => summarize(a.area_id, a.name, byArea.get(a.area_id)!))
+      .map((a) => summarizeRoom(a.area_id, a.name, byArea.get(a.area_id)!))
 
     if (!ready || list.length === 0) {
       // Registry non disponibile o nessuna area: tutto in una voce sola.
-      return visible.length ? [summarize('all', 'Tutti i dispositivi', visible)] : []
+      return visible.length ? [summarizeRoom('all', 'Tutti i dispositivi', visible)] : []
     }
-    if (orphan.length) list.push(summarize('other', 'Altro', orphan))
+    if (orphan.length) list.push(summarizeRoom('other', 'Altro', orphan))
     return list
   }, [entities, areas, areaIdOf, ready, overrides])
 

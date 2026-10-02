@@ -1,8 +1,8 @@
 import { useEffect } from 'react'
 import { useThemeStore } from '../store/theme'
+import { useFullyKioskStore } from '../store/fullyKiosk'
 import { applyDarkAppearance } from '../lib/themeAppearance'
 
-/** Minimal Generic Sensor API type (not in lib.dom). */
 interface AmbientLightSensorLike {
   illuminance: number
   addEventListener: (type: string, cb: (e?: { error?: { name?: string } }) => void) => void
@@ -11,90 +11,83 @@ interface AmbientLightSensorLike {
 }
 type Ctor = new (opts?: { frequency?: number }) => AmbientLightSensorLike
 
-const DARK_LUX = 20   // below → dark
-const LIGHT_LUX = 45  // above → light (dead zone 20–45 = hysteresis, no change)
-const DEBOUNCE_MS = 3000
-
-/**
- * Resolves the active theme and applies a `dark` class on <html>.
- *
- *  - themeMode 'light'/'dark' → manual override, sensor never overrides it.
- *  - themeMode 'auto':
- *      • desktop (no coarse/no-hover) → ambient sensor DISABLED, follow prefers-color-scheme.
- *      • tablet → AmbientLightSensor when available (dark <20 lux / light >45 lux,
- *        3s debounce + hysteresis); otherwise fall back to prefers-color-scheme.
- *
- * Safe fallbacks for unsupported / permission-denied / blocked / error; full
- * sensor cleanup on unmount; no console noise. Call once (in AppShell).
- */
+/** Single appearance owner: manual > Fully reading > browser lux > OS. */
 export function useAutoTheme() {
   const themeMode = useThemeStore((s) => s.themeMode)
   const patch = useThemeStore((s) => s._patch)
-
   useEffect(() => {
-    // Manual override — sensor and prefers are ignored entirely.
-    if (themeMode === 'light' || themeMode === 'dark') {
-      const dark = themeMode === 'dark'
-      applyDarkAppearance(dark)
-      patch({ effectiveDark: dark, source: 'manual', sensorState: 'disabled', lastLux: null })
+    if (themeMode !== 'auto') {
+      applyDarkAppearance(themeMode === 'dark')
+      patch({ effectiveDark: themeMode === 'dark', source: 'manual', sensorState: 'disabled', lastLux: null, lastLuma: null, lightSource: null })
       return
     }
-
     const prefers = window.matchMedia('(prefers-color-scheme: dark)')
-    const isTablet = window.matchMedia('(pointer: coarse) and (hover: none)').matches
-
-    // Desktop, or tablet without sensor → follow the OS color scheme.
-    const followPrefers = (state: 'disabled' | 'unsupported' | 'permission_denied' | 'error') => {
-      const upd = () => {
+    const tablet = window.matchMedia('(pointer: coarse) and (hover: none)').matches
+    let browserLux: number | null = null
+    let sensorState: 'disabled' | 'unsupported' | 'active' | 'permission_denied' | 'error' = tablet ? 'unsupported' : 'disabled'
+    let pendingTarget: boolean | null = null
+    let timer: ReturnType<typeof setTimeout> | null = null
+    const clearPending = () => { if (timer) clearTimeout(timer); timer = null; pendingTarget = null }
+    const resolve = () => {
+      const fully = useFullyKioskStore.getState()
+      const fullyValue = fully.availability === 'available' && fully.ambientLight !== null
+        && Number.isFinite(fully.ambientLight) && fully.ambientLight >= 0 ? fully.ambientLight : null
+      const value = fullyValue ?? browserLux
+      const luma = fullyValue !== null && fully.ambientLightSource === 'average-luma'
+      const current = useThemeStore.getState().effectiveDark
+      if (value === null) {
+        clearPending()
         applyDarkAppearance(prefers.matches)
-        patch({ effectiveDark: prefers.matches, source: 'prefers', sensorState: state })
+        patch({ effectiveDark: prefers.matches, source: 'prefers', sensorState, lastLux: null, lastLuma: null, lightSource: null })
+        return
       }
-      upd()
-      prefers.addEventListener('change', upd)
-      return () => prefers.removeEventListener('change', upd)
+      patch({ source: 'sensor', sensorState: 'active', lastLux: luma ? null : Math.round(value),
+        lastLuma: luma ? Math.round(value) : null,
+        lightSource: fullyValue !== null ? luma ? 'average-luma' : 'hardware-lux' : 'browser-lux' })
+      const target = value < (luma ? 34 : 20) ? true : value > (luma ? 78 : 45) ? false : current
+      if (target === current) { clearPending(); return }
+      if (pendingTarget === target) return
+      clearPending()
+      pendingTarget = target
+      timer = setTimeout(() => {
+        timer = null; pendingTarget = null
+        applyDarkAppearance(target)
+        patch({ effectiveDark: target })
+      }, 3000)
     }
-
-    if (!isTablet) return followPrefers('disabled')
-
-    const SensorCtor = (window as unknown as { AmbientLightSensor?: Ctor }).AmbientLightSensor
-    if (!SensorCtor) return followPrefers('unsupported')
-
-    // Tablet + sensor available.
+    resolve() // OS is applied immediately while a sensor starts or waits for permission.
+    prefers.addEventListener('change', resolve)
+    const unsubscribe = useFullyKioskStore.subscribe((state, previous) => {
+      if (state.ambientLight !== previous.ambientLight || state.ambientLightSource !== previous.ambientLightSource
+        || state.availability !== previous.availability) resolve()
+    })
     let sensor: AmbientLightSensorLike | null = null
-    let pendingTarget: 'dark' | 'light' | null = null
-    let pendingSince = 0
-    let fallbackCleanup: (() => void) | null = null
-
-    try {
-      sensor = new SensorCtor({ frequency: 1 })
-      sensor.addEventListener('reading', () => {
-        const lux = sensor?.illuminance ?? 100
-        const cur = useThemeStore.getState().effectiveDark ? 'dark' : 'light'
-        patch({ lastLux: Math.round(lux), source: 'sensor', sensorState: 'active' })
-
-        const target = lux < DARK_LUX ? 'dark' : lux > LIGHT_LUX ? 'light' : null
-        if (!target || target === cur) { pendingTarget = null; return }
-        if (pendingTarget !== target) { pendingTarget = target; pendingSince = Date.now(); return }
-        if (Date.now() - pendingSince >= DEBOUNCE_MS) {
-          pendingTarget = null
-          applyDarkAppearance(target === 'dark')
-          patch({ effectiveDark: target === 'dark' })
-        }
-      })
-      sensor.addEventListener('error', (e) => {
-        const denied = e?.error?.name === 'NotAllowedError' || e?.error?.name === 'SecurityError'
-        sensor?.stop()
-        sensor = null
-        fallbackCleanup = followPrefers(denied ? 'permission_denied' : 'error')
-      })
-      sensor.start()
-    } catch {
-      fallbackCleanup = followPrefers('error')
+    const Sensor = (window as unknown as { AmbientLightSensor?: Ctor }).AmbientLightSensor
+    if (tablet && Sensor) {
+      try {
+        sensor = new Sensor({ frequency: 1 })
+        sensor.addEventListener('reading', () => {
+          const value = sensor?.illuminance
+          browserLux = typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : null
+          sensorState = browserLux === null ? 'error' : 'active'
+          resolve()
+        })
+        sensor.addEventListener('error', (event) => {
+          try { sensor?.stop() } catch { /* faulty native sensor */ }
+          sensor = null; browserLux = null
+          sensorState = ['NotAllowedError', 'SecurityError'].includes(event?.error?.name ?? '') ? 'permission_denied' : 'error'
+          resolve()
+        })
+        sensor.start()
+      } catch {
+        try { sensor?.stop() } catch { /* partial initialization */ }
+        sensor = null; sensorState = 'error'; resolve()
+      }
     }
-
     return () => {
-      sensor?.stop()
-      fallbackCleanup?.()
+      clearPending(); unsubscribe()
+      prefers.removeEventListener('change', resolve)
+      try { sensor?.stop() } catch { /* best effort native cleanup */ }
     }
   }, [themeMode, patch])
 }

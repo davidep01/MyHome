@@ -51,10 +51,7 @@ const BINARY_META: Record<string, Omit<CriticalAlert, 'id' | 'entityId' | 'chang
     kind: 'safety', title: 'Allarme di sicurezza', detail: 'Un sensore di sicurezza è attivo.',
     instruction: 'Controlla immediatamente il dispositivo e l’area.', priority: 1,
   },
-  problem: {
-    kind: 'safety', title: 'Problema critico', detail: 'Un dispositivo segnala un guasto importante.',
-    instruction: 'Apri il controllo per verificare il dettaglio.', priority: 2,
-  },
+
 }
 
 function friendlyName(entity: CriticalEntity): string {

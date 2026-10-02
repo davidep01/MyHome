@@ -1,3 +1,4 @@
+import { usePerfLite } from '../../../hooks/usePerfLite'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
@@ -9,7 +10,8 @@ import { cn } from '../../../lib/utils'
 import { WeatherIcon } from '../../weather/WeatherIcon'
 import { screensaverApi, type KioskSettings } from '../../../api/backend'
 import { KIOSK_ACTIVITY_EVENT, reportKioskScreensaver } from '../../../lib/kioskActivity'
-import { createFullyKioskBridge } from '../../../lib/fullyKiosk'
+import { wakeKiosk, wakeAllowed } from '../../../lib/kioskWakePolicy'
+import { useFullyKioskStore } from '../../../store/fullyKiosk'
 import { BRAND_EXPANDED, BRAND_NAME } from '../../../lib/brand'
 import {
   centeredKenBurnsMove,
@@ -54,6 +56,7 @@ export function AmbientLayer({
   const wakeRef = useRef<() => void>(() => {})
   const enabled = settings?.enabled !== false
   const idleMs = (settings?.idleSeconds ?? DEFAULT_IDLE_SECONDS) * 1_000
+  const screenOn = useFullyKioskStore((state) => state.screenOn !== false)
   const brightness = settings?.brightness ?? DEFAULT_AMBIENT_BRIGHTNESS
 
   useEffect(() => {
@@ -68,15 +71,19 @@ export function AmbientLayer({
     }
     wakeRef.current = markActive
     markActive()
-    window.addEventListener('pointerdown', markActive)
-    window.addEventListener('keydown', markActive)
+    const touchWake = () => { wakeKiosk('touch'); markActive() }
+    window.addEventListener('pointerdown', touchWake)
+    window.addEventListener('keydown', touchWake)
     window.addEventListener(KIOSK_ACTIVITY_EVENT, markActive)
-    const onVisibility = () => { if (document.visibilityState === 'visible') markActive() }
+    const onVisibility = () => {
+      const state = useFullyKioskStore.getState()
+      if (document.visibilityState === 'visible' && wakeAllowed('presence', state.manualScreenOffUntil, state.emergencyActive)) markActive()
+    }
     document.addEventListener('visibilitychange', onVisibility)
     return () => {
       if (timer.current) clearTimeout(timer.current)
-      window.removeEventListener('pointerdown', markActive)
-      window.removeEventListener('keydown', markActive)
+      window.removeEventListener('pointerdown', touchWake)
+      window.removeEventListener('keydown', touchWake)
       window.removeEventListener(KIOSK_ACTIVITY_EVENT, markActive)
       document.removeEventListener('visibilitychange', onVisibility)
     }
@@ -84,7 +91,7 @@ export function AmbientLayer({
 
   useEffect(() => {
     if (forceWake) {
-      createFullyKioskBridge(window.fully, window.location)?.turnScreenOn()
+      wakeKiosk('emergency')
       wakeRef.current()
     }
   }, [forceWake])
@@ -93,15 +100,27 @@ export function AmbientLayer({
   useEffect(() => {
     if (!wakeEntityId) return
     const wake = () => {
-      createFullyKioskBridge(window.fully, window.location)?.turnScreenOn()
-      wakeRef.current()
+      if (wakeKiosk('presence')) wakeRef.current()
     }
     if (useEntityStore.getState().entities[wakeEntityId]?.state === 'on') wake()
-    return useEntityStore.subscribe((state, prev) => {
+    const unsubscribePresence = useEntityStore.subscribe((state, prev) => {
       const now = state.entities[wakeEntityId]?.state
       const before = prev.entities[wakeEntityId]?.state
       if (now === 'on' && before !== 'on') wake()
     })
+    let holdTimer: ReturnType<typeof setTimeout> | undefined
+    const scheduleHoldExpiry = () => {
+      clearTimeout(holdTimer)
+      const remaining = useFullyKioskStore.getState().manualScreenOffUntil - Date.now()
+      if (remaining > 0) holdTimer = setTimeout(() => {
+        if (useEntityStore.getState().connected && useEntityStore.getState().entities[wakeEntityId]?.state === 'on') wake()
+      }, remaining + 1)
+    }
+    scheduleHoldExpiry()
+    const unsubscribeHold = useFullyKioskStore.subscribe((state, prev) => {
+      if (state.manualScreenOffUntil !== prev.manualScreenOffUntil) scheduleHoldExpiry()
+    })
+    return () => { unsubscribePresence(); unsubscribeHold(); clearTimeout(holdTimer) }
   }, [wakeEntityId])
 
   // Sensore luce del tablet: un BALZO di lux (luce accesa, ombra che passa)
@@ -113,7 +132,9 @@ export function AmbientLayer({
       if (lux == null) return
       if (prev != null) {
         const jump = lux - prev
-        if (jump > 12 || (prev >= 1 && lux / prev >= 2.5 && jump > 4)) wakeRef.current()
+        if (jump > 12 || (prev >= 1 && lux / prev >= 2.5 && jump > 4)) {
+          if (wakeKiosk('light')) wakeRef.current()
+        }
       }
       prev = lux
     })
@@ -126,7 +147,7 @@ export function AmbientLayer({
     let sensor: ProximitySensorLike | null = null
     try {
       sensor = new Ctor({ frequency: 2 })
-      sensor.addEventListener('reading', () => { if (sensor?.near) wakeRef.current() })
+      sensor.addEventListener('reading', () => { if (sensor?.near && wakeKiosk('proximity')) wakeRef.current() })
       sensor.addEventListener('error', () => { try { sensor?.stop() } catch { /* unavailable */ } })
       sensor.start()
     } catch {
@@ -158,10 +179,10 @@ export function AmbientLayer({
           exit={{ opacity: 0 }}
           transition={{ duration: 0.6, ease: [0.32, 0.72, 0, 1] }}
         >
-          <AmbientContent
+          {screenOn && <AmbientContent
             slideSeconds={settings?.slideSeconds ?? DEFAULT_SLIDE_SECONDS}
             recapEntityIds={settings?.recapEntityIds}
-          />
+          />}
         </motion.div>
       )}
     </AnimatePresence>
@@ -179,6 +200,8 @@ function AmbientContent({
   const { data: weather } = useCurrentWeather()
   const lastLux = useThemeStore((s) => s.lastLux)
   const reduceMotion = useReducedMotion()
+  const perfLite = usePerfLite()
+  const [failedPhotos, setFailedPhotos] = useState<Set<string>>(() => new Set())
   const [photoIndex, setPhotoIndex] = useState(0)
   const { data } = useQuery({
     queryKey: ['screensaver-photos'],
@@ -186,7 +209,7 @@ function AmbientContent({
     staleTime: 5 * 60_000,
     retry: 1,
   })
-  const photos = useMemo(() => data?.photos ?? [], [data?.photos])
+  const photos = useMemo(() => (data?.photos ?? []).filter((photo) => !failedPhotos.has(photo.url)), [data?.photos, failedPhotos])
 
   useEffect(() => {
     if (photos.length < 2) return
@@ -198,10 +221,12 @@ function AmbientContent({
   // aspettare la rete, e l'album remoto scalda la cache del backend.
   useEffect(() => {
     if (photos.length < 2) return
+    const preloads: HTMLImageElement[] = []
     for (const offset of [1, 2]) {
       const next = photos[(photoIndex + offset) % photos.length]
-      if (next) new Image().src = next.url
+      if (next) { const image = new Image(); image.src = next.url; preloads.push(image) }
     }
+    return () => { for (const image of preloads) image.removeAttribute('src') }
   }, [photoIndex, photos])
 
   // Buio pesto (notte fonda): l'orologio si spegne un altro po'.
@@ -218,7 +243,8 @@ function AmbientContent({
             src={photo.url}
             index={visibleIndex}
             slideSeconds={slideSeconds}
-            reduceMotion={Boolean(reduceMotion)}
+            reduceMotion={Boolean(reduceMotion) || perfLite}
+            onError={() => setFailedPhotos((current) => new Set([...current, photo.url]))}
           />
         )}
       </AnimatePresence>
@@ -259,11 +285,13 @@ function AmbientPhoto({
   index,
   slideSeconds,
   reduceMotion,
+  onError,
 }: {
   src: string
   index: number
   slideSeconds: number
   reduceMotion: boolean
+  onError: () => void
 }) {
   const [orientation, setOrientation] = useState<PhotoOrientation>('unknown')
   const movement = centeredKenBurnsMove(index, orientation)
@@ -304,6 +332,7 @@ function AmbientPhoto({
         aria-hidden="true"
         draggable={false}
         decoding="async"
+        onError={onError}
         onLoad={(event) => setOrientation(photoOrientation(event.currentTarget.naturalWidth, event.currentTarget.naturalHeight))}
         className={`absolute inset-0 h-full w-full transform-gpu object-center will-change-transform ${vertical ? 'object-contain' : 'object-cover'}`}
         animate={{

@@ -1,4 +1,4 @@
-const BASE = '/api/news'
+import { request } from './backend'
 
 export interface NewsArticle {
   id: string
@@ -13,9 +13,8 @@ export interface NewsArticle {
 export async function fetchTopNews(
   category = 'technology',
   country = 'it',
+  signal?: AbortSignal,
 ): Promise<NewsArticle[]> {
   const params = new URLSearchParams({ category, country })
-  const res = await fetch(`${BASE}?${params}`)
-  if (!res.ok) throw new Error(await res.text())
-  return res.json() as Promise<NewsArticle[]>
+  return request(`/news?${params}`, { signal })
 }

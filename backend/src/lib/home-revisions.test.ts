@@ -27,8 +27,8 @@ describe('recordHomeRevision', () => {
     const store = emptyStore()
     const next = home({ widgets: [widget('a'), widget('b'), widget('c')], layoutVersion: 2 })
     recordHomeRevision(store, home(), next, { source: 'edit', createdBy: 'desktop' })
-    expect(store.homeRevisions).toHaveLength(1)
-    expect(store.homeRevisions![0]).toMatchObject({
+    expect(store.homeRevisions).toHaveLength(2)
+    expect(store.homeRevisions!.at(-1)).toMatchObject({
       version: 2,
       source: 'edit',
       createdBy: 'desktop',
@@ -44,7 +44,7 @@ describe('recordHomeRevision', () => {
       layoutVersion: 2,
     })
     recordHomeRevision(store, previous, next, { source: 'edit', createdBy: 'tablet' })
-    expect(store.homeRevisions![0].summary).toMatchObject({ widgetsMoved: 1, widgetsResized: 1 })
+    expect(store.homeRevisions!.at(-1)!.summary).toMatchObject({ widgetsMoved: 1, widgetsResized: 1 })
   })
 
   it('detects a pure reorder', () => {
@@ -52,7 +52,7 @@ describe('recordHomeRevision', () => {
     const previous = home()
     const next = home({ order: ['b', 'a'], layoutVersion: 2 })
     recordHomeRevision(store, previous, next, { source: 'edit', createdBy: 'tablet' })
-    expect(store.homeRevisions![0].summary.reordered).toBe(true)
+    expect(store.homeRevisions!.at(-1)!.summary.reordered).toBe(true)
   })
 
   it('skips a no-op edit (identical save)', () => {
@@ -102,4 +102,23 @@ describe('findHomeRevision', () => {
     expect(findHomeRevision(store, 1)?.version).toBe(1)
     expect(findHomeRevision(store, 99)).toBeUndefined()
   })
+})
+
+it('preserves semantic widget edits and the snapshot preceding the first edit', () => {
+  const store = emptyStore()
+  const previous = home()
+  const next = home({ widgets: [{ ...widget('a'), type: 'entity', entityId: 'light.kitchen' }, widget('b')], layoutVersion: 2 })
+  recordHomeRevision(store, previous, next, { source: 'edit', createdBy: 'desktop' })
+  expect(findHomeRevision(store, 1)?.home).toEqual(previous)
+  expect(findHomeRevision(store, 2)?.summary.widgetsUpdated).toBe(1)
+  next.widgets[0].entityId = 'light.other'
+  expect(findHomeRevision(store, 2)?.home.widgets[0].entityId).toBe('light.kitchen')
+})
+
+it('ignores object property order for otherwise identical widgets', () => {
+  const store = emptyStore()
+  const previous = home()
+  const next = home({ widgets: previous.widgets.map(({ id, size, type }) => ({ type, size, id })), layoutVersion: 2 })
+  recordHomeRevision(store, previous, next, { source: 'edit', createdBy: 'desktop' })
+  expect(store.homeRevisions ?? []).toHaveLength(0)
 })

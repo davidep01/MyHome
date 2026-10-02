@@ -1,3 +1,4 @@
+import { useModalFocus } from '../../hooks/useModalFocus'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { ChevronUp, ShieldAlert, TriangleAlert } from 'lucide-react'
@@ -18,6 +19,7 @@ export function CriticalEventOverlay({ alerts, shortcuts }: { alerts: CriticalAl
   const setSelectedEntity = useUIStore((state) => state.setSelectedEntity)
   const { play } = useSoundNotifications()
   const reduceMotion = useReducedMotion()
+  const panelRef = useRef<HTMLElement>(null)
   const focusRef = useRef<HTMLButtonElement | null>(null)
   const emergencyActions = visibleShortcuts(shortcuts)
     // In emergenza NIENTE tap: ogni azione richiede la pressione prolungata.
@@ -29,6 +31,7 @@ export function CriticalEventOverlay({ alerts, shortcuts }: { alerts: CriticalAl
   const minimized = Boolean(signature) && minimizedFor === signature
   const current = alerts[0]
   const currentKind = current?.kind
+  useModalFocus(Boolean(current) && !minimized, panelRef, () => { if (current) setMinimizedFor(signature) }, 110)
 
   useEffect(() => {
     if (!signature || !currentKind) return
@@ -50,9 +53,7 @@ export function CriticalEventOverlay({ alerts, shortcuts }: { alerts: CriticalAl
     }
   }, [signature, currentKind, play])
 
-  useEffect(() => {
-    if (current && !minimized) focusRef.current?.focus()
-  }, [current, minimized])
+
 
   if (!current) return null
 
@@ -87,6 +88,8 @@ export function CriticalEventOverlay({ alerts, shortcuts }: { alerts: CriticalAl
         </motion.button>
       ) : (
         <motion.section
+          ref={panelRef}
+          tabIndex={-1}
           key="critical-dialog"
           role="alertdialog"
           aria-modal="true"

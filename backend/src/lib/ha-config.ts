@@ -1,5 +1,9 @@
+import { randomUUID } from 'node:crypto'
 import { isIP } from 'node:net'
 import { db } from '../db/client.js'
+
+let lastConnectionSignature = ''
+let connectionGeneration = randomUUID()
 
 const DEFAULT_HA_URL = 'http://homeassistant.local:8123'
 
@@ -119,7 +123,13 @@ export async function getHAConfig() {
       ? storedUrl ? 'db' as const : 'invalid' as const
       : 'default' as const
 
+  const signature = JSON.stringify([invalidUrl ? '' : envUrl || storedUrl || DEFAULT_HA_URL, envToken || config.haToken])
+  if (signature !== lastConnectionSignature) {
+    lastConnectionSignature = signature
+    connectionGeneration = randomUUID()
+  }
   return {
+    generation: connectionGeneration,
     // Never fall back to another destination when the explicitly configured
     // URL is invalid. An empty URL cannot be fetched by Node and keeps the HA
     // token fail-closed until the operator corrects the configuration.
@@ -146,3 +156,5 @@ export async function getHABaseUrl() {
 export async function getHAWebSocketUrl() {
   return homeAssistantWebSocketUrl(await getHABaseUrl())
 }
+
+export function currentHAGeneration(): string { return connectionGeneration }

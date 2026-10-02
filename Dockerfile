@@ -1,7 +1,7 @@
 # Pre-built artifacts are copied from the CI runner (see docker.yml).
 # This stage only installs pure-JS backend runtime deps — no native compilation.
 ARG TARGETARCH
-FROM node:22-alpine AS base
+FROM node:24-alpine AS base
 ARG BUILD_VERSION="dev"
 ARG TARGETARCH
 LABEL io.hass.type="app" \

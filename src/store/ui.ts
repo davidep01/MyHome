@@ -35,6 +35,8 @@ interface UIStore {
   selectedEntityId: string | null
   /** Camera rendered in the dedicated viewport-filling live overlay. */
   fullscreenCameraId: string | null
+  doorbellCameraId: string | null
+  setDoorbellCamera: (entityId: string | null) => void
   /** True while the user is arranging the custom tile layout (drag/resize). */
   editMode: boolean
   setActiveView: (view: AppView) => void
@@ -47,6 +49,8 @@ export const useUIStore = create<UIStore>((set) => ({
   activeView: viewFromPath(window.location.pathname),
   selectedEntityId: null,
   fullscreenCameraId: null,
+  doorbellCameraId: null,
+  setDoorbellCamera: (doorbellCameraId) => set({ doorbellCameraId }),
   editMode: false,
   setActiveView: (activeView) => set({ activeView, selectedEntityId: null, fullscreenCameraId: null, editMode: false }),
   setSelectedEntity: (selectedEntityId) => set({ selectedEntityId }),

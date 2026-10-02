@@ -322,6 +322,7 @@ export function tabletHomeLayout(config: AppConfig) {
     layoutVersion: home.layoutVersion ?? 1,
     updatedAt: home.updatedAt ?? new Date(0).toISOString(),
     updatedBy: home.updatedBy ?? 'migration',
+    solarProductionEntityId: config.solarProductionEntityId,
     userName: config.userName,
     dashboardName: config.dashboardName,
     groups: config.groups ?? [],

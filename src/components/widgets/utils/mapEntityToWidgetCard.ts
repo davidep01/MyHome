@@ -1,3 +1,4 @@
+import { climateAction, temperatureValue } from '../../../lib/climateState'
 import type { HassEntity } from 'home-assistant-js-websocket'
 import {
   Battery, CircleArrowUp, Gauge, Home, ListChecks, Siren,
@@ -254,11 +255,11 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
     case 'thermostat': {
       const current = numericState(entity?.attributes?.current_temperature)
       const target = numericState(entity?.attributes?.temperature)
-      const action = String(entity?.attributes?.hvac_action ?? rawState)
+      const action = climateAction(rawState, entity?.attributes)
       const acting = action === 'heating' || action === 'cooling'
       const tone = action === 'heating' ? widgetTones.heat : action === 'cooling' ? widgetTones.cool : temperatureTone(target ?? current)
       const room = current !== undefined ? `stanza ${fmt(current)}°` : undefined
-      const verb = action === 'heating' ? 'Riscalda' : action === 'cooling' ? 'Raffresca' : rawState === 'off' ? 'Spento' : stateLabel(rawState)
+      const verb = action === 'heating' ? 'Riscalda' : action === 'cooling' ? 'Raffresca' : rawState === 'off' ? 'Spento' : action === 'idle' ? 'In pausa' : stateLabel(rawState)
       return {
         ...base, Icon: action === 'cooling' ? AnimSnowflake : action === 'heating' ? AnimFlame : AnimThermometer,
         status: action === 'cooling' ? 'cooling' : action === 'heating' ? 'heating' : rawState === 'off' ? 'off' : 'idle',
@@ -391,8 +392,8 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
         accentColor: hasAny(rawState, ['rain', 'pouring']) ? widgetTones.cool.color : widgetTones.light.color,
         isActive: !unavailable,
         state: stateLabel(rawState),
-        value: entity?.attributes?.temperature !== undefined ? fmt(Number(entity.attributes.temperature)) : '--',
-        unit: '°',
+        value: temperatureValue(entity?.attributes?.temperature, entity?.attributes?.temperature_unit ?? '°C')?.value !== undefined ? fmt(temperatureValue(entity?.attributes?.temperature, entity?.attributes?.temperature_unit ?? '°C')!.value) : '--',
+        unit: String(entity?.attributes?.temperature_unit ?? '°C'),
       }
     case 'camera':
     case 'doorbell':

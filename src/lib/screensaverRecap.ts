@@ -1,3 +1,4 @@
+import { temperatureValue } from './climateState'
 import type { HassEntities, HassEntity } from 'home-assistant-js-websocket'
 import type { AIContextEntity } from '../api/ai'
 import { dateKeyForLocalDate, isWasteCollectionSensor, wastePickups } from './wasteCollection'
@@ -73,11 +74,11 @@ function sensorReading(entity: HassEntity): string {
 function informativeState(entity: HassEntity, todayKey: string): string {
   const domain = entity.entity_id.split('.')[0]
   if (domain === 'climate') {
-    const current = Number(entity.attributes?.current_temperature)
-    const target = Number(entity.attributes?.temperature)
+    const current = (temperatureValue(entity.attributes?.current_temperature, entity.attributes?.temperature_unit ?? '°C')?.value ?? NaN)
+    const target = (temperatureValue(entity.attributes?.temperature, entity.attributes?.temperature_unit ?? '°C')?.value ?? NaN)
     return [entity.state,
-      Number.isFinite(current) ? `ambiente ${current} °C` : '',
-      Number.isFinite(target) ? `obiettivo ${target} °C` : '',
+      Number.isFinite(current) ? `ambiente ${current} ${entity.attributes?.temperature_unit ?? '°C'}` : '',
+      Number.isFinite(target) ? `obiettivo ${target} ${entity.attributes?.temperature_unit ?? '°C'}` : '',
     ].filter(Boolean).join(' · ')
   }
   if (domain === 'media_player') {
@@ -108,7 +109,7 @@ function priorityOf(entity: HassEntity): number | null {
   if (domain === 'cover' && state !== 'closed' && state !== 'unavailable') return 1
   if (domain === 'person') return 2
   if (domain === 'climate' && state !== 'unavailable'
-    && (state !== 'off' || Number.isFinite(Number(entity.attributes?.current_temperature)))) return 3
+    && (state !== 'off' || Number.isFinite((temperatureValue(entity.attributes?.current_temperature, entity.attributes?.temperature_unit ?? '°C')?.value ?? NaN)))) return 3
   if (domain === 'media_player' && state === 'playing') return 3
   if (domain === 'light' && state === 'on') return 4
   if ((domain === 'vacuum' || domain === 'lawn_mower') && ACTIVE_STATES.has(state)) return 4
@@ -171,15 +172,15 @@ function changeDescription(previous: HassEntity, current: HassEntity): string | 
   }
 
   if (domain === 'climate') {
-    const before = Number(previous.attributes?.current_temperature)
-    const now = Number(current.attributes?.current_temperature)
+    const before = (temperatureValue(previous.attributes?.current_temperature, previous.attributes?.temperature_unit ?? '°C')?.value ?? NaN)
+    const now = (temperatureValue(current.attributes?.current_temperature, current.attributes?.temperature_unit ?? '°C')?.value ?? NaN)
     if (Number.isFinite(now) && (!Number.isFinite(before) || Math.abs(now - before) >= 0.2)) {
-      return `${name}: temperatura ${localizedNumber(now)} °C`
+      return `${name}: temperatura ${localizedNumber(now)} ${current.attributes?.temperature_unit ?? '°C'}`
     }
     if (previous.state !== current.state) return `${name}: clima ${clean(current.state, 'aggiornato', 40)}`
-    const beforeTarget = Number(previous.attributes?.temperature)
-    const target = Number(current.attributes?.temperature)
-    if (Number.isFinite(target) && beforeTarget !== target) return `${name}: obiettivo ${localizedNumber(target)} °C`
+    const beforeTarget = (temperatureValue(previous.attributes?.temperature, previous.attributes?.temperature_unit ?? '°C')?.value ?? NaN)
+    const target = (temperatureValue(current.attributes?.temperature, current.attributes?.temperature_unit ?? '°C')?.value ?? NaN)
+    if (Number.isFinite(target) && beforeTarget !== target) return `${name}: obiettivo ${localizedNumber(target)} ${current.attributes?.temperature_unit ?? '°C'}`
     return null
   }
 
@@ -308,11 +309,11 @@ export function buildScreensaverRecapInput(
 
   const temperatures = all
     .filter((entity) => (entity.entity_id.startsWith('sensor.') && entity.attributes?.device_class === 'temperature')
-      || (entity.entity_id.startsWith('climate.') && Number.isFinite(Number(entity.attributes?.current_temperature))))
+      || (entity.entity_id.startsWith('climate.') && Number.isFinite((temperatureValue(entity.attributes?.current_temperature, entity.attributes?.temperature_unit ?? '°C')?.value ?? NaN))))
     .sort((left, right) => changedAt(right) - changedAt(left))
     .slice(0, 3)
     .map((entity) => entity.entity_id.startsWith('climate.')
-      ? `${nameOf(entity)} ${localizedNumber(Number(entity.attributes?.current_temperature))} °C`
+      ? `${nameOf(entity)} ${localizedNumber((temperatureValue(entity.attributes?.current_temperature, entity.attributes?.temperature_unit ?? '°C')?.value ?? NaN))} ${entity.attributes?.temperature_unit ?? '°C'}`
       : `${nameOf(entity)} ${sensorReading(entity)}`)
   if (temperatures.length > 0) localParts.push(`Temperature: ${temperatures.join(' · ')}.`)
 

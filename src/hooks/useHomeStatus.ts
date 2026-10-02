@@ -1,3 +1,4 @@
+import { homeDataStatus } from '../lib/homeDataStatus'
 import { useMemo } from 'react'
 import { AlertTriangle, CheckCircle2, ShieldAlert } from 'lucide-react'
 import { useEntityStore } from '../store/entities'
@@ -20,7 +21,9 @@ const criticalBinaryClasses = new Set([
 
 export function useHomeStatus() {
   const entities = useEntityStore((s) => s.entities)
+  const hydrated = useEntityStore((s) => s.hydrated)
   const notifications = useNotifications()
+  const connectionStatus = useEntityStore((s) => s.connectionStatus)
   const { data: layout } = useTabletLayout('home')
   const overrides = layout?.deviceOverrides
 
@@ -46,7 +49,7 @@ export function useHomeStatus() {
     if (triggeredAlarms.length > 0 || criticalNotifications.length > 0) {
       return {
         label: alertCount === 1 ? '1 avviso critico' : `${alertCount} avvisi critici`,
-        detail: triggeredAlarms[0]?.attributes?.friendly_name as string | undefined,
+        detail: connectionStatus !== 'connected' ? 'Ultimo avviso noto: stato da verificare' : triggeredAlarms[0]?.attributes?.friendly_name as string | undefined,
         count: alertCount,
         tone: 'critical' as const,
         color: tokens.accent.red,
@@ -65,13 +68,16 @@ export function useHomeStatus() {
       }
     }
 
+    const dataStatus = homeDataStatus(connectionStatus, Object.keys(entities).length, hydrated)
+    if (dataStatus) return { ...dataStatus, count: 0, tone: 'warning' as const, color: tokens.accent.orange, Icon: AlertTriangle }
+
     return {
-      label: 'Tutto è sicuro',
+      label: 'Nessun avviso ricevuto',
       detail: 'Nessun avviso attivo',
       count: 0,
       tone: 'ok' as const,
       color: tokens.accent.green,
       Icon: CheckCircle2,
     }
-  }, [entities, notifications, overrides])
+  }, [entities, notifications, overrides, connectionStatus, hydrated])
 }

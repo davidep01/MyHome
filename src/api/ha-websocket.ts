@@ -16,7 +16,7 @@ import { alarmApi, haApi, kioskApi, type AlarmTestRemoteState } from './backend'
  * Set localStorage `myhome.haStream` to `off` to force the poll path.
  */
 
-type HaStreamEvent =
+type HaStreamEvent = (
   | { type: 'snapshot'; entities: HassEntity[] }
   | { type: 'status'; connected: boolean; message?: string }
   | { type: 'delta'; changed: HassEntity[]; removed: string[] }
@@ -24,6 +24,7 @@ type HaStreamEvent =
   | { type: 'doorbell-test'; doorbellId: string }
   | { type: 'kiosk-command'; commandId: string; target: string; command: string; value?: number | string }
   | ({ type: 'alarm-test' } & AlarmTestRemoteState)
+) & { haGeneration?: string }
 
 const PROXY_POLL_MS = 4000
 const ALARM_TEST_SYNC_MS = 1_500
@@ -68,6 +69,11 @@ function resetDeltaBuffer(): void {
 
 function applyStreamEvent(event: HaStreamEvent): void {
   const store = useEntityStore.getState()
+  if (event.haGeneration && event.haGeneration !== store.sourceGeneration) {
+    resetDeltaBuffer()
+    store.setSourceGeneration(event.haGeneration)
+    if (useEntityStore.getState().sourceGeneration !== event.haGeneration) return
+  }
   if (event.type === 'snapshot') {
     resetDeltaBuffer()
     const next: HassEntities = {}
@@ -155,11 +161,12 @@ function stopAlarmTestSync(): void {
 function pollProxyStates(): Promise<void> {
   if (proxyPollInFlight) return proxyPollInFlight
   const controller = new AbortController()
+  const generation = useEntityStore.getState().sourceGeneration
   proxyPollAbort = controller
   const task = (async () => {
     try {
       const states = await haApi.states(controller.signal) as HassEntity[]
-      if (controller.signal.aborted) return
+      if (controller.signal.aborted || generation !== useEntityStore.getState().sourceGeneration) return
       const next = states.reduce<HassEntities>((acc, entity) => {
         acc[entity.entity_id] = entity
         return acc

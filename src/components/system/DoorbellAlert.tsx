@@ -1,5 +1,8 @@
+import { performEntityAction, entityActionPending } from '../../lib/entityActions'
+import { wakeKiosk } from '../../lib/kioskWakePolicy'
 /* eslint-disable react-hooks/set-state-in-effect --
    The recognition result is driven by the ring lifecycle effect. */
+import { useModalFocus } from '../../hooks/useModalFocus'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Bell, X, Video, ScanFace, Check, LockOpen } from 'lucide-react'
@@ -11,7 +14,6 @@ import { aiApi } from '../../api/ai'
 import { callService } from '../../api/ha-websocket'
 import { cn } from '../../lib/utils'
 import type { DoorbellDevice } from '../../api/backend'
-import { markKioskActivity } from '../../lib/kioskActivity'
 import { shouldRecognizeDoorbell } from '../../lib/doorbellRecognition'
 import { entityName } from '../widgets/utils/mapEntityToWidgetCard'
 import { visibleShortcuts } from '../../lib/actionShortcuts'
@@ -57,14 +59,21 @@ function describe(r: Recog | null, known: string[], vision: boolean): { title: s
 export function DoorbellAlert({ kiosk = false, doorbells, vision = false }: { kiosk?: boolean; doorbells?: DoorbellDevice[]; vision?: boolean }) {
   const { active, dismiss, autoDismissMs } = useDoorbells(doorbells)
   const entities = useEntityStore((s) => s.entities)
+  const panelRef = useRef<HTMLDivElement>(null)
   const ringing = Boolean(active)
+  useModalFocus(ringing, panelRef, dismiss, 100)
   const cameraEntityId = active?.device.cameraEntityId ?? ''
   const ringAt = active?.ringAt ?? null
+  const doorbellId = active?.device.id ?? ''
   const doorbellName = active?.device.name ?? 'Campanello'
   const doorbellLocation = active?.device.location
   const camera = entities[cameraEntityId]
   const hasCamera = Boolean(camera) && camera?.state !== 'unavailable'
   const [recog, setRecog] = useState<Recog | null>(null)
+  useEffect(() => {
+    useUIStore.getState().setDoorbellCamera(ringing ? cameraEntityId : null)
+    return () => useUIStore.getState().setDoorbellCamera(null)
+  }, [ringing, cameraEntityId])
   const setFullscreenCamera = useUIStore((s) => s.setFullscreenCamera)
 
   useEffect(() => {
@@ -72,7 +81,7 @@ export function DoorbellAlert({ kiosk = false, doorbells, vision = false }: { ki
       // Il campanello ha priorità sul live aperto manualmente e ne riusa il
       // budget WebRTC invece di lasciare due sessioni Ring contemporanee.
       setFullscreenCamera(null)
-      markKioskActivity()
+      wakeKiosk('doorbell')
     }
   }, [ringing, ringAt, setFullscreenCamera])
 
@@ -91,12 +100,13 @@ export function DoorbellAlert({ kiosk = false, doorbells, vision = false }: { ki
   useEffect(() => {
     if (!recognitionEnabled) { setRecog(null); return }
     let cancelled = false
+    const controller = new AbortController()
     setRecog({ status: 'scanning' })
-    aiApi.recognize(cameraEntityId, active!.device.id)
+    aiApi.recognize(cameraEntityId, doorbellId, controller.signal)
       .then((r) => { if (!cancelled) setRecog({ status: 'done', name: r.name, known: r.known }) })
       .catch(() => { if (!cancelled) setRecog({ status: 'error' }) })
-    return () => { cancelled = true }
-  }, [recognitionEnabled, cameraEntityId, ringAt, active])
+    return () => { cancelled = true; controller.abort() }
+  }, [recognitionEnabled, cameraEntityId, ringAt, doorbellId])
 
   const { title, pill, tone } = describe(recog, personNames, recognitionEnabled)
   const toneColor = TONE_COLOR[tone]
@@ -106,6 +116,11 @@ export function DoorbellAlert({ kiosk = false, doorbells, vision = false }: { ki
     <AnimatePresence>
       {ringing && (
         <motion.div
+          ref={panelRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Campanello: ${doorbellName}`}
+          tabIndex={-1}
           className="fixed inset-0 z-[100] flex flex-col bg-black"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -118,7 +133,7 @@ export function DoorbellAlert({ kiosk = false, doorbells, vision = false }: { ki
           ) : (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[#111]">
               <Video size={40} className="text-white/30" />
-              <p className="text-sm text-white/40">Nessuna telecamera associata al campanello</p>
+              <p className="text-sm text-white/40">{cameraEntityId ? 'Telecamera del campanello non disponibile' : 'Nessuna telecamera associata al campanello'}</p>
               {!kiosk && <p className="text-xs text-white/25">Configura la videocamera nel pannello desktop.</p>}
             </div>
           )}
@@ -241,6 +256,9 @@ function HoldUnlockButton({ entityId, simulated = false }: { entityId: string; s
   const { heavy } = useHaptic()
   const [holding, setHolding] = useState(false)
   const [failed, setFailed] = useState(false)
+  const [pending, setPending] = useState(false)
+  const simulatedRef = useRef(simulated)
+  useEffect(() => { simulatedRef.current = simulated }, [simulated])
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => () => {
@@ -252,19 +270,21 @@ function HoldUnlockButton({ entityId, simulated = false }: { entityId: string; s
   const unavailable = !entity || entity.state === 'unavailable'
 
   const start = () => {
-    if (simulated || unavailable || unlocked || timer.current) return
+    if (simulatedRef.current || unavailable || unlocked || pending || entity?.state === 'unlocking' || entityActionPending(entityId) || timer.current) return
     setFailed(false)
     setHolding(true)
     timer.current = setTimeout(() => {
       timer.current = null
       setHolding(false)
       heavy()
-      if (simulated) return
-      setOptimisticState(entityId, 'unlocking')
-      callService('lock', 'unlock', { entity_id: entityId }).catch(() => {
-        setOptimisticState(entityId, entity?.state ?? 'locked')
-        setFailed(true)
-      })
+      const current = useEntityStore.getState().entities[entityId]
+      if (simulatedRef.current || !current || ['unlocked', 'unlocking', 'unknown', 'unavailable'].includes(current.state)) return
+      setPending(true)
+      void performEntityAction(entityId,
+        () => setOptimisticState(entityId, 'unlocking'),
+        () => callService('lock', 'unlock', { entity_id: entityId }),
+        () => setOptimisticState(entityId, current.state),
+      ).catch(() => setFailed(true)).finally(() => setPending(false))
     }, 900)
   }
   const cancel = () => {
@@ -290,7 +310,7 @@ function HoldUnlockButton({ entityId, simulated = false }: { entityId: string; s
         event.preventDefault()
         cancel()
       }}
-      disabled={simulated || unavailable || unlocked}
+      disabled={simulated || unavailable || unlocked || pending || entity?.state === 'unlocking'}
       className={cn(
         'relative flex min-h-[52px] flex-1 items-center justify-center gap-2 overflow-hidden rounded-full text-base font-semibold backdrop-blur transition',
         unlocked ? 'bg-[#30d158]/25 text-[#7ee2a8]' : failed ? 'bg-red-500/25 text-red-200' : 'bg-white/15 text-white',
@@ -304,6 +324,7 @@ function HoldUnlockButton({ entityId, simulated = false }: { entityId: string; s
       {unlocked ? <Check size={18} className="relative" /> : <LockOpen size={18} className="relative" />}
       <span className="relative truncate">
         {unavailable ? `${name} non disponibile`
+          : pending ? `Apertura in corso: ${name}`
           : unlocked ? `${name} aperta`
             : failed ? `Riprova — ${name}`
               : `Tieni premuto: apri ${name}`}

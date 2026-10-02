@@ -35,3 +35,8 @@ describe('criticalAlertEventKey', () => {
       .not.toBe(criticalAlertEventKey({ ...base, changedAt: '2026-07-17T11:00:00Z' }))
   })
 })
+
+it('keeps diagnostic problems outside emergency while safety remains critical', () => {
+  expect(deriveCriticalAlerts({ problem: entity('binary_sensor.printer', 'on', 'problem') })).toEqual([])
+  expect(deriveCriticalAlerts({ safety: entity('binary_sensor.impianto', 'on', 'safety') })).toHaveLength(1)
+})

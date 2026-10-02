@@ -1,4 +1,5 @@
-import { useEffect, useId, useMemo, useRef } from 'react'
+import { useModalFocus } from '../../hooks/useModalFocus'
+import { useId, useMemo, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
@@ -31,15 +32,6 @@ interface GlassSheetProps {
   ariaLabel?: string
 }
 
-const FOCUSABLE = [
-  'a[href]',
-  'button:not([disabled])',
-  'input:not([disabled]):not([type="hidden"])',
-  'select:not([disabled])',
-  'textarea:not([disabled])',
-  '[tabindex]:not([tabindex="-1"])',
-].join(',')
-
 export function GlassSheet({
   open,
   onClose,
@@ -53,58 +45,10 @@ export function GlassSheet({
 }: GlassSheetProps) {
   const isCenter = side === 'center'
   const panelRef = useRef<HTMLDivElement>(null)
-  const onCloseRef = useRef(onClose)
+  const rootRef = useRef<HTMLDivElement>(null)
   const titleId = useId()
 
-  // I call-site passano spesso callback inline. Manteniamo l'ultima callback
-  // senza riavviare il focus trap a ogni render live di Home Assistant.
-  useEffect(() => { onCloseRef.current = onClose }, [onClose])
-
-  useEffect(() => {
-    if (!open) return
-    const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null
-    const frame = requestAnimationFrame(() => {
-      const panel = panelRef.current
-      if (!panel) return
-      const first = [...panel.querySelectorAll<HTMLElement>(FOCUSABLE)]
-        .find((element) => element.getClientRects().length > 0)
-      ;(first ?? panel).focus({ preventScroll: true })
-    })
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.preventDefault()
-        onCloseRef.current()
-        return
-      }
-      if (event.key !== 'Tab') return
-      const panel = panelRef.current
-      if (!panel) return
-      const focusable = [...panel.querySelectorAll<HTMLElement>(FOCUSABLE)]
-        .filter((element) => element.getClientRects().length > 0)
-      if (focusable.length === 0) {
-        event.preventDefault()
-        panel.focus()
-        return
-      }
-      const first = focusable[0]
-      const last = focusable[focusable.length - 1]
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault()
-        last.focus()
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault()
-        first.focus()
-      }
-    }
-
-    document.addEventListener('keydown', handleKeyDown)
-    return () => {
-      cancelAnimationFrame(frame)
-      document.removeEventListener('keydown', handleKeyDown)
-      if (previous?.isConnected) previous.focus({ preventScroll: true })
-    }
-  }, [open])
+  useModalFocus(open, panelRef, onClose, 50, rootRef)
 
   // Offset del tocco rispetto al centro viewport, catturato all'apertura.
   // In perf-lite si torna al semplice fade+scale (meno movimento su GPU deboli).
@@ -169,7 +113,7 @@ export function GlassSheet({
       aria-labelledby={title ? titleId : undefined}
       aria-label={title ? undefined : (ariaLabel ?? 'Pannello')}
       tabIndex={-1}
-      className={cn('glass glass-border flex min-h-0 flex-col overflow-hidden', positionClass, className)}
+      className={cn('pointer-events-auto glass glass-border flex min-h-0 flex-col overflow-hidden', positionClass, className)}
       style={sheetStyle}
       variants={variants}
       initial="hidden"
@@ -180,10 +124,10 @@ export function GlassSheet({
     >
       {!hideHeader && (
         <div className="mb-4 flex shrink-0 items-center justify-between pt-1">
-          {title && <span id={titleId} className="truncate text-base font-semibold text-black/90">{title}</span>}
+          {title && <span id={titleId} className="truncate text-base font-semibold text-[var(--ink)]">{title}</span>}
           <button
             onClick={onClose}
-            className="ml-auto flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-black/10 text-black/60 transition-colors hover:text-[#1d1d1f]"
+            className="ml-auto flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--fill-muted)] text-[var(--ink-secondary)] transition-colors hover:text-[var(--ink)]"
             aria-label="Chiudi"
           >
             <X size={16} />
@@ -207,6 +151,7 @@ export function GlassSheet({
         isCenter ? (
           // Backdrop is a flex container that centers the modal — guaranteed on-screen.
           <motion.div
+            ref={rootRef}
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40"
             style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
             initial={{ opacity: 0 }}
@@ -217,9 +162,9 @@ export function GlassSheet({
             {panel}
           </motion.div>
         ) : (
-          <>
+          <div ref={rootRef} className="pointer-events-none fixed inset-0 z-50">
             <motion.div
-              className="fixed inset-0 z-40 bg-black/40"
+              className="pointer-events-auto fixed inset-0 z-40 bg-black/40"
               style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -227,7 +172,7 @@ export function GlassSheet({
               onClick={onClose}
             />
             {panel}
-          </>
+          </div>
         )
       )}
     </AnimatePresence>

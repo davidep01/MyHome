@@ -45,6 +45,9 @@ interface FullyKioskSnapshot {
   motionRunning: boolean | null
   screensaverActive: boolean
   lastMotionAt: number | null
+  manualScreenOffUntil: number
+  manualBrightnessUntil: number
+  manualBrightness: number | null
   /** Emergenza in corso (§11): schermo acceso e luminosità al massimo. */
   emergencyActive: boolean
 }
@@ -66,6 +69,9 @@ function initialSnapshot(availability: FullyKioskAvailability = 'unavailable'): 
     motionRunning: null,
     screensaverActive: false,
     lastMotionAt: null,
+    manualScreenOffUntil: 0,
+    manualBrightnessUntil: 0,
+    manualBrightness: null,
     emergencyActive: false,
   }
 }
@@ -77,5 +83,8 @@ export const useFullyKioskStore = create<FullyKioskStore>((set) => ({
   _reset: (availability) => set((state) => ({
     ...initialSnapshot(availability),
     emergencyActive: state.emergencyActive,
+    manualScreenOffUntil: state.manualScreenOffUntil,
+    manualBrightnessUntil: state.manualBrightnessUntil,
+    manualBrightness: state.manualBrightness,
   })),
 }))

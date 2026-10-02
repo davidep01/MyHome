@@ -1,8 +1,12 @@
+import { HOUSE_CONSUMPTION_ID } from '../lib/statusBarEnergy'
+import { faceImageBudgetError } from '../../backend/src/lib/face-limits'
 import { useId, useMemo, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Bell, CalendarDays, Check, Cloud, Gauge, Images, LayoutGrid, MonitorSmartphone, Newspaper, Pencil, Plus, RefreshCw, Save, ScanFace, Search, Siren, Sparkles, SunMoon, Trash2, Volume2, VolumeX,
 } from 'lucide-react'
+import { AdminSections } from '../components/layout/AdminSections'
+import { useAdminSection } from '../hooks/useAdminSection'
 import { GlassCard } from '../components/glass/GlassCard'
 import { GlassSheet } from '../components/glass/GlassSheet'
 import { useDashboardConfig, useUpdateConfig } from '../hooks/useDashboardConfig'
@@ -25,21 +29,29 @@ import { isScreensaverRecapCandidate } from '../lib/screensaverRecap'
  * (attiva / manca chiave / spenta), non solo i campi. Assorbe le sezioni
  * vive del vecchio SettingsPage: preferenze, tema/sensori, campanelli, suoni.
  */
+const FUNCTION_SECTIONS = [
+  { id: 'preferences', label: 'Preferenze', description: 'Identità della casa, meteo, calendario e integrazioni' },
+  { id: 'display', label: 'Tablet e aspetto', description: 'Home, tema, standby e risveglio' },
+  { id: 'doorbells', label: 'Campanelli', description: 'Video, riconoscimento e azioni alla porta' },
+  { id: 'alerts', label: 'Suoni e sicurezza', description: 'Notifiche sonore e gestione delle emergenze' },
+] as const
+
 export function FunctionsPage() {
+  const { section, select } = useAdminSection(FUNCTION_SECTIONS)
   const { data: config, isPending: configPending, isError: configError, error: configQueryError } = useDashboardConfig()
   const { data: status, isPending: statusPending, isError: statusError } = useQuery({ queryKey: ['system-status'], queryFn: systemApi.status, staleTime: 30_000 })
 
-  if (configPending && !config) return <div className="flex h-full items-center justify-center text-sm text-black/45" role="status">Caricamento delle funzioni…</div>
+  if (configPending && !config) return <div className="flex h-full items-center justify-center text-sm text-[var(--ink-secondary)]" role="status">Caricamento delle funzioni…</div>
   if (configError && !config) {
     return <PageError error={configQueryError} fallback="Funzioni non disponibili. Controlla il servizio MyHome nella rete LAN." />
   }
   if (!config) return null
 
   return (
-    <div className="flex h-full flex-col gap-4 overflow-y-auto pr-1">
+    <div className="flex h-full flex-col gap-4 overflow-y-auto pr-1 pb-6">
       <div>
-        <h1 className="text-2xl font-semibold text-[#1d1d1f] sm:text-3xl">Funzioni</h1>
-        <p className="mt-1 text-sm text-black/45">Funzioni e preferenze condivise dai dispositivi MyHome nella rete LAN</p>
+        <h1 className="text-2xl font-semibold text-[var(--ink)] sm:text-3xl">Funzioni</h1>
+        <p className="mt-1 text-sm text-[var(--ink-secondary)]">Funzioni e preferenze condivise dai dispositivi MyHome nella rete LAN</p>
       </div>
       {configError && (
         <p className="rounded-[10px] bg-orange-500/10 px-3 py-2 text-xs text-orange-700" role="alert">
@@ -47,17 +59,12 @@ export function FunctionsPage() {
         </p>
       )}
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-        <PreferencesCard />
-        <ThemeCard />
-        <DoorbellsCard />
-        <div className="flex flex-col gap-4">
-          <SoundsCard />
-          <KioskCard />
-          <EmergencyCard />
-          <IntegrationsCard gemini={status?.integrations.gemini} openweather={status?.integrations.openweather} pending={statusPending} error={statusError} />
-        </div>
-      </div>
+      <AdminSections sections={FUNCTION_SECTIONS} active={section} onSelect={select} />
+      <p className="text-sm text-[var(--ink-secondary)]">{FUNCTION_SECTIONS.find((item) => item.id === section)?.description}</p>
+      <div hidden={section !== 'preferences'}><div className="grid grid-cols-1 gap-5 xl:grid-cols-2"><PreferencesCard /><IntegrationsCard gemini={status?.integrations.gemini} openweather={status?.integrations.openweather} pending={statusPending} error={statusError} /></div></div>
+      <div hidden={section !== 'display'}><div className="grid grid-cols-1 gap-5 xl:grid-cols-2"><ThemeCard /><KioskCard /></div></div>
+      <div hidden={section !== 'doorbells'}><DoorbellsCard /></div>
+      <div hidden={section !== 'alerts'}><div className="grid grid-cols-1 gap-5 xl:grid-cols-2"><SoundsCard /><EmergencyCard /></div></div>
     </div>
   )
 }
@@ -65,14 +72,14 @@ export function FunctionsPage() {
 function FeatureHeader({ Icon, title, badge, tone = 'neutral' }: { Icon: React.ElementType; title: string; badge?: string; tone?: 'ok' | 'warn' | 'neutral' }) {
   return (
     <div className="flex items-center gap-2.5">
-      <div className="flex h-9 w-9 items-center justify-center rounded-[11px] bg-black/[0.06] text-black/55">
+      <div className="flex h-9 w-9 items-center justify-center rounded-[11px] bg-[var(--fill-subtle)] text-[var(--ink-secondary)]">
         <Icon size={17} />
       </div>
-      <h2 className="flex-1 text-sm font-semibold text-[#1d1d1f]">{title}</h2>
+      <h2 className="flex-1 text-sm font-semibold text-[var(--ink)]">{title}</h2>
       {badge && (
         <span className={cn(
           'rounded-full px-2.5 py-1 text-[11px] font-semibold',
-          tone === 'ok' ? 'bg-green-500/12 text-green-700' : tone === 'warn' ? 'bg-orange-500/12 text-orange-700' : 'bg-black/[0.06] text-black/45',
+          tone === 'ok' ? 'bg-green-500/12 text-green-700' : tone === 'warn' ? 'bg-orange-500/12 text-orange-700' : 'bg-[var(--fill-subtle)] text-[var(--ink-secondary)]',
         )}>
           {badge}
         </span>
@@ -87,6 +94,7 @@ function PreferencesCard() {
   const { data: config } = useDashboardConfig()
   const { mutate: update, isPending } = useUpdateConfig()
   const queryClient = useQueryClient()
+  const [formVersion, setFormVersion] = useState<number | undefined>(undefined)
   const [form, setForm] = useState<{ userName: string; dashboardName: string; weatherCity: string; newsFeedUrl: string; calendarFeedUrl: string } | null>(null)
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null)
   const id = useId()
@@ -103,15 +111,15 @@ function PreferencesCard() {
   const readOnly = config.storage?.writable === false
   const field = (key: keyof typeof value, label: string, placeholder?: string, type: 'text' | 'url' = 'text') => (
     <div className="space-y-1.5">
-      <label htmlFor={`${id}-${key}`} className="text-xs font-semibold text-black/50">{label}</label>
+      <label htmlFor={`${id}-${key}`} className="text-xs font-semibold text-[var(--ink-secondary)]">{label}</label>
       <input
         id={`${id}-${key}`}
         type={type}
         value={value[key]}
         disabled={readOnly}
-        onChange={(e) => { setMessage(null); setForm({ ...value, [key]: e.target.value }) }}
+        onChange={(e) => { if (!form) setFormVersion(config.configVersion); setMessage(null); setForm({ ...value, [key]: e.target.value }) }}
         placeholder={placeholder}
-        className="w-full min-h-[44px] rounded-[12px] bg-black/8 px-3 py-3 text-sm text-[#1d1d1f] outline-none transition-colors focus:bg-black/12"
+        className="w-full min-h-[44px] rounded-[12px] bg-[var(--fill-subtle)] px-3 py-3 text-sm text-[var(--ink)] outline-none transition-colors focus:bg-[var(--fill-subtle)]"
       />
     </div>
   )
@@ -131,7 +139,7 @@ function PreferencesCard() {
           <CalendarDays size={15} /> Calendario eventi
         </div>
         {field('calendarFeedUrl', 'Link pubblico iCalendar / ICS', 'webcal://… o https://…/calendar.ics')}
-        <p className="mt-2 text-[11px] leading-relaxed text-black/40">
+        <p className="mt-2 text-[11px] leading-relaxed text-[var(--ink-tertiary)]">
           Usa il link di pubblicazione in sola lettura fornito da Apple, Google, Outlook o dal tuo calendario.
         </p>
       </div>
@@ -140,20 +148,22 @@ function PreferencesCard() {
         onClick={() => {
           if (!form) return
           setMessage(null)
-          update(form, {
+          update({ ...form, configVersion: formVersion }, {
             onSuccess: () => {
               setForm(null)
               void queryClient.invalidateQueries({ queryKey: ['calendar-events'] })
               setMessage({ ok: true, text: 'Preferenze salvate.' })
             },
-            onError: () => setMessage({ ok: false, text: 'Salvataggio non riuscito. Riprova.' }),
+            onError: (error) => setMessage({ ok: false, text: error.message }),
           })
         }}
         disabled={readOnly || isPending || !form}
-        className="flex w-full min-h-[44px] items-center justify-center gap-2 rounded-[14px] bg-[#0066cc] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#0052a3] disabled:opacity-40"
+        className="flex w-full min-h-[44px] items-center justify-center gap-2 rounded-[14px] bg-[var(--action-blue)] px-4 text-sm font-semibold text-[var(--on-accent)] transition-colors hover:opacity-90 disabled:opacity-40"
       >
         <Save size={14} /> {isPending ? 'Salvataggio…' : 'Salva'}
       </button>
+      {form && <p className="text-xs text-[var(--ink-secondary)]">Modifiche non salvate{formVersion !== config.configVersion ? ' · la configurazione è cambiata su un altro dispositivo' : ''}</p>}
+      {form && formVersion !== config.configVersion && <button type="button" onClick={() => { setForm(null); setMessage(null) }} className="min-h-11 text-sm font-semibold text-[var(--action-blue)]">Carica preferenze aggiornate</button>}
       <SaveMessage message={message} />
     </GlassCard>
   )
@@ -174,6 +184,7 @@ function ThemeCard() {
   const setThemeMode = useThemeStore((s) => s.setThemeMode)
   const sensorState = useThemeStore((s) => s.sensorState)
   const lastLux = useThemeStore((s) => s.lastLux)
+  const lastLuma = useThemeStore((s) => s.lastLuma)
   const source = useThemeStore((s) => s.source)
 
   const modes: { id: 'auto' | 'light' | 'dark'; label: string }[] = [
@@ -190,20 +201,20 @@ function ThemeCard() {
             type="button"
             onClick={() => setThemeMode(m.id)}
             aria-pressed={themeMode === m.id}
-            className={cn('min-h-[44px] flex-1 rounded-[12px] text-sm font-semibold transition', themeMode === m.id ? 'bg-[#0066cc] text-white' : 'bg-black/[0.06] text-black/60')}
+            className={cn('min-h-[44px] flex-1 rounded-[12px] text-sm font-semibold transition', themeMode === m.id ? 'bg-[var(--action-blue)] text-[var(--on-accent)]' : 'bg-[var(--fill-subtle)] text-[var(--ink-secondary)]')}
           >
             {m.label}
           </button>
         ))}
       </div>
-      <p className="text-[11px] text-black/40">
+      <p className="text-[11px] text-[var(--ink-tertiary)]">
         In Auto il tablet passa al tema scuro sotto 20 lux e al chiaro sopra 45 lux, se il sensore è disponibile. Altrimenti segue il sistema, come su desktop. La scelta vale solo per questo dispositivo.
       </p>
       <div className="grid grid-cols-3 gap-2 text-center">
-        {[['Sensore', SENSOR_LABEL[sensorState] ?? sensorState], ['Lux', String(lastLux ?? '—')], ['Origine', source === 'sensor' ? 'Sensore' : source === 'manual' ? 'Manuale' : 'Sistema']].map(([label, value]) => (
-          <div key={label} className="rounded-[10px] bg-black/[0.05] px-2 py-2">
-            <p className="text-[10px] uppercase tracking-wide text-black/35">{label}</p>
-            <p className="mt-0.5 text-xs font-semibold text-black/70 tabular-nums">{value}</p>
+        {[['Sensore', SENSOR_LABEL[sensorState] ?? sensorState], [lastLuma !== null ? 'Luma (0–255)' : 'Lux', String(lastLuma ?? lastLux ?? '—')], ['Origine', source === 'sensor' ? 'Sensore' : source === 'manual' ? 'Manuale' : 'Sistema']].map(([label, value]) => (
+          <div key={label} className="rounded-[10px] bg-[var(--fill-subtle)] px-2 py-2">
+            <p className="text-[10px] uppercase tracking-wide text-[var(--ink-tertiary)]">{label}</p>
+            <p className="mt-0.5 text-xs font-semibold text-[var(--ink-secondary)] tabular-nums">{value}</p>
           </div>
         ))}
       </div>
@@ -266,16 +277,16 @@ function DoorbellsCard() {
           type="button"
           onClick={() => setDraft({ id: uid('db'), name: '', entityId: '', sound: 'dingdong', volume: 1, priority: 'high', active: true })}
           disabled={readOnly}
-          className="flex min-h-[44px] shrink-0 items-center gap-1 rounded-full bg-[#0066cc] px-3 text-xs font-semibold text-white active:scale-95"
+          className="flex min-h-[44px] shrink-0 items-center gap-1 rounded-full bg-[var(--action-blue)] px-3 text-xs font-semibold text-[var(--on-accent)] active:scale-95"
         >
           <Plus size={13} /> Nuovo
         </button>
       </div>
       {readOnly && <ReadOnlyNotice />}
-      <div className="flex items-center justify-between gap-3 rounded-[10px] bg-black/[0.035] px-3 py-2.5">
+      <div className="flex items-center justify-between gap-3 rounded-[10px] bg-[var(--fill-subtle)] px-3 py-2.5">
         <div className="min-w-0">
-          <p className="text-sm text-[#1d1d1f]">Riconoscimento AI (Gemini Vision)</p>
-          <p className="text-[11px] text-black/40">Opt-in: a una suonata reale invia snapshot e foto di riferimento a Google Gemini. Le prove non inviano immagini.</p>
+          <p className="text-sm text-[var(--ink)]">Riconoscimento AI (Gemini Vision)</p>
+          <p className="text-[11px] text-[var(--ink-tertiary)]">Opt-in: a una suonata reale invia snapshot e foto di riferimento a Google Gemini. Le prove non inviano immagini.</p>
         </div>
         <button
           type="button"
@@ -300,15 +311,15 @@ function DoorbellsCard() {
       <KnownFacesRow />
       {!draft && <SaveMessage message={message} />}
       {doorbells.length === 0 ? (
-        <p className="text-[12px] text-black/40">Alla pressione: video fullscreen, suono e riconoscimento. Collega un trigger (event/binary_sensor) e una camera.</p>
+        <p className="text-[12px] text-[var(--ink-tertiary)]">Alla pressione: video fullscreen, suono e riconoscimento. Collega un trigger (event/binary_sensor) e una camera.</p>
       ) : (
         <div className="space-y-1.5">
           {doorbells.map((d) => (
-            <div key={d.id} className={cn('flex min-h-[48px] items-center gap-2 rounded-[10px] bg-black/[0.04] px-3 py-2', d.active === false && 'opacity-60')}>
-              <Bell size={15} className="shrink-0 text-black/45" />
+            <div key={d.id} className={cn('flex min-h-[48px] items-center gap-2 rounded-[10px] bg-[var(--fill-subtle)] px-3 py-2', d.active === false && 'opacity-60')}>
+              <Bell size={15} className="shrink-0 text-[var(--ink-secondary)]" />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-[#1d1d1f]">{d.name || 'Senza nome'}</p>
-                <p className="truncate text-[11px] text-black/40">{d.active === false ? 'Disattivato · ' : ''}{d.location ? `${d.location} · ` : ''}{d.entityId || 'nessuna entità'}</p>
+                <p className="truncate text-sm font-semibold text-[var(--ink)]">{d.name || 'Senza nome'}</p>
+                <p className="truncate text-[11px] text-[var(--ink-tertiary)]">{d.active === false ? 'Disattivato · ' : ''}{d.location ? `${d.location} · ` : ''}{d.entityId || 'nessuna entità'}</p>
               </div>
               <button
                 type="button"
@@ -325,12 +336,12 @@ function DoorbellsCard() {
                   }
                 }}
                 disabled={testingId !== null}
-                className="flex min-h-[44px] shrink-0 items-center gap-1 rounded-full bg-[#0066cc]/10 px-3 text-xs font-semibold text-[#0066cc] active:scale-95"
+                className="flex min-h-[44px] shrink-0 items-center gap-1 rounded-full bg-[var(--action-blue)]/10 px-3 text-xs font-semibold text-[var(--action-blue)] active:scale-95"
                 title="Suona su tutti i dispositivi connessi, tablet incluso"
               >
                 <Bell size={12} /> {testingId === d.id ? 'Invio…' : 'Prova'}
               </button>
-              <button type="button" onClick={() => setDraft({ ...d })} disabled={readOnly} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-black/55" aria-label={`Modifica ${d.name}`}>
+              <button type="button" onClick={() => setDraft({ ...d })} disabled={readOnly} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--surface-solid)] text-[var(--ink-secondary)]" aria-label={`Modifica ${d.name}`}>
                 <Pencil size={13} />
               </button>
               <button
@@ -354,17 +365,17 @@ function DoorbellsCard() {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1.5">
-                <label htmlFor={`${id}-doorbell-name`} className="text-xs font-semibold text-black/50">Nome</label>
-                <input id={`${id}-doorbell-name`} value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="es. Ingresso" className="w-full min-h-[44px] rounded-[12px] bg-black/8 px-3 py-3 text-sm text-[#1d1d1f] outline-none focus:bg-black/12" />
+                <label htmlFor={`${id}-doorbell-name`} className="text-xs font-semibold text-[var(--ink-secondary)]">Nome</label>
+                <input id={`${id}-doorbell-name`} value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="es. Ingresso" className="w-full min-h-[44px] rounded-[12px] bg-[var(--fill-subtle)] px-3 py-3 text-sm text-[var(--ink)] outline-none focus:bg-[var(--fill-subtle)]" />
               </div>
               <div className="space-y-1.5">
-                <label htmlFor={`${id}-doorbell-location`} className="text-xs font-semibold text-black/50">Posizione</label>
-                <input id={`${id}-doorbell-location`} value={draft.location ?? ''} onChange={(e) => setDraft({ ...draft, location: e.target.value || undefined })} placeholder="es. Cancello" className="w-full min-h-[44px] rounded-[12px] bg-black/8 px-3 py-3 text-sm text-[#1d1d1f] outline-none focus:bg-black/12" />
+                <label htmlFor={`${id}-doorbell-location`} className="text-xs font-semibold text-[var(--ink-secondary)]">Posizione</label>
+                <input id={`${id}-doorbell-location`} value={draft.location ?? ''} onChange={(e) => setDraft({ ...draft, location: e.target.value || undefined })} placeholder="es. Cancello" className="w-full min-h-[44px] rounded-[12px] bg-[var(--fill-subtle)] px-3 py-3 text-sm text-[var(--ink)] outline-none focus:bg-[var(--fill-subtle)]" />
               </div>
             </div>
             <div className="space-y-1.5">
-              <label htmlFor={`${id}-doorbell-entity`} className="text-xs font-semibold text-black/50">Entità campanello</label>
-              <select id={`${id}-doorbell-entity`} value={draft.entityId} onChange={(e) => setDraft({ ...draft, entityId: e.target.value })} className="w-full min-h-[44px] rounded-[12px] bg-black/8 px-3 py-3 text-sm text-[#1d1d1f] outline-none focus:bg-black/12">
+              <label htmlFor={`${id}-doorbell-entity`} className="text-xs font-semibold text-[var(--ink-secondary)]">Entità campanello</label>
+              <select id={`${id}-doorbell-entity`} value={draft.entityId} onChange={(e) => setDraft({ ...draft, entityId: e.target.value })} className="w-full min-h-[44px] rounded-[12px] bg-[var(--fill-subtle)] px-3 py-3 text-sm text-[var(--ink)] outline-none focus:bg-[var(--fill-subtle)]">
                 <option value="">— event / binary_sensor —</option>
                 {doorbellOptions.map((e) => (
                   <option key={e.entity_id} value={e.entity_id}>{(e.attributes?.friendly_name as string | undefined) ?? e.entity_id} · {e.entity_id}</option>
@@ -372,8 +383,8 @@ function DoorbellsCard() {
               </select>
             </div>
             <div className="space-y-1.5">
-              <label htmlFor={`${id}-doorbell-camera`} className="text-xs font-semibold text-black/50">Videocamera</label>
-              <select id={`${id}-doorbell-camera`} value={draft.cameraEntityId ?? ''} onChange={(e) => setDraft({ ...draft, cameraEntityId: e.target.value || undefined })} className="w-full min-h-[44px] rounded-[12px] bg-black/8 px-3 py-3 text-sm text-[#1d1d1f] outline-none focus:bg-black/12">
+              <label htmlFor={`${id}-doorbell-camera`} className="text-xs font-semibold text-[var(--ink-secondary)]">Videocamera</label>
+              <select id={`${id}-doorbell-camera`} value={draft.cameraEntityId ?? ''} onChange={(e) => setDraft({ ...draft, cameraEntityId: e.target.value || undefined })} className="w-full min-h-[44px] rounded-[12px] bg-[var(--fill-subtle)] px-3 py-3 text-sm text-[var(--ink)] outline-none focus:bg-[var(--fill-subtle)]">
                 <option value="">— nessuna —</option>
                 {cameraOptions.map((e) => (
                   <option key={e.entity_id} value={e.entity_id}>{(e.attributes?.friendly_name as string | undefined) ?? e.entity_id} · {e.entity_id}</option>
@@ -382,21 +393,21 @@ function DoorbellsCard() {
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1.5">
-                <label htmlFor={`${id}-doorbell-sound`} className="text-xs font-semibold text-black/50">Suono</label>
+                <label htmlFor={`${id}-doorbell-sound`} className="text-xs font-semibold text-[var(--ink-secondary)]">Suono</label>
                 <div className="flex gap-2">
-                  <select id={`${id}-doorbell-sound`} value={draft.sound ?? 'dingdong'} onChange={(e) => setDraft({ ...draft, sound: e.target.value })} className="w-full min-h-[44px] rounded-[12px] bg-black/8 px-3 py-3 text-sm text-[#1d1d1f] outline-none focus:bg-black/12">
+                  <select id={`${id}-doorbell-sound`} value={draft.sound ?? 'dingdong'} onChange={(e) => setDraft({ ...draft, sound: e.target.value })} className="w-full min-h-[44px] rounded-[12px] bg-[var(--fill-subtle)] px-3 py-3 text-sm text-[var(--ink)] outline-none focus:bg-[var(--fill-subtle)]">
                     <option value="dingdong">Ding-dong</option>
                     <option value="chime">Chime</option>
                     <option value="alert">Alert</option>
                     <option value="soft">Soft</option>
                     <option value="none">Nessuno</option>
                   </select>
-                  <button type="button" onClick={() => play((draft.sound as SoundPreset) ?? 'dingdong', { cooldownMs: 0, volume: draft.volume ?? 1, boost: 1.5 })} className="min-h-[44px] shrink-0 rounded-[12px] bg-black/8 px-3 text-xs font-semibold text-black/60" aria-label="Ascolta il suono selezionato">▶</button>
+                  <button type="button" onClick={() => play((draft.sound as SoundPreset) ?? 'dingdong', { cooldownMs: 0, volume: draft.volume ?? 1, boost: 1.5 })} className="min-h-[44px] shrink-0 rounded-[12px] bg-[var(--fill-subtle)] px-3 text-xs font-semibold text-[var(--ink-secondary)]" aria-label="Ascolta il suono selezionato">▶</button>
                 </div>
               </div>
               <div className="space-y-1.5">
-                <label htmlFor={`${id}-doorbell-priority`} className="text-xs font-semibold text-black/50">Priorità</label>
-                <select id={`${id}-doorbell-priority`} value={draft.priority ?? 'high'} onChange={(e) => setDraft({ ...draft, priority: e.target.value as DoorbellDevice['priority'] })} className="w-full min-h-[44px] rounded-[12px] bg-black/8 px-3 py-3 text-sm text-[#1d1d1f] outline-none focus:bg-black/12">
+                <label htmlFor={`${id}-doorbell-priority`} className="text-xs font-semibold text-[var(--ink-secondary)]">Priorità</label>
+                <select id={`${id}-doorbell-priority`} value={draft.priority ?? 'high'} onChange={(e) => setDraft({ ...draft, priority: e.target.value as DoorbellDevice['priority'] })} className="w-full min-h-[44px] rounded-[12px] bg-[var(--fill-subtle)] px-3 py-3 text-sm text-[var(--ink)] outline-none focus:bg-[var(--fill-subtle)]">
                   <option value="low">Bassa</option>
                   <option value="medium">Media</option>
                   <option value="high">Alta</option>
@@ -405,14 +416,14 @@ function DoorbellsCard() {
               </div>
             </div>
             {lockOptions.length === 0 && (
-              <p className="rounded-[10px] bg-black/[0.035] px-3 py-2.5 text-[11px] leading-relaxed text-black/45">
-                <span className="font-semibold text-black/60">Serrature:</span> nessuna entità <code>lock.*</code> in Home Assistant.
+              <p className="rounded-[10px] bg-[var(--fill-subtle)] px-3 py-2.5 text-[11px] leading-relaxed text-[var(--ink-secondary)]">
+                <span className="font-semibold text-[var(--ink-secondary)]">Serrature:</span> nessuna entità <code>lock.*</code> in Home Assistant.
                 Il bottone "apri porta" nel modale del campanello appare solo quando una serratura smart è integrata in HA.
               </p>
             )}
             {lockOptions.length > 0 && (
               <div className="space-y-1.5">
-                <p className="text-xs font-semibold text-black/50" id={`${id}-doorbell-locks`}>Serrature apribili dal modale ({draft.lockEntityIds?.length ?? 0})</p>
+                <p className="text-xs font-semibold text-[var(--ink-secondary)]" id={`${id}-doorbell-locks`}>Serrature apribili dal modale ({draft.lockEntityIds?.length ?? 0})</p>
                 <div className="flex flex-wrap gap-2" role="group" aria-labelledby={`${id}-doorbell-locks`}>
                   {lockOptions.map((e) => {
                     const checked = draft.lockEntityIds?.includes(e.entity_id) ?? false
@@ -429,7 +440,7 @@ function DoorbellsCard() {
                         })}
                         className={cn(
                           'min-h-[44px] rounded-full px-4 text-sm font-semibold transition active:scale-95',
-                          checked ? 'bg-[#0066cc] text-white' : 'bg-black/[0.06] text-black/60',
+                          checked ? 'bg-[var(--action-blue)] text-[var(--on-accent)]' : 'bg-[var(--fill-subtle)] text-[var(--ink-secondary)]',
                         )}
                       >
                         {(e.attributes?.friendly_name as string | undefined) ?? e.entity_id}
@@ -437,7 +448,7 @@ function DoorbellsCard() {
                     )
                   })}
                 </div>
-                <p className="text-[11px] text-black/35">Compaiono nel modale del campanello con apertura a pressione prolungata.</p>
+                <p className="text-[11px] text-[var(--ink-tertiary)]">Compaiono nel modale del campanello con apertura a pressione prolungata.</p>
               </div>
             )}
             <ShortcutsEditor
@@ -448,13 +459,13 @@ function DoorbellsCard() {
               hint="Compaiono come bottoni quando suona: luce ingresso, cancello, scena…"
             />
             <div className="space-y-1.5">
-              <label htmlFor={`${id}-doorbell-volume`} className="text-xs font-semibold text-black/50">Volume ({Math.round((draft.volume ?? 1) * 100)}%)</label>
+              <label htmlFor={`${id}-doorbell-volume`} className="text-xs font-semibold text-[var(--ink-secondary)]">Volume ({Math.round((draft.volume ?? 1) * 100)}%)</label>
               <input id={`${id}-doorbell-volume`} type="range" min={0} max={1} step={0.05} value={draft.volume ?? 1} onChange={(e) => setDraft({ ...draft, volume: Number(e.target.value) })} className="min-h-[44px] w-full accent-[#0066cc]" />
             </div>
-            <div className="flex items-center justify-between gap-3 rounded-[10px] bg-black/[0.035] px-3 py-2.5">
+            <div className="flex items-center justify-between gap-3 rounded-[10px] bg-[var(--fill-subtle)] px-3 py-2.5">
               <div>
-                <p className="text-sm text-[#1d1d1f]">Campanello attivo</p>
-                <p className="text-[11px] text-black/40">Se disattivato, il trigger viene ignorato dal kiosk.</p>
+                <p className="text-sm text-[var(--ink)]">Campanello attivo</p>
+                <p className="text-[11px] text-[var(--ink-tertiary)]">Se disattivato, il trigger viene ignorato dal kiosk.</p>
               </div>
               <button
                 type="button"
@@ -471,7 +482,7 @@ function DoorbellsCard() {
               type="button"
               onClick={saveDraft}
               disabled={!draft.name.trim() || !draft.entityId || isPending}
-              className="flex w-full min-h-[44px] items-center justify-center gap-2 rounded-[14px] bg-[#0066cc] text-sm font-semibold text-white transition active:scale-95 disabled:opacity-40"
+              className="flex w-full min-h-[44px] items-center justify-center gap-2 rounded-[14px] bg-[var(--action-blue)] text-sm font-semibold text-[var(--on-accent)] transition active:scale-95 disabled:opacity-40"
             >
               <Save size={14} /> {isPending ? 'Salvataggio…' : 'Salva campanello'}
             </button>
@@ -503,10 +514,12 @@ function KnownFacesRow() {
   const readOnly = config?.storage?.writable === false
 
   const persist = (next: KnownFace[], successText: string, onSuccess?: () => void) => {
+    const error = faceImageBudgetError(next)
+    if (error) { setMessage({ ok: false, text: error }); return }
     setMessage(null)
     update({ ai: { ...config?.ai, faces: next } }, {
       onSuccess: () => { setMessage({ ok: true, text: successText }); onSuccess?.() },
-      onError: () => setMessage({ ok: false, text: 'Salvataggio dei volti non riuscito.' }),
+      onError: (error) => setMessage({ ok: false, text: error.message || 'Salvataggio dei volti non riuscito.' }),
     })
   }
 
@@ -532,12 +545,12 @@ function KnownFacesRow() {
   }
 
   return (
-    <div className="space-y-2 rounded-[10px] bg-black/[0.035] px-3 py-2.5">
+    <div className="space-y-2 rounded-[10px] bg-[var(--fill-subtle)] px-3 py-2.5">
       <div className="flex items-center gap-3">
-        <ScanFace size={16} className="shrink-0 text-black/45" />
+        <ScanFace size={16} className="shrink-0 text-[var(--ink-secondary)]" />
         <div className="min-w-0 flex-1">
-          <p className="text-sm text-[#1d1d1f]">Volti conosciuti · {faces.length}/{MAX_KNOWN_FACES}</p>
-          <p className="text-[11px] text-black/40">
+          <p className="text-sm text-[var(--ink)]">Volti conosciuti · {faces.length}/{MAX_KNOWN_FACES}</p>
+          <p className="text-[11px] text-[var(--ink-tertiary)]">
             {visionOn
               ? `Carica 1–3 foto frontali per persona, fino a ${MAX_KNOWN_FACES}: a una suonata reale queste foto e lo snapshot vengono inviati a Google Gemini per il confronto.`
               : 'Attiva il riconoscimento AI qui sopra per usare i volti.'}
@@ -545,13 +558,13 @@ function KnownFacesRow() {
         </div>
       </div>
       {faces.map((f) => (
-        <div key={f.id} className="flex min-h-[48px] items-center gap-2 rounded-[10px] bg-white/70 px-2.5 py-2">
+        <div key={f.id} className="flex min-h-[48px] items-center gap-2 rounded-[10px] bg-[var(--surface-solid)] px-2.5 py-2">
           <div className="flex shrink-0 -space-x-2.5">
             {f.images.map((img, i) => (
               <img key={i} src={img} alt={f.name} className="h-9 w-9 rounded-full border-2 border-white object-cover" />
             ))}
           </div>
-          <p className="min-w-0 flex-1 truncate text-sm font-semibold text-[#1d1d1f]">{f.name}</p>
+          <p className="min-w-0 flex-1 truncate text-sm font-semibold text-[var(--ink)]">{f.name}</p>
           {f.images.length < 3 && (
             <FacePhotoButton label="Foto" ariaLabel={`Aggiungi una foto per ${f.name}`} disabled={readOnly || busy || isPending} onFile={(file) => addPhoto(f, file)} />
           )}
@@ -582,7 +595,7 @@ function KnownFacesRow() {
           aria-describedby={!canAddPerson ? `${id}-face-limit` : undefined}
           onChange={(e) => setName(e.target.value)}
           placeholder="Nome (es. Davide)"
-          className="min-h-[44px] min-w-0 flex-1 rounded-[10px] bg-black/8 px-3 text-sm text-[#1d1d1f] outline-none focus:bg-black/12"
+          className="min-h-[44px] min-w-0 flex-1 rounded-[10px] bg-[var(--fill-subtle)] px-3 text-sm text-[var(--ink)] outline-none focus:bg-[var(--fill-subtle)]"
         />
         <FacePhotoButton
           label={canAddPerson ? 'Aggiungi persona' : `Limite ${MAX_KNOWN_FACES}`}
@@ -622,7 +635,7 @@ function FacePhotoButton({ label, ariaLabel, onFile, disabled, primary }: {
       />
       <label htmlFor={id} aria-label={ariaLabel} className={cn(
         'flex min-h-[44px] cursor-pointer items-center gap-1 rounded-full px-3 text-xs font-semibold transition active:scale-95 peer-focus-visible:ring-2 peer-focus-visible:ring-[#0066cc] peer-focus-visible:ring-offset-2',
-        primary ? 'bg-[#0066cc] text-white' : 'bg-black/[0.06] text-black/60',
+        primary ? 'bg-[var(--action-blue)] text-[var(--on-accent)]' : 'bg-[var(--fill-subtle)] text-[var(--ink-secondary)]',
         disabled && 'pointer-events-none opacity-40',
       )}>
         <Plus size={13} /> {label}
@@ -640,12 +653,12 @@ function SoundsCard() {
     <GlassCard className="space-y-3">
       <FeatureHeader Icon={muted ? VolumeX : Volume2} title="Suoni notifiche" badge={muted ? 'Silenziati' : `${Math.round(volume * 100)}%`} tone={muted ? 'warn' : 'ok'} />
       <div className="flex items-center gap-3">
-        <button type="button" onClick={() => setMuted(!muted)} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-black/8 text-black/60" aria-label={muted ? 'Riattiva audio' : 'Silenzia'}>
+        <button type="button" onClick={() => setMuted(!muted)} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--fill-subtle)] text-[var(--ink-secondary)]" aria-label={muted ? 'Riattiva audio' : 'Silenzia'}>
           {muted ? <VolumeX size={17} /> : <Volume2 size={17} />}
         </button>
         <label htmlFor={`${id}-volume`} className="sr-only">Volume notifiche</label>
         <input id={`${id}-volume`} type="range" min={0} max={1} step={0.05} value={volume} disabled={muted} onChange={(e) => setVolume(Number(e.target.value))} className="min-h-[44px] min-w-0 flex-1 accent-[#0066cc]" />
-        <button type="button" onClick={() => play('dingdong', { cooldownMs: 0, boost: 1.5 })} disabled={muted} className="min-h-[44px] shrink-0 rounded-full bg-black/8 px-3 py-2 text-xs font-semibold text-black/60 active:scale-95">Prova</button>
+        <button type="button" onClick={() => play('dingdong', { cooldownMs: 0, boost: 1.5 })} disabled={muted} className="min-h-[44px] shrink-0 rounded-full bg-[var(--fill-subtle)] px-3 py-2 text-xs font-semibold text-[var(--ink-secondary)] active:scale-95">Prova</button>
       </div>
     </GlassCard>
   )
@@ -726,10 +739,10 @@ function KioskCard() {
 
   return (
     <GlassCard className="space-y-3">
-      <FeatureHeader Icon={MonitorSmartphone} title="Kiosk" badge={current ? 'Risveglio attivo' : 'Solo tocco'} tone={current ? 'ok' : 'neutral'} />
+      <FeatureHeader Icon={MonitorSmartphone} title="Kiosk" badge={current ? 'Presenza HA attiva' : 'Sensori del tablet'} tone={current ? 'ok' : 'neutral'} />
       {readOnly && <ReadOnlyNotice />}
       <div className="space-y-1.5">
-        <p className="flex items-center gap-1.5 text-xs font-semibold text-black/50" id={`${id}-home-mode`}><LayoutGrid size={12} /> Home del tablet</p>
+        <p className="flex items-center gap-1.5 text-xs font-semibold text-[var(--ink-secondary)]" id={`${id}-home-mode`}><LayoutGrid size={12} /> Home del tablet</p>
         <div className="flex gap-2" role="group" aria-labelledby={`${id}-home-mode`}>
           {modes.map((m) => (
             <button
@@ -738,27 +751,27 @@ function KioskCard() {
               disabled={readOnly || isPending}
               onClick={() => saveKiosk({ ...config?.kiosk, homeMode: m.id }, 'Modalità home del kiosk aggiornata.')}
               aria-pressed={homeMode === m.id}
-              className={cn('min-h-[44px] flex-1 rounded-[12px] text-sm font-semibold transition', homeMode === m.id ? 'bg-[#0066cc] text-white' : 'bg-black/[0.06] text-black/60')}
+              className={cn('min-h-[44px] flex-1 rounded-[12px] text-sm font-semibold transition', homeMode === m.id ? 'bg-[var(--action-blue)] text-[var(--on-accent)]' : 'bg-[var(--fill-subtle)] text-[var(--ink-secondary)]')}
             >
               {m.label}
             </button>
           ))}
         </div>
-        <p className="text-[11px] text-black/40">
+        <p className="text-[11px] text-[var(--ink-tertiary)]">
           {homeMode === 'grid'
             ? 'Sul tablet appare "Personalizza": aggiungi, rimuovi, ridimensiona e trascina i widget. Le modifiche arrivano live.'
             : 'Le card si scelgono da sole per rilevanza (composer): niente da disporre.'}
         </p>
       </div>
-      <p className="text-[12px] text-black/40">
+      <p className="text-[12px] text-[var(--ink-tertiary)]">
         Dopo il tempo scelto il tablet passa alla modalità ambient (foto locali, orologio, meteo e drift anti-burn-in).
         Con un sensore di presenza la dashboard si risveglia da sola quando qualcuno passa, sempre all’interno della LAN.
       </p>
-      <div className="space-y-2.5 rounded-[14px] bg-black/[0.035] p-3">
+      <div className="space-y-2.5 rounded-[14px] bg-[var(--fill-subtle)] p-3">
         <div className="flex items-center gap-2">
-          <Images size={15} className="text-black/45" aria-hidden="true" />
-          <p className="flex-1 text-xs font-semibold text-black/65">Cornice digitale locale</p>
-          <label className="flex min-h-11 cursor-pointer items-center gap-2 text-xs font-semibold text-black/55">
+          <Images size={15} className="text-[var(--ink-secondary)]" aria-hidden="true" />
+          <p className="flex-1 text-xs font-semibold text-[var(--ink-secondary)]">Cornice digitale locale</p>
+          <label className="flex min-h-11 cursor-pointer items-center gap-2 text-xs font-semibold text-[var(--ink-secondary)]">
             <input
               type="checkbox"
               checked={screensaverEnabled}
@@ -770,13 +783,13 @@ function KioskCard() {
           </label>
         </div>
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-          <label className="space-y-1 text-[11px] font-semibold text-black/45">
+          <label className="space-y-1 text-[11px] font-semibold text-[var(--ink-secondary)]">
             Inattività
             <select
               value={screensaver?.idleSeconds ?? 180}
               disabled={readOnly || isPending || !screensaverEnabled}
               onChange={(event) => saveScreensaver({ idleSeconds: Number(event.target.value) }, 'Tempo di inattività aggiornato.')}
-              className="min-h-11 w-full rounded-[11px] bg-white/70 px-2 text-sm text-black/70"
+              className="min-h-11 w-full rounded-[11px] bg-[var(--surface-solid)] px-2 text-sm text-[var(--ink-secondary)]"
             >
               <option value={60}>1 minuto</option>
               <option value={180}>3 minuti</option>
@@ -785,13 +798,13 @@ function KioskCard() {
               <option value={900}>15 minuti</option>
             </select>
           </label>
-          <label className="space-y-1 text-[11px] font-semibold text-black/45">
+          <label className="space-y-1 text-[11px] font-semibold text-[var(--ink-secondary)]">
             Cambio foto
             <select
               value={screensaver?.slideSeconds ?? 20}
               disabled={readOnly || isPending || !screensaverEnabled}
               onChange={(event) => saveScreensaver({ slideSeconds: Number(event.target.value) }, 'Intervallo foto aggiornato.')}
-              className="min-h-11 w-full rounded-[11px] bg-white/70 px-2 text-sm text-black/70"
+              className="min-h-11 w-full rounded-[11px] bg-[var(--surface-solid)] px-2 text-sm text-[var(--ink-secondary)]"
             >
               <option value={10}>10 secondi</option>
               <option value={20}>20 secondi</option>
@@ -799,13 +812,13 @@ function KioskCard() {
               <option value={60}>1 minuto</option>
             </select>
           </label>
-          <label className="space-y-1 text-[11px] font-semibold text-black/45">
+          <label className="space-y-1 text-[11px] font-semibold text-[var(--ink-secondary)]">
             Luminosità ambient
             <select
               value={screensaver?.brightness ?? 28}
               disabled={readOnly || isPending || !screensaverEnabled}
               onChange={(event) => saveScreensaver({ brightness: Number(event.target.value) }, 'Luminosità screensaver aggiornata.')}
-              className="min-h-11 w-full rounded-[11px] bg-white/70 px-2 text-sm text-black/70"
+              className="min-h-11 w-full rounded-[11px] bg-[var(--surface-solid)] px-2 text-sm text-[var(--ink-secondary)]"
             >
               <option value={13}>5%</option>
               <option value={28}>11%</option>
@@ -815,7 +828,7 @@ function KioskCard() {
           </label>
         </div>
         <div className="space-y-1.5">
-          <p className="text-[11px] font-semibold text-black/45" id={`${id}-photo-source`}>Sorgente foto</p>
+          <p className="text-[11px] font-semibold text-[var(--ink-secondary)]" id={`${id}-photo-source`}>Sorgente foto</p>
           <div className="flex gap-2" role="group" aria-labelledby={`${id}-photo-source`}>
             {([['local', 'Cartella locale'], ['google', 'Album Google Foto']] as const).map(([sourceId, label]) => (
               <button
@@ -824,7 +837,7 @@ function KioskCard() {
                 disabled={readOnly || isPending || !screensaverEnabled}
                 onClick={() => saveScreensaver({ source: sourceId }, 'Sorgente foto aggiornata.')}
                 aria-pressed={photoSource === sourceId}
-                className={cn('min-h-[44px] flex-1 rounded-[12px] text-sm font-semibold transition', photoSource === sourceId ? 'bg-[#0066cc] text-white' : 'bg-white/70 text-black/60')}
+                className={cn('min-h-[44px] flex-1 rounded-[12px] text-sm font-semibold transition', photoSource === sourceId ? 'bg-[var(--action-blue)] text-[var(--on-accent)]' : 'bg-[var(--surface-solid)] text-[var(--ink-secondary)]')}
               >
                 {label}
               </button>
@@ -840,7 +853,7 @@ function KioskCard() {
                 disabled={readOnly || isPending || !screensaverEnabled}
                 onChange={(e) => setSourceUrlDraft(e.target.value)}
                 placeholder="https://photos.app.goo.gl/…"
-                className="min-h-[44px] min-w-0 flex-1 rounded-[11px] bg-white/70 px-3 text-sm text-black/70 outline-none focus:bg-white"
+                className="min-h-[44px] min-w-0 flex-1 rounded-[11px] bg-[var(--surface-solid)] px-3 text-sm text-[var(--ink-secondary)] outline-none focus:bg-[var(--surface-solid)]"
               />
               <button
                 type="button"
@@ -855,14 +868,14 @@ function KioskCard() {
                   setSourceUrlDraft(null)
                   setTimeout(() => { void photos.refetch() }, 400)
                 }}
-                className="flex min-h-[44px] shrink-0 items-center rounded-full bg-[#0066cc] px-4 text-xs font-semibold text-white active:scale-95 disabled:opacity-40"
+                className="flex min-h-[44px] shrink-0 items-center rounded-full bg-[var(--action-blue)] px-4 text-xs font-semibold text-[var(--on-accent)] active:scale-95 disabled:opacity-40"
               >
                 Collega
               </button>
             </div>
           )}
         </div>
-        <div className="flex min-h-11 items-center gap-2 rounded-[11px] bg-white/55 px-3 text-[11px] text-black/50">
+        <div className="flex min-h-11 items-center gap-2 rounded-[11px] bg-[var(--surface-solid)] px-3 text-[11px] text-[var(--ink-secondary)]">
           <span className="min-w-0 flex-1">
             {photos.isPending ? 'Verifica della sorgente foto…'
               : photos.isError ? 'Sorgente foto non raggiungibile'
@@ -874,18 +887,18 @@ function KioskCard() {
             type="button"
             onClick={() => { void photos.refetch() }}
             disabled={photos.isFetching}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-black/[0.06] text-black/50 disabled:opacity-40"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--fill-subtle)] text-[var(--ink-secondary)] disabled:opacity-40"
             aria-label="Aggiorna elenco foto screensaver"
           >
             <RefreshCw size={14} className={cn(photos.isFetching && 'animate-spin')} aria-hidden="true" />
           </button>
         </div>
-        <div className="space-y-2.5 rounded-[12px] border border-black/8 bg-white/55 p-3">
+        <div className="space-y-2.5 rounded-[12px] border border-[var(--hairline)] bg-[var(--surface-solid)] p-3">
           <div className="flex items-center gap-2">
-            <Sparkles size={15} className="text-[#0066cc]" aria-hidden="true" />
+            <Sparkles size={15} className="text-[var(--action-blue)]" aria-hidden="true" />
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold text-[#1d1d1f]">Dispositivi del recap AI</p>
-              <p className="text-[10px] text-black/40">
+              <p className="text-xs font-semibold text-[var(--ink)]">Dispositivi del recap AI</p>
+              <p className="text-[10px] text-[var(--ink-tertiary)]">
                 {customRecap ? `${recapEntityIds.length} selezionati` : 'Selezione automatica dei dispositivi informativi'}
               </p>
             </div>
@@ -900,7 +913,7 @@ function KioskCard() {
                 setRecapQuery('')
                 saveScreensaver({ recapEntityIds: undefined }, 'Selezione automatica del recap AI attivata.')
               }}
-              className={cn('min-h-11 rounded-[11px] text-xs font-semibold transition', !customRecap ? 'bg-[#0066cc] text-white' : 'bg-black/[0.06] text-black/55')}
+              className={cn('min-h-11 rounded-[11px] text-xs font-semibold transition', !customRecap ? 'bg-[var(--action-blue)] text-[var(--on-accent)]' : 'bg-[var(--fill-subtle)] text-[var(--ink-secondary)]')}
             >
               Automatica
             </button>
@@ -909,7 +922,7 @@ function KioskCard() {
               disabled={readOnly || isPending}
               aria-pressed={customRecap}
               onClick={() => setRecapDraft([...(recapEntityIds ?? [])])}
-              className={cn('min-h-11 rounded-[11px] text-xs font-semibold transition', customRecap ? 'bg-[#0066cc] text-white' : 'bg-black/[0.06] text-black/55')}
+              className={cn('min-h-11 rounded-[11px] text-xs font-semibold transition', customRecap ? 'bg-[var(--action-blue)] text-[var(--on-accent)]' : 'bg-[var(--fill-subtle)] text-[var(--ink-secondary)]')}
             >
               Personalizza
             </button>
@@ -917,29 +930,29 @@ function KioskCard() {
           {recapDraft !== null && (
             <div className="space-y-2">
               <div className="relative">
-                <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-black/35" aria-hidden="true" />
+                <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--ink-tertiary)]" aria-hidden="true" />
                 <input
                   type="search"
                   value={recapQuery}
                   onChange={(event) => setRecapQuery(event.target.value)}
                   placeholder="Cerca dispositivo o entity_id…"
-                  className="min-h-11 w-full rounded-full border border-black/10 bg-white py-2 pl-9 pr-3 text-sm text-[#1d1d1f] outline-none focus:border-[#0066cc]"
+                  className="min-h-11 w-full rounded-full border border-[var(--hairline)] bg-[var(--surface-solid)] py-2 pl-9 pr-3 text-sm text-[var(--ink)] outline-none focus:border-[#0066cc]"
                   aria-label="Cerca dispositivi per il recap AI"
                 />
               </div>
               <div className="flex items-center gap-2">
-                <span className="flex-1 text-[10px] font-semibold text-black/45">{recapDraft.length}/100 selezionati</span>
+                <span className="flex-1 text-[10px] font-semibold text-[var(--ink-secondary)]">{recapDraft.length}/100 selezionati</span>
                 <button
                   type="button"
                   onClick={() => setRecapDraft([])}
-                  className="min-h-9 rounded-full bg-black/[0.06] px-3 text-[10px] font-semibold text-black/50"
+                  className="min-h-9 rounded-full bg-[var(--fill-subtle)] px-3 text-[10px] font-semibold text-[var(--ink-secondary)]"
                 >
                   Azzera
                 </button>
               </div>
-              <div className="max-h-[280px] space-y-1 overflow-y-auto pr-1">
+              <div className="max-h-[280px] space-y-1 overflow-y-auto pr-1 pb-6">
                 {filteredRecapCandidates.length === 0 && (
-                  <p className="py-4 text-center text-xs text-black/40">Nessun dispositivo corrispondente.</p>
+                  <p className="py-4 text-center text-xs text-[var(--ink-tertiary)]">Nessun dispositivo corrispondente.</p>
                 )}
                 {filteredRecapCandidates.map((entity) => {
                   const checked = recapDraft.includes(entity.entity_id)
@@ -953,21 +966,21 @@ function KioskCard() {
                       onClick={() => setRecapDraft(checked
                         ? recapDraft.filter((entityId) => entityId !== entity.entity_id)
                         : [...recapDraft, entity.entity_id])}
-                      className={cn('flex min-h-11 w-full items-center gap-2 rounded-[10px] px-3 py-2 text-left transition disabled:opacity-40', checked ? 'bg-[#0066cc]/12' : 'bg-black/[0.04]')}
+                      className={cn('flex min-h-11 w-full items-center gap-2 rounded-[10px] px-3 py-2 text-left transition disabled:opacity-40', checked ? 'bg-[var(--action-blue)]/12' : 'bg-[var(--fill-subtle)]')}
                     >
-                      <span className={cn('flex h-4 w-4 shrink-0 items-center justify-center rounded border', checked ? 'border-[#0066cc] bg-[#0066cc] text-white' : 'border-black/25')}>
+                      <span className={cn('flex h-4 w-4 shrink-0 items-center justify-center rounded border', checked ? 'border-[#0066cc] bg-[var(--action-blue)] text-[var(--on-accent)]' : 'border-[var(--hairline)]')}>
                         {checked && <Check size={11} aria-hidden="true" />}
                       </span>
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-xs font-medium text-[#1d1d1f]">{String(entity.attributes?.friendly_name ?? entity.entity_id)}</span>
-                        <span className="block truncate font-mono text-[9px] text-black/35">{entity.entity_id}</span>
+                        <span className="block truncate text-xs font-medium text-[var(--ink)]">{String(entity.attributes?.friendly_name ?? entity.entity_id)}</span>
+                        <span className="block truncate font-mono text-[9px] text-[var(--ink-tertiary)]">{entity.entity_id}</span>
                       </span>
                     </button>
                   )
                 })}
               </div>
               {matchingRecapCandidates.length > filteredRecapCandidates.length && (
-                <p className="text-center text-[10px] text-black/35">Mostrati i primi 80 risultati; usa la ricerca per restringere.</p>
+                <p className="text-center text-[10px] text-[var(--ink-tertiary)]">Mostrati i primi 80 risultati; usa la ricerca per restringere.</p>
               )}
               <div className="flex gap-2">
                 <button
@@ -978,14 +991,14 @@ function KioskCard() {
                     setRecapDraft(null)
                     setRecapQuery('')
                   }}
-                  className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-[11px] bg-[#0066cc] px-3 text-xs font-semibold text-white disabled:opacity-40"
+                  className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-[11px] bg-[var(--action-blue)] px-3 text-xs font-semibold text-[var(--on-accent)] disabled:opacity-40"
                 >
                   <Save size={13} aria-hidden="true" /> Salva selezione
                 </button>
                 <button
                   type="button"
                   onClick={() => { setRecapDraft(null); setRecapQuery('') }}
-                  className="min-h-11 rounded-[11px] bg-black/[0.06] px-3 text-xs font-semibold text-black/50"
+                  className="min-h-11 rounded-[11px] bg-[var(--fill-subtle)] px-3 text-xs font-semibold text-[var(--ink-secondary)]"
                 >
                   Annulla
                 </button>
@@ -995,7 +1008,7 @@ function KioskCard() {
         </div>
       </div>
       <div className="space-y-1.5">
-        <p className="flex items-center gap-1.5 text-xs font-semibold text-black/50" id={`${id}-perf`}><Gauge size={12} /> Prestazioni del tablet</p>
+        <p className="flex items-center gap-1.5 text-xs font-semibold text-[var(--ink-secondary)]" id={`${id}-perf`}><Gauge size={12} /> Prestazioni del tablet</p>
         <div className="flex gap-2" role="group" aria-labelledby={`${id}-perf`}>
           {([['quality', 'Qualità'], ['balanced', 'Bilanciato'], ['saver', 'Risparmio']] as const).map(([profileId, label]) => (
             <button
@@ -1004,34 +1017,48 @@ function KioskCard() {
               disabled={readOnly || isPending}
               onClick={() => saveKiosk({ ...config?.kiosk, perfProfile: profileId }, 'Profilo prestazioni aggiornato.')}
               aria-pressed={perfProfile === profileId}
-              className={cn('min-h-[44px] flex-1 rounded-[12px] text-sm font-semibold transition', perfProfile === profileId ? 'bg-[#0066cc] text-white' : 'bg-black/[0.06] text-black/60')}
+              className={cn('min-h-[44px] flex-1 rounded-[12px] text-sm font-semibold transition', perfProfile === profileId ? 'bg-[var(--action-blue)] text-[var(--on-accent)]' : 'bg-[var(--fill-subtle)] text-[var(--ink-secondary)]')}
             >
               {label}
             </button>
           ))}
         </div>
-        <p className="text-[11px] text-black/40">
+        <p className="text-[11px] text-[var(--ink-tertiary)]">
           {perfProfile === 'quality' ? 'Vetro e animazioni sempre attivi: per tablet recenti.'
             : perfProfile === 'saver' ? 'Superfici solide e niente animazioni ambientali: massima fluidità su hardware datato.'
               : 'Il tablet misura i propri frame e riduce gli effetti solo se serve.'}
         </p>
       </div>
       <div className="space-y-1.5">
-        <label htmlFor={`${id}-wake-sensor`} className="text-xs font-semibold text-black/50">Sensore di presenza per il risveglio</label>
+        <label htmlFor={`${id}-wake-sensor`} className="text-xs font-semibold text-[var(--ink-secondary)]">Sensore di presenza per il risveglio</label>
         <select
           id={`${id}-wake-sensor`}
           value={current}
           disabled={readOnly || isPending}
           onChange={(e) => saveKiosk({ ...config?.kiosk, wakeEntityId: e.target.value || undefined }, 'Sensore di risveglio aggiornato.')}
-          className="w-full min-h-[44px] rounded-[12px] bg-black/8 px-3 py-3 text-sm text-[#1d1d1f] outline-none focus:bg-black/12"
+          className="w-full min-h-[44px] rounded-[12px] bg-[var(--fill-subtle)] px-3 py-3 text-sm text-[var(--ink)] outline-none focus:bg-[var(--fill-subtle)]"
         >
-          <option value="">— nessuno (solo tocco) —</option>
+          <option value="">— nessun sensore HA aggiuntivo —</option>
           {sensors.map((e) => (
             <option key={e.entity_id} value={e.entity_id}>
               {(e.attributes?.friendly_name as string | undefined) ?? e.entity_id} · {e.entity_id}
             </option>
           ))}
         </select>
+      </div>
+      <div className="space-y-1.5">
+        <label htmlFor={`${id}-solar-sensor`} className="text-xs font-semibold text-[var(--ink-secondary)]">Sensore di produzione fotovoltaica</label>
+        <select id={`${id}-solar-sensor`} value={config?.solarProductionEntityId ?? ''} disabled={readOnly || isPending}
+          onChange={(event) => update({ solarProductionEntityId: event.target.value }, {
+            onSuccess: () => setMessage({ ok: true, text: 'Sensore di produzione aggiornato.' }),
+            onError: (error) => setMessage({ ok: false, text: error.message }),
+          })}
+          className="min-h-11 w-full rounded-[12px] bg-[var(--fill-subtle)] px-3 py-3 text-sm text-[var(--ink)]">
+          <option value="">— nessuno: confronto solare disattivato —</option>
+          {Object.values(entities).filter((entity) => entity.entity_id !== HOUSE_CONSUMPTION_ID && entity.entity_id.startsWith('sensor.') && entity.attributes?.device_class === 'power')
+            .sort((left, right) => left.entity_id.localeCompare(right.entity_id)).map((entity) => <option key={entity.entity_id} value={entity.entity_id}>{String(entity.attributes?.friendly_name ?? entity.entity_id)} · {String(entity.attributes?.unit_of_measurement ?? 'unità non disponibile')}</option>)}
+        </select>
+        <p className="text-[11px] text-[var(--ink-tertiary)]">Scegli la potenza prodotta dall’impianto, distinta dal consumo della casa. Il confronto non viene dedotto dal nome delle entità.</p>
       </div>
       <SaveMessage message={message} />
     </GlassCard>
@@ -1082,13 +1109,13 @@ function EmergencyCard() {
     <GlassCard className="space-y-3">
       <FeatureHeader Icon={Siren} title="Emergenza" badge={photoOn ? 'Foto attiva' : 'Solo avviso'} tone={photoOn ? 'ok' : 'neutral'} />
       {readOnly && <ReadOnlyNotice />}
-      <p className="text-[12px] text-black/40">
+      <p className="text-[12px] text-[var(--ink-tertiary)]">
         Con un allarme attivo il tablet accende lo schermo alla massima luminosità e mostra l’avviso a tutto schermo.
       </p>
       <div className="space-y-3 rounded-[14px] border border-red-500/15 bg-red-500/[0.055] p-3">
         <div>
-          <p className="text-sm font-semibold text-[#1d1d1f]">Pannello test allarme</p>
-          <p className="mt-0.5 text-[11px] leading-relaxed text-black/45">
+          <p className="text-sm font-semibold text-[var(--ink)]">Pannello test allarme</p>
+          <p className="mt-0.5 text-[11px] leading-relaxed text-[var(--ink-secondary)]">
             Prova overlay, audio e pulsanti per {ALARM_TEST_DURATION_MS / 1_000} secondi su tutti i kiosk collegati. Non arma HASS, non attiva dispositivi e non scatta fotografie.
           </p>
         </div>
@@ -1106,7 +1133,7 @@ function EmergencyCard() {
               onClick={() => setTestScenario(scenario)}
               className={cn(
                 'min-h-11 rounded-[11px] px-2 text-xs font-semibold transition disabled:opacity-45',
-                testScenario === scenario ? 'bg-[#a8071a] text-white' : 'bg-white/70 text-black/60',
+                testScenario === scenario ? 'bg-[#a8071a] text-[var(--on-accent)]' : 'bg-[var(--surface-solid)] text-[var(--ink-secondary)]',
               )}
             >
               {label}
@@ -1118,18 +1145,18 @@ function EmergencyCard() {
           onClick={() => void toggleAlarmTest()}
           disabled={testPending}
           className={cn(
-            'flex min-h-12 w-full items-center justify-center gap-2 rounded-[12px] text-sm font-bold text-white transition active:scale-[0.98]',
-            alarmTest ? 'bg-black/65' : 'bg-[#a8071a]',
+            'flex min-h-12 w-full items-center justify-center gap-2 rounded-[12px] text-sm font-bold text-[var(--on-accent)] transition active:scale-[0.98]',
+            alarmTest ? 'bg-[var(--fill-subtle)]' : 'bg-[#a8071a]',
           )}
         >
           <Siren size={17} aria-hidden="true" />
           {testPending ? 'Sincronizzazione…' : alarmTest ? 'Termina test su tutti i kiosk' : 'Avvia test su tutti i kiosk'}
         </button>
       </div>
-      <div className="flex items-center justify-between gap-3 rounded-[10px] bg-black/[0.035] px-3 py-2.5">
+      <div className="flex items-center justify-between gap-3 rounded-[10px] bg-[var(--fill-subtle)] px-3 py-2.5">
         <div className="min-w-0">
-          <p className="text-sm text-[#1d1d1f]">Foto dal tablet all’allarme</p>
-          <p className="text-[11px] text-black/40">Opt-in: UNA fotografia dalla fotocamera frontale per evento, salvata nello storage locale MyHome. Niente video né scatti continui.</p>
+          <p className="text-sm text-[var(--ink)]">Foto dal tablet all’allarme</p>
+          <p className="text-[11px] text-[var(--ink-tertiary)]">Opt-in: UNA fotografia dalla fotocamera frontale per evento, salvata nello storage locale MyHome. Niente video né scatti continui.</p>
         </div>
         <button
           type="button"
@@ -1176,14 +1203,14 @@ function IntegrationsCard({ gemini, openweather, pending, error }: { gemini?: bo
 function IntegrationRow({ Icon, name, state, offText }: { Icon: React.ElementType; name: string; state: 'on' | 'off' | 'unknown'; offText?: string }) {
   const statusLabel = state === 'on' ? 'Attiva' : state === 'off' ? 'Non configurata' : 'Stato non disponibile'
   return (
-    <div className="flex items-center gap-3 rounded-[10px] bg-black/[0.035] px-3 py-2.5">
-      <Icon size={16} className="shrink-0 text-black/45" />
+    <div className="flex items-center gap-3 rounded-[10px] bg-[var(--fill-subtle)] px-3 py-2.5">
+      <Icon size={16} className="shrink-0 text-[var(--ink-secondary)]" />
       <div className="min-w-0 flex-1">
-        <p className="text-sm text-[#1d1d1f]">{name}</p>
+        <p className="text-sm text-[var(--ink)]">{name}</p>
         {state === 'off' && offText && <p className="text-[11px] text-orange-700">{offText}</p>}
-        {state === 'unknown' && <p className="text-[11px] text-black/40">Stato non disponibile; controlla il servizio MyHome.</p>}
+        {state === 'unknown' && <p className="text-[11px] text-[var(--ink-tertiary)]">Stato non disponibile; controlla il servizio MyHome.</p>}
       </div>
-      <span className={cn('h-2.5 w-2.5 shrink-0 rounded-full', state === 'on' ? 'bg-green-500' : state === 'off' ? 'bg-orange-400' : 'bg-black/25')} aria-hidden="true" />
+      <span className={cn('h-2.5 w-2.5 shrink-0 rounded-full', state === 'on' ? 'bg-green-500' : state === 'off' ? 'bg-orange-400' : 'bg-[var(--fill-subtle)]')} aria-hidden="true" />
       <span className="sr-only">{statusLabel}</span>
     </div>
   )

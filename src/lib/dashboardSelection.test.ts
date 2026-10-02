@@ -18,6 +18,11 @@ function entities(...items: HassEntity[]): HassEntities {
 }
 
 describe('dashboard selection', () => {
+  it('esclude null e converte unità prima delle medie', () => {
+    expect(meanIndoorClimateTemperature(entities(entity('climate.null', 'heat', { current_temperature: null })))).toBeNull()
+    expect(meanIndoorClimateTemperature(entities(entity('climate.fahrenheit', 'heat', { current_temperature: 68, temperature_unit: '°F' }), entity('climate.celsius', 'heat', { current_temperature: 20, temperature_unit: '°C' })))).toBe(20)
+    expect(externalTemperatureFromEntities(entities(entity('weather.null', 'sunny', { temperature: null })))).toBeNull()
+  })
   it('calcola la media interna dai climate disponibili', () => {
     const source = entities(
       entity('climate.sala', 'heat', { current_temperature: 20 }),

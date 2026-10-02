@@ -76,3 +76,8 @@ describe('live notifications', () => {
     })
   })
 })
+
+it('presents generic HA problems as warnings without safety escalation', () => {
+  const problem = entity('binary_sensor.printer', 'on', { device_class: 'problem' })
+  expect(notificationsFromEntities({ [problem.entity_id]: problem })).toContainEqual(expect.objectContaining({ severity: 'warning', message: 'Il dispositivo segnala un problema' }))
+})

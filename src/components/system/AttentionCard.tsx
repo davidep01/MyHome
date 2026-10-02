@@ -53,23 +53,23 @@ export function AttentionCard({
   return (
     <GlassCard className="space-y-2 overflow-y-auto">
       <div className="flex items-center gap-2">
-        <h2 className="flex-1 text-sm font-semibold text-[#1d1d1f]">Cosa non va</h2>
+        <h2 className="flex-1 text-sm font-semibold text-[var(--ink)]">Cosa non va</h2>
         {suppressedCount > 0 && (
           <button
             type="button"
             onClick={() => setShowSuppressed((s) => !s)}
-            className="tap-target rounded-full px-2 text-[11px] font-semibold text-black/40 active:scale-95"
+            className="tap-target rounded-full px-2 text-[11px] font-semibold text-[var(--ink-tertiary)] active:scale-95"
           >
             {showSuppressed ? 'Nascondi posticipati' : `${suppressedCount} posticipat${suppressedCount === 1 ? 'o' : 'i'}`}
           </button>
         )}
       </div>
       {loading ? (
-        <div className="flex min-h-[132px] flex-col items-center justify-center gap-2 text-black/40" role="status">
+        <div className="flex min-h-[132px] flex-col items-center justify-center gap-2 text-[var(--ink-tertiary)]" role="status">
           <p className="text-sm">Controllo dei servizi in corso…</p>
         </div>
       ) : visible.length === 0 ? (
-        <div className="flex min-h-[132px] flex-col items-center justify-center gap-2 text-black/35">
+        <div className="flex min-h-[132px] flex-col items-center justify-center gap-2 text-[var(--ink-tertiary)]">
           <CheckCircle2 size={28} className="text-green-600/70" />
           <p className="text-sm">Tutto regolare.</p>
         </div>
@@ -101,25 +101,25 @@ function AttentionRow({
   onRestore: () => void
 }) {
   const [menuOpen, setMenuOpen] = useState(false)
-  const tint = item.severity === 'critical' ? 'bg-red-500/10' : item.severity === 'warning' ? 'bg-orange-500/10' : 'bg-black/[0.04]'
-  const iconColor = item.severity === 'critical' ? 'text-red-600' : item.severity === 'warning' ? 'text-orange-600' : 'text-black/40'
+  const tint = item.severity === 'critical' ? 'bg-red-500/10' : item.severity === 'warning' ? 'bg-orange-500/10' : 'bg-[var(--fill-subtle)]'
+  const iconColor = item.severity === 'critical' ? 'text-red-600' : item.severity === 'warning' ? 'text-orange-600' : 'text-[var(--ink-tertiary)]'
   const Icon = item.severity === 'critical' ? ShieldAlert : AlertTriangle
 
   return (
     <div className={cn('rounded-[12px] px-3 py-2.5', tint, snoozedNow && 'opacity-50')}>
       <div className="flex items-center gap-3">
         <Icon size={16} className={cn('shrink-0', iconColor)} />
-        <p className="min-w-0 flex-1 text-sm text-[#1d1d1f]">{item.text}</p>
+        <p className="min-w-0 flex-1 text-sm text-[var(--ink)]">{item.text}</p>
         {snoozedNow ? (
-          <button type="button" onClick={onRestore} className="tap-target min-h-9 shrink-0 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-black/60 active:scale-95">
+          <button type="button" onClick={onRestore} className="tap-target min-h-11 shrink-0 rounded-full bg-[var(--surface-solid)] px-3 py-1.5 text-xs font-semibold text-[var(--ink-secondary)] active:scale-95">
             Riattiva
           </button>
         ) : onAction ? (
-          <button type="button" onClick={onAction} className="min-h-[44px] shrink-0 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-black/60 active:scale-95">
+          <button type="button" onClick={onAction} className="min-h-[44px] shrink-0 rounded-full bg-[var(--surface-solid)] px-3 py-1.5 text-xs font-semibold text-[var(--ink-secondary)] active:scale-95">
             Sistema
           </button>
         ) : item.suppressible ? (
-          <button type="button" onClick={() => setMenuOpen((o) => !o)} aria-expanded={menuOpen} className="tap-target min-h-9 shrink-0 rounded-full bg-white/70 px-3 py-1.5 text-xs font-semibold text-black/50 active:scale-95">
+          <button type="button" onClick={() => setMenuOpen((o) => !o)} aria-expanded={menuOpen} className="tap-target min-h-11 shrink-0 rounded-full bg-[var(--surface-solid)] px-3 py-1.5 text-xs font-semibold text-[var(--ink-secondary)] active:scale-95">
             Posticipa
           </button>
         ) : null}
@@ -131,7 +131,7 @@ function AttentionRow({
               key={option.minutes}
               type="button"
               onClick={() => { onSnooze(option.minutes); setMenuOpen(false) }}
-              className="tap-target min-h-8 rounded-full bg-white/70 px-3 py-1 text-[11px] font-semibold text-black/55 active:scale-95"
+              className="tap-target min-h-11 rounded-full bg-[var(--surface-solid)] px-3 py-1 text-[11px] font-semibold text-[var(--ink-secondary)] active:scale-95"
             >
               {option.label}
             </button>
@@ -139,7 +139,7 @@ function AttentionRow({
           <button
             type="button"
             onClick={() => { onIgnore(); setMenuOpen(false) }}
-            className="tap-target min-h-8 rounded-full bg-white/70 px-3 py-1 text-[11px] font-semibold text-black/55 active:scale-95"
+            className="tap-target min-h-11 rounded-full bg-[var(--surface-solid)] px-3 py-1 text-[11px] font-semibold text-[var(--ink-secondary)] active:scale-95"
           >
             Finché non cambia
           </button>

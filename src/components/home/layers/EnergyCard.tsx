@@ -1,3 +1,4 @@
+import { useTabletLayout } from '../../../hooks/useTabletLayout'
 import { useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Zap } from 'lucide-react'
@@ -7,9 +8,9 @@ import { useEntityStore } from '../../../store/entities'
 import { cn } from '../../../lib/utils'
 import { entityName } from '../../widgets/utils/mapEntityToWidgetCard'
 import {
-  detectSolarSelfSufficiency, detectSustainedWaterFlow, findSolarProductionSensor, findWaterFlowSensor,
+  detectSolarSelfSufficiency, detectSustainedWaterFlow, findSolarProductionSensor, findWaterFlowSensor, timeWeightedPowerKw,
 } from '../../../lib/consumptionInsights'
-import { powerValueInKw } from '../../../lib/statusBarEnergy'
+import { HOUSE_CONSUMPTION_ID, powerValueInKw } from '../../../lib/statusBarEnergy'
 
 /**
  * Energia onesta (DOMINICA M5): capability-gated — senza sensori di potenza la
@@ -18,20 +19,23 @@ import { powerValueInKw } from '../../../lib/statusBarEnergy'
  * (baseline statistica leggibile, non "ML").
  */
 export function EnergyCard() {
+  const { data: layout } = useTabletLayout('home')
   const entities = useEntityStore((s) => s.entities)
+  const connected = useEntityStore((s) => s.connected)
 
   const sensor = useMemo(() => {
     const candidates = Object.values(entities).filter((e) =>
       e.attributes?.device_class === 'power'
-      && e.state !== 'unavailable'
-      && Number.isFinite(parseFloat(e.state)))
+      && powerValueInKw(e.state, e.attributes?.unit_of_measurement) !== null)
     if (candidates.length === 0) return null
-    return [...candidates].sort((a, b) => parseFloat(b.state) - parseFloat(a.state) || a.entity_id.localeCompare(b.entity_id))[0]
+    return [...candidates].sort((a, b) => powerValueInKw(b.state, b.attributes?.unit_of_measurement)! - powerValueInKw(a.state, a.attributes?.unit_of_measurement)! || a.entity_id.localeCompare(b.entity_id))[0]
   }, [entities])
 
   const { data: history } = useQuery({
     queryKey: ['energy-baseline', sensor?.entity_id],
-    enabled: Boolean(sensor),
+    enabled: connected && Boolean(sensor),
+    refetchInterval: 5 * 60_000,
+    refetchOnReconnect: true,
     staleTime: 30 * 60 * 1000,
     queryFn: () => haApi.history(sensor!.entity_id, 24),
   })
@@ -39,11 +43,13 @@ export function EnergyCard() {
   const waterSensor = useMemo(() => findWaterFlowSensor(Object.values(entities)), [entities])
   const { data: waterHistory } = useQuery({
     queryKey: ['water-flow-history', waterSensor?.entityId],
-    enabled: Boolean(waterSensor),
+    enabled: connected && Boolean(waterSensor),
+    refetchInterval: 60_000,
+    refetchOnReconnect: true,
     staleTime: 5 * 60 * 1000,
     queryFn: () => haApi.history(waterSensor!.entityId, 1),
   })
-  const solarSensor = useMemo(() => findSolarProductionSensor(Object.values(entities)), [entities])
+  const solarSensor = useMemo(() => findSolarProductionSensor(Object.values(entities), layout?.solarProductionEntityId), [entities, layout?.solarProductionEntityId])
 
   // Aggiornato a intervalli, mai letto direttamente durante il render.
   const [nowMs, setNowMs] = useState(() => Date.now())
@@ -56,15 +62,18 @@ export function EnergyCard() {
 
   const now = parseFloat(sensor.state)
   const unit = (sensor.attributes?.unit_of_measurement as string | undefined) ?? 'W'
-  const values = (history ?? []).map((h) => parseFloat(h.state)).filter(Number.isFinite)
-  const avg = values.length >= 8 ? values.reduce((a, b) => a + b, 0) / values.length : null
-  const delta = avg && avg > 1 ? Math.round(((now - avg) / avg) * 100) : null
+  const nowKw = powerValueInKw(sensor.state, unit)
+  const avg = connected && history ? timeWeightedPowerKw(history, unit, nowMs - 24 * 60 * 60_000, nowMs) : null
+  const delta = avg !== null && avg > 0.001 && nowKw !== null ? Math.round(((nowKw - avg) / avg) * 100) : null
 
-  const waterInsight = waterSensor && waterHistory
+  const waterInsight = connected && waterSensor && waterHistory
     ? detectSustainedWaterFlow(waterHistory, waterSensor.unit, nowMs)
     : null
-  const consumptionKw = powerValueInKw(sensor.state, unit)
-  const solarInsight = solarSensor && consumptionKw !== null
+  // Only the independently identified whole-house source can substantiate
+  // self-sufficiency. The most active device is not household consumption.
+  const house = entities[HOUSE_CONSUMPTION_ID]
+  const consumptionKw = house ? powerValueInKw(house.state, house.attributes?.unit_of_measurement) : null
+  const solarInsight = connected && solarSensor && solarSensor.entityId !== HOUSE_CONSUMPTION_ID && consumptionKw !== null
     ? detectSolarSelfSufficiency(consumptionKw, solarSensor.kw)
     : null
 
@@ -72,27 +81,26 @@ export function EnergyCard() {
     <GlassCard
       depth
       className="flex min-h-[200px] flex-col justify-between"
-      style={{ background: 'linear-gradient(145deg, rgba(245,158,11,0.16), color-mix(in srgb, var(--surface-solid) 72%, transparent) 72%)' }}
     >
       <div className="flex items-center gap-2">
         <div className="flex h-9 w-9 items-center justify-center rounded-[11px] bg-amber-500/12 text-amber-600">
           <Zap size={17} />
         </div>
-        <p className="text-sm font-semibold text-[#1d1d1f]">Energia</p>
+        <p className="text-sm font-semibold text-[var(--ink)]">Energia</p>
         {delta !== null && (
           <span className={cn(
             'ml-auto rounded-full px-2.5 py-1 text-[11px] font-semibold tabular-nums',
-            delta > 15 ? 'bg-orange-500/12 text-[#c2410c]' : delta < -15 ? 'bg-green-500/12 text-green-700' : 'bg-black/[0.06] text-black/45',
+            delta > 15 ? 'bg-orange-500/12 text-[#c2410c]' : delta < -15 ? 'bg-green-500/12 text-green-700' : 'bg-[var(--fill-muted)] text-[var(--ink-secondary)]',
           )}>
             {delta > 0 ? '+' : ''}{delta}% vs media 24h
           </span>
         )}
       </div>
       <div>
-        <p className="text-[40px] font-light leading-none text-[#1d1d1f] tabular-nums">
-          {Math.round(now)}<span className="ml-1 text-lg text-black/40">{unit}</span>
+        <p className="text-[40px] font-light leading-none text-[var(--ink)] tabular-nums">
+          {Math.round(now)}<span className="ml-1 text-lg text-[var(--ink-tertiary)]">{unit}</span>
         </p>
-        <p className="mt-2 truncate text-xs text-black/40">
+        <p className="mt-2 truncate text-xs text-[var(--ink-tertiary)]">
           {entityName(sensor)}
         </p>
         {(waterInsight || solarInsight) && (

@@ -24,3 +24,5 @@ describe('summaryLabel', () => {
     expect(summaryLabel({ ...BASE, reordered: true })).toBe('riordinati')
   })
 })
+
+it('labels semantic widget changes in Italian', () => { expect(summaryLabel({ ...BASE, widgetsUpdated: 1 })).toBe('1 modificato') })

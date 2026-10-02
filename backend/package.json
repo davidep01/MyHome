@@ -5,20 +5,26 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsup src/index.ts --format esm --out-dir dist --no-splitting",
+    "build": "tsup src/index.ts src/lib/calendar-worker.ts src/lib/jpeg-worker.ts --format esm --out-dir dist --no-splitting",
     "typecheck": "tsc --noEmit",
     "start": "node dist/index.js"
   },
   "dependencies": {
     "@hono/node-server": "^1.12.0",
     "hono": "^4.12.30",
+    "jpeg-js": "^0.4.4",
     "node-ical": "^0.26.1",
-    "rss-parser": "^3.13.0"
+    "rss-parser": "^3.13.0",
+    "tz-lookup": "^6.1.25"
   },
   "devDependencies": {
     "@types/node": "^20.14.2",
+    "@types/tz-lookup": "^6.1.2",
     "tsup": "^8.1.0",
     "tsx": "^4.15.7",
     "typescript": "^5.4.5"
+  },
+  "overrides": {
+    "esbuild": "^0.28.2"
   }
 }

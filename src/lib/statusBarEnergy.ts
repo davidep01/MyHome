@@ -1,5 +1,7 @@
 import type { HassEntity } from 'home-assistant-js-websocket'
 
+export { HOUSE_CONSUMPTION_ID } from '../../backend/src/lib/energy-entities'
+
 export type WallboxMode = 'hidden' | 'connected' | 'charging'
 
 const CHARGING_WALLBOX_STATES = new Set([
@@ -32,13 +34,14 @@ export function isWallboxConnected(entity?: HassEntity): boolean {
 }
 
 export function powerValueInKw(state: unknown, unitValue: unknown = 'W'): number | null {
-  if (state === 'unavailable' || state === 'unknown') return null
+  if ((typeof state !== 'number' && typeof state !== 'string') || (typeof state === 'string' && !state.trim())) return null
   const raw = Number(state)
   if (!Number.isFinite(raw)) return null
   const unit = String(unitValue ?? 'W').trim().toLowerCase()
   if (unit === 'kw') return raw
   if (unit === 'mw') return raw * 1_000
-  return raw / 1_000
+  if (unit === 'w') return raw / 1_000
+  return null
 }
 
 export function powerInKw(entity?: HassEntity): number | null {

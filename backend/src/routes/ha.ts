@@ -1,3 +1,4 @@
+import { monitoredMjpegStream } from '../lib/mjpeg-stream.js'
 import { Hono } from 'hono'
 import { streamSSE } from 'hono/streaming'
 import { getHABaseUrl, getHAConfig } from '../lib/ha-config.js'
@@ -492,21 +493,12 @@ haRouter.get('/camera-stream/:entityId', async (c) => {
     const res = await proxyHA(`/api/camera_proxy_stream/${encodeURIComponent(entityId)}`, { signal: abort.signal })
     clearTimeout(connectTimeout)
     if (!res.body) { cleanup(); return new Response(null, { status: res.status }) }
-    const reader = res.body.getReader()
-    const body = new ReadableStream<Uint8Array>({
-      async pull(controller) {
-        try {
-          const next = await reader.read()
-          if (next.done) { cleanup(); reader.releaseLock(); controller.close() }
-          else controller.enqueue(next.value)
-        } catch (error) { cleanup(); controller.error(error) }
-      },
-      async cancel(reason) {
-        abort.abort(reason)
-        cleanup()
-        await reader.cancel(reason)
-      },
-    })
+    if (abort.signal.aborted) { await res.body.cancel(); cleanup(); return new Response(null, { status: 499 }) }
+    if (res.ok && !res.headers.get('Content-Type')?.toLowerCase().startsWith('multipart/x-mixed-replace')) {
+      await res.body.cancel(); cleanup()
+      return c.json({ error: 'La videocamera non fornisce un flusso MJPEG live' }, 502)
+    }
+    const body = monitoredMjpegStream(res.body, abort, cleanup)
     return new Response(body, {
       status: res.status,
       headers: {

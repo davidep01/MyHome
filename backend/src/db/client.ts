@@ -61,6 +61,9 @@ const DEFAULT_DB: DbStore = {
   homeRevisions: [],
 }
 
+/** Fresh defaults for full restore, never a reference to the running store. */
+export function defaultConfig(): DbStore['config'] { return structuredClone(DEFAULT_DB.config) }
+
 class JsonStore {
   private data: DbStore
   private writeQueue: Promise<void> = Promise.resolve()
@@ -116,6 +119,9 @@ class JsonStore {
       const previous = this.data
       const draft = structuredClone(previous)
       updater(draft)
+      if (JSON.stringify(draft.config) !== JSON.stringify(previous.config)) {
+        draft.config.configVersion = (previous.config.configVersion ?? 1) + 1
+      }
       this.persistFile(draft)
       this.data = draft
       written = true

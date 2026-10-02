@@ -1,3 +1,4 @@
+import { wakeAllowed } from '../lib/kioskWakePolicy'
 import { useEffect } from 'react'
 import {
   adaptiveBrightnessFor,
@@ -10,15 +11,10 @@ import {
 } from '../lib/fullyKiosk'
 import { markKioskActivity, onKioskScreensaver } from '../lib/kioskActivity'
 import { useFullyKioskStore } from '../store/fullyKiosk'
-import { useThemeStore } from '../store/theme'
 
 const DEFAULT_AMBIENT_BRIGHTNESS = 28
 const LIGHT_POLL_MS = 4_000
 const BRIGHTNESS_DEADBAND = 5
-const DARK_LUX = 20
-const LIGHT_LUX = 45
-const DARK_LUMA = 34
-const LIGHT_LUMA = 78
 
 interface UseFullyKioskOptions {
   ambientBrightness?: number
@@ -38,12 +34,13 @@ export function useFullyKiosk(options: UseFullyKioskOptions = {}): void {
   const ambientBrightness = clampBrightness(options.ambientBrightness ?? DEFAULT_AMBIENT_BRIGHTNESS)
 
   useEffect(() => {
+    const initialize = () => {
     const store = useFullyKioskStore.getState()
     const availability = fullyKioskAvailability(window.fully, window.location)
     const bridge = createFullyKioskBridge(window.fully, window.location)
     if (!bridge) {
       store._reset(availability)
-      return () => useFullyKioskStore.getState()._reset(availability)
+      return null
     }
 
     const originalBrightness = bridge.getBrightness()
@@ -94,6 +91,7 @@ export function useFullyKiosk(options: UseFullyKioskOptions = {}): void {
       const active = anyScreensaver()
       useFullyKioskStore.getState()._patch({ screensaverActive: active })
       if (emergency) return // l'emergenza tiene lo schermo al massimo, lo screensaver aspetta
+      if (useFullyKioskStore.getState().manualBrightnessUntil > Date.now()) return
       if (active) {
         if (!wasActive) {
           const current = bridge.getBrightness()
@@ -125,6 +123,9 @@ export function useFullyKiosk(options: UseFullyKioskOptions = {}): void {
         if (current !== null && !anyScreensaver()) normalBrightness = current
         bridge.turnScreenOn()
         applyBrightness(255)
+      } else if (useFullyKioskStore.getState().manualBrightnessUntil > Date.now()) {
+        const level = useFullyKioskStore.getState().manualBrightness
+        if (level !== null) applyBrightness(level)
       } else if (anyScreensaver()) {
         if (normalBrightness !== null) applyBrightness(activeScreensaverBrightness())
       } else {
@@ -142,6 +143,8 @@ export function useFullyKiosk(options: UseFullyKioskOptions = {}): void {
       if (!isFullyKioskEventName(detail?.name)) return
 
       if (detail.name === 'onMotion') {
+        const state = useFullyKioskStore.getState()
+        if (!wakeAllowed('motion', state.manualScreenOffUntil, state.emergencyActive)) return
         const woke = bridge.turnScreenOn()
         useFullyKioskStore.getState()._patch({
           lastMotionAt: Date.now(),
@@ -151,7 +154,7 @@ export function useFullyKiosk(options: UseFullyKioskOptions = {}): void {
         return
       }
       if (detail.name === 'screenOn') {
-        useFullyKioskStore.getState()._patch({ screenOn: true })
+        useFullyKioskStore.getState()._patch({ screenOn: true, manualScreenOffUntil: 0 })
         markKioskActivity()
         return
       }
@@ -180,32 +183,22 @@ export function useFullyKiosk(options: UseFullyKioskOptions = {}): void {
     const pollAmbientLight = () => {
       if (document.visibilityState === 'hidden') return
       const reading = bridge.readAmbientLight()
-      if (!reading) return
+      if (!reading) {
+        useFullyKioskStore.getState()._patch({ ambientLight: null, ambientLightSource: null })
+        return
+      }
 
       useFullyKioskStore.getState()._patch({
         ambientLight: reading.value,
         ambientLightSource: reading.source,
       })
-      const theme = useThemeStore.getState()
-      if (theme.themeMode === 'auto') {
-        const darkThreshold = reading.source === 'average-luma' ? DARK_LUMA : DARK_LUX
-        const lightThreshold = reading.source === 'average-luma' ? LIGHT_LUMA : LIGHT_LUX
-        const target = reading.value < darkThreshold
-          ? true
-          : reading.value > lightThreshold
-            ? false
-            : theme.effectiveDark
-        document.documentElement.classList.toggle('dark', target)
-        theme._patch({
-          lastLux: Math.round(reading.value),
-          source: 'sensor',
-          sensorState: 'active',
-          effectiveDark: target,
-        })
-      } else {
-        theme._patch({ lastLux: Math.round(reading.value) })
-      }
 
+      const manual = useFullyKioskStore.getState()
+      if (manual.manualBrightnessUntil > Date.now()) {
+        normalBrightness = manual.manualBrightness
+        lastAppliedBrightness = manual.screenBrightness
+        return
+      }
       const target = adaptiveBrightnessFor(reading)
       normalBrightness = normalBrightness === null
         ? target
@@ -231,6 +224,16 @@ export function useFullyKiosk(options: UseFullyKioskOptions = {}): void {
       if (startedMotionHere && bridge.capabilities.motionStop) bridge.stopMotion()
       if (originalBrightness !== null) bridge.setBrightness(originalBrightness)
       useFullyKioskStore.getState()._reset()
+    }
+    }
+    let cleanup = initialize()
+    const probe = () => { if (!cleanup) cleanup = initialize() }
+    const probeTimer = window.setInterval(probe, 5000)
+    document.addEventListener('visibilitychange', probe)
+    return () => {
+      window.clearInterval(probeTimer)
+      document.removeEventListener('visibilitychange', probe)
+      cleanup?.()
     }
   }, [ambientBrightness])
 }

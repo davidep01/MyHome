@@ -1,4 +1,5 @@
-import { createElement, useMemo } from 'react'
+import { useModalFocus } from '../../../hooks/useModalFocus'
+import { createElement, useMemo, useRef } from 'react'
 import { AnimatePresence, animate, motion, useMotionValue } from 'framer-motion'
 import { X } from 'lucide-react'
 import type { CSSProperties } from 'react'
@@ -35,6 +36,8 @@ export function SpacesCatalog({
   onClose: () => void
   onOpenRoom: (room: RoomTarget) => void
 }) {
+  const panelRef = useRef<HTMLDivElement>(null)
+  useModalFocus(open, panelRef, onClose, 49)
   const { rooms } = useRoomsOverview({ hiddenEntities, overrides })
   const totalActive = rooms.reduce((n, r) => n + r.active, 0)
 
@@ -53,7 +56,12 @@ export function SpacesCatalog({
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-50 flex flex-col bg-[#f5f5f7]"
+          ref={panelRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Spazi"
+          tabIndex={-1}
+          className="fixed inset-0 z-50 flex flex-col bg-[var(--canvas-page)]"
           style={{ y }}
           initial={{ opacity: 0, scale: 1.05 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -66,11 +74,11 @@ export function SpacesCatalog({
             className="shrink-0 cursor-grab touch-none px-7 pt-4"
             style={{ paddingTop: 'max(16px, env(safe-area-inset-top))' }}
           >
-            <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-black/12" aria-hidden="true" />
+            <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-[var(--fill-muted)]" aria-hidden="true" />
             <div className="flex items-end justify-between gap-4">
               <div className="min-w-0">
-                <h1 className="text-[44px] font-light leading-none tracking-tight text-[#1d1d1f]">Spazi</h1>
-                <p className="mt-2 text-[15px] text-black/45">
+                <h1 className="text-[44px] font-light leading-none tracking-tight text-[var(--ink)]">Spazi</h1>
+                <p className="mt-2 text-[15px] text-[var(--ink-secondary)]">
                   {rooms.length} {rooms.length === 1 ? 'stanza' : 'stanze'}
                   {totalActive > 0 ? ` · ${totalActive} ${totalActive === 1 ? 'dispositivo attivo' : 'dispositivi attivi'}` : ' · tutto tranquillo'}
                 </p>
@@ -78,7 +86,7 @@ export function SpacesCatalog({
               <button
                 type="button"
                 onClick={onClose}
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-black/[0.07] text-black/60 transition active:scale-95"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--fill-subtle)] text-[var(--ink-secondary)] transition active:scale-95"
                 aria-label="Chiudi gli spazi"
               >
                 <X size={18} />
@@ -149,15 +157,15 @@ function SpaceCard({ room, index, onOpen }: { room: RoomOverview; index: number;
           {icon}
         </span>
         {room.temperature !== null && (
-          <span className="rounded-full bg-black/[0.05] px-2.5 py-1 text-[13px] font-semibold tabular-nums text-black/55">
-            {room.temperature.toFixed(1)}°
+          <span className="rounded-full bg-[var(--fill-subtle)] px-2.5 py-1 text-[13px] font-semibold tabular-nums text-[var(--ink-secondary)]">
+            {room.temperature.toFixed(1)}{room.temperatureUnit ?? '°'}
           </span>
         )}
       </div>
 
       <div className="mt-auto min-w-0 pt-4">
-        <p className="truncate text-[19px] font-semibold leading-tight text-[#1d1d1f]">{room.title}</p>
-        <p className={cn('mt-1 truncate text-[13px] font-semibold', quiet ? 'text-black/35' : 'text-black/50')}>
+        <p className="truncate text-[19px] font-semibold leading-tight text-[var(--ink)]">{room.title}</p>
+        <p className={cn('mt-1 truncate text-[13px] font-semibold', quiet ? 'text-[var(--ink-tertiary)]' : 'text-[var(--ink-secondary)]')}>
           {roomFacts(room).join(' · ')}
         </p>
       </div>
@@ -209,7 +217,7 @@ function AutomationsSection({ baseIndex }: { baseIndex: number }) {
 
   return (
     <section className="mt-8">
-      <p className="mb-3 px-1 text-[13px] font-semibold uppercase tracking-[0.08em] text-black/35">Automazioni attive</p>
+      <p className="mb-3 px-1 text-[13px] font-semibold uppercase tracking-[0.08em] text-[var(--ink-tertiary)]">Automazioni attive</p>
       <div className="grid grid-cols-2 gap-3 xl:grid-cols-3">
         {automations.map((a, i) => (
           <button
@@ -226,8 +234,8 @@ function AutomationsSection({ baseIndex }: { baseIndex: number }) {
               <AnimSparkles size={16} />
             </span>
             <span className="min-w-0">
-              <span className="block truncate text-sm font-semibold text-[#1d1d1f]">{a.name}</span>
-              <span className="block truncate text-xs font-semibold text-black/40">
+              <span className="block truncate text-sm font-semibold text-[var(--ink)]">{a.name}</span>
+              <span className="block truncate text-xs font-semibold text-[var(--ink-tertiary)]">
                 {a.last ? `Ultima esecuzione ${timeAgo(a.last)}` : 'Mai eseguita'}
               </span>
             </span>

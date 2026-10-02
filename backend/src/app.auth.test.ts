@@ -100,7 +100,7 @@ it('enforces signed roles even when the legacy client header is forged', async (
   const enableVision = await app.request('/api/config', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', Cookie: adminCookie },
-    body: JSON.stringify({ ai: { doorbellVision: true, faces: [] } }),
+    body: JSON.stringify({ configVersion: (await (await app.request('/api/config', { headers: { Cookie: adminCookie } })).json() as { configVersion: number }).configVersion, ai: { doorbellVision: true, faces: [] } }),
   })
   expect(enableVision.status).toBe(200)
 
@@ -132,13 +132,13 @@ it('enforces signed roles even when the legacy client header is forged', async (
   expect(concurrent.map((response) => response.status).sort()).toEqual([200, 409])
 
   const configResponse = await app.request('/api/config', { headers: { Cookie: adminCookie } })
-  const config = await configResponse.json() as { home: Record<string, unknown> }
+  const config = await configResponse.json() as { home: Record<string, unknown>; configVersion: number }
   const concurrentConfig = await Promise.all([
     app.request('/api/config', {
-      method: 'PUT', headers: { 'Content-Type': 'application/json', Cookie: adminCookie }, body: JSON.stringify({ home: config.home }),
+      method: 'PUT', headers: { 'Content-Type': 'application/json', Cookie: adminCookie }, body: JSON.stringify({ home: config.home, configVersion: config.configVersion }),
     }),
     app.request('/api/config', {
-      method: 'PUT', headers: { 'Content-Type': 'application/json', Cookie: adminCookie }, body: JSON.stringify({ home: config.home }),
+      method: 'PUT', headers: { 'Content-Type': 'application/json', Cookie: adminCookie }, body: JSON.stringify({ home: config.home, configVersion: config.configVersion }),
     }),
   ])
   expect(concurrentConfig.map((response) => response.status).sort()).toEqual([200, 409])

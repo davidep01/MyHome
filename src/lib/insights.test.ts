@@ -48,4 +48,11 @@ describe('computeInsights', () => {
     ], opts)
     expect(out).toEqual([])
   })
+  it('never correlates unknown areas into a climate action', () => {
+    expect(computeInsights([
+      e('climate.salotto', 'heat', { hvac_action: 'heating' }),
+      e('binary_sensor.finestra', 'on', { device_class: 'window' }),
+    ], { ...opts, areaIdOf: () => undefined })).toEqual([])
+  })
+
 })

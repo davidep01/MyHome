@@ -1,6 +1,9 @@
 import { useId, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { AlertTriangle, History, MonitorSmartphone, Save, Server, ShieldCheck } from 'lucide-react'
+import { AdminSections } from '../components/layout/AdminSections'
+import { useAdminSection } from '../hooks/useAdminSection'
+import { CameraDiagnostics } from '../components/system/CameraDiagnostics'
 import { GlassCard } from '../components/glass/GlassCard'
 import { ServiceHealthCard } from '../components/system/ServiceHealthCard'
 import { useDashboardConfig, useUpdateConfig } from '../hooks/useDashboardConfig'
@@ -16,27 +19,32 @@ import { cn } from '../lib/utils'
  * log delle azioni critiche. "Cosa non va in casa" vive in Stato: qui non si
  * duplica nulla di quella vista.
  */
+const SYSTEM_SECTIONS = [
+  { id: 'connection', label: 'Connessione', description: 'Home Assistant e salute del servizio' },
+  { id: 'tablets', label: 'Tablet', description: 'Dispositivi, standby e comandi remoti' },
+  { id: 'video', label: 'Video e Ring', description: 'Verifica della diretta e dei trasporti disponibili' },
+  { id: 'history', label: 'Cronologia', description: 'Versioni della home e registro delle azioni' },
+] as const
+
 export function SystemPage() {
+  const { section, select } = useAdminSection(SYSTEM_SECTIONS)
   const { data: status } = useQuery({ queryKey: ['system-status'], queryFn: systemApi.status, refetchInterval: 15_000 })
 
   return (
-    <div className="flex h-full flex-col gap-4 overflow-y-auto pr-1">
+    <div className="flex h-full flex-col gap-4 overflow-y-auto pr-1 pb-6">
       <div>
-        <h1 className="text-2xl font-semibold text-[#1d1d1f] sm:text-3xl">Sistema</h1>
-        <p className="mt-1 text-sm text-black/45">Connessione, salute del servizio e tablet dell’installazione locale</p>
+        <h1 className="text-2xl font-semibold text-[var(--ink)] sm:text-3xl">Sistema</h1>
+        <p className="mt-1 text-sm text-[var(--ink-secondary)]">Connessione, salute del servizio e tablet dell’installazione locale</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-        <ConnectionCard />
-        <ServiceHealthCard status={status} />
+      <AdminSections sections={SYSTEM_SECTIONS} active={section} onSelect={select} />
+      <p className="text-sm text-[var(--ink-secondary)]">{SYSTEM_SECTIONS.find((item) => item.id === section)?.description}</p>
+      <div hidden={section !== 'connection'}>
+        <div className="grid grid-cols-1 gap-5 xl:grid-cols-2"><ConnectionCard /><ServiceHealthCard status={status} /></div>
       </div>
-
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-        <KioskFleetCard />
-        <AuditCard />
-      </div>
-
-      <HomeVersionsCard />
+      <div hidden={section !== 'tablets'}><KioskFleetCard /></div>
+      <div hidden={section !== 'video'}>{section === 'video' && <CameraDiagnostics active />}</div>
+      <div hidden={section !== 'history'}><div className="grid grid-cols-1 gap-5 xl:grid-cols-2"><HomeVersionsCard /><AuditCard /></div></div>
     </div>
   )
 }
@@ -48,6 +56,7 @@ export function SystemPage() {
  */
 function HomeVersionsCard() {
   const queryClient = useQueryClient()
+  const { data: config } = useDashboardConfig()
   const revisions = useQuery({ queryKey: ['system-home-revisions'], queryFn: systemApi.homeRevisions, refetchInterval: 30_000 })
   const [restoring, setRestoring] = useState<number | null>(null)
   const [message, setMessage] = useState<string | null>(null)
@@ -63,7 +72,7 @@ function HomeVersionsCard() {
         await Promise.all([
           queryClient.invalidateQueries({ queryKey: ['system-home-revisions'] }),
           queryClient.invalidateQueries({ queryKey: ['config'] }),
-          queryClient.invalidateQueries({ queryKey: ['layout'] }),
+          queryClient.invalidateQueries({ queryKey: ['tablet-layout'] }),
         ])
       })
       .catch(() => setMessage('Ripristino non riuscito. Riprova.'))
@@ -73,22 +82,24 @@ function HomeVersionsCard() {
   return (
     <GlassCard className="space-y-2">
       <div className="flex items-center gap-2">
-        <History size={16} className="text-black/45" />
-        <h2 className="flex-1 text-sm font-semibold text-[#1d1d1f]">Versioni della home</h2>
+        <History size={16} className="text-[var(--ink-secondary)]" />
+        <h2 className="flex-1 text-sm font-semibold text-[var(--ink)]">Versioni della home</h2>
       </div>
-      {entries.length === 0
-        ? <p className="py-3 text-center text-sm text-black/40">Nessuna modifica registrata dall’avvio del servizio.</p>
+      {revisions.isPending ? <p role="status" className="py-3 text-sm text-[var(--ink-secondary)]">Caricamento delle versioni…</p>
+        : revisions.isError ? <p role="alert" className="py-3 text-sm text-[var(--ink-secondary)]">Cronologia non disponibile. <button type="button" className="min-h-11 font-semibold text-[var(--action-blue)]" onClick={() => { void revisions.refetch() }}>Riprova</button></p>
+        : entries.length === 0
+        ? <p className="py-3 text-center text-sm text-[var(--ink-tertiary)]">Nessuna modifica registrata dall’avvio del servizio.</p>
         : entries.slice(0, 10).map((entry, index) => (
           <HomeVersionRow
             key={`${entry.version}-${entry.createdAt}`}
             entry={entry}
             current={index === 0}
             restoring={restoring === entry.version}
-            disabled={restoring !== null}
+            disabled={restoring !== null || config?.storage?.writable === false}
             onRestore={() => restore(entry.version)}
           />
         ))}
-      {message && <p className="text-xs font-semibold text-black/50" role="status" aria-live="polite">{message}</p>}
+      {message && <p className="text-xs font-semibold text-[var(--ink-secondary)]" role="status" aria-live="polite">{message}</p>}
     </GlassCard>
   )
 }
@@ -103,13 +114,13 @@ function HomeVersionRow({
   onRestore: () => void
 }) {
   return (
-    <div className="flex items-center gap-2 rounded-[10px] bg-black/[0.04] px-3 py-2">
+    <div className="flex items-center gap-2 rounded-[10px] bg-[var(--fill-subtle)] px-3 py-2">
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm text-[#1d1d1f]">
+        <p className="truncate text-sm text-[var(--ink)]">
           v{entry.version} · {summaryLabel(entry.summary)}
-          {entry.source === 'rollback' && <span className="text-black/45"> · ripristino da v{entry.restoredFromVersion}</span>}
+          {entry.source === 'rollback' && <span className="text-[var(--ink-secondary)]"> · ripristino da v{entry.restoredFromVersion}</span>}
         </p>
-        <p className="text-[11px] text-black/40">
+        <p className="text-[11px] text-[var(--ink-tertiary)]">
           {entry.createdBy === 'tablet' ? 'Tablet' : entry.createdBy === 'desktop' ? 'Regia' : 'Sistema'} · {timeAgo(entry.createdAt)}
         </p>
       </div>
@@ -118,7 +129,7 @@ function HomeVersionRow({
           type="button"
           onClick={onRestore}
           disabled={disabled}
-          className="tap-target shrink-0 rounded-full bg-white/80 px-3 py-1.5 text-xs font-semibold text-black/60 transition active:scale-95 disabled:opacity-40"
+          className="tap-target shrink-0 rounded-full bg-[var(--surface-solid)] px-3 py-1.5 text-xs font-semibold text-[var(--ink-secondary)] transition active:scale-95 disabled:opacity-40"
         >
           {restoring ? 'Ripristino…' : 'Ripristina'}
         </button>
@@ -166,21 +177,21 @@ function KioskFleetCard() {
   return (
     <GlassCard className="space-y-2">
       <div className="flex items-center gap-2">
-        <MonitorSmartphone size={16} className="text-black/45" />
-        <h2 className="flex-1 text-sm font-semibold text-[#1d1d1f]">Tablet a muro</h2>
-        <span className="rounded-full bg-black/[0.06] px-2.5 py-1 text-[11px] font-semibold text-black/45">{devices.filter((d) => d.online).length} online</span>
+        <MonitorSmartphone size={16} className="text-[var(--ink-secondary)]" />
+        <h2 className="flex-1 text-sm font-semibold text-[var(--ink)]">Tablet a muro</h2>
+        <span className="rounded-full bg-[var(--fill-subtle)] px-2.5 py-1 text-[11px] font-semibold text-[var(--ink-secondary)]">{devices.filter((d) => d.online).length} online</span>
       </div>
-      {isPending ? <p className="py-4 text-center text-sm text-black/40" role="status">Ricerca dei tablet…</p>
+      {isPending ? <p className="py-4 text-center text-sm text-[var(--ink-tertiary)]" role="status">Ricerca dei tablet…</p>
         : isError ? <p className="rounded-[10px] bg-red-500/10 px-3 py-2 text-sm text-red-700" role="alert">Elenco tablet non disponibile.</p>
-          : devices.length === 0 ? <p className="py-4 text-center text-sm text-black/40">Nessun tablet ancora registrato: il kiosk si presenta da solo entro un minuto dall’apertura.</p>
+          : devices.length === 0 ? <p className="py-4 text-center text-sm text-[var(--ink-tertiary)]">Nessun tablet ancora registrato: il kiosk si presenta da solo entro un minuto dall’apertura.</p>
             : devices.map((d) => (
-              <div key={d.deviceId} className="space-y-2 rounded-[12px] bg-black/[0.04] px-3 py-2.5">
+              <div key={d.deviceId} className="space-y-2 rounded-[12px] bg-[var(--fill-subtle)] px-3 py-2.5">
                 <div className="flex items-center gap-2">
-                  <span className={cn('h-2.5 w-2.5 shrink-0 rounded-full', d.online ? 'bg-green-500' : 'bg-black/25')} aria-hidden="true" />
-                  <p className="min-w-0 flex-1 truncate text-sm font-semibold text-[#1d1d1f]">{d.name ?? d.deviceId}</p>
-                  <p className="shrink-0 text-[11px] text-black/40">{d.online ? 'Online' : `Visto ${timeAgo(d.lastSeenAt)}`}</p>
+                  <span className={cn('h-2.5 w-2.5 shrink-0 rounded-full', d.online ? 'bg-green-500' : 'bg-[var(--fill-subtle)]')} aria-hidden="true" />
+                  <p className="min-w-0 flex-1 truncate text-sm font-semibold text-[var(--ink)]">{d.name ?? d.deviceId}</p>
+                  <p className="shrink-0 text-[11px] text-[var(--ink-tertiary)]">{d.online ? 'Online' : `Visto ${timeAgo(d.lastSeenAt)}`}</p>
                 </div>
-                <p className="text-[11px] text-black/45">
+                <p className="text-[11px] text-[var(--ink-secondary)]">
                   {[
                     d.battery !== undefined && `Batteria ${d.battery}%${d.charging ? ' ⚡︎' : ''}`,
                     d.screenOn !== undefined && `Schermo ${d.screenOn ? 'acceso' : 'spento'}`,
@@ -194,7 +205,7 @@ function KioskFleetCard() {
                 <FleetActions device={d} onSend={send} />
               </div>
             ))}
-      {message && <p className="text-xs font-semibold text-black/50" role="status" aria-live="polite">{message}</p>}
+      {message && <p className="text-xs font-semibold text-[var(--ink-secondary)]" role="status" aria-live="polite">{message}</p>}
     </GlassCard>
   )
 }
@@ -232,7 +243,7 @@ function FleetActions({
           disabled={disabledFor('screenOff')}
           onClick={() => {
             if (device.screenOn === false) onSend(device.deviceId, 'screenOn')
-            else if (window.confirm('Spegnere lo schermo del tablet?')) onSend(device.deviceId, 'screenOff')
+            else if (window.confirm('Spegnere lo schermo? Movimento e sensori saranno sospesi per 30 secondi; campanello e allarmi potranno riaccenderlo.')) onSend(device.deviceId, 'screenOff')
           }}
         />
         <FleetButton
@@ -271,7 +282,7 @@ function FleetButton({ label, onClick, danger, disabled }: { label: string; onCl
       title={disabled ? 'Richiede l’interfaccia JavaScript di Fully Kiosk' : undefined}
       className={cn(
         'min-h-[44px] rounded-full px-3.5 text-xs font-semibold transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100',
-        danger ? 'bg-red-500/10 text-red-600' : 'bg-white/80 text-black/60',
+        danger ? 'bg-red-500/10 text-red-600' : 'bg-[var(--surface-solid)] text-[var(--ink-secondary)]',
       )}
     >
       {label}
@@ -288,22 +299,24 @@ function AuditCard() {
   return (
     <GlassCard className="space-y-2">
       <div className="flex items-center gap-2">
-        <ShieldCheck size={16} className="text-black/45" />
-        <h2 className="flex-1 text-sm font-semibold text-[#1d1d1f]">Azioni critiche & emergenze</h2>
+        <ShieldCheck size={16} className="text-[var(--ink-secondary)]" />
+        <h2 className="flex-1 text-sm font-semibold text-[var(--ink)]">Azioni critiche & emergenze</h2>
       </div>
-      {entries.length === 0
-        ? <p className="py-3 text-center text-sm text-black/40">Nessuna apertura o disarmo registrato dall’avvio del servizio.</p>
+      {audit.isPending ? <p role="status" className="py-3 text-sm text-[var(--ink-secondary)]">Caricamento del registro…</p>
+        : audit.isError ? <p role="alert" className="py-3 text-sm text-[var(--ink-secondary)]">Registro non disponibile. <button type="button" className="min-h-11 font-semibold text-[var(--action-blue)]" onClick={() => { void audit.refetch() }}>Riprova</button></p>
+        : entries.length === 0
+        ? <p className="py-3 text-center text-sm text-[var(--ink-tertiary)]">Nessuna apertura o disarmo registrato dall’avvio del servizio.</p>
         : entries.slice(0, 12).map((entry, index) => (
-          <div key={`${entry.at}-${index}`} className="flex items-center gap-2 rounded-[10px] bg-black/[0.04] px-3 py-2">
-            <p className="min-w-0 flex-1 truncate text-sm text-[#1d1d1f]">
-              {auditActionLabel(entry.domain, entry.service)} · <span className="text-black/50">{entry.entityIds.join(', ')}</span>
+          <div key={`${entry.at}-${index}`} className="flex items-center gap-2 rounded-[10px] bg-[var(--fill-subtle)] px-3 py-2">
+            <p className="min-w-0 flex-1 truncate text-sm text-[var(--ink)]">
+              {auditActionLabel(entry.domain, entry.service)} · <span className="text-[var(--ink-secondary)]">{entry.entityIds.join(', ')}</span>
             </p>
-            <p className="shrink-0 text-[11px] text-black/40">{entry.role === 'kiosk' ? 'Tablet' : 'Regia'} · {timeAgo(entry.at)}</p>
+            <p className="shrink-0 text-[11px] text-[var(--ink-tertiary)]">{entry.role === 'kiosk' ? 'Tablet' : 'Regia'} · {timeAgo(entry.at)}</p>
           </div>
         ))}
       {(photos.data?.photos.length ?? 0) > 0 && (
         <div className="space-y-1.5">
-          <p className="text-xs font-semibold text-black/50">Foto di emergenza ({photos.data!.photos.length})</p>
+          <p className="text-xs font-semibold text-[var(--ink-secondary)]">Foto di emergenza ({photos.data!.photos.length})</p>
           <div className="flex gap-2 overflow-x-auto pb-1">
             {photos.data!.photos.slice(0, 12).map((photo) => (
               <a key={photo.name} href={photo.url} target="_blank" rel="noreferrer" className="shrink-0" aria-label={`Foto di emergenza del ${new Date(photo.takenAt).toLocaleString('it-IT')}`}>
@@ -340,7 +353,7 @@ function ConnectionCard() {
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null)
   const id = useId()
 
-  if (configPending && !config) return <GlassCard><p className="py-6 text-center text-sm text-black/40" role="status">Caricamento della connessione…</p></GlassCard>
+  if (configPending && !config) return <GlassCard><p className="py-6 text-center text-sm text-[var(--ink-tertiary)]" role="status">Caricamento della connessione…</p></GlassCard>
   if (configError && !config) {
     return <GlassCard><p className="rounded-[10px] bg-red-500/10 px-3 py-3 text-sm text-red-700" role="alert">{configQueryError instanceof Error ? configQueryError.message : 'Configurazione non disponibile.'}</p></GlassCard>
   }
@@ -378,8 +391,8 @@ function ConnectionCard() {
   return (
     <GlassCard className="space-y-3">
       <div className="flex items-center gap-2">
-        <Server size={16} className="text-black/45" />
-        <h2 className="text-sm font-semibold text-[#1d1d1f]">Connessione Home Assistant</h2>
+        <Server size={16} className="text-[var(--ink-secondary)]" />
+        <h2 className="text-sm font-semibold text-[var(--ink)]">Connessione Home Assistant</h2>
       </div>
       {(urlLocked || tokenLocked) && (
         <p className="rounded-[10px] bg-orange-500/10 px-3 py-2 text-xs text-orange-700">
@@ -393,7 +406,7 @@ function ConnectionCard() {
         <p className="rounded-[10px] bg-orange-500/10 px-3 py-2 text-xs text-orange-700" role="status">Storage in sola lettura: la connessione non può essere modificata.</p>
       )}
       <div className="space-y-1.5">
-        <label htmlFor={`${id}-ha-url`} className="text-xs font-semibold text-black/50">URL nella rete LAN</label>
+        <label htmlFor={`${id}-ha-url`} className="text-xs font-semibold text-[var(--ink-secondary)]">URL nella rete LAN</label>
         <input
           id={`${id}-ha-url`}
           type="url"
@@ -401,11 +414,11 @@ function ConnectionCard() {
           onChange={(e) => { setMessage(null); setHaUrl(e.target.value) }}
           disabled={readOnly || urlLocked}
           placeholder="http://homeassistant.local:8123"
-          className="w-full rounded-[12px] bg-black/8 px-3 py-3 font-mono text-sm text-[#1d1d1f] outline-none transition-colors focus:bg-black/12 disabled:opacity-45 min-h-[44px]"
+          className="w-full rounded-[12px] bg-[var(--fill-subtle)] px-3 py-3 font-mono text-sm text-[var(--ink)] outline-none transition-colors focus:bg-[var(--fill-subtle)] disabled:opacity-45 min-h-[44px]"
         />
       </div>
       <div className="space-y-1.5">
-        <label htmlFor={`${id}-ha-token`} className="text-xs font-semibold text-black/50">Token di lunga durata (vuoto = non modificare)</label>
+        <label htmlFor={`${id}-ha-token`} className="text-xs font-semibold text-[var(--ink-secondary)]">Token di lunga durata (vuoto = non modificare)</label>
         <input
           id={`${id}-ha-token`}
           type="password"
@@ -415,25 +428,25 @@ function ConnectionCard() {
           autoComplete="new-password"
           spellCheck={false}
           placeholder="••••••••••••"
-          className="w-full rounded-[12px] bg-black/8 px-3 py-3 font-mono text-sm text-[#1d1d1f] outline-none transition-colors focus:bg-black/12 disabled:opacity-45 min-h-[44px]"
+          className="w-full rounded-[12px] bg-[var(--fill-subtle)] px-3 py-3 font-mono text-sm text-[var(--ink)] outline-none transition-colors focus:bg-[var(--fill-subtle)] disabled:opacity-45 min-h-[44px]"
         />
       </div>
-      <p className="text-[11px] leading-relaxed text-black/40">Il token resta nel servizio locale MyHome e non viene incluso nei backup esportati.</p>
+      <p className="text-[11px] leading-relaxed text-[var(--ink-tertiary)]">Il token resta nel servizio locale MyHome e non viene incluso nei backup esportati.</p>
       <div className="grid grid-cols-2 gap-2 text-center">
-        <div className="rounded-[10px] bg-black/[0.05] px-2 py-2">
-          <p className="text-[10px] uppercase tracking-[0.12em] text-black/30">Origine URL</p>
-          <p className="mt-0.5 text-xs font-semibold text-black/65">{configSourceLabel(config.haConfigSource?.url ?? 'db')}</p>
+        <div className="rounded-[10px] bg-[var(--fill-subtle)] px-2 py-2">
+          <p className="text-[10px] uppercase tracking-[0.12em] text-[var(--ink-tertiary)]">Origine URL</p>
+          <p className="mt-0.5 text-xs font-semibold text-[var(--ink-secondary)]">{configSourceLabel(config.haConfigSource?.url ?? 'db')}</p>
         </div>
-        <div className="rounded-[10px] bg-black/[0.05] px-2 py-2">
-          <p className="text-[10px] uppercase tracking-[0.12em] text-black/30">Origine token</p>
-          <p className="mt-0.5 text-xs font-semibold text-black/65">{configSourceLabel(config.haConfigSource?.token ?? 'missing')}</p>
+        <div className="rounded-[10px] bg-[var(--fill-subtle)] px-2 py-2">
+          <p className="text-[10px] uppercase tracking-[0.12em] text-[var(--ink-tertiary)]">Origine token</p>
+          <p className="mt-0.5 text-xs font-semibold text-[var(--ink-secondary)]">{configSourceLabel(config.haConfigSource?.token ?? 'missing')}</p>
         </div>
       </div>
       <button
         type="button"
         onClick={save}
         disabled={readOnly || isPending || (urlLocked && tokenLocked) || !dirty}
-        className="flex w-full min-h-[44px] items-center justify-center gap-2 rounded-[14px] bg-[#0066cc] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#0052a3] disabled:opacity-50"
+        className="flex w-full min-h-[44px] items-center justify-center gap-2 rounded-[14px] bg-[var(--action-blue)] px-4 text-sm font-semibold text-[var(--on-accent)] transition-colors hover:bg-[#0052a3] disabled:opacity-50"
       >
         <Save size={14} /> {isPending ? 'Salvataggio…' : 'Salva connessione'}
       </button>

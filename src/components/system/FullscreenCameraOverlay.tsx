@@ -1,4 +1,5 @@
-import { useEffect, useMemo } from 'react'
+import { useModalFocus } from '../../hooks/useModalFocus'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Minimize2 } from 'lucide-react'
 import type { DoorbellDevice } from '../../api/backend'
 import { cameraDoorbellShortcuts } from '../../lib/doorbell'
@@ -7,6 +8,7 @@ import { useHAEntity } from '../../hooks/useHAEntity'
 import { useUIStore } from '../../store/ui'
 import { markKioskActivity } from '../../lib/kioskActivity'
 import { entityName } from '../widgets/utils/mapEntityToWidgetCard'
+import { CAMERA_STATUS_LABELS, type CameraPlaybackStatus } from '../../lib/cameraTransport'
 import { CameraStream } from '../widgets/CameraStream'
 import { ShortcutActionButton } from '../controls/ShortcutActionButton'
 
@@ -17,6 +19,8 @@ export function FullscreenCameraOverlay({
   entityId: string
   doorbells?: DoorbellDevice[]
 }) {
+  const panelRef = useRef<HTMLElement>(null)
+  const [playbackStatus, setPlaybackStatus] = useState<CameraPlaybackStatus>('connecting')
   const entity = useHAEntity(entityId)
   const setFullscreenCamera = useUIStore((s) => s.setFullscreenCamera)
   const shortcuts = useMemo(
@@ -24,27 +28,23 @@ export function FullscreenCameraOverlay({
     [doorbells, entityId],
   )
 
-  useEffect(() => {
-    markKioskActivity()
-    const close = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setFullscreenCamera(null)
-    }
-    window.addEventListener('keydown', close)
-    return () => window.removeEventListener('keydown', close)
-  }, [setFullscreenCamera])
+  useModalFocus(true, panelRef, () => setFullscreenCamera(null), 85)
+  useEffect(() => { markKioskActivity() }, [])
 
   return (
     <section
+      ref={panelRef}
+      tabIndex={-1}
       className="fixed inset-0 z-[85] overflow-hidden bg-black"
       role="dialog"
       aria-modal="true"
       aria-label={`Video a schermo intero: ${entityName(entity)}`}
     >
-      <CameraStream entityId={entityId} fit="contain" muted preferLive badge priority />
+      <CameraStream entityId={entityId} fit="contain" muted preferLive badge priority onStatusChange={setPlaybackStatus} />
       <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-center gap-3 bg-gradient-to-b from-black/75 to-transparent px-5 pb-12 pt-[max(20px,env(safe-area-inset-top))]">
         <div className="min-w-0 flex-1">
           <p className="truncate text-lg font-semibold text-white">{entityName(entity)}</p>
-          <p className="text-sm text-white/60">Video in diretta</p>
+          <p className="text-sm text-white/60">{CAMERA_STATUS_LABELS[playbackStatus]}</p>
         </div>
         <button
           type="button"

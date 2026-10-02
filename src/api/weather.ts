@@ -1,4 +1,4 @@
-const BASE = '/api/weather'
+import { request } from './backend'
 
 export interface WeatherCurrent {
   temp: number
@@ -11,6 +11,9 @@ export interface WeatherCurrent {
 }
 
 export interface WeatherForecastItem {
+  date?: string
+  dayLabel?: string
+  timeZone?: string
   dt: number
   temp_min: number
   temp_max: number
@@ -18,14 +21,9 @@ export interface WeatherForecastItem {
   description: string
 }
 
-export async function fetchCurrentWeather(): Promise<WeatherCurrent> {
-  const res = await fetch(`${BASE}/current`)
-  if (!res.ok) throw new Error(await res.text())
-  return res.json() as Promise<WeatherCurrent>
+export function fetchCurrentWeather(signal?: AbortSignal): Promise<WeatherCurrent> {
+  return request('/weather/current', { signal })
 }
-
-export async function fetchForecast(): Promise<WeatherForecastItem[]> {
-  const res = await fetch(`${BASE}/forecast`)
-  if (!res.ok) throw new Error(await res.text())
-  return res.json() as Promise<WeatherForecastItem[]>
+export function fetchForecast(signal?: AbortSignal): Promise<WeatherForecastItem[]> {
+  return request('/weather/forecast', { signal })
 }

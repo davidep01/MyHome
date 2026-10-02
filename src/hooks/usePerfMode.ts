@@ -1,3 +1,4 @@
+import { readStorage } from '../lib/browserStorage'
 import { useEffect } from 'react'
 
 export type PerfProfile = 'quality' | 'balanced' | 'saver'
@@ -30,7 +31,7 @@ function lowEndDevice(): boolean {
 export function usePerfMode(profile: PerfProfile = 'balanced') {
   useEffect(() => {
     const root = document.documentElement
-    const override = localStorage.getItem(KEY)
+    const override = readStorage(KEY)
 
     const setLite = (on: boolean) => root.classList.toggle('perf-lite', on)
 

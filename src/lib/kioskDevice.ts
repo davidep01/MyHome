@@ -1,3 +1,5 @@
+import { MANUAL_BRIGHTNESS_MS, MANUAL_SCREEN_OFF_MS, wakeKiosk } from './kioskWakePolicy'
+import { useFullyKioskStore } from '../store/fullyKiosk'
 import { kioskApi } from '../api/backend'
 import { createFullyKioskBridge } from './fullyKiosk'
 import { testKioskAlarmChannel } from './sound/KioskAlarmChannel'
@@ -54,9 +56,23 @@ export async function executeKioskCommand(
   if (!bridge) return { ok: false, reason: 'no-bridge' }
   const done = (() => {
     switch (command) {
-      case 'screenOn': return bridge.turnScreenOn()
-      case 'screenOff': return bridge.turnScreenOff()
-      case 'brightness': return typeof value === 'number' ? bridge.setBrightness(value) : false
+      case 'screenOn': {
+        const applied = bridge.turnScreenOn()
+        if (applied) wakeKiosk('native')
+        return applied
+      }
+      case 'screenOff': {
+        if (useFullyKioskStore.getState().emergencyActive) return false
+        const applied = bridge.turnScreenOff()
+        if (applied) useFullyKioskStore.getState()._patch({ screenOn: false, manualScreenOffUntil: Date.now() + MANUAL_SCREEN_OFF_MS })
+        return applied
+      }
+      case 'brightness': {
+        if (typeof value !== 'number' || !Number.isFinite(value) || useFullyKioskStore.getState().emergencyActive) return false
+        const applied = bridge.setBrightness(value)
+        if (applied) useFullyKioskStore.getState()._patch({ manualBrightness: value, screenBrightness: value, manualBrightnessUntil: Date.now() + MANUAL_BRIGHTNESS_MS })
+        return applied
+      }
       case 'say': return typeof value === 'string' ? bridge.say(value) : false
       case 'screensaverStart': return bridge.startScreensaver()
       case 'screensaverStop': return bridge.stopScreensaver()

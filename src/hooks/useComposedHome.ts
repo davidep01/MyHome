@@ -54,7 +54,7 @@ export function useComposedHome(cfg?: KioskCurationConfig): ComposedHomeView {
 
   useEffect(() => {
     const compute = () => {
-      const entities = useEntityStore.getState().entities
+      const { entities, connected, hydrated } = useEntityStore.getState()
       // Il composer riceve TUTTE le entità: decide lui cosa diventa card
       // (solo il configurato) e cosa resta comunque visibile (le P0 di
       // sicurezza, il riepilogo offline). Filtrare qui spegnerebbe gli allarmi
@@ -74,10 +74,10 @@ export function useComposedHome(cfg?: KioskCurationConfig): ComposedHomeView {
         Date.now(),
         KIOSK_HERO_LIMIT,
       )
-      const insights = computeInsights(
+      const insights = connected && hydrated !== false ? computeInsights(
         Object.values(entities).filter((e) => isDashboardCardEntity(e.entity_id, deviceOverrides)),
         { areaIdOf, nowMs: Date.now() },
-      )
+      ) : []
 
       const next: ComposedHomeView = { hero, alerts: [...raw.alerts, ...insights], quiet: hero.length === 0 }
       const signature = JSON.stringify(next)
@@ -88,7 +88,7 @@ export function useComposedHome(cfg?: KioskCurationConfig): ComposedHomeView {
 
     compute()
     const unsubscribe = useEntityStore.subscribe((state, previous) => {
-      if (state.entities !== previous.entities) compute()
+      if (state.entities !== previous.entities || state.connected !== previous.connected) compute()
     })
     const id = setInterval(compute, TICK_MS)
     return () => {
