@@ -33,7 +33,7 @@ describe('persistent kiosk alarm channel', () => {
   it('keeps one authorized element alive and raises only its volume for emergencies', async () => {
     const audio = audioElement()
     const unregister = registerKioskAlarmChannel(audio)
-    await Promise.resolve()
+    await armKioskAlarmChannel()
 
     expect(audio.loop).toBe(true)
     expect(audio.volume).toBeLessThan(0.001)
@@ -49,8 +49,8 @@ describe('persistent kiosk alarm channel', () => {
   it('reports that a physical interaction is required when autoplay is blocked', async () => {
     const audio = audioElement(true)
     const unregister = registerKioskAlarmChannel(audio)
-    await Promise.resolve()
-    await Promise.resolve()
+    await armKioskAlarmChannel()
+    await armKioskAlarmChannel()
 
     expect(useKioskAudioStore.getState().status).toBe('needs-interaction')
     await expect(armKioskAlarmChannel()).resolves.toBe(false)
@@ -61,7 +61,7 @@ describe('persistent kiosk alarm channel', () => {
     vi.useFakeTimers()
     const audio = audioElement()
     const unregister = registerKioskAlarmChannel(audio)
-    await Promise.resolve()
+    await armKioskAlarmChannel()
 
     testKioskAlarmChannel(500)
     expect(audio.volume).toBe(1)
@@ -72,4 +72,29 @@ describe('persistent kiosk alarm channel', () => {
     expect(audio.volume).toBeLessThan(0.001)
     unregister()
   })
+  it('times out a pending WebView play and ignores a late resolution', async () => {
+    vi.useFakeTimers()
+    let resolvePlay: (() => void) | undefined
+    const audio = audioElement()
+    audio.play = vi.fn(() => new Promise<void>((resolve) => { resolvePlay = resolve }))
+    const unregister = registerKioskAlarmChannel(audio)
+    const outcome = testKioskAlarmChannel()
+    await vi.advanceTimersByTimeAsync(5000)
+    await expect(outcome).resolves.toBe(false)
+    expect(useKioskAudioStore.getState().status).toBe('needs-interaction')
+    resolvePlay?.()
+    await Promise.resolve()
+    expect(useKioskAudioStore.getState().status).toBe('needs-interaction')
+    unregister()
+  })
+  it('cancels pending playback when the channel is removed', async () => {
+    const audio = audioElement()
+    audio.play = vi.fn(() => new Promise<void>(() => {}))
+    const unregister = registerKioskAlarmChannel(audio)
+    const outcome = armKioskAlarmChannel()
+    unregister()
+    await expect(outcome).resolves.toBe(false)
+    expect(useKioskAudioStore.getState().status).toBe('initializing')
+  })
+
 })

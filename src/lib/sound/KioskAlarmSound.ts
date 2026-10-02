@@ -85,6 +85,8 @@ export function startKioskAlarmSound(
   let announcementTimer: ReturnType<typeof setInterval> | null = null
   let verificationTimer: ReturnType<typeof setTimeout> | null = null
   let stopped = false
+  let assetController: AbortController | null = null
+  let assetTimer: ReturnType<typeof setTimeout> | null = null
 
   const startAnnouncement = () => {
     if (stopped || announcementTimer) return
@@ -111,7 +113,9 @@ export function startKioskAlarmSound(
     // La JS API di Fully restituisce void: una URL 404 sembra comunque un
     // comando riuscito. Verifichiamo quindi l'asset e passiamo al TTS nativo se
     // la sirena non è realmente raggiungibile dal kiosk.
-    void fetch(url, { method: 'HEAD', cache: 'no-store' })
+    assetController = new AbortController()
+    assetTimer = setTimeout(() => assetController?.abort(), 5000)
+    void fetch(url, { method: 'HEAD', cache: 'no-store', signal: assetController.signal })
       .then((response) => {
         if (!response.ok && !stopped) {
           bridge.stopSound()
@@ -121,10 +125,13 @@ export function startKioskAlarmSound(
       .catch(() => {
         if (!stopped) startAnnouncement()
       })
+      .finally(() => { if (assetTimer) clearTimeout(assetTimer) })
   }
 
   return () => {
     stopped = true
+    if (assetTimer) clearTimeout(assetTimer)
+    assetController?.abort()
     if (verificationTimer) clearTimeout(verificationTimer)
     if (announcementTimer) clearInterval(announcementTimer)
     bridge.stopSound()

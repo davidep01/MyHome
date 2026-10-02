@@ -92,4 +92,33 @@ describe('Fully Kiosk emergency audio', () => {
     expect(textToSpeech).toHaveBeenCalledTimes(1)
     stop()
   })
+  it('bounds a stalled siren asset check and falls back to TTS', async () => {
+    vi.useFakeTimers()
+    let signal: AbortSignal | undefined
+    vi.stubGlobal('fetch', vi.fn((_url, options) => new Promise((_resolve, reject) => {
+      signal = options.signal
+      signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')))
+    })))
+    const textToSpeech = vi.fn()
+    const stop = startKioskAlarmSound({ setAudioVolume: vi.fn(), playSound: vi.fn(), stopSound: vi.fn(), textToSpeech, isMusicActive: () => true }, location, 'intrusion')
+    await vi.advanceTimersByTimeAsync(5000)
+    expect(signal?.aborted).toBe(true)
+    expect(textToSpeech).toHaveBeenCalledOnce()
+    stop()
+  })
+
+  it('cancels the asset request on cleanup without starting late speech', async () => {
+    let signal: AbortSignal | undefined
+    vi.stubGlobal('fetch', vi.fn((_url, options) => new Promise((_resolve, reject) => {
+      signal = options.signal
+      signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')))
+    })))
+    const textToSpeech = vi.fn()
+    const stop = startKioskAlarmSound({ setAudioVolume: vi.fn(), playSound: vi.fn(), stopSound: vi.fn(), textToSpeech }, location, 'intrusion')
+    stop()
+    await Promise.resolve(); await Promise.resolve()
+    expect(signal?.aborted).toBe(true)
+    expect(textToSpeech).not.toHaveBeenCalled()
+  })
+
 })
