@@ -27,6 +27,7 @@ export function RoomDashboard({
     limit: 3,
   })
   const deviceIds = selectRoomDashboardIds(room.entityIds, entities, overrides, 6)
+  const mediumOnly = deviceIds.length > 1 && deviceIds.every((id) => resolveEnabledCardSize('M', overrides?.[id]) === 'M')
   const hasCameras = cameraStreamsEnabled && cameraIds.length > 0
 
   return (
@@ -36,10 +37,11 @@ export function RoomDashboard({
     >
       {hasCameras && <CameraMonitoringRow entityIds={cameraIds} overrides={overrides} />}
       {deviceIds.length > 0 ? (
-        <div className="grid h-full min-h-0 grid-flow-row-dense grid-cols-3 grid-rows-[repeat(6,minmax(0,1fr))] auto-rows-[minmax(0,1fr)] gap-3.5 overflow-hidden">
+        <div className={`kiosk-device-grid h-full min-h-0 overflow-y-auto overscroll-contain p-2 ${mediumOnly ? 'kiosk-device-grid-pairs' : ''}`}>
           {deviceIds.map((entityId, index) => {
             const size = resolveEnabledCardSize('M', overrides?.[entityId])
-            const rows = getWidgetSizeConfig(size).rows
+            const config = getWidgetSizeConfig(size)
+            const rows = config.rows
             const span = size === 'L' ? 'col-span-3'
               : size === 'XL' ? 'col-span-3'
                 : size === 'M' ? 'col-span-2'
@@ -47,10 +49,11 @@ export function RoomDashboard({
             return (
               <div
                 key={entityId}
-                className={`card-enter h-full min-h-0 min-w-0 overflow-hidden [&_[data-widget-card]]:!min-h-0 ${span}`}
+                className={`card-enter h-full min-w-0 ${span}`}
                 style={{
                   '--enter-i': Math.min(index, 8),
                   gridRow: `span ${rows} / span ${rows}`,
+                  minHeight: rows * 38 + (rows - 1) * 14,
                 } as CSSProperties}
               >
                 <WidgetErrorBoundary>

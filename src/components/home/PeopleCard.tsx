@@ -20,20 +20,20 @@ export function PeopleCard({ size, className }: { size: WidgetSize; className?: 
     [entities],
   )
   const home = people.filter((p) => p.state === 'home').length
-  const expanded = size === 'lg' || size === 'wide'
+  const expanded = size === 'lg'
   const visibleCount = size === 'sm' ? 3 : size === 'md' ? 5 : size === 'lg' ? 6 : 10
 
   return (
-    <GlassCard depth className={cn('flex min-h-[96px] gap-3', expanded ? 'flex-col' : 'items-center', className)}>
+    <GlassCard depth className={cn('flex min-h-0 gap-3', expanded ? 'flex-col' : 'items-center', className)}>
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold text-black/85">Persone</p>
-        <p className="mt-0.5 text-xs text-black/40" role="status">
+        <p className="text-sm font-semibold text-[var(--ink)]">Persone</p>
+        <p className="mt-0.5 text-[13px] text-[var(--ink-secondary)]" role="status">
           {people.length === 0 ? 'Nessuna persona configurata' : `${home} a casa · ${people.length} totali`}
         </p>
-        <div className="mt-3 flex -space-x-2" role="list" aria-label="Persone configurate">
+        <div className={cn("mt-3 flex -space-x-2", size === 'xs' && "hidden")} role="list" aria-label="Persone configurate">
           {people.length === 0 ? (
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-black/8 ring-2 ring-white" role="listitem">
-              <Users size={16} className="text-black/40" aria-hidden="true" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-black/8 ring-2 ring-[var(--surface-solid)]" role="listitem">
+              <Users size={16} className="text-[var(--ink-secondary)]" aria-hidden="true" />
             </div>
           ) : (
             people.slice(0, visibleCount).map((p, i) => {
@@ -43,7 +43,7 @@ export function PeopleCard({ size, className }: { size: WidgetSize; className?: 
               return (
                 <div
                   key={p.entity_id}
-                  className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full text-[11px] font-semibold text-[#1d1d1f] ring-2 ring-white"
+                  className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full text-[13px] font-semibold text-[var(--ink)] ring-2 ring-[var(--surface-solid)]"
                   style={{ background: PALETTE[i % PALETTE.length] }}
                   title={`${name} — ${p.state === 'home' ? 'a casa' : p.state}`}
                   role="listitem"
@@ -55,21 +55,21 @@ export function PeopleCard({ size, className }: { size: WidgetSize; className?: 
             })
           )}
           {people.length > visibleCount && (
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-black/10 text-[11px] font-semibold text-black/70 ring-2 ring-white" role="listitem" aria-label={`${people.length - visibleCount} altre persone`}>
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--fill-subtle)] text-[13px] font-semibold text-[var(--ink)] ring-2 ring-[var(--surface-solid)]" role="listitem" aria-label={`${people.length - visibleCount} altre persone`}>
               +{people.length - visibleCount}
             </div>
           )}
         </div>
       </div>
       {expanded && people.length > 0 && (
-        <div className={size === 'wide' ? 'grid min-h-0 grid-cols-2 gap-2 overflow-hidden' : 'min-h-0 space-y-2 overflow-hidden'}>
-          {people.slice(0, size === 'wide' ? 2 : 5).map((person) => {
+        <div className={'min-h-0 space-y-2 overflow-y-auto'}>
+          {people.slice(0, 5).map((person) => {
             const name = entityName(person)
             const isHome = person.state === 'home'
             return (
-              <div key={person.entity_id} className="flex items-center justify-between gap-3 rounded-[12px] bg-black/[0.035] px-3 py-2 text-sm">
-                <span className="truncate font-semibold text-black/70">{name}</span>
-                <span className={isHome ? 'shrink-0 text-green-700' : 'shrink-0 text-black/35'}>{isHome ? 'A casa' : person.state}</span>
+              <div key={person.entity_id} className="flex items-center justify-between gap-3 rounded-[12px] bg-[var(--fill-subtle)] px-3 py-2 text-sm">
+                <span className="truncate font-semibold text-[var(--ink)]">{name}</span>
+                <span className={isHome ? 'shrink-0 text-green-700' : 'shrink-0 text-[var(--ink-tertiary)]'}>{isHome ? 'A casa' : person.state}</span>
               </div>
             )
           })}

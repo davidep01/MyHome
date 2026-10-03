@@ -22,7 +22,7 @@ export const WIDGET_SIZE_CONFIG: Record<WidgetVisualSize, WidgetSizeConfig> = {
     paddingClass: 'p-2.5',
     icon: 16,
     valueClass: 'text-[18px]',
-    titleClass: 'text-[12px]',
+    titleClass: 'text-[13px]',
     slots: 1,
     rows: 2,
   },

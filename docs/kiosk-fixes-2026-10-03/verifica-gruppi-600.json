@@ -1,0 +1,47 @@
+[
+  {
+    "height": 90,
+    "outside": [],
+    "scrollable": [],
+    "size": "XS",
+    "sliderTouchAction": null,
+    "smallControls": [],
+    "width": 174.328125
+  },
+  {
+    "height": 142,
+    "outside": [],
+    "scrollable": [],
+    "size": "S",
+    "sliderTouchAction": null,
+    "smallControls": [],
+    "width": 174.3359375
+  },
+  {
+    "height": 142,
+    "outside": [],
+    "scrollable": [],
+    "size": "M",
+    "sliderTouchAction": null,
+    "smallControls": [],
+    "width": 362.6640625
+  },
+  {
+    "height": 298,
+    "outside": [],
+    "scrollable": [],
+    "size": "L",
+    "sliderTouchAction": null,
+    "smallControls": [],
+    "width": 550.9921875
+  },
+  {
+    "height": 142,
+    "outside": [],
+    "scrollable": [],
+    "size": "XL",
+    "sliderTouchAction": null,
+    "smallControls": [],
+    "width": 550.9921875
+  }
+]

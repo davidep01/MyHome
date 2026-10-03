@@ -18,7 +18,7 @@ import { QuickInsightWidget } from './QuickInsightWidget'
 import { CalendarWidget } from './CalendarWidget'
 import { AnimatedCard } from '../../anim/AnimatedCard'
 import type { EntityType, HomeWidget, RoomEntity, TabletDashboardLayout } from '../../../api/backend'
-import { resolveEnabledCardSize, widgetVisualSizeFromHomeSize } from '../../widgets/utils/getWidgetSizeConfig'
+import { widgetVisualSizeFromHomeSize } from '../../widgets/utils/getWidgetSizeConfig'
 
 type PublicWidgetConfig = Pick<TabletDashboardLayout, 'deviceOverrides' | 'groups' | 'userName'>
 
@@ -51,7 +51,7 @@ function MissingWidget({ text }: { text: string }) {
   )
 }
 
-export function HomeWidgetView({ widget, publicConfig }: { widget: HomeWidget; publicConfig?: PublicWidgetConfig }) {
+function HomeWidgetContent({ widget, publicConfig }: { widget: HomeWidget; publicConfig?: PublicWidgetConfig }) {
   const { data: fullConfig } = useDashboardConfig(!publicConfig)
   const config = publicConfig ?? fullConfig
   const rawRoomEntity = useRoomEntity(widget.entityId, publicConfig)
@@ -59,9 +59,7 @@ export function HomeWidgetView({ widget, publicConfig }: { widget: HomeWidget; p
   // (più) stato scelto nel wizard non deve tornare a vivere da solo.
   const configured = !widget.entityId || isConfiguredEntity(widget.entityId, config?.deviceOverrides)
   const roomEntity = configured ? rawRoomEntity : null
-  const visualSize = widget.entityId
-    ? resolveEnabledCardSize(widgetVisualSizeFromHomeSize(widget.size), config?.deviceOverrides?.[widget.entityId])
-    : widgetVisualSizeFromHomeSize(widget.size)
+  const visualSize = widgetVisualSizeFromHomeSize(widget.size)
 
   switch (widget.type) {
     case 'clock': return <ClockWidget size={widget.size} userName={config?.userName} />
@@ -98,4 +96,13 @@ export function HomeWidgetView({ widget, publicConfig }: { widget: HomeWidget; p
     default:
       return <MissingWidget text="Widget sconosciuto" />
   }
+}
+
+/** The saved footprint is authoritative. Small informational cards scroll their
+ * content instead of shrinking the font or clipping an unreachable control. */
+export function HomeWidgetView(props: { widget: HomeWidget; publicConfig?: PublicWidgetConfig }) {
+  const informational = !['sensor', 'entity', 'group'].includes(props.widget.type)
+  return <div className={`home-widget-view h-full min-h-0 ${informational ? 'home-widget-info' : ''}`} data-home-widget-size={props.widget.size}>
+    <HomeWidgetContent {...props} />
+  </div>
 }

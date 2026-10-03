@@ -34,7 +34,7 @@ export function ContextualPanel({ entityId }: { entityId: string }) {
     <div className="flex flex-col">
       {/* Header */}
       <div className="mb-5 flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full" style={{ background: `${meta.color}22` }}>
+        <div className="flex h-10 w-10 items-center justify-center rounded-full" style={{ background: `color-mix(in srgb, ${meta.color} 14%, transparent)` }}>
           <Icon size={18} style={{ color: meta.color }} aria-hidden="true" />
         </div>
         <div className="min-w-0 flex-1">
@@ -58,15 +58,15 @@ export function ContextualPanel({ entityId }: { entityId: string }) {
         {!entity ? (
           <p className="py-12 text-center text-sm text-black/40">Entità non disponibile</p>
         ) : domain === 'climate' ? (
-          <ClimateDetail entity={entity} />
+          <ClimateDetail key={entity.entity_id} entity={entity} />
         ) : domain === 'light' ? (
-          <LightDetail entity={entity} />
+          <LightDetail key={entity.entity_id} entity={entity} />
         ) : domain === 'alarm_control_panel' ? (
           <AlarmDetail entity={entity} />
         ) : domain === 'media_player' ? (
-          <MediaDetail entity={entity} />
+          <MediaDetail key={entity.entity_id} entity={entity} />
         ) : (
-          <GenericDetail entity={entity} />
+          <GenericDetail key={entity.entity_id} entity={entity} />
         )}
       </div>
     </div>

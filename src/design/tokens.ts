@@ -1,7 +1,7 @@
 export const tokens = {
   blur: {
-    glass: 'blur(20px) saturate(180%)',
-    heavy: 'blur(30px) saturate(180%)',
+    glass: 'blur(var(--glass-blur))',
+    heavy: 'blur(var(--glass-backdrop-blur))',
     light: 'blur(12px) saturate(150%)',
   },
   bg: {
@@ -44,7 +44,7 @@ export const tokens = {
     sensor: { color: '#0066cc', glow: 'rgba(0, 102, 204, 0.14)', bg: 'rgba(0, 102, 204, 0.08)' },
   },
   radius: {
-    card: '18px',
+    card: 'var(--radius-card)',
     inner: '11px',
     pill: '999px',
     sm: '8px',

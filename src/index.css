@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
 /* Apple design tokens — exposed both as Tailwind utility colors and as raw CSS custom properties */
 @theme {
@@ -26,14 +27,14 @@
   --fill-muted:        rgba(0, 0, 0, 0.08);
   --fill-strong:       rgba(0, 0, 0, 0.13);
   --fill-emphasis:     rgba(0, 0, 0, 0.20);
-  --glass-blur:        20px;
+  --glass-blur: 12px;
   --hairline:          rgba(0, 0, 0, 0.08);
   --hairline-strong:   rgba(0, 0, 0, 0.12);
 
   /* Text */
   --ink:               #1d1d1f;
-  --ink-secondary:     rgba(29, 29, 31, 0.60);
-  --ink-tertiary:      rgba(29, 29, 31, 0.42);
+  --ink-secondary: #535b68;
+  --ink-tertiary: #646b76;
   --ink-quaternary:    rgba(29, 29, 31, 0.28);
   --on-accent:         #ffffff;
   --on-dark:           #ffffff;
@@ -67,9 +68,9 @@
   --focus-ring:        0 0 0 3px rgba(0, 102, 204, 0.35);
 
   /* Theme-aware component materials. */
-  --widget-base:       rgba(255, 255, 255, 0.44);
-  --widget-fill:       rgba(255, 255, 255, 0.78);
-  --widget-control:    rgba(255, 255, 255, 0.65);
+  --widget-base: rgba(255,255,255,.76);
+  --widget-fill: rgba(255,255,255,.88);
+  --widget-control: rgba(255,255,255,.94);
   --widget-icon-idle:  rgba(0, 0, 0, 0.05);
   --widget-icon-ink:   rgba(29, 29, 31, 0.40);
   --artwork-fade-0:    rgba(255, 255, 255, 0.02);
@@ -77,10 +78,10 @@
   --artwork-fade-2:    rgba(255, 255, 255, 0.42);
   --artwork-fade-3:    rgba(255, 255, 255, 0.88);
   --artwork-fade-4:    rgba(255, 255, 255, 0.98);
-  --glass-depth-shadow: inset 0 1px 0 rgba(255,255,255,0.85), inset 0 0 0 0.5px rgba(255,255,255,0.22), inset 0 -14px 22px -16px rgba(17,21,28,0.10), 0 7px 18px -12px rgba(17,21,28,0.16);
+  --glass-depth-shadow: inset 0 1px 0 var(--glass-edge), 0 2px 4px rgba(25,35,55,.06), 0 12px 28px -16px rgba(25,35,55,.30);
 
   /* Radius */
-  --radius-card:  18px;
+  --radius-card: 22px;
   --radius-inner: 11px;
   --radius-sm:    8px;
   --radius-pill:  999px;
@@ -101,6 +102,13 @@
   --grid-gap:     12px;
 
   color-scheme: light;
+
+  --glass-backdrop-blur: 8px;
+
+  --glass-edge: rgba(255,255,255,.92);
+  --glass-control-shadow: inset 0 1px 0 var(--glass-edge), 0 2px 4px rgba(25,35,55,.08);
+  --glass-sheet-shadow: 0 26px 64px -24px rgba(20,28,44,.32);
+  --action-fill: #0066cc;
 }
 
 /* Fixed per Apple HIG: Dark Mode uses semantic colors and separate base /
@@ -125,8 +133,8 @@ html.dark {
   --hairline-strong:   rgba(255, 255, 255, 0.16);
 
   --ink:               #f5f5f7;
-  --ink-secondary:     rgba(235, 235, 245, 0.68);
-  --ink-tertiary:      rgba(235, 235, 245, 0.46);
+  --ink-secondary: #c0c7d2;
+  --ink-tertiary: #b3bbc8;
   --ink-quaternary:    rgba(235, 235, 245, 0.30);
   --action-blue:       #0a84ff;
   --action-blue-dark:  #64b5ff;
@@ -145,9 +153,9 @@ html.dark {
   --alert-tint:        rgba(255, 159, 10, 0.18);
   --focus-ring:        0 0 0 3px rgba(10, 132, 255, 0.48);
 
-  --widget-base:       rgba(28, 28, 30, 0.72);
-  --widget-fill:       rgba(44, 44, 46, 0.82);
-  --widget-control:    rgba(255, 255, 255, 0.11);
+  --widget-base: rgba(35,38,45,.86);
+  --widget-fill: rgba(39,42,49,.94);
+  --widget-control: rgba(67,71,82,.96);
   --widget-icon-idle:  rgba(255, 255, 255, 0.07);
   --widget-icon-ink:   rgba(235, 235, 245, 0.50);
   --artwork-fade-0:    rgba(0, 0, 0, 0.02);
@@ -155,9 +163,14 @@ html.dark {
   --artwork-fade-2:    rgba(18, 18, 20, 0.48);
   --artwork-fade-3:    rgba(28, 28, 30, 0.90);
   --artwork-fade-4:    rgba(28, 28, 30, 0.99);
-  --glass-depth-shadow: inset 0 1px 0 rgba(255,255,255,0.12), inset 0 0 0 0.5px rgba(255,255,255,0.06), inset 0 -14px 22px -16px rgba(0,0,0,0.48), 0 10px 24px -14px rgba(0,0,0,0.72);
+  --glass-depth-shadow: inset 0 1px 0 var(--glass-edge), 0 2px 5px rgba(0,0,0,.28), 0 14px 30px -16px rgba(0,0,0,.78);
 
   color-scheme: dark;
+
+  --glass-edge: rgba(255,255,255,.22);
+  --glass-control-shadow: inset 0 1px 0 var(--glass-edge), 0 2px 4px rgba(0,0,0,.22);
+  --glass-sheet-shadow: 0 28px 72px -20px rgba(0,0,0,.78);
+  --action-fill: #0066cc;
 }
 
 /* ============================================================================
@@ -188,19 +201,9 @@ body {
   user-select: text;
 }
 
-button,
-input,
-select,
-textarea {
-  font: inherit;
-}
-
-button,
-a,
-[role="button"],
-[role="switch"],
-[role="slider"] {
-  touch-action: manipulation;
+@layer base {
+  button, input, select, textarea { font: inherit; }
+  button, a, [role="button"], [role="switch"] { touch-action: manipulation; }
 }
 
 :where(a, button, input, select, textarea, [role="button"], [role="switch"], [role="slider"]):focus-visible {
@@ -267,10 +270,10 @@ a,
 .perf-lite .glass {
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
-  background: rgba(248, 248, 250, 0.94);
+  background: var(--surface-elevated);
 }
 .dark.perf-lite .glass {
-  background: rgba(28, 28, 30, 0.96);
+  background: var(--surface-elevated);
 }
 .perf-lite .glass-border::before { display: none; }
 
@@ -278,10 +281,10 @@ a,
   .glass {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
-    background: rgba(248, 248, 250, 0.94);
+    background: var(--surface-elevated);
   }
   .glass-border::before { display: none; }
-  html.dark .glass { background: rgba(28, 28, 30, 0.96); }
+  html.dark .glass { background: var(--surface-elevated); }
 }
 
 /* ============================================================================
@@ -312,80 +315,6 @@ html.dark .kiosk-color-canvas {
     radial-gradient(circle at 94% 12%, rgba(191,90,242,.12) 0%, transparent 31%),
     radial-gradient(circle at 68% 105%, rgba(255,159,10,.08) 0%, transparent 38%),
     #000;
-}
-
-/* Mesh ambientale: due soli layer compositi, sopra il canvas e sotto popup/
-   alert. Animiamo esclusivamente transform/opacity, quindi nessun layout e
-   nessun blur ricalcolato a ogni frame anche sui pannelli 90/120 Hz. */
-.kiosk-mesh-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 4;
-  overflow: hidden;
-  pointer-events: none;
-  contain: strict;
-  opacity: .48;
-  mix-blend-mode: soft-light;
-}
-.kiosk-mesh-orb {
-  position: absolute;
-  width: 72vmax;
-  height: 72vmax;
-  border-radius: 999px;
-  opacity: .52;
-  will-change: transform;
-  transform: translate3d(0, 0, 0);
-}
-.kiosk-mesh-orb-a {
-  left: -36vmax;
-  top: -42vmax;
-  background: radial-gradient(circle, rgba(41,151,255,.72) 0%, rgba(124,58,237,.28) 42%, transparent 70%);
-  animation: kiosk-mesh-a 38s ease-in-out infinite alternate;
-}
-.kiosk-mesh-orb-b {
-  right: -40vmax;
-  bottom: -45vmax;
-  background: radial-gradient(circle, rgba(255,159,10,.58) 0%, rgba(255,55,95,.22) 40%, transparent 70%);
-  animation: kiosk-mesh-b 46s ease-in-out infinite alternate;
-}
-.kiosk-mesh-mattina .kiosk-mesh-orb-b { opacity: .58; }
-.kiosk-mesh-sera .kiosk-mesh-orb-a,
-.kiosk-mesh-notte .kiosk-mesh-orb-a { opacity: .52; }
-.kiosk-mesh-notte { opacity: .28; }
-
-@keyframes kiosk-mesh-a {
-  from { transform: translate3d(-3%, -2%, 0) scale(.94); }
-  to { transform: translate3d(16%, 12%, 0) scale(1.08); }
-}
-@keyframes kiosk-mesh-b {
-  from { transform: translate3d(4%, 5%, 0) scale(1.06); }
-  to { transform: translate3d(-15%, -12%, 0) scale(.94); }
-}
-.perf-lite .kiosk-mesh-orb { animation: none; }
-@media (prefers-reduced-motion: reduce) {
-  .kiosk-mesh-orb { animation: none; }
-}
-
-.kiosk-root::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 70;
-  pointer-events: none;
-  background: rgba(0, 0, 0, 0);
-  transition: background 480ms var(--spring);
-}
-
-html.kiosk-idle .kiosk-root::after {
-  background: rgba(0, 0, 0, 0.08);
-}
-
-html.kiosk-mode.dark .kiosk-root::after {
-  background: rgba(0, 0, 0, 0);
-}
-
-html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
-  background: rgba(0, 0, 0, 0.08);
 }
 
 @keyframes kiosk-micro-shift {
@@ -434,16 +363,16 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
 }
 
 .home-widget-tile {
-  container-type: size;
+  container-type: inline-size;
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 /* Il contenuto non può oltrepassare la footprint assegnata dal composer. */
 .home-widget-tile > .card-enter,
 .home-widget-tile [data-widget-card] {
   min-height: 0 !important;
-  overflow: hidden;
+  overflow: visible;
 }
 
 /* La fila globale ha un'altezza dedicata: azzera il minimo HomeKit della card
@@ -496,7 +425,7 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
   transform: translateZ(0);
   /* Isolate each card's layout/paint: with dozens of cards in the grid the
      browser can skip re-layout/repaint of untouched siblings (kiosk GPUs). */
-  contain: layout style paint;
+  contain: layout style;
 }
 
 .widget-card-fill {
@@ -558,30 +487,8 @@ html.kiosk-mode.dark.kiosk-idle .kiosk-root::after {
   .widget-card-climate[data-widget-size='XL'] .climate-xl-actions { display: none; }
 }
 
-/* Light card: the surface is the switch. A solid state wash replaces the
-   separate toggle: warm color means on, neutral gray means off. Variables
-   keep the same contrast relationship in day and night themes. */
-.widget-card-light-power {
-  cursor: pointer;
-  touch-action: manipulation;
-}
-.widget-card-shell.widget-card-light-power .widget-card-fill {
-  opacity: 1;
-  background: color-mix(in srgb, var(--ink-secondary) 9%, var(--widget-fill));
-}
-.widget-card-shell.widget-card-light-power[data-widget-status='on'] .widget-card-fill {
-  background: color-mix(in srgb, var(--offline-amber) 20%, var(--widget-fill));
-}
-.widget-card-shell.widget-card-light-power .widget-card-tint {
-  opacity: 0;
-}
-.glass.widget-card-light-power {
-  background: color-mix(in srgb, var(--ink-secondary) 9%, var(--canvas-card));
-  transition: background-color 220ms cubic-bezier(0.32,0.72,0,1), transform 160ms ease;
-}
-.glass.widget-card-light-power[data-widget-status='on'] {
-  background: color-mix(in srgb, var(--offline-amber) 20%, var(--canvas-card));
-}
+/* Light state lives in the icon and state text, on the shared glass material. */
+.widget-card-light-power { cursor: pointer; touch-action: manipulation; }
 .widget-card-primary-action {
   transition: background-color 120ms ease;
 }
@@ -1308,3 +1215,107 @@ a, button, [role="button"] { -webkit-touch-callout: default; }
     transition-duration: 0.01ms !important;
   }
 }
+
+
+/* Liquid Glass kiosk, 2026-10-03. Material, elevation and readability are
+   shared; state colours belong to icons/controls, never full-card washes. */
+
+
+.kiosk-color-canvas, html.dark .kiosk-color-canvas { background: var(--canvas-page); }
+.widget-card-shell {
+  container-type: inline-size;
+  isolation: isolate;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--hairline);
+  background: var(--widget-base);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  box-shadow: var(--glass-depth-shadow);
+}
+.widget-card-fill { border-radius: inherit; pointer-events: none; }
+.widget-card-tint { display: none; }
+.widget-card-climate .widget-card-fill,
+.widget-card-climate.widget-card-active .widget-card-fill { background: var(--widget-fill); }
+.widget-card-muted { opacity: 1; }
+.widget-card-compact .widget-card-identity { margin-top: 0; padding-top: 0; flex: 1; }
+.widget-card-identity p { overflow-wrap: anywhere; }
+.widget-card-inline-slider { width: clamp(100px, 26cqw, 220px); }
+.widget-card-control { background: var(--widget-control); color: var(--ink-secondary); box-shadow: var(--glass-control-shadow); }
+.widget-card-primary-action { outline-offset: -3px; }
+.widget-card-shell:focus-within { outline: 3px solid var(--action-blue); outline-offset: 2px; }
+.widget-card-toggle.on > span { transform: translateX(22px); }
+.widget-card-icon { box-shadow: inset 0 1px 0 var(--glass-edge); }
+.glass { border-radius: var(--radius-card); }
+.glass[role='dialog'] { background: var(--surface-elevated); box-shadow: var(--glass-sheet-shadow); }
+.kiosk-device-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  grid-auto-rows: 38px;
+  gap: 14px;
+  align-content: start;
+}
+.kiosk-device-grid-pairs { grid-template-columns: repeat(2,minmax(0,1fr)); grid-auto-rows: auto; }
+.kiosk-device-grid-pairs > * { grid-column: auto; grid-row: auto !important; min-height: 142px; }
+@container (max-width: 360px) {
+  .widget-card-compact > .widget-card-icon { display: none; }
+  .widget-card-inline-slider { width: 100px; }
+  .climate-compact-values { gap: 4px; }
+  .climate-compact-values > :first-child p:last-child { font-size: 20px; }
+  .climate-compact-values .climate-setpoint { gap: 4px; }
+  .climate-wide { flex-wrap: wrap; gap: 4px; }
+  .climate-wide > :first-child { flex-basis: 100%; }
+  .climate-wide > button { display: none; }
+}
+@container (max-width: 280px) {
+  .widget-card-inline-slider { display: none; }
+  .widget-card-compact .widget-card-identity { max-width: calc(100% - 52px); }
+}
+@media (max-width: 599px) {
+  .kiosk-device-grid, .kiosk-device-grid-pairs { grid-template-columns: minmax(0,1fr); grid-auto-rows: auto; }
+  .kiosk-device-grid > * { grid-column: auto !important; grid-row: auto !important; }
+}
+.perf-lite { --glass-backdrop-blur: 0px; --glass-blur: 0px; }
+.perf-lite .widget-card-shell, .perf-lite .glass { background: var(--surface-elevated); backdrop-filter: none; -webkit-backdrop-filter: none; }
+@media (prefers-reduced-transparency: reduce) {
+  :root { --glass-backdrop-blur: 0px; --glass-blur: 0px; }
+  .widget-card-shell, .glass { background: var(--surface-elevated); backdrop-filter: none; -webkit-backdrop-filter: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .widget-card-shell, .glass { transition: none; }
+}
+
+/* Compact media: action and copy share the same height budget. */
+.media-card-compact-content { height: 100%; justify-content: center; padding-right: 58px; margin-top: 0; }
+.media-card-compact-control { z-index: 1; }
+.media-card-artwork > .media-card-generated-cover > span { max-height: 100%; overflow: hidden; }
+.media-card-artwork .media-card-generated-cover { background: var(--surface-elevated); }
+.group-card-horizontal { flex-direction: row; align-items: center; }
+.group-card-horizontal > :first-child { flex-shrink: 0; }
+.group-card-horizontal > :nth-child(2) { margin-top: 0; flex: 1; }
+.group-card-mini .widget-card-power-state { display: none; }
+.group-card .lg-toggle { min-height: 44px; min-width: 56px; }
+@container (max-width: 360px) {
+  .media-card-compact-content { width: 78%; padding-right: 52px; }
+  .media-card-generated-cover > span { width: 22%; }
+  .media-card-generated-cover > span > :not(:first-child) { display: none; }
+  .group-card-horizontal { gap: 8px; }
+  .group-card-horizontal > :first-child { flex-direction: row; align-items: center; gap: 8px; }
+  .group-card-horizontal:not(.group-card-mini) > :first-child > :first-child { display: none; }
+}
+
+.home-widget-info > .glass { min-height: 0; }
+.home-widget-info .info-card-content { overflow-y: auto; overscroll-behavior: contain; justify-content: flex-start !important; }
+.home-widget-info .info-card-content > * { flex-shrink: 0; }
+.home-widget-info[data-home-widget-size='xs'] .info-card-content { gap: 4px; }
+.home-widget-info > .glass:not(:has(.info-card-content)) { overflow-y: auto; }
+@container (max-width: 240px) {
+  .climate-medium { gap: 0; }
+  .climate-compact-values { align-items: flex-start; flex-direction: column; gap: 0; }
+  .climate-compact-values > :first-child { display: flex; align-items: center; gap: 4px; }
+  .climate-compact-values > :first-child p { margin: 0; }
+  .climate-setpoint { gap: 2px; }
+  .climate-setpoint > div { min-width: 58px; }
+  .climate-large-body { grid-template-columns: minmax(0,1fr); overflow-y: auto; }
+}
+
+.widget-card-climate[data-widget-size="M"] { padding: 12px; }

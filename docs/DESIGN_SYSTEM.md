@@ -529,10 +529,29 @@ Regole dure:
 - Il **colore vive nell'icona** (cerchio piatto: accent 15% + glifo accent da
   attiva, nero 5% + glifo muto da spenta) e nella riga di stato quando
   significativo (riscalda/allarme/sbloccata). Mai come lavaggio di fondo.
-- **Niente**: ring/dial, gradienti per famiglia, gloss multilayer, drop shadow
-  (eccetto il drag, transitorio), badge ridondanti, footer di bottoni 48px,
+- **Niente**: ring/dial, gradienti per famiglia e gloss animato; sono ammesse solo ombre statiche
+  condivise nei token Liquid Glass (aggiornamento 2026-10-03), badge ridondanti, footer di bottoni 48px,
   viola (l'accento è uno: `#0066cc`; l'ambra è delle lampadine).
 - **Serrature**: anche sulla card lo sblocco è hold 900ms (disco che si riempie,
   transform-only); il blocco è un tap.
 - Le uniche animazioni di card: shimmer (loading) e errorShake (rollback).
   Il movimento è delle icone animate (`.widget-card-icon-active`).
+
+
+## Liquid Glass a più livelli — riferimento corrente, 2026-10-03
+
+L’utente ha richiesto profondità e tridimensionalità. Questa decisione aggiorna le precedenti regole di assenza totale di ombre: si usano ombre condivise, leggere e statiche, mai un tema diverso per ogni famiglia. Il fondale resta semantico e stabile; il tramonto riguarda soltanto il fondale, senza velo sopra testo, foto o video.
+
+| Piano | Superficie e regola |
+| --- | --- |
+| Fondale | `--canvas-page`; nessun mesh animato o filtro notturno globale |
+| Card | `--widget-base`, `--widget-fill`, `--glass-edge`, `--glass-depth-shadow`; raggio `--radius-card` 22px |
+| Controllo | `--widget-control`, `--glass-control-shadow`; area effettiva almeno 44×44px |
+| Sheet | `--surface-elevated`, `--glass-sheet-shadow`; backdrop con `--glass-backdrop-blur` |
+| Alert | Priorità già assegnate agli eventi critici; CTA audio in uno spazio riservato, senza coprire header/orologio |
+
+Blur normale 12px, backdrop 8px; entrambi 0 in `perf-lite` o riduzione trasparenza. Nessuna animazione del blur. La classe `html.dark` è l’unica autorità cromatica: anche Tailwind la usa. Testo utile delle card almeno 13px, numeri italiani con separatori; dati mancanti e zero reale restano distinti.
+
+Footprint schema 3: XS 90px, S/M/XL 142px, L 298px a gap 14px. M e XL dispongono identità e controllo affiancati. I pannelli di dettaglio ospitano le funzioni che non entrano nella card; le piccole card informative possono scorrere senza cambiare footprint. Gli elenchi estesi dei gruppi sono riservati a L. Le luci espongono un accesso al dettaglio indipendente dal toggle; XS apre direttamente il dettaglio.
+
+Il documento operativo completo e lo stato delle correzioni sono in `docs/AUDIT_GRAFICO_KIOSK_TABLET_2026-10-02.md`. Non aggiungere grafici o telemetria inventati per riempire gli spazi; il modello dati HA resta invariato.

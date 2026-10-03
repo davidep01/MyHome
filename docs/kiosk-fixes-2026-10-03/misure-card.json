@@ -1,0 +1,5227 @@
+[
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "widget:clock",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [
+          {
+            "clientHeight": 112,
+            "scrollHeight": 115
+          }
+        ],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "widget:status",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [
+          {
+            "clientHeight": 112,
+            "scrollHeight": 119
+          }
+        ],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "widget:security",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "widget:system",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "widget:insight",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "widget:calendar",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "widget:news",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "widget:people",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "widget:quickStats",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "widget:scenes",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [
+          {
+            "clientHeight": 60,
+            "scrollHeight": 95
+          }
+        ],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "widget:weather",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [
+          {
+            "clientHeight": 51,
+            "scrollHeight": 62
+          }
+        ],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [
+          {
+            "clientHeight": 103,
+            "scrollHeight": 115
+          }
+        ],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [
+          {
+            "clientHeight": 103,
+            "scrollHeight": 115
+          }
+        ],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "widget:group",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "widget:camera",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "widget:sensor",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "widget:entity",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "light.lamp",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": "none",
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": "none",
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": "none",
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "switch.plug",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "fan.vent",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": "none",
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": "none",
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": "none",
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "climate.room",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "climate.missing",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "cover.window",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "lock.door",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "media_player.speaker",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "vacuum.robot",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "lawn_mower.robot",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "humidifier.room",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": "none",
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": "none",
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": "none",
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "sensor.temp",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "sensor.fahrenheit",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "sensor.pm25",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "sensor.battery",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "sensor.power",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "alarm_control_panel.home",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "binary_sensor.smoke",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "binary_sensor.leak",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "binary_sensor.door",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "binary_sensor.motion",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "person.example",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "scene.evening",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "automation.lights",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "timer.cooking",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "water_heater.tank",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "valve.water",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "number.value",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "select.mode",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "sensor.offline",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "sensor.unknown",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "light",
+    "viewport": [
+      1280,
+      800
+    ],
+    "family": "sensor.long",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 401
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 816
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 1231
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "widget:clock",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "widget:status",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [
+          {
+            "clientHeight": 112,
+            "scrollHeight": 119
+          }
+        ],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "widget:security",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "widget:system",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "widget:insight",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "widget:calendar",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "widget:news",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "widget:people",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "widget:quickStats",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "widget:scenes",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [
+          {
+            "clientHeight": 60,
+            "scrollHeight": 95
+          }
+        ],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "widget:weather",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [
+          {
+            "clientHeight": 51,
+            "scrollHeight": 62
+          }
+        ],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [
+          {
+            "clientHeight": 103,
+            "scrollHeight": 115
+          }
+        ],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [
+          {
+            "clientHeight": 103,
+            "scrollHeight": 115
+          }
+        ],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "widget:group",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "widget:camera",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "widget:sensor",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "widget:entity",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "light.lamp",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": "none",
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": "none",
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": "none",
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "switch.plug",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "fan.vent",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": "none",
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": "none",
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": "none",
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "climate.room",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "climate.missing",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "cover.window",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "lock.door",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "media_player.speaker",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "vacuum.robot",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "lawn_mower.robot",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "humidifier.room",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": "none",
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": "none",
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": "none",
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "sensor.temp",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "sensor.fahrenheit",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "sensor.pm25",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "sensor.battery",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "sensor.power",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "alarm_control_panel.home",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "binary_sensor.smoke",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "binary_sensor.leak",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "binary_sensor.door",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "binary_sensor.motion",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "person.example",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "scene.evening",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "automation.lights",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "timer.cooking",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "water_heater.tank",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "valve.water",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "number.value",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "select.mode",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "sensor.offline",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "sensor.unknown",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  },
+  {
+    "appearance": "dark",
+    "viewport": [
+      768,
+      1024
+    ],
+    "family": "sensor.long",
+    "cards": [
+      {
+        "height": 90,
+        "outside": [],
+        "scrollable": [],
+        "size": "XS",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.328125
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "S",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 233.3359375
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "M",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 480.6640625
+      },
+      {
+        "height": 298,
+        "outside": [],
+        "scrollable": [],
+        "size": "L",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      },
+      {
+        "height": 142,
+        "outside": [],
+        "scrollable": [],
+        "size": "XL",
+        "sliderTouchAction": null,
+        "smallControls": [],
+        "width": 727.9921875
+      }
+    ]
+  }
+]

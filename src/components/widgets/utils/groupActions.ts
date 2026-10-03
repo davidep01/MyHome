@@ -88,7 +88,7 @@ export function groupMemberStateLabel(domain: string, state: string | undefined)
 }
 
 export function groupShowsMemberDetails(size: WidgetVisualSize): boolean {
-  return size === 'L' || size === 'XL'
+  return size === 'L'
 }
 
 /** Undefined means HA must report the real restored state (e.g. climate). */

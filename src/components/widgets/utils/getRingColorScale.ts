@@ -67,8 +67,11 @@ export const widgetTones = {
   },
 }
 
-export function temperatureTone(value: number | undefined): RingTone {
-  if (value === undefined || Number.isNaN(value)) return widgetTones.neutral
+export function temperatureTone(value: number | undefined, unit = '°C'): RingTone {
+  if (value === undefined || !Number.isFinite(value)) return widgetTones.neutral
+  if (unit === '°F') value = (value - 32) * 5 / 9
+  else if (unit === 'K') value -= 273.15
+  else if (unit !== '°C') return widgetTones.neutral
   if (value < 19) return widgetTones.cool
   if (value < 25) return widgetTones.ok
   if (value < 29) return widgetTones.heat
@@ -83,8 +86,8 @@ export function batteryTone(value: number | undefined): RingTone {
   return widgetTones.critical
 }
 
-export function airQualityTone(value: number | undefined): RingTone {
-  if (value === undefined || Number.isNaN(value)) return widgetTones.neutral
+export function airQualityTone(value: number | undefined, metric = 'carbon_dioxide'): RingTone {
+  if (value === undefined || !Number.isFinite(value) || metric !== 'carbon_dioxide') return widgetTones.neutral
   if (value < 800) return widgetTones.ok
   if (value < 1200) return widgetTones.warning
   if (value < 1800) return widgetTones.heat

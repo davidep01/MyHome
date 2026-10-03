@@ -879,3 +879,18 @@ Gate locali ripetuti prima del rilascio: lint, 601 test, build frontend/backend 
 **Ancora da accettare sul dispositivo fisico:** ascolto dell'audio, accensione/spegnimento visivo e wake da sensori/presenza, suonate simultanee, fotografia opt-in e accessibilità WebView. La sessione Ring reale Entrata/Giardino è verificata con frame e avanzamento temporale, ma non rappresenta streaming continuativo per 24 ore sul tablet. Non sono stati attivati allarmi reali, scene, serrature, sirene HA o alterati stati di sensori domestici per simulare prove.
 
 **Passaggio visivo sull'installazione finale:** Funzioni → Tablet e aspetto in Light/Dark, v2.2.117 confermata nel DOM, a 390px nessun overflow orizzontale. Screenshot `/tmp/myhome-release-browser/functions-117-*.png`; preferenza appearance del browser riportata ad Auto dopo la prova. Nessuna configurazione condivisa alterata.
+
+
+## 24. Correzione interfaccia kiosk Liquid Glass — 3 ottobre 2026
+
+Su richiesta dell'utente applicate le correzioni grafiche del [report kiosk, §14](AUDIT_GRAFICO_KIOSK_TABLET_2026-10-02.md#14-correzioni-applicate--3-ottobre-2026): materiali stratificati Light/Dark, altezze card preservate, layout M/XL, controlli touch reali, editor accessibile, scorrimento informativo e dettagli dei gruppi, rappresentazione onesta degli stati HA e dati mancanti, blur disattivato nei profili leggeri, priorità della richiesta audio nella shell. Nessun comando a impianto/HA/Fully, sessione Ring o cambio configurazione condivisa eseguito.
+
+Verifica locale: lint, **626 test / 117 file**, build frontend/backend e typecheck backend PASS. Matrice grafica di 470 configurazioni sintetiche, più editor e stanza stretta; evidenze in `docs/kiosk-fixes-2026-10-03/`. Questo non equivale a collaudo fisico né a streaming/audio/wake provati. Deploy di queste modifiche non effettuato. Il monitoraggio precedente non è stato riattivato; le affermazioni sul rilascio 2.2.117 del §23 restano storiche e non attestano installazione delle correzioni di questo paragrafo.
+
+### Priorità aggiuntiva: controlli interattivi
+
+Corretti ruota temperatura, snapping frazionario condiviso, sincronizzazione con nuovi valori HA, annullamento slider, luminosità zero, disabilitazione ai limiti e durante stati non azionabili, pressioni prolungate e cambio dispositivo nei pannelli. Registro dettagliato e accettazione in [audit grafico, §15](AUDIT_GRAFICO_KIOSK_TABLET_2026-10-02.md#15-priorità-ai-controlli-interattivi--3-ottobre-2026). **640 test / 118 file**, lint, build frontend/backend e typecheck PASS. Prove browser solo locali con richieste HA rifiutate; touch/multitouch e timer di hold non collaudati sul tablet. Deploy non eseguito.
+
+### Tendina Telecamere vuota
+
+Diagnosi LAN in sola lettura: Entrata/Giardino presenti in HA e nei campanelli attivi, ma senza `deviceOverrides.enabled: true`. Il filtro della tendina ignorava la configurazione del campanello. Corretto nel sorgente per riconoscere entrambe le forme di selezione, rispettando disabilitazioni/nascondimenti. Il pulsante globale riporta alla home quando aperto da una stanza. Registro in [audit grafico §16](AUDIT_GRAFICO_KIOSK_TABLET_2026-10-02.md#16-pulsante-telecamere-senza-camere--3-ottobre-2026). Tre regressioni aggiunte: totale **643 test PASS** e gate completi PASS. Nessun nuovo stream, deploy o cambio configurazione.

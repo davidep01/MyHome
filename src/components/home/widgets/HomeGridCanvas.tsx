@@ -79,7 +79,7 @@ export function HomeGridCanvas({
         return (
           <div key={widget.id} className="home-widget-tile relative min-w-0" data-home-widget-size={widget.size}>
             {/* stagger d'ingresso: i tile oltre il 12° entrano insieme (delay cap) */}
-            <div className="card-enter h-full" style={{ '--enter-i': Math.min(index, 12) } as CSSProperties}>
+            <div className="card-enter h-full" inert={editMode} style={{ '--enter-i': Math.min(index, 12) } as CSSProperties}>
               {renderTile ? renderTile(widget, content) : content}
             </div>
             {editMode && renderOverlay?.(widget)}

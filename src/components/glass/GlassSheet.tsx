@@ -153,7 +153,7 @@ export function GlassSheet({
           <motion.div
             ref={rootRef}
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40"
-            style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+            style={{ backdropFilter: 'blur(var(--glass-backdrop-blur))', WebkitBackdropFilter: 'blur(var(--glass-backdrop-blur))' }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -165,7 +165,7 @@ export function GlassSheet({
           <div ref={rootRef} className="pointer-events-none fixed inset-0 z-50">
             <motion.div
               className="pointer-events-auto fixed inset-0 z-40 bg-black/40"
-              style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+              style={{ backdropFilter: 'blur(var(--glass-backdrop-blur))', WebkitBackdropFilter: 'blur(var(--glass-backdrop-blur))' }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}

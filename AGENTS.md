@@ -23,7 +23,7 @@
 
 ## 1. Cos'è S.I.M.I.
 
-Dashboard domotica personale per **Home Assistant**, estetica **Apple "Liquid Glass"** con due appearance native: Light su parchment `#f5f5f7`, Dark su base nera con superfici elevate `#1c1c1e`, zero ombre decorative e un solo accento blu. Non sono due prodotti: condividono gerarchia, layout e semantica.
+Dashboard domotica personale per **Home Assistant**, estetica **Apple "Liquid Glass"** con due appearance native: Light su parchment `#f5f5f7`, Dark su base nera con superfici elevate `#1c1c1e`, profondità Liquid Glass tramite bordi e ombre condivise e un solo accento blu. Non sono due prodotti: condividono gerarchia, layout e semantica.
 
 | Contesto | Dispositivo | Shell | Scopo |
 |---|---|---|---|
@@ -391,16 +391,16 @@ ha-addon/         # config.yaml add-on
 > Esteso e autorevole: `docs/DESIGN_SYSTEM.md`. Qui l'essenziale + le decisioni di consolidamento.
 
 ### Filosofia
-Il design deve **sparire**: l'interfaccia serve i dispositivi. Vetro chiaro su parchment piatto, tipografia pulita, interazioni fisiche. Ispirazione: Apple Liquid Glass.
+Il design deve **sparire**: l'interfaccia serve i dispositivi. Fondale stabile, vetro neutro su più piani, tipografia pulita e interazioni fisiche. Ispirazione: Apple Liquid Glass.
 
 ### Token (fonte: `src/design/tokens.ts` + `src/index.css`)
-- **Canvas:** pagina `#f5f5f7`; card `rgba(255,255,255,0.72)` + `blur(20px) saturate(180%)`; hairline `rgba(0,0,0,0.08)`.
-- **Testo (ink ladder):** primario `#1d1d1f` · secondario `rgba(29,29,31,.60)` · terziario `rgba(29,29,31,.42)`.
+- **Canvas:** pagina `#f5f5f7`; card tramite `--widget-base` / `--canvas-card` + `blur(var(--glass-blur))` (12px); hairline `rgba(0,0,0,0.08)`.
+- **Testo (ink ladder):** primario `#1d1d1f` · secondario `--ink-secondary` · terziario `--ink-tertiary`, con valori propri in Light/Dark.
 - **Accento unico interattivo:** Action Blue `#0066cc` (su scuro `#2997ff`). Gradiente AI `#0066cc→#7c3aed` **solo** per il bottone AI.
 - **Colori funzionali (solo stato dispositivo):** caldo `#dc2626` · freddo `#0066cc` · ok `#15803d` · alert `#c2410c` · pericolo `#dc2626` · offline `#b45309`.
-- **Raggi:** card 18px · inner 11px · sm 8px · pill 999px.
+- **Raggi:** card `--radius-card` (22px) · inner 11px · sm 8px · pill 999px.
 - **Motion:** spring `cubic-bezier(0.32,0.72,0,1)`; durate 140/240/380ms; framer spring stiffness 400 / damping 30.
-- **Elevazione:** **nessuna ombra** su card/bottoni. L'elevazione nasce dal vetro su parchment. Glow funzionale solo per clima attivo.
+- **Elevazione:** **ombre statiche condivise**, richieste dall’utente per profondità Liquid Glass: `--glass-depth-shadow`, `--glass-control-shadow`, `--glass-sheet-shadow`. Vietati lavaggi per categoria e filtri globali; il colore di stato resta locale.
 
 ### Tipografia (fonte: `src/design/typography.ts`)
 Font: `-apple-system, "SF Pro Display/Text", Inter, system-ui`. Body **17px** (mai 16), line-height 1.47, tracking negativo. Pesi **300/400/600** — il **500 non esiste**.
@@ -511,3 +511,10 @@ Vedi `docs/SMART_FUNCTIONS_ROADMAP.md`: campanello (✅, two-way audio 🔜 via 
 ### Contratto corrente verificabile (2 ottobre 2026)
 
 Il kernel attuale usa schema 3, 3 colonne e riga 38px; i riferimenti 8×64 nelle sezioni storiche descrivono la geometria precedente. `forceCelsius` e `advancedMode` sono deprecati e conservati solo per leggere backup legacy. Impostazioni, consumer, priorità standby e limiti sono censiti in `docs/SETTINGS_CONTRACT.md`. Lo stato di chiusura e i collaudi ancora necessari sono in §22 di `docs/AUDIT_TECNICO_FIX_2026-10-01.md`.
+
+
+### Aggiornamento grafico kiosk — 2026-10-03
+
+Su richiesta esplicita dell’utente, la profondità Liquid Glass a più livelli è ora il riferimento corrente. Supera le vecchie prescrizioni di superfici senza ombre/gloss nei resoconti storici: fondale → card → controlli → sheet → alert. Token unici in `src/index.css`, riesportati da `src/design/tokens.ts`; niente blur animato o animazioni decorative sul fondale. `perf-lite` e riduzione trasparenza eliminano il blur; riduzione movimento conserva la gerarchia statica.
+
+La footprint resta schema 3 (3 colonne, righe 38px, gap 14px). M/XL hanno anatomia orizzontale; L può espandere sezioni. Sei M nelle stanze usano due colonne e tre righe con altezza minima 142px, scorrendo in viewport basse. Nessun `fitScale` che riduca i bersagli touch. I widget informativi piccoli conservano testo leggibile e scorrimento interno. La classe `html.dark` governa anche le utility Tailwind. Per risultati, limiti e prove leggere `docs/AUDIT_GRAFICO_KIOSK_TABLET_2026-10-02.md`, sezione aggiornamento implementazione.

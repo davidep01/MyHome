@@ -23,9 +23,11 @@ export function CameraMonitoringRow({
 
   return (
     <section
-      className={`camera-monitoring-row grid h-full min-h-0 grid-cols-3 overflow-hidden ${compact ? 'camera-monitoring-row--compact gap-2.5' : 'gap-3.5'}`}
+      className={`camera-monitoring-row grid h-full min-h-0 overflow-x-auto overscroll-contain ${compact ? 'camera-monitoring-row--compact gap-2.5' : 'gap-3.5'}`}
+      style={{ gridTemplateColumns: `repeat(${Math.max(1, slots.length)}, minmax(min(260px, 100%), 1fr))` }}
       aria-label="Monitoraggio video"
     >
+      {slots.length === 0 && <p className="glass flex min-h-36 items-center justify-center rounded-[var(--radius-card)] p-4 text-sm text-[var(--ink-secondary)]">Nessuna videocamera selezionata</p>}
       {slots.map((entityId, index) => (
         <div
           key={entityId}

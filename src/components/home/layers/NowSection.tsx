@@ -23,12 +23,15 @@ export function NowSection({
 }) {
   const entities = useEntityStore((s) => s.entities)
 
+  const mediumOnly = hero.length > 1 && hero.every((slot) => (slot.entityId ? resolveEnabledCardSize(slot.visualSize ?? 'M', overrides?.[slot.entityId]) : slot.visualSize ?? 'M') === 'M')
+
   const renderSlot = (slot: HeroSlot) => {
     const index = hero.findIndex((candidate) => candidate.key === slot.key)
     const size = slot.entityId
       ? resolveEnabledCardSize(slot.visualSize ?? 'M', overrides?.[slot.entityId])
       : slot.visualSize ?? 'M'
-    const rows = getWidgetSizeConfig(size).rows
+    const config = getWidgetSizeConfig(size)
+            const rows = config.rows
     const span = size === 'L' ? 'sm:col-span-3'
       : size === 'XL' ? 'sm:col-span-3'
         : size === 'M' ? 'sm:col-span-2'
@@ -38,10 +41,11 @@ export function NowSection({
       <div
         key={slot.key}
         title={slot.reason}
-        className={cn('card-enter h-full min-h-0 min-w-0 overflow-hidden [&_[data-widget-card]]:!min-h-0', span)}
+        className={cn('card-enter h-full min-w-0', span)}
         style={{
           '--enter-i': Math.min(index, 8),
           gridRow: `span ${rows} / span ${rows}`,
+                  minHeight: rows * 38 + (rows - 1) * 14,
         } as CSSProperties}
       >
         <WidgetErrorBoundary>
@@ -60,7 +64,7 @@ export function NowSection({
   }
 
   return (
-    <section className={cn('grid h-full min-h-0 grid-flow-row-dense grid-cols-1 grid-rows-[repeat(6,minmax(0,1fr))] auto-rows-[minmax(0,1fr)] gap-3.5 overflow-hidden sm:grid-cols-3')}>
+    <section className={cn('kiosk-device-grid h-full min-h-0 overflow-y-auto overscroll-contain p-2', mediumOnly && 'kiosk-device-grid-pairs')}>
       {hero.map((slot) => renderSlot(slot))}
     </section>
   )

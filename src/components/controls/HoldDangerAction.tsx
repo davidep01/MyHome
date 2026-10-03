@@ -20,6 +20,8 @@ export function HoldDangerAction({
 }) {
   const [holding, setHolding] = useState(false)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const latest = useRef({ disabled, active, onActivate })
+  useEffect(() => { latest.current = { disabled, active, onActivate } }, [disabled, active, onActivate])
   const instructionId = useId()
 
   const cancel = () => {
@@ -42,14 +44,14 @@ export function HoldDangerAction({
     timer.current = setTimeout(() => {
       timer.current = null
       setHolding(false)
-      onActivate()
+      if (!latest.current.disabled && !latest.current.active) latest.current.onActivate()
     }, 900)
   }
 
   return (
     <button
       type="button"
-      onPointerDown={(event) => { event.stopPropagation(); begin() }}
+      onPointerDown={(event) => { event.stopPropagation(); if (event.isPrimary && event.button === 0) begin() }}
       onPointerUp={cancel}
       onPointerCancel={cancel}
       onPointerLeave={cancel}
@@ -73,7 +75,7 @@ export function HoldDangerAction({
       aria-label={active ? `Disattiva ${label}` : `Tieni premuto per attivare ${label}`}
       className={cn(
         'relative inline-flex touch-none select-none items-center justify-center overflow-hidden font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:opacity-40',
-        compact ? 'h-9 w-9 rounded-full' : 'min-h-11 gap-2 rounded-full px-4 text-sm',
+        compact ? 'h-11 w-11 rounded-full' : 'min-h-11 gap-2 rounded-full px-4 text-sm',
         active ? 'bg-red-600 text-white' : 'bg-red-500/10 text-red-700',
         holding && 'scale-[0.97]',
       )}

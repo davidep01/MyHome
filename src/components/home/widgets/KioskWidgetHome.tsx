@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useRef, useState, type RefObject } from 'react'
+import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import type { Layout } from 'react-grid-layout/legacy'
 import 'react-grid-layout/css/styles.css'
 import { GripVertical, LayoutGrid, Pencil, Plus, Save, WifiOff, X } from 'lucide-react'
 import { HomeGridCanvas } from './HomeGridCanvas'
 import { WidgetPicker } from './WidgetPicker'
-import { buildLayout, layoutPixelHeight, orderFromLayout, positionsFromLayout, sameLayout } from '../../../lib/homeLayout'
+import { buildLayout, orderFromLayout, positionsFromLayout, sameLayout } from '../../../lib/homeLayout'
 import { useTabletLayout, useSaveTabletLayout } from '../../../hooks/useTabletLayout'
 import { useEntityStore } from '../../../store/entities'
 import { useHaptic } from '../../../hooks/useHaptic'
@@ -32,27 +32,6 @@ const SIZE_ORDER: WidgetSize[] = ['xs', 'sm', 'md', 'lg', 'wide']
 interface Draft {
   widgets: HomeWidget[]
   layout: Layout
-}
-
-function useElementHeight(ref: RefObject<HTMLElement | null>): number {
-  const [height, setHeight] = useState(0)
-  useEffect(() => {
-    const element = ref.current
-    if (!element) return
-    const measure = () => {
-      const next = Math.floor(element.getBoundingClientRect().height)
-      setHeight((current) => current === next ? current : next)
-    }
-    measure()
-    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure)
-    observer?.observe(element)
-    window.addEventListener('resize', measure)
-    return () => {
-      observer?.disconnect()
-      window.removeEventListener('resize', measure)
-    }
-  }, [ref])
-  return height
 }
 
 /** True when two widget sets carry the same tiles with the same binding + size. */
@@ -92,8 +71,6 @@ export function KioskWidgetHome() {
   const [activeRoomKey, setActiveRoomKey] = useState<string | null>(null)
   const [spacesOpen, setSpacesOpen] = useState(false)
   const { cameraRowVisible, toggleCameraRow } = useCameraRowVisibility()
-  const gridViewportRef = useRef<HTMLDivElement>(null)
-  const gridViewportHeight = useElementHeight(gridViewportRef)
   const entities = useEntityStore((state) => state.entities)
   const { rooms } = useRoomsOverview({ hiddenEntities: data?.hiddenEntities, overrides: data?.deviceOverrides })
   const activeRoom = rooms.find((room) => room.key === activeRoomKey) ?? null
@@ -140,11 +117,6 @@ export function KioskWidgetHome() {
   const activeWidgets = editing ? draft.widgets : displayWidgets
   const activeLayout = editing ? draft.layout : displayLayout
   const dirty = editing ? (!sameWidgets(draft.widgets, savedWidgets) || !sameLayout(draft.layout, savedLayout)) : false
-  const naturalGridHeight = layoutPixelHeight(activeLayout, data?.layout.rowHeight ?? 64, GRID_GAP[1])
-  const fitScale = !editing && gridViewportHeight > 0 && naturalGridHeight > gridViewportHeight
-    ? gridViewportHeight / naturalGridHeight
-    : 1
-
   const beginEdit = () => {
     if (!canEdit) return
     setMessage(null)
@@ -242,7 +214,10 @@ export function KioskWidgetHome() {
         alerts={[]}
         onAlertTap={() => undefined}
         cameraRowVisible={cameraRowVisible}
-        onCameraRowToggle={toggleCameraRow}
+        onCameraRowToggle={() => {
+            if (!cameraRowVisible) setActiveRoomKey(null)
+            toggleCameraRow()
+          }}
       />
 
       {!editing && activeRoom ? (
@@ -308,8 +283,7 @@ export function KioskWidgetHome() {
         </div>
 
         <div
-          ref={gridViewportRef}
-          className={cn('min-h-0 flex-1', editing ? 'overflow-y-auto overscroll-contain pr-1' : 'overflow-hidden')}
+          className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2"
         >
           {editing && activeWidgets.length === 0 ? (
             <button
@@ -321,13 +295,7 @@ export function KioskWidgetHome() {
               <span className="text-base font-semibold">Aggiungi il primo widget</span>
             </button>
           ) : (
-            <div
-              style={fitScale < 1 ? {
-                width: `${100 / fitScale}%`,
-                transform: `scale(${fitScale})`,
-                transformOrigin: 'top left',
-              } : undefined}
-            >
+            <div>
               <HomeGridCanvas
                 className={cn('relative', editing && 'kiosk-layout-editing pb-10')}
                 widgets={activeWidgets}
@@ -410,27 +378,16 @@ function TileEditOverlay({
       >
         <X size={17} aria-hidden="true" />
       </button>
-      <div
-        className="pointer-events-auto absolute bottom-2 left-1/2 z-20 flex -translate-x-1/2 items-center rounded-full bg-white/95 p-1 shadow-lg ring-1 ring-black/[0.05]"
-        role="group"
+      <select
         aria-label="Dimensione tile"
+        value={widget.size}
+        onChange={(event) => onSizeChange(event.target.value as WidgetSize)}
+        className="pointer-events-auto absolute bottom-2 left-2 z-20 h-11 min-w-11 max-w-[calc(100%-68px)] rounded-full bg-[var(--surface-solid)] px-2 text-[13px] font-semibold text-[var(--ink)] shadow-lg"
       >
         {SIZE_ORDER.filter((size) => WIDGET_META[widget.type].sizes.includes(size)).map((size) => (
-          <button
-            key={size}
-            type="button"
-            onClick={() => onSizeChange(size)}
-            aria-label={`Dimensione ${SIZE_SHORT[size]}, ${SIZE_FOOTPRINT[size]}`}
-            aria-pressed={widget.size === size}
-            className={cn(
-              'flex h-8 min-w-8 items-center justify-center rounded-full px-2 text-[11px] font-bold transition active:scale-90',
-              widget.size === size ? 'bg-[#0066cc] text-white shadow-sm' : 'text-black/45 hover:bg-black/[0.05]',
-            )}
-          >
-            {SIZE_SHORT[size]}
-          </button>
+          <option key={size} value={size}>{SIZE_SHORT[size]} · {SIZE_FOOTPRINT[size]}</option>
         ))}
-      </div>
+      </select>
       <div className="pointer-events-none absolute left-2 top-2 z-10 flex h-8 items-center gap-1 rounded-full bg-white/95 px-2.5 text-[11px] font-semibold text-black/45 shadow-lg">
         <GripVertical size={15} aria-hidden="true" /> Trascina
       </div>

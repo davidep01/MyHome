@@ -111,11 +111,13 @@ export function selectDashboardCameraIds(
   const limit = Math.max(1, options.limit ?? 3)
 
   return Object.values(entities)
-    // Opt-in anche per la tendina: si monta uno stream Ring solo su richiesta.
+    // Camere scelte nel wizard O già associate a un campanello attivo.
+    // L’apertura esplicita della tendina resta il consenso alla sessione video.
     .filter((entity) => entity.entity_id.startsWith('camera.')
       && !hidden.has(entity.entity_id)
       && (!allowed || allowed.has(entity.entity_id))
-      && options.overrides?.[entity.entity_id]?.enabled === true)
+      && options.overrides?.[entity.entity_id]?.enabled !== false
+      && (options.overrides?.[entity.entity_id]?.enabled === true || preferred.has(entity.entity_id)))
     .map((entity) => {
       const text = `${entity.entity_id} ${String(entity.attributes?.friendly_name ?? '')}`.toLowerCase()
       const preferredIndex = preferred.get(entity.entity_id)

@@ -12,6 +12,10 @@ const TONE_BG: Record<string, string> = {
 export function StatusWidget({ size }: { size: WidgetSize }) {
   const status = useHomeStatus()
   const Icon = status.Icon
+  if (size === 'xs') return <AnimatedCard className="h-full" contentClassName="flex-row items-center gap-2">
+    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full" style={{ color: status.color, background: TONE_BG[status.tone] }}><Icon size={18} /></span>
+    <p className="line-clamp-2 text-[13px] font-semibold text-[var(--ink)]">{status.label}</p>
+  </AnimatedCard>
 
   return (
     <AnimatedCard
@@ -29,8 +33,8 @@ export function StatusWidget({ size }: { size: WidgetSize }) {
         <LiveDot color={status.color} />
       </div>
       <div>
-        <p className={size === 'lg' || size === 'wide' ? 'text-xl font-semibold leading-tight text-black/90' : 'text-sm font-semibold leading-tight text-black/90'}>{status.label}</p>
-        {size !== 'sm' && <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-black/45">{status.detail ?? 'Sicurezza e dispositivi sotto controllo'}</p>}
+        <p className={size === 'lg' || size === 'wide' ? 'text-xl font-semibold leading-tight text-[var(--ink)]' : 'text-sm font-semibold leading-tight text-[var(--ink)]'}>{status.label}</p>
+        {size !== 'sm' && <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-[var(--ink-secondary)]">{status.detail ?? 'Sicurezza e dispositivi sotto controllo'}</p>}
       </div>
     </AnimatedCard>
   )

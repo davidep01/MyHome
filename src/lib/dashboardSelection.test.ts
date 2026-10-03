@@ -76,6 +76,30 @@ describe('dashboard selection', () => {
     })).toEqual(['camera.entrata_live_view'])
   })
 
+  it('includes active-doorbell cameras without a wizard enabled flag', () => {
+    const source = entities(entity('camera.entrata_live_view', 'idle'), entity('camera.giardino_live_view', 'idle'), entity('camera.entrata_snapshot', 'idle'))
+    expect(selectDashboardCameraIds(source, {
+      preferredEntityIds: ['camera.entrata_live_view', 'camera.giardino_live_view'],
+      overrides: { 'camera.entrata_live_view': { icon: 'Video' } },
+    })).toEqual(['camera.entrata_live_view', 'camera.giardino_live_view'])
+  })
+
+  it('respects explicit disabled and hidden settings even for doorbell cameras', () => {
+    const source = entities(entity('camera.entrata_live_view'), entity('camera.giardino_live_view'))
+    expect(selectDashboardCameraIds(source, {
+      preferredEntityIds: Object.keys(source),
+      overrides: { 'camera.entrata_live_view': { enabled: false } },
+      hiddenEntities: ['camera.giardino_live_view'],
+    })).toEqual([])
+  })
+
+  it('does not synthesize missing cameras or bypass the room allowlist', () => {
+    const source = entities(entity('camera.entrata_live_view'))
+    expect(selectDashboardCameraIds(source, {
+      preferredEntityIds: ['camera.entrata_live_view', 'camera.missing'], allowedEntityIds: ['camera.missing'],
+    })).toEqual([])
+  })
+
   it('esclude ogni entità di presenza dalla dashboard stanza', () => {
     const source = entities(
       entity('person.davide', 'home'),

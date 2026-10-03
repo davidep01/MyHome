@@ -17,6 +17,7 @@ import { airQualityTone, batteryTone, securityTone, temperatureTone, widgetTones
 import { numericState } from './formatWidgetValue'
 import { stateLabel } from './stateLabel'
 import type { WidgetCardStatus } from '../types'
+import { isArmed } from '../../../lib/alarm'
 import { resolveMediaArtwork } from '../../../lib/mediaArtwork'
 
 export type WidgetFamily =
@@ -178,7 +179,7 @@ function mediaFamily(entity?: HassEntity | null): WidgetFamily {
 
 /** Formatta un numero per la riga di stato/valore: una sola cifra decimale. */
 function fmt(n: number): string {
-  return String(Math.round(n * 10) / 10).replace('.', ',')
+  return new Intl.NumberFormat('it-IT', { maximumFractionDigits: 1 }).format(n)
 }
 
 export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roomEntity: RoomEntity): WidgetEntityMapping {
@@ -232,6 +233,11 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
   const brightnessPct = brightness !== undefined ? Math.round((brightness / 255) * 100) : on ? 100 : 0
   const base = { family, type, title, isUnavailable: unavailable }
 
+  if (domain === 'valve') {
+    return { ...base, Icon: AnimDroplet, status: rawState === 'closed' ? 'closed' : rawState === 'opening' ? 'opening' : rawState === 'closing' ? 'closing' : 'open',
+      accentColor: widgetTones.water.color, isActive: on, state: stateLabel(rawState), stateAccent: on }
+  }
+
   switch (family) {
     case 'light':
       return {
@@ -240,7 +246,7 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
         accentColor: on ? widgetTones.light.color : widgetTones.neutral.color,
         isActive: on,
         state: on ? (brightness !== undefined ? `Accesa · ${brightnessPct}%` : 'Accesa') : 'Spenta',
-        percent: on ? brightnessPct : undefined,
+        percent: on && brightness !== undefined ? brightnessPct : undefined,
       }
     case 'smartPlug':
     case 'switch':
@@ -272,14 +278,14 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
       }
     }
     case 'fan': {
-      const speed = numericState(entity?.attributes?.percentage) ?? (on ? 100 : 0)
+      const speed = numericState(entity?.attributes?.percentage)
       return {
         ...base, Icon: AnimFan,
         status: on ? 'fan' : 'off',
         accentColor: widgetTones.cool.color,
         isActive: on,
-        state: on ? `Acceso · ${Math.round(speed)}%` : 'Spento',
-        percent: on ? Math.round(speed) : undefined,
+        state: on ? speed === undefined ? 'Acceso' : `Acceso · ${Math.round(speed)}%` : 'Spento',
+        percent: on && speed !== undefined ? Math.round(speed) : undefined,
       }
     }
     case 'cover':
@@ -302,14 +308,15 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
     }
     case 'lock': {
       const unlocked = rawState === 'unlocked'
-      const tone = securityTone(!unlocked && !unavailable, unlocked)
+      const moving = rawState === 'locking' || rawState === 'unlocking'
+      const tone = rawState === 'jammed' ? widgetTones.critical : moving ? widgetTones.warning : securityTone(!unlocked && !unavailable, unlocked)
       return {
         ...base, Icon: AnimLock,
-        status: unlocked ? 'unlocked' : 'locked',
+        status: rawState === 'jammed' ? 'error' : unlocked ? 'unlocked' : rawState === 'locked' ? 'locked' : 'warning',
         accentColor: tone.color,
         isActive: unlocked,
-        state: unlocked ? 'Sbloccata' : 'Bloccata',
-        stateAccent: unlocked,
+        state: stateLabel(rawState),
+        stateAccent: unlocked || moving || rawState === 'jammed',
       }
     }
     case 'alarm':
@@ -320,7 +327,7 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
       const siren = domain === 'siren'
       return {
         ...base, Icon: siren ? Siren : AnimShield,
-        status: critical ? 'triggered' : rawState.includes('armed') ? 'armed' : 'clear',
+        status: critical ? 'triggered' : isArmed(rawState) ? 'armed' : rawState === 'disarmed' ? 'disarmed' : 'clear',
         accentColor: tone.color,
         isActive: critical,
         state: critical ? (siren ? 'Sirena attiva' : 'Allarme!') : siren ? 'Sirena disattivata' : stateLabel(rawState),
@@ -367,8 +374,8 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
       const number = family === 'battery' ? battery ?? value : value
       const tone =
         family === 'battery' ? batteryTone(number)
-        : family === 'airQuality' ? airQualityTone(number)
-        : family === 'temperature' ? temperatureTone(number)
+        : family === 'airQuality' ? airQualityTone(number, deviceClass)
+        : family === 'temperature' ? temperatureTone(number, String(entity?.attributes?.unit_of_measurement ?? ''))
         : family === 'humidity' || family === 'water' || family === 'pool' ? widgetTones.water
         : family === 'network' ? widgetTones.cool
         : widgetTones.energy
@@ -380,9 +387,10 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
         accentColor: tone.color,
         // I sensori sono passivi: icona quieta, mai "accesa".
         isActive: false,
-        state: '',
+        state: family === 'battery' && number !== undefined && number < 20 ? 'Batteria scarica' : '',
+        stateAccent: family === 'battery' && number !== undefined && number < 20,
         value: number !== undefined ? fmt(number) : '--',
-        unit: unit === '°C' ? '°' : unit,
+        unit,
       }
     }
     case 'weather':

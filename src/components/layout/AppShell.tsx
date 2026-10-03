@@ -24,7 +24,6 @@ import { useCriticalAlerts } from '../../hooks/useCriticalAlerts'
 import { useEmergencyMode } from '../../hooks/useEmergencyMode'
 import { useKioskHeartbeat } from '../../hooks/useKioskHeartbeat'
 import { KioskAlarmAudioChannel } from '../system/KioskAlarmAudioChannel'
-import { useTimeOfDay } from '../../hooks/useTimeOfDay'
 import { BRAND_NAME } from '../../lib/brand'
 import { useEntityStore } from '../../store/entities'
 import { FullscreenCameraOverlay } from '../system/FullscreenCameraOverlay'
@@ -222,7 +221,6 @@ function KioskShell() {
   const setSelectedEntity = useUIStore((s) => s.setSelectedEntity)
   const { data: layout } = useTabletLayout('home')
   const criticalAlerts = useCriticalAlerts()
-  const { period } = useTimeOfDay()
   usePerfMode(layout?.kiosk?.perfProfile)
   useConfigSync()
   useWakeLock()
@@ -239,12 +237,9 @@ function KioskShell() {
   }, [])
 
   return (
-    <div className="kiosk-root kiosk-color-canvas relative h-full w-full overflow-hidden">
-      <div className={`kiosk-mesh-overlay kiosk-mesh-${period}`} aria-hidden="true">
-        <span className="kiosk-mesh-orb kiosk-mesh-orb-a" />
-        <span className="kiosk-mesh-orb kiosk-mesh-orb-b" />
-      </div>
-      <main id="main-content" className="h-full">
+    <div className="kiosk-root kiosk-color-canvas relative isolate flex h-full w-full flex-col overflow-hidden">
+      <KioskAlarmAudioChannel active={criticalAlerts.length > 0} />
+      <main id="main-content" className="relative z-[1] min-h-0 flex-1">
         <TabletDashboard />
       </main>
 
@@ -268,7 +263,6 @@ function KioskShell() {
       <ConnectionOverlay kiosk />
       <AddonUpdateOverlay />
       {fullscreenCameraId && <FullscreenCameraOverlay entityId={fullscreenCameraId} doorbells={layout?.doorbells} />}
-      <KioskAlarmAudioChannel active={criticalAlerts.length > 0} />
       <CriticalEventOverlay alerts={criticalAlerts} shortcuts={layout?.alarm?.shortcuts} />
     </div>
   )

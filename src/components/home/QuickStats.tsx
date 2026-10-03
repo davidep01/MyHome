@@ -34,7 +34,7 @@ export function QuickStats({ size }: { size: WidgetSize }) {
       </div>
     )
   }
-  const compact = size === 'sm'
+  const compact = size === 'xs' || size === 'sm'
   const expanded = size === 'lg' || size === 'wide'
 
   return (
@@ -43,7 +43,7 @@ export function QuickStats({ size }: { size: WidgetSize }) {
       {lightsOn > 0 && (
         <button
           onClick={allLightsOff}
-          className="press-card flex items-center gap-2 rounded-full bg-[rgba(234,179,8,0.16)] py-2.5 pl-3.5 pr-3 text-[15px] font-semibold text-[#7a5b08] active:scale-95"
+          className="press-card flex min-h-[44px] items-center gap-2 rounded-full bg-[rgba(234,179,8,0.16)] py-2.5 pl-3.5 pr-3 text-[15px] font-semibold text-[#7a5b08] active:scale-95"
         >
           <Lightbulb size={17} className="amb-float fill-[#eab308]/30" />
           <CountUp value={lightsOn} className="tabular-nums" />

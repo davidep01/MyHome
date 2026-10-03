@@ -20,7 +20,7 @@ interface AnimatedCardProps extends GlassProps {
 }
 
 /**
- * GlassCard + a slow, always-on ambient layer (a drifting glow or a faint sheen).
+ * GlassCard with a static material edge shared by all widget families.
  * Subtle by design and disabled under perf-lite / reduced-motion via the CSS.
  */
 export function AnimatedCard({
@@ -33,32 +33,14 @@ export function AnimatedCard({
   className,
   ...rest
 }: AnimatedCardProps) {
-  const delay = `${-((index % 6) * 2.3).toFixed(1)}s`
-
+  // Retain the public props for existing callers; material is shared and static.
+  void ambientColor
+  void index
+  void colorWash
   return (
     <GlassCard className={cn('relative overflow-hidden', className)} {...rest}>
-      {colorWash && (
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-0"
-          style={{ background: `radial-gradient(circle at 96% 0%, ${ambientColor} 0%, transparent 64%)` }}
-        />
-      )}
-      {ambient === 'drift' && (
-        <span
-          aria-hidden
-          className="amb-drift pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full"
-          style={{ background: `radial-gradient(circle, ${ambientColor}, transparent 70%)`, animationDelay: delay }}
-        />
-      )}
-      {ambient === 'sheen' && (
-        <span
-          aria-hidden
-          className="amb-sheen pointer-events-none absolute inset-y-0 left-0 w-1/3"
-          style={{ background: 'linear-gradient(105deg, transparent, rgba(255,255,255,0.16), transparent)', animationDelay: delay }}
-        />
-      )}
-      <div className={cn('relative flex h-full flex-col', contentClassName)}>{children}</div>
+      {ambient !== 'none' && <span aria-hidden className="pointer-events-none absolute inset-0 rounded-[inherit]" style={{ boxShadow: 'inset 0 1px 0 var(--glass-edge)' }} />}
+      <div className={cn('info-card-content relative flex h-full min-h-0 flex-col', contentClassName)}>{children}</div>
     </GlassCard>
   )
 }

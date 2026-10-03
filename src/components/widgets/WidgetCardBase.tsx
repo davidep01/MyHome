@@ -29,6 +29,7 @@ export function WidgetCardShell({
   isError = false,
   isUnavailable = false,
   isOffline = false,
+  isUnknown = false,
   isPending = false,
   isEditing = false,
   isDragging = false,
@@ -54,7 +55,7 @@ export function WidgetCardShell({
       data-widget-status={status}
       aria-busy={isPending || undefined}
       className={cn(
-        'widget-card-shell relative flex h-full min-w-0 flex-col overflow-hidden rounded-[18px]',
+        'widget-card-shell relative flex h-full min-w-0 flex-col rounded-[var(--radius-card)]',
         cfg.paddingClass,
         interactive && 'select-none',
         isActive && 'widget-card-active',
@@ -70,14 +71,14 @@ export function WidgetCardShell({
       <span className="widget-card-tint pointer-events-none absolute inset-0 z-[1]" aria-hidden="true" />
       {/* Media full-bleed (live camera / artwork): sopra il vetro, sotto controlli e testo. */}
       {media && !isUnavailable && !isOffline && !isLoading && !isError && (
-        <div className="absolute inset-0 z-[5] overflow-hidden rounded-[18px]" aria-hidden="true">
+        <div className="absolute inset-0 z-[5] overflow-hidden rounded-[var(--radius-card)]" aria-hidden="true">
           {media}
         </div>
       )}
       {interactive && (
         <button
           type="button"
-          className="widget-card-primary-action absolute inset-0 z-20 cursor-pointer rounded-[18px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0066cc] disabled:cursor-wait"
+          className="widget-card-primary-action absolute inset-0 z-20 cursor-pointer rounded-[var(--radius-card)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0066cc] disabled:cursor-wait"
           onClick={onClick}
           disabled={isPending}
           aria-label={onClickLabel ?? `Apri dettagli di ${title}`}
@@ -91,7 +92,7 @@ export function WidgetCardShell({
         ) : isError ? (
           <WidgetCardError title={title} />
         ) : isUnavailable || isOffline ? (
-          <WidgetCardUnavailable title={title} offline={isOffline} />
+          <WidgetCardUnavailable title={title} offline={isOffline} unknown={isUnknown} size={size} />
         ) : (
           children ?? (
             <>
@@ -186,18 +187,20 @@ export function WidgetCardIdentity({
 }) {
   const cfg = getWidgetSizeConfig(size)
   return (
-    <div className="mt-auto min-w-0 pt-2">
+    <div className="widget-card-identity mt-auto min-w-0 pt-1">
       {value !== undefined && (
-        <p className={cn('font-semibold leading-none tracking-tight text-[#1d1d1f] tabular-nums', cfg.valueClass)}>
+        <p className={cn('truncate font-semibold leading-none tracking-tight text-[var(--ink)] tabular-nums', cfg.valueClass)}
+          title={`${value}${unit ?? ''}`}
+          style={value.length > 10 ? { fontSize: `clamp(13px, calc(100cqw / ${value.length * 0.68 + (unit?.length ?? 0) * 0.4}), ${size === 'S' ? 22 : 28}px)` } : undefined}>
           {value}
-          {unit && <span className="ml-0.5 align-baseline text-[0.55em] font-semibold text-black/40">{unit}</span>}
+          {unit && <span className="ml-0.5 align-baseline text-[0.55em] font-semibold text-[var(--ink-secondary)]">{unit}</span>}
         </p>
       )}
       <p className={cn(
-        'font-semibold leading-snug text-[#1d1d1f]',
+        'font-semibold leading-snug text-[var(--ink)]',
         cfg.titleClass,
-        value !== undefined ? 'mt-1 line-clamp-1 text-black/55' : singleLineTitle ? 'line-clamp-1' : 'line-clamp-2',
-        !active && value === undefined && 'text-[#1d1d1f]/80',
+        value !== undefined ? 'mt-1 line-clamp-1 text-[var(--ink-secondary)]' : singleLineTitle ? 'line-clamp-1' : 'line-clamp-2',
+        !active && value === undefined && 'text-[var(--ink)]',
       )}>
         {title}
       </p>
@@ -230,19 +233,19 @@ export function WidgetCardToggle({
   return (
     <button
       type="button"
-      className={cn('widget-card-toggle pointer-events-auto relative h-8 w-[52px] shrink-0 rounded-full transition active:scale-95 disabled:opacity-40', checked ? 'on' : '')}
+      className={cn('widget-card-toggle pointer-events-auto relative h-11 w-[56px] shrink-0 rounded-full transition active:scale-95 disabled:opacity-40', checked ? 'on' : '')}
       style={{ '--toggle-color': color } as CSSProperties}
       onClick={(event) => { event.stopPropagation(); onToggle() }}
       disabled={disabled}
       aria-label={label}
       aria-pressed={checked}
     >
-      <span className="absolute left-[3px] top-[3px] h-[26px] w-[26px] rounded-full bg-white shadow-sm transition-transform" />
+      <span className="absolute left-[4px] top-[9px] h-[26px] w-[26px] rounded-full bg-white shadow-sm transition-transform" />
     </button>
   )
 }
 
-/** Bottoncino di controllo rotondo (±, play, ↑■↓): 36px visivi, tocco 44. */
+/** Bottoncino di controllo rotondo (±, play, ↑■↓): 44px effettivi, senza dipendere da hit-area estese. */
 export function WidgetCardControlButton({
   children,
   label,
@@ -257,7 +260,7 @@ export function WidgetCardControlButton({
   return (
     <button
       type="button"
-      className="widget-card-control tap-target pointer-events-auto inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-black/55 transition active:scale-90 disabled:opacity-35"
+      className="widget-card-control tap-target pointer-events-auto inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[var(--ink-secondary)] transition active:scale-90 disabled:opacity-35"
       onClick={(event) => { event.stopPropagation(); onClick() }}
       disabled={disabled}
       aria-label={label}
@@ -276,6 +279,7 @@ export function WidgetCardSlider({
   color = widgetTones.cool.color,
   onChange,
   onCommit,
+  onCancel,
   label = 'Regola valore',
   disabled = false,
 }: {
@@ -283,12 +287,21 @@ export function WidgetCardSlider({
   color?: string
   onChange?: (value: number) => void
   onCommit?: (value: number) => void
+  onCancel?: () => void
   label?: string
   disabled?: boolean
 }) {
   const trackRef = useRef<HTMLDivElement>(null)
   const [drag, setDrag] = useState<number | null>(null)
-  const pct = Math.max(0, Math.min(100, drag ?? value))
+  const keyboardValue = useRef<number | null>(null)
+  const commitKeyboard = () => {
+    const next = keyboardValue.current
+    keyboardValue.current = null
+    setDrag(null)
+    if (next !== null && !disabled) onCommit?.(next)
+  }
+  const activePointer = useRef<number | null>(null)
+  const pct = Math.max(0, Math.min(100, Number.isFinite(drag ?? value) ? (drag ?? value) : 0))
 
   const valueFromPointer = (event: ReactPointerEvent) => {
     const rect = trackRef.current?.getBoundingClientRect()
@@ -307,28 +320,33 @@ export function WidgetCardSlider({
       aria-valuetext={`${Math.round(pct)}%`}
       aria-valuemin={0}
       aria-valuemax={100}
-      className={cn('tap-target pointer-events-auto relative h-7 w-full touch-none select-none', disabled && 'cursor-not-allowed opacity-40')}
+      className={cn('tap-target pointer-events-auto relative h-11 w-full touch-none select-none', disabled && 'cursor-not-allowed opacity-40')}
       onClick={(event) => event.stopPropagation()}
       onPointerDown={(event) => {
         event.stopPropagation()
-        if (disabled) return
+        if (disabled || !event.isPrimary || event.button !== 0 || activePointer.current !== null) return
+        activePointer.current = event.pointerId
         event.currentTarget.setPointerCapture(event.pointerId)
         const v = valueFromPointer(event)
         setDrag(v)
         onChange?.(v)
       }}
       onPointerMove={(event) => {
-        if (disabled || drag === null) return
+        if (disabled || activePointer.current !== event.pointerId) return
         const v = valueFromPointer(event)
         setDrag(v)
         onChange?.(v)
       }}
       onPointerUp={(event) => {
-        if (disabled || drag === null) return
-        onCommit?.(valueFromPointer(event))
+        if (activePointer.current !== event.pointerId) return
+        activePointer.current = null
+        if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId)
+        if (disabled) onCancel?.()
+        else onCommit?.(valueFromPointer(event))
         setDrag(null)
       }}
-      onPointerCancel={() => setDrag(null)}
+      onPointerCancel={() => { activePointer.current = null; setDrag(null); onCancel?.() }}
+      onLostPointerCapture={() => { if (activePointer.current !== null) { activePointer.current = null; setDrag(null); onCancel?.() } }}
       onKeyDown={(event: ReactKeyboardEvent<HTMLDivElement>) => {
         if (disabled) return
         const step = event.shiftKey ? 10 : 5
@@ -344,11 +362,17 @@ export function WidgetCardSlider({
         if (next === null) return
         event.preventDefault()
         event.stopPropagation()
+        if (next === pct) return
+        keyboardValue.current = next
+        setDrag(next)
         onChange?.(next)
-        onCommit?.(next)
       }}
+      onKeyUp={(event) => {
+        if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) commitKeyboard()
+      }}
+      onBlur={commitKeyboard}
     >
-      <span className="absolute inset-x-0 top-1/2 h-[5px] -translate-y-1/2 rounded-full bg-black/10" />
+      <span className="absolute inset-x-0 top-1/2 h-[5px] -translate-y-1/2 rounded-full bg-[var(--fill-subtle)]" />
       <span
         className="absolute left-0 top-1/2 h-[5px] -translate-y-1/2 rounded-full"
         style={{ width: `${pct}%`, background: color }}
@@ -381,6 +405,8 @@ export function WidgetCardHoldButton({
 }) {
   const [holding, setHolding] = useState(false)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const latest = useRef({ disabled, locked, onUnlock })
+  useEffect(() => { latest.current = { disabled, locked, onUnlock } }, [disabled, locked, onUnlock])
 
   useEffect(() => () => {
     if (timer.current) clearTimeout(timer.current)
@@ -396,18 +422,18 @@ export function WidgetCardHoldButton({
     if (!locked) { onLock(); return }
     if (timer.current) return
     setHolding(true)
-    timer.current = setTimeout(() => { cancel(); onUnlock() }, 900)
+    timer.current = setTimeout(() => { cancel(); if (!latest.current.disabled && latest.current.locked) latest.current.onUnlock() }, 900)
   }
   const start = (event: ReactPointerEvent) => {
     event.stopPropagation()
-    begin()
+    if (event.isPrimary && event.button === 0) begin()
   }
 
   return (
     <button
       type="button"
       className={cn(
-        'widget-card-control tap-target pointer-events-auto relative inline-flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full text-black/55 transition disabled:opacity-35',
+        'widget-card-control tap-target pointer-events-auto relative inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[var(--ink-secondary)] transition disabled:opacity-35',
         holding && 'scale-95',
       )}
       onPointerDown={start}
@@ -447,25 +473,25 @@ export function WidgetCardHoldButton({
 export function WidgetCardSkeleton({ size = 'M' }: { size?: WidgetVisualSize }) {
   return (
     <div className="flex h-full flex-col">
-      <div className="h-9 w-9 rounded-full bg-black/[0.06] widget-anim-shimmer" />
+      <div className="h-9 w-9 rounded-full bg-[var(--fill-subtle)] widget-anim-shimmer" />
       <div className="mt-auto space-y-2 pt-2">
-        <div className="h-3.5 w-2/3 rounded-full bg-black/[0.06] widget-anim-shimmer" />
-        {size !== 'XS' && size !== 'S' && <div className="h-3 w-1/2 rounded-full bg-black/[0.05] widget-anim-shimmer" />}
+        <div className="h-3.5 w-2/3 rounded-full bg-[var(--fill-subtle)] widget-anim-shimmer" />
+        {size !== 'XS' && size !== 'S' && <div className="h-3 w-1/2 rounded-full bg-[var(--fill-subtle)] widget-anim-shimmer" />}
       </div>
     </div>
   )
 }
 
-export function WidgetCardUnavailable({ title, offline = false }: { title: string; offline?: boolean }) {
+export function WidgetCardUnavailable({ title, offline = false, unknown = false, size = 'M' }: { title: string; offline?: boolean; unknown?: boolean; size?: WidgetVisualSize }) {
   const Icon = offline ? WifiOff : AlertTriangle
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-black/[0.05] text-black/30">
+    <div className={cn("flex h-full", size === 'XS' ?"items-center gap-2" :"flex-col")}>
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--fill-subtle)] text-[var(--ink-tertiary)]">
         <Icon size={17} />
       </div>
-      <div className="mt-auto pt-2">
-        <p className="line-clamp-2 text-[15px] font-semibold leading-snug text-black/55">{title}</p>
-        <p className="mt-0.5 text-[13px] text-black/35">{offline ? 'Offline' : 'Non disponibile'}</p>
+      <div className={cn("min-w-0", size === 'XS' ?"flex-1" :"mt-auto pt-2")}>
+        <p className={cn("text-[13px] font-semibold leading-snug text-[var(--ink)]", size === 'XS' ?"truncate" :"line-clamp-2")}>{title}</p>
+        <p className="mt-0.5 truncate text-[13px] text-[var(--ink-tertiary)]">{offline ? 'Offline' : unknown ? 'Stato sconosciuto' : 'Non disponibile'}</p>
       </div>
     </div>
   )
@@ -478,7 +504,7 @@ export function WidgetCardError({ title }: { title: string }) {
         <AlertTriangle size={17} />
       </div>
       <div className="mt-auto pt-2">
-        <p className="line-clamp-2 text-[15px] font-semibold leading-snug text-black/70">{title}</p>
+        <p className="line-clamp-2 text-[15px] font-semibold leading-snug text-[var(--ink)]">{title}</p>
         <p className="mt-0.5 text-[13px] text-red-600">Errore controllato</p>
       </div>
     </div>
@@ -487,9 +513,9 @@ export function WidgetCardError({ title }: { title: string }) {
 
 export function WidgetCardEditOverlay({ size }: { size: WidgetVisualSize }) {
   return (
-    <div className="pointer-events-none absolute inset-0 z-20 rounded-[18px] border border-dashed border-[#0066cc]/45 bg-[#0066cc]/[0.035]">
+    <div className="pointer-events-none absolute inset-0 z-20 rounded-[var(--radius-card)] border border-dashed border-[#0066cc]/45 bg-[#0066cc]/[0.035]">
       <div className="absolute right-2 top-2 rounded-full bg-white/92 px-2 py-1 text-[10px] font-bold text-[#0066cc] shadow-sm">{size}</div>
-      <div className="absolute bottom-2 left-1/2 flex h-8 w-12 -translate-x-1/2 items-center justify-center rounded-full bg-white/92 text-black/45 shadow-sm">
+      <div className="absolute bottom-2 left-1/2 flex h-8 w-12 -translate-x-1/2 items-center justify-center rounded-full bg-white/92 text-[var(--ink-secondary)] shadow-sm">
         <GripVertical size={17} />
       </div>
     </div>

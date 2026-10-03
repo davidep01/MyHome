@@ -21,7 +21,7 @@ export function GlassCard({
   interactive = false,
   glow,
   noPadding = false,
-  depth = false,
+  depth = true,
   style,
   ...props
 }: GlassCardProps) {
@@ -29,7 +29,7 @@ export function GlassCard({
   return (
     <motion.div
       className={cn(
-        'glass glass-border relative overflow-hidden rounded-[18px]',
+        'glass glass-border relative overflow-hidden rounded-[var(--radius-card)]',
         !noPadding && 'p-[14px]',
         interactive && 'cursor-pointer select-none press-card',
         className,

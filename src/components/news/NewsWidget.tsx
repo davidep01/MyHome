@@ -17,7 +17,7 @@ export function NewsWidget({ size = 'md' }: { size?: WidgetSize }) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-32">
+      <div className="flex items-center justify-center h-full">
         <div className="h-5 w-5 rounded-full border-2 border-black/20 border-t-black/50 animate-spin" />
       </div>
     )
@@ -25,24 +25,24 @@ export function NewsWidget({ size = 'md' }: { size?: WidgetSize }) {
 
   if (!articles?.length) {
     return (
-      <p className="text-xs text-black/30 text-center py-6">
+      <p className="text-[13px] text-[var(--ink-tertiary)] text-center py-6">
         {error instanceof Error ? error.message : 'Nessuna notizia'}
       </p>
     )
   }
 
-  const limit = size === 'sm' ? 1 : size === 'md' ? 2 : size === 'lg' ? 4 : 2
+  const limit = size === 'xs' || size === 'sm' ? 1 : size === 'md' ? 1 : size === 'lg' ? articles.length : 2
   const expanded = size === 'lg' || size === 'wide'
 
   return (
-    <div className={size === 'wide' ? 'grid h-full grid-cols-2 gap-2 overflow-hidden' : 'flex h-full flex-col gap-2 overflow-hidden'}>
+    <div className={size === 'wide' ? 'grid h-full grid-cols-2 gap-2 overflow-y-auto' : 'flex h-full flex-col gap-2 overflow-y-auto'}>
       {articles.slice(0, limit).map((article) => (
         <a
           key={article.id}
           href={article.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="group flex min-h-0 gap-3 rounded-[14px] bg-black/5 p-3 transition-colors hover:bg-black/8"
+          className="group flex min-h-[44px] shrink-0 gap-3 rounded-[14px] bg-black/5 p-2 transition-colors hover:bg-black/8"
         >
           {expanded && article.urlToImage && (
             <img
@@ -53,22 +53,22 @@ export function NewsWidget({ size = 'md' }: { size?: WidgetSize }) {
             />
           )}
           <div className="flex flex-col gap-1 min-w-0">
-            <p className="text-xs font-semibold text-black/85 line-clamp-2 leading-snug">
+            <p className="text-[13px] font-semibold text-[var(--ink)] line-clamp-2 leading-snug">
               {article.title}
             </p>
-            <div className="flex items-center gap-1.5 mt-auto">
-              <span className="text-[10px]" style={{ color: tokens.text.tertiary }}>
+            {size !== 'xs' && <div className="flex items-center gap-1.5 mt-auto">
+              <span className="text-[13px]" style={{ color: tokens.text.tertiary }}>
                 {article.source}
               </span>
-              <span className="text-[10px] text-black/20">·</span>
-              <span className="text-[10px]" style={{ color: tokens.text.tertiary }}>
+              <span className="text-[13px] text-[var(--ink-tertiary)]">·</span>
+              <span className="text-[13px]" style={{ color: tokens.text.tertiary }}>
                 {timeAgo(article.publishedAt)}
               </span>
               <ExternalLink
                 size={9}
-                className="ml-auto text-black/20 group-hover:text-black/40 transition-colors"
+                className="ml-auto text-[var(--ink-tertiary)] group-hover:text-[var(--ink-secondary)] transition-colors"
               />
-            </div>
+            </div>}
           </div>
         </a>
       ))}

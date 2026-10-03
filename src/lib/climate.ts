@@ -1,3 +1,4 @@
+import { controlRange, snapControlValue } from './controlRange'
 import { temperatureValue } from './climateState'
 import type { HassEntity } from 'home-assistant-js-websocket'
 
@@ -5,13 +6,13 @@ const ACTIVE_ACTIONS = new Set(['heating', 'cooling', 'drying', 'fan'])
 const IDLE_ACTIONS = new Set(['idle', 'off'])
 
 const HVAC_MODE_LABELS: Record<string, string> = {
-  off: 'OFF',
-  heat: 'CALDO',
-  cool: 'FREDDO',
-  auto: 'AUTO',
-  dry: 'DRY',
-  fan_only: 'VENTOLA',
-  heat_cool: 'CALDO/FREDDO',
+  off: 'Spento',
+  heat: 'Caldo',
+  cool: 'Freddo',
+  auto: 'Auto',
+  dry: 'Deumidifica',
+  fan_only: 'Ventola',
+  heat_cool: 'Auto caldo/freddo',
 }
 
 const HVAC_ACTION_LABELS: Record<string, string> = {
@@ -28,7 +29,11 @@ const OPTION_LABELS: Record<string, string> = {
   low: 'Bassa',
   medium: 'Media',
   high: 'Alta',
-  swing: 'Swing',
+  swing: 'Oscillazione',
+  vertical: 'Verticale',
+  horizontal: 'Orizzontale',
+  comfort: 'Comfort',
+  eco: 'Eco',
   '1_up': '1 alto',
   '5_down': '5 basso',
 }
@@ -94,7 +99,7 @@ export function getClimateVisualState(entity?: HassEntity | null) {
     tone,
     isOn: !unavailable && !isOff,
     unavailable,
-    onOffLabel: unavailable ? 'N/D' : isOff ? 'OFF' : 'ON',
+    onOffLabel: unavailable ? 'N/D' : isOff ? 'Spento' : 'Acceso',
     actionLabel: unavailable
       ? 'Non disponibile'
       : activeAction
@@ -117,5 +122,23 @@ export function pickOnHvacMode(modes: string[], currentMode?: string | null): st
 
 export function formatClimateTemp(value: unknown, unit = '°C'): string {
   const n = temperatureValue(value, unit)?.value
-  return n !== undefined ? `${n.toFixed(1).replace('.', ',')}${unit}` : `--${unit}`
+  return n !== undefined ? `${n.toLocaleString('it-IT', { minimumFractionDigits: 1, maximumFractionDigits: 6 })}${unit}` : `--${unit}`
 }
+
+
+/** Controls use the entity's unit and never synthesize a missing target. */
+export function getClimateControls(entity?: HassEntity | null) {
+  const attrs = entity?.attributes ?? {}
+  const unit = typeof attrs.temperature_unit === 'string' && ['°C', '°F', 'K'].includes(attrs.temperature_unit) ? attrs.temperature_unit : '°C'
+  const read = (value: unknown) => temperatureValue(value, unit)?.value
+  const defaults = unit === '°F' ? [45, 95] : unit === 'K' ? [280, 308] : [7, 35]
+  const min = read(attrs.min_temp) ?? defaults[0]
+  const max = read(attrs.max_temp) ?? defaults[1]
+  const step = read(attrs.target_temp_step) ?? (unit === '°F' ? 1 : 0.5)
+  const range = controlRange(min, max, step)
+  const target = read(attrs.temperature)
+  return { ...range, unit, current: read(attrs.current_temperature), target,
+    adjustable: target !== undefined && max > min && step > 0 }
+}
+
+export { snapControlValue as snapClimateTemperature }

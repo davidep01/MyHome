@@ -49,6 +49,7 @@ export interface WidgetCardBaseProps {
   isError?: boolean
   isUnavailable?: boolean
   isOffline?: boolean
+  isUnknown?: boolean
   /** A service command is in flight; keeps the card visible while disabling controls. */
   isPending?: boolean
   isEditing?: boolean

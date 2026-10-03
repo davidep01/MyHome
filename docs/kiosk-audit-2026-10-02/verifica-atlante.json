@@ -1,0 +1,62 @@
+[
+  {
+    "theme": "dark",
+    "size": "XS",
+    "cards": 47,
+    "overflow": []
+  },
+  {
+    "theme": "dark",
+    "size": "S",
+    "cards": 47,
+    "overflow": []
+  },
+  {
+    "theme": "dark",
+    "size": "M",
+    "cards": 47,
+    "overflow": []
+  },
+  {
+    "theme": "dark",
+    "size": "L",
+    "cards": 47,
+    "overflow": []
+  },
+  {
+    "theme": "dark",
+    "size": "XL",
+    "cards": 47,
+    "overflow": []
+  },
+  {
+    "theme": "light",
+    "size": "XS",
+    "cards": 47,
+    "overflow": []
+  },
+  {
+    "theme": "light",
+    "size": "S",
+    "cards": 47,
+    "overflow": []
+  },
+  {
+    "theme": "light",
+    "size": "M",
+    "cards": 47,
+    "overflow": []
+  },
+  {
+    "theme": "light",
+    "size": "L",
+    "cards": 47,
+    "overflow": []
+  },
+  {
+    "theme": "light",
+    "size": "XL",
+    "cards": 47,
+    "overflow": []
+  }
+]

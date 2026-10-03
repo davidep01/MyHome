@@ -1,3 +1,4 @@
+import { controlRange, snapControlValue } from '../../lib/controlRange'
 import { performEntityAction } from '../../lib/entityActions'
 import { useEffect, useId, useRef, useState } from 'react'
 import type { HassEntity } from 'home-assistant-js-websocket'
@@ -28,7 +29,7 @@ export function GenericDetail({ entity }: { entity: HassEntity }) {
   const setFullscreenCamera = useUIStore((s) => s.setFullscreenCamera)
   const { light: hLight, medium, heavy } = useHaptic()
   const { feedbackClass, actionFailed } = useActionFeedback()
-  const unavailable = entity.state === 'unavailable'
+  const unavailable = ['unavailable', 'unknown'].includes(entity.state)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const busyRef = useRef(false)
@@ -74,10 +75,10 @@ export function GenericDetail({ entity }: { entity: HassEntity }) {
       )}
 
       {domain === 'siren' && (
-        <div className="flex items-center justify-between gap-3 rounded-[14px] bg-black/[0.04] px-4 py-3">
+        <div className="flex items-center justify-between gap-3 rounded-[14px] bg-[var(--fill-subtle)] px-4 py-3">
           <div>
-            <p className="text-sm font-semibold text-[#1d1d1f]">Sirena {on ? 'attiva' : 'spenta'}</p>
-            <p className="mt-0.5 text-xs text-black/45">L’attivazione richiede una pressione prolungata.</p>
+            <p className="text-sm font-semibold text-[var(--ink)]">Sirena {on ? 'attiva' : 'spenta'}</p>
+            <p className="mt-0.5 text-xs text-[var(--ink-secondary)]">L’attivazione richiede una pressione prolungata.</p>
           </div>
           <HoldDangerAction active={on} disabled={disabled} onActivate={toggle} onDeactivate={toggle} label={entityName(entity)} />
         </div>
@@ -180,7 +181,7 @@ export function GenericDetail({ entity }: { entity: HassEntity }) {
         </>
       )}
 
-      {domain === 'lock' && <LockControl entity={entity} act={act} call={call} haptic={heavy} setOptimistic={setOptimisticState} disabled={disabled || ['locking', 'unlocking'].includes(entity.state)} />}
+      {domain === 'lock' && <LockControl entity={entity} act={act} call={call} haptic={heavy} setOptimistic={setOptimisticState} disabled={disabled || ['locking', 'unlocking', 'jammed'].includes(entity.state)} />}
 
       {(domain === 'vacuum' || domain === 'lawn_mower') && (
         <div className="grid grid-cols-3 gap-2">
@@ -226,7 +227,7 @@ export function GenericDetail({ entity }: { entity: HassEntity }) {
               type="button"
               onClick={() => act(() => call('locate'), hLight)}
               disabled={disabled}
-              className="col-span-3 flex min-h-[44px] items-center justify-center gap-2 rounded-[12px] bg-black/[0.05] text-sm font-semibold text-black/60 transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
+              className="col-span-3 flex min-h-[44px] items-center justify-center gap-2 rounded-[12px] bg-[var(--fill-subtle)] text-sm font-semibold text-[var(--ink-secondary)] transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
             >
               <MapPin size={15} aria-hidden="true" /> Localizza
             </button>
@@ -321,7 +322,7 @@ export function GenericDetail({ entity }: { entity: HassEntity }) {
               setSelectedEntity(null)
               setFullscreenCamera(entity.entity_id)
             }}
-            className="absolute right-3 top-3 z-20 flex min-h-11 items-center gap-2 rounded-full bg-black/55 px-4 text-sm font-semibold text-white backdrop-blur transition active:scale-95"
+            className="absolute right-3 top-3 z-20 flex min-h-11 items-center gap-2 rounded-full bg-[var(--fill-subtle)] px-4 text-sm font-semibold text-white backdrop-blur transition active:scale-95"
             aria-label={`Apri ${entityName(entity)} a schermo intero`}
           >
             <Maximize2 size={17} aria-hidden="true" /> Schermo intero
@@ -347,13 +348,13 @@ function ToggleRow({ label, checked, disabled, onToggle }: { label: string; chec
   const controlId = useId()
   const statusId = useId()
   return (
-    <div className="flex items-center justify-between rounded-[14px] bg-black/[0.04] px-4 py-3">
-      <label htmlFor={controlId} id={statusId} className="text-sm font-semibold text-[#1d1d1f]">{label}</label>
+    <div className="flex items-center justify-between rounded-[14px] bg-[var(--fill-subtle)] px-4 py-3">
+      <label htmlFor={controlId} id={statusId} className="text-sm font-semibold text-[var(--ink)]">{label}</label>
       <button
         id={controlId}
         type="button"
         className={cn(
-          'lg-toggle border-0 p-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0066cc]',
+          'lg-toggle min-h-11 min-w-14 border-0 p-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0066cc]',
           checked && 'on',
         )}
         onClick={onToggle}
@@ -378,7 +379,8 @@ function SliderRow({
   const valueId = useId()
   const [draft, setDraft] = useState<number | null>(null)
   const draftRef = useRef<number | null>(null)
-  const shown = draft ?? value
+  const range = controlRange(min, max, step)
+  const shown = draft ?? snapControlValue(value, range.min, range.max, range.step)
 
   const updateDraft = (next: number) => {
     draftRef.current = next
@@ -386,7 +388,7 @@ function SliderRow({
   }
 
   const commitDraft = () => {
-    if (draftRef.current === null) return
+    if (disabled || draftRef.current === null) return
     const next = draftRef.current
     draftRef.current = null
     setDraft(null)
@@ -394,32 +396,32 @@ function SliderRow({
   }
 
   return (
-    <div className="space-y-1.5 rounded-[14px] bg-black/[0.04] px-4 py-3">
+    <div className="space-y-1.5 rounded-[14px] bg-[var(--fill-subtle)] px-4 py-3">
       <div className="flex items-center justify-between">
-        <label htmlFor={inputId} className="text-xs font-semibold text-black/50">{label}</label>
-        <output id={valueId} htmlFor={inputId} className="text-sm font-semibold tabular-nums text-[#1d1d1f]">
-          {Math.round(shown)}
+        <label htmlFor={inputId} className="text-xs font-semibold text-[var(--ink-secondary)]">{label}</label>
+        <output id={valueId} htmlFor={inputId} className="text-sm font-semibold tabular-nums text-[var(--ink)]">
+          {shown.toLocaleString('it-IT', { maximumFractionDigits: 6 })}
         </output>
       </div>
       <input
         id={inputId}
         type="range"
-        min={min}
-        max={max}
-        step={step}
+        min={range.min}
+        max={range.max}
+        step={range.step}
         value={shown}
         disabled={disabled}
         aria-describedby={valueId}
         onChange={(e) => updateDraft(Number(e.currentTarget.value))}
         onPointerUp={commitDraft}
-        onPointerCancel={commitDraft}
+        onPointerCancel={() => { draftRef.current = null; setDraft(null) }}
         onKeyUp={(event) => {
           if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End'].includes(event.key)) {
             commitDraft()
           }
         }}
         onBlur={commitDraft}
-        className="w-full accent-[#0066cc] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0066cc] disabled:opacity-40"
+        className="min-h-11 w-full touch-none accent-[#0066cc] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0066cc] disabled:opacity-40"
       />
     </div>
   )
@@ -434,7 +436,7 @@ function OptionChips({
   if (options.length === 0) return null
   return (
     <div className="space-y-1.5">
-      <p id={labelId} className="px-1 text-xs font-semibold text-black/50">{label}</p>
+      <p id={labelId} className="px-1 text-xs font-semibold text-[var(--ink-secondary)]">{label}</p>
       <div className="flex flex-wrap gap-2" role="group" aria-labelledby={labelId}>
         {options.map((option) => (
           <button
@@ -445,7 +447,7 @@ function OptionChips({
             aria-pressed={option === current}
             className={cn(
               'min-h-[44px] rounded-full px-4 text-sm font-semibold transition active:scale-95 disabled:opacity-40',
-              option === current ? 'bg-[#0066cc] text-white' : 'bg-black/[0.06] text-black/60',
+              option === current ? 'bg-[#0066cc] text-white' : 'bg-[var(--fill-subtle)] text-[var(--ink-secondary)]',
             )}
           >
             {stateLabel(option)}
@@ -468,7 +470,7 @@ function ActionButton({
       disabled={disabled}
       className={cn(
         'flex min-h-[48px] items-center justify-center gap-2 rounded-[12px] text-sm font-semibold transition active:scale-[0.97] disabled:opacity-40',
-        primary ? 'w-full bg-[#0066cc] text-white' : 'bg-black/[0.05] text-black/65',
+        primary ? 'w-full bg-[#0066cc] text-white' : 'bg-[var(--fill-subtle)] text-[var(--ink-secondary)]',
       )}
     >
       <Icon size={16} aria-hidden="true" /> {label}
@@ -491,6 +493,8 @@ function LockControl({
   const [holding, setHolding] = useState(false)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const instructionId = useId()
+  const latest = useRef({ disabled, locked })
+  useEffect(() => { latest.current = { disabled, locked } }, [disabled, locked])
 
   useEffect(() => () => {
     if (timer.current) clearTimeout(timer.current)
@@ -511,6 +515,7 @@ function LockControl({
     timer.current = setTimeout(() => {
       timer.current = null
       setHolding(false)
+      if (latest.current.disabled || !latest.current.locked) return
       act(
         () => call('unlock'),
         () => { haptic(); setOptimistic(entity.entity_id, 'unlocking') },
@@ -527,7 +532,7 @@ function LockControl({
   return (
     <button
       type="button"
-      onPointerDown={startHold}
+      onPointerDown={(event) => { if (event.isPrimary && event.button === 0) startHold() }}
       onPointerUp={cancelHold}
       onPointerCancel={cancelHold}
       onPointerLeave={cancelHold}
@@ -542,12 +547,12 @@ function LockControl({
         cancelHold()
       }}
       onBlur={cancelHold}
-      disabled={disabled || entity.state === 'unavailable'}
+      disabled={disabled || ['unavailable', 'unknown'].includes(entity.state)}
       aria-describedby={instructionId}
       aria-busy={holding}
       className={cn(
         'relative flex w-full min-h-[56px] items-center justify-center gap-2 overflow-hidden rounded-[14px] text-base font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0066cc] disabled:cursor-not-allowed disabled:opacity-40',
-        locked ? 'bg-black/[0.06] text-[#1d1d1f]' : 'bg-[#0066cc] text-white',
+        locked ? 'bg-[var(--fill-subtle)] text-[var(--ink)]' : 'bg-[#0066cc] text-white',
         holding && 'scale-[0.98]',
       )}
     >
@@ -582,19 +587,19 @@ function AttributesCard({ entity }: { entity: HassEntity }) {
     .slice(0, 10)
 
   return (
-    <div className="rounded-[16px] bg-black/[0.04] p-4">
-      <p className="text-2xl font-semibold text-[#1d1d1f]">
+    <div className="rounded-[16px] bg-[var(--fill-subtle)] p-4">
+      <p className="text-2xl font-semibold text-[var(--ink)]">
         {entity.entity_id.startsWith('camera.') && entity.state !== 'unavailable'
           ? 'Disponibile'
           : stateLabel(entity.state)}
-        {entity.attributes?.unit_of_measurement ? <span className="ml-1 text-base font-semibold text-black/40">{String(entity.attributes.unit_of_measurement)}</span> : null}
+        {entity.attributes?.unit_of_measurement ? <span className="ml-1 text-base font-semibold text-[var(--ink-secondary)]">{String(entity.attributes.unit_of_measurement)}</span> : null}
       </p>
       {rows.length > 0 && (
         <div className="mt-3 space-y-1">
           {rows.map(([key, value]) => (
             <div key={key} className="flex items-center justify-between gap-3 text-xs">
-              <span className="text-black/40">{key.replace(/_/g, ' ')}</span>
-              <span className="truncate font-semibold text-black/65">{String(value)}</span>
+              <span className="text-[var(--ink-secondary)]">{key.replace(/_/g, ' ')}</span>
+              <span className="truncate font-semibold text-[var(--ink-secondary)]">{String(value)}</span>
             </div>
           ))}
         </div>

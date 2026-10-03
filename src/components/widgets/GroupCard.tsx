@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { ChevronDown, ChevronUp, Home, Layers, LoaderCircle, Play } from 'lucide-react'
 import { GlassCard } from '../glass/GlassCard'
+import { GlassSheet } from '../glass/GlassSheet'
 import { DynamicIcon } from '../DynamicIcon'
 import { AnimLightbulb } from '../icons/animated'
 import { LiveDot } from '../anim/LiveDot'
@@ -30,6 +31,7 @@ export function GroupCard({ group, size = 'M', className }: { group: EntityGroup
   const { call } = useHAService()
   const { medium } = useHaptic()
   const { feedbackClass, actionFailed } = useActionFeedback()
+  const [detailsOpen, setDetailsOpen] = useState(false)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const busyRef = useRef(false)
@@ -101,29 +103,30 @@ export function GroupCard({ group, size = 'M', className }: { group: EntityGroup
       : capability.offLabel ?? capability.onLabel
     : ''
   const expanded = groupShowsMemberDetails(size)
-  const lightPowerCard = presentationType === 'light' && capability?.kind === 'switch'
+  const compact = size === 'XS' || size === 'S'
+  const lightPowerCard = !compact && presentationType === 'light' && capability?.kind === 'switch'
+  const openDetails = () => setDetailsOpen(true)
 
   return (
+    <>
     <GlassCard
       depth
-      interactive={lightPowerCard}
-      role={lightPowerCard ? 'button' : undefined}
-      tabIndex={lightPowerCard ? 0 : undefined}
-      aria-label={lightPowerCard ? `${anyActive ? 'Spegni' : 'Accendi'} ${group.label}` : undefined}
+      interactive={lightPowerCard || compact}
+      role={lightPowerCard || compact ? 'button' : undefined}
+      tabIndex={lightPowerCard || compact ? 0 : undefined}
+      aria-label={compact ? `Dettagli del gruppo ${group.label}` : lightPowerCard ? `${anyActive ? 'Spegni' : 'Accendi'} ${group.label}` : undefined}
       aria-pressed={lightPowerCard ? anyActive : undefined}
-      onClick={lightPowerCard ? run : undefined}
-      onKeyDown={lightPowerCard ? (event) => {
-        if (event.key !== 'Enter' && event.key !== ' ') return
+      onClick={compact ? openDetails : lightPowerCard ? run : undefined}
+      onKeyDown={lightPowerCard || compact ? (event) => {
+        if (event.target !== event.currentTarget || (event.key !== 'Enter' && event.key !== ' ')) return
         event.preventDefault()
-        run()
+        if (compact) openDetails()
+        else run()
       } : undefined}
       data-widget-type={lightPowerCard ? 'light' : undefined}
       data-widget-status={lightPowerCard ? (anyActive ? 'on' : 'off') : undefined}
-      className={cn('flex h-full min-h-[104px] flex-col justify-between gap-3', feedbackClass, lightPowerCard && 'widget-card-light-power', className)}
+      className={cn('group-card flex h-full min-h-[90px] flex-col justify-between gap-2', (size === 'XS' || size === 'M' || size === 'XL') && 'group-card-horizontal', size === 'XS' && 'group-card-mini', feedbackClass, lightPowerCard && 'widget-card-light-power', className)}
       aria-busy={pending}
-      style={anyActive && !lightPowerCard ? {
-        background: `linear-gradient(145deg, ${activeTone.bg}, color-mix(in srgb, var(--surface-solid) 72%, transparent) 70%)`,
-      } : undefined}
     >
       <div className="flex items-start justify-between gap-3">
         <div
@@ -137,9 +140,9 @@ export function GroupCard({ group, size = 'M', className }: { group: EntityGroup
         </div>
 
         {lightPowerCard && (
-          <WidgetCardPowerState active={anyActive} pending={pending} compact={size === 'XS'} />
+          <WidgetCardPowerState active={anyActive} pending={pending} compact={false} />
         )}
-        {capability?.kind === 'switch' && !capability.holdToActivate && !lightPowerCard && (
+        {!compact && capability?.kind === 'switch' && !capability.holdToActivate && !lightPowerCard && (
           <button
             type="button"
             role="switch"
@@ -152,7 +155,7 @@ export function GroupCard({ group, size = 'M', className }: { group: EntityGroup
             <span className="lg-toggle-knob" aria-hidden="true" />
           </button>
         )}
-        {capability?.kind === 'switch' && capability.holdToActivate && (
+        {!compact && capability?.kind === 'switch' && capability.holdToActivate && (
           <HoldDangerAction
             active={anyActive}
             disabled={pending || availableMembers.length === 0}
@@ -161,12 +164,12 @@ export function GroupCard({ group, size = 'M', className }: { group: EntityGroup
             label={group.label}
           />
         )}
-        {(capability?.kind === 'action' || capability?.kind === 'activate') && (
+        {!compact && (capability?.kind === 'action' || capability?.kind === 'activate') && (
           <button
             type="button"
             onClick={run}
             disabled={pending || availableMembers.length === 0}
-            className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-full bg-[#0066cc] px-4 text-sm font-semibold text-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-full bg-[var(--action-fill)] px-4 text-sm font-semibold text-[var(--on-accent)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
             aria-label={`${actionLabel} ${group.label}`}
           >
             {pending
@@ -176,15 +179,17 @@ export function GroupCard({ group, size = 'M', className }: { group: EntityGroup
                 : anyActive
                   ? domain === 'cover' || domain === 'valve' ? <ChevronDown size={14} aria-hidden="true" /> : <Home size={14} aria-hidden="true" />
                   : domain === 'cover' || domain === 'valve' ? <ChevronUp size={14} aria-hidden="true" /> : <Play size={14} aria-hidden="true" />}
-            {size !== 'S' && (pending ? 'Attendi…' : actionLabel)}
+            <span className={size === 'M' || size === 'XL' ? 'sr-only' : undefined}>{pending ? 'Attendi…' : actionLabel}</span>
           </button>
         )}
+        {!compact && <button type="button" aria-label={`Dettagli del gruppo ${group.label}`} onClick={(event) => { event.stopPropagation(); openDetails() }} className="pointer-events-auto flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--widget-control)] text-[var(--ink-secondary)]"><ChevronDown size={18} aria-hidden="true" /></button>}
+        {compact && <ChevronDown size={18} className="text-[var(--ink-secondary)]" aria-hidden="true" />}
       </div>
 
       <div className="mt-auto min-w-0">
-        <p className="truncate text-[15px] font-semibold leading-snug text-[#1d1d1f]">{group.label}</p>
+        <p className="truncate text-[15px] font-semibold leading-snug text-[var(--ink)]">{group.label}</p>
         <p
-          className={cn('mt-0.5 flex items-center gap-1.5 text-[13px]', error ? 'text-red-700' : 'text-black/50')}
+          className={cn('mt-0.5 flex items-center gap-1.5 text-[13px]', error ? 'text-red-700' : 'text-[var(--ink-secondary)]')}
           role={error ? 'alert' : 'status'}
         >
           {anyActive && capability?.kind !== 'activate' && !error && <span aria-hidden="true"><LiveDot color={activeTone.color} size={7} /></span>}
@@ -192,19 +197,32 @@ export function GroupCard({ group, size = 'M', className }: { group: EntityGroup
         </p>
       </div>
       {expanded && members.length > 0 && (
-        <div className={cn('min-h-0 overflow-hidden', size === 'XL' ? 'grid grid-cols-2 gap-1.5' : 'space-y-1.5')}>
-          {members.slice(0, size === 'XL' ? 6 : 5).map(({ id, entity }) => {
+        <div className={cn('min-h-0 overflow-y-auto', 'space-y-1.5')}>
+          {members.map(({ id, entity }) => {
             const memberActive = groupMemberActive(entityDomain(id), entity.state)
             return (
-              <div key={id} className="flex min-w-0 items-center gap-2 rounded-[10px] bg-black/[0.035] px-2.5 py-2 text-xs dark:bg-white/[0.055]">
-                <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: memberActive ? activeTone.color : 'rgba(0,0,0,0.18)' }} />
-                <span className="min-w-0 flex-1 truncate font-semibold text-black/65 dark:text-white/68">{String(entity.attributes?.friendly_name ?? id.split('.')[1])}</span>
-                <span className="shrink-0 text-black/35 dark:text-white/42">{groupMemberStateLabel(entityDomain(id), entity.state)}</span>
+              <div key={id} className="flex min-w-0 items-center gap-2 rounded-[10px] bg-[var(--fill-subtle)] px-2.5 py-2 text-xs ">
+                <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: memberActive ? activeTone.color : 'var(--ink-tertiary)' }} />
+                <span className="min-w-0 flex-1 truncate font-semibold text-[var(--ink-secondary)]">{String(entity.attributes?.friendly_name ?? id.split('.')[1])}</span>
+                <span className="shrink-0 text-[var(--ink-tertiary)]">{groupMemberStateLabel(entityDomain(id), entity.state)}</span>
               </div>
             )
           })}
         </div>
       )}
     </GlassCard>
+    <GlassSheet open={detailsOpen} onClose={() => setDetailsOpen(false)} side="center" title={group.label} ariaLabel={`Dettagli del gruppo ${group.label}`}>
+      <div className="space-y-3">
+        <p className="text-[13px] text-[var(--ink-secondary)]">{status}</p>
+        {capability && availableMembers.length > 0 && (capability.holdToActivate ? <HoldDangerAction active={anyActive} disabled={pending} onActivate={run} onDeactivate={run} label={group.label} /> : <button type="button" disabled={pending} onClick={run} className="min-h-11 rounded-full bg-[var(--action-fill)] px-4 text-[13px] font-semibold text-[var(--on-accent)] disabled:opacity-50">{pending ? 'Invio comando…' : actionLabel}</button>)}
+        <ul className="space-y-2">
+          {group.entityIds.map((id) => <li key={id} className="flex min-h-11 items-center justify-between gap-3 rounded-[12px] bg-[var(--fill-subtle)] px-3 py-2 text-[13px]">
+            <span className="min-w-0 break-words font-semibold text-[var(--ink)]">{String(entities[id]?.attributes?.friendly_name ?? id.split('.')[1]?.replace(/_/g, ' ') ?? id)}</span>
+            <span className="shrink-0 text-[var(--ink-secondary)]">{groupMemberStateLabel(entityDomain(id), entities[id]?.state ?? 'unavailable')}</span>
+          </li>)}
+        </ul>
+      </div>
+    </GlassSheet>
+    </>
   )
 }

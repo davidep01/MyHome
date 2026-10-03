@@ -1,0 +1,4104 @@
+[
+  {
+    "fixture": "light.lamp",
+    "theme": "light",
+    "cards": [
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 90,
+            "label": "Spegni Lampada soggiorno vicino alla finestra",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 90,
+        "size": "XS",
+        "text": "Lampada soggiorno vicino alla finestraAccesa · 71%",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Spegni Lampada soggiorno vicino alla finestra",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 142,
+        "size": "S",
+        "text": "AccesaLampada soggiorno vicino alla finestraAccesa · 71%",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Spegni Lampada soggiorno vicino alla finestra",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 822
+          },
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 29.75,
+            "label": "Regola Lampada soggiorno vicino alla finestra",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 792.25
+          }
+        ],
+        "height": 142,
+        "size": "M",
+        "text": "AccesaLampada soggiorno vicino alla finestraAccesa · 71%",
+        "width": 822
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 298,
+            "label": "Spegni Lampada soggiorno vicino alla finestra",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          },
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 29.75,
+            "label": "Regola Lampada soggiorno vicino alla finestra",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1206
+          }
+        ],
+        "height": 298,
+        "size": "L",
+        "text": "AccesaLampada soggiorno vicino alla finestraAccesa · 71%",
+        "width": 1240
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Spegni Lampada soggiorno vicino alla finestra",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          },
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 29.75,
+            "label": "Regola Lampada soggiorno vicino alla finestra",
+            "outside": true,
+            "touch": "manipulation",
+            "width": 1206
+          }
+        ],
+        "height": 142,
+        "size": "XL",
+        "text": "AccesaLampada soggiorno vicino alla finestraAccesa · 71%",
+        "width": 1240
+      }
+    ]
+  },
+  {
+    "fixture": "switch.plug",
+    "theme": "light",
+    "cards": [
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 90,
+            "label": "Apri dettagli di Presa lavatrice",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          },
+          {
+            "background": "rgb(180, 83, 9)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 34,
+            "label": "Accendi o spegni Presa lavatrice",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 52
+          }
+        ],
+        "height": 90,
+        "size": "XS",
+        "text": "Presa lavatriceAcceso · 980 W",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Presa lavatrice",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          },
+          {
+            "background": "rgb(180, 83, 9)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 34,
+            "label": "Accendi o spegni Presa lavatrice",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 52
+          }
+        ],
+        "height": 142,
+        "size": "S",
+        "text": "Presa lavatriceAcceso · 980 W",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Presa lavatrice",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 822
+          },
+          {
+            "background": "rgb(180, 83, 9)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 34,
+            "label": "Accendi o spegni Presa lavatrice",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 52
+          }
+        ],
+        "height": 142,
+        "size": "M",
+        "text": "Presa lavatriceAcceso · 980 W",
+        "width": 822
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 298,
+            "label": "Apri dettagli di Presa lavatrice",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          },
+          {
+            "background": "rgb(180, 83, 9)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 34,
+            "label": "Accendi o spegni Presa lavatrice",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 52
+          }
+        ],
+        "height": 298,
+        "size": "L",
+        "text": "Presa lavatriceAcceso · 980 W",
+        "width": 1240
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Presa lavatrice",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          },
+          {
+            "background": "rgb(180, 83, 9)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 34,
+            "label": "Accendi o spegni Presa lavatrice",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 52
+          }
+        ],
+        "height": 142,
+        "size": "XL",
+        "text": "Presa lavatriceAcceso · 980 W",
+        "width": 1240
+      }
+    ]
+  },
+  {
+    "fixture": "fan.vent",
+    "theme": "light",
+    "cards": [
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 90,
+            "label": "Apri dettagli di Ventilatore soggiorno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          },
+          {
+            "background": "rgb(179, 83, 10)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 34,
+            "label": "Accendi o spegni Ventilatore soggiorno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 52
+          }
+        ],
+        "height": 90,
+        "size": "XS",
+        "text": "Ventilatore soggiornoAcceso · 65%",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Ventilatore soggiorno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          },
+          {
+            "background": "rgb(179, 83, 10)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 34,
+            "label": "Accendi o spegni Ventilatore soggiorno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 52
+          }
+        ],
+        "height": 142,
+        "size": "S",
+        "text": "Ventilatore soggiornoAcceso · 65%",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Ventilatore soggiorno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 822
+          },
+          {
+            "background": "rgb(179, 83, 10)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 34,
+            "label": "Accendi o spegni Ventilatore soggiorno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 52
+          },
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 29.75,
+            "label": "Regola Ventilatore soggiorno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 792.25
+          }
+        ],
+        "height": 142,
+        "size": "M",
+        "text": "Ventilatore soggiornoAcceso · 65%",
+        "width": 822
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 298,
+            "label": "Apri dettagli di Ventilatore soggiorno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          },
+          {
+            "background": "rgb(179, 83, 10)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 34,
+            "label": "Accendi o spegni Ventilatore soggiorno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 52
+          },
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 29.75,
+            "label": "Regola Ventilatore soggiorno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1206
+          }
+        ],
+        "height": 298,
+        "size": "L",
+        "text": "Ventilatore soggiornoAcceso · 65%",
+        "width": 1240
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Ventilatore soggiorno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          },
+          {
+            "background": "rgb(179, 83, 10)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 34,
+            "label": "Accendi o spegni Ventilatore soggiorno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 52
+          },
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 29.75,
+            "label": "Regola Ventilatore soggiorno",
+            "outside": true,
+            "touch": "manipulation",
+            "width": 1206
+          }
+        ],
+        "height": 142,
+        "size": "XL",
+        "text": "Ventilatore soggiornoAcceso · 65%",
+        "width": 1240
+      }
+    ]
+  },
+  {
+    "fixture": "climate.room",
+    "theme": "light",
+    "cards": [
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 90,
+            "label": "Apri dettagli di Climatizzatore soggiorno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          },
+          {
+            "background": "color(srgb 0.760784 0.254902 0.0470588 / 0.16)",
+            "color": "rgb(194, 65, 12)",
+            "font": "17px",
+            "height": 34,
+            "label": "Spegni Climatizzatore soggiorno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 34
+          }
+        ],
+        "height": 90,
+        "size": "XS",
+        "text": "Climatizzatore soggiornoRiscalda · CALDO19,8°CSET 22,0°C",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Climatizzatore soggiorno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          },
+          {
+            "background": "color(srgb 0.760784 0.254902 0.0470588 / 0.16)",
+            "color": "rgb(194, 65, 12)",
+            "font": "17px",
+            "height": 34,
+            "label": "Spegni Climatizzatore soggiorno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 34
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Diminuisci temperatura",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Aumenta temperatura",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          }
+        ],
+        "height": 142,
+        "size": "S",
+        "text": "Climatizzatore soggiornoRiscalda · CALDOStanza19,8°CSet22,0°C",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Climatizzatore soggiorno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 822
+          },
+          {
+            "background": "color(srgb 0.760784 0.254902 0.0470588 / 0.16)",
+            "color": "rgb(194, 65, 12)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Spegni Climatizzatore soggiorno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 55.5390625
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Diminuisci temperatura",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Aumenta temperatura",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          }
+        ],
+        "height": 142,
+        "size": "M",
+        "text": "Climatizzatore soggiornoRiscalda · CALDOONTemperatura stanza19,8°CVentola Auto · Swing vertical · Umidità 48%Set22,0°C",
+        "width": 822
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 298,
+            "label": "Apri dettagli di Climatizzatore soggiorno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          },
+          {
+            "background": "color(srgb 0.760784 0.254902 0.0470588 / 0.16)",
+            "color": "rgb(194, 65, 12)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Spegni Climatizzatore soggiorno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 55.5390625
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Diminuisci temperatura",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Aumenta temperatura",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          },
+          {
+            "background": "rgb(194, 65, 12)",
+            "color": "rgb(255, 255, 255)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Modalità CALDO",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 297.640625
+          },
+          {
+            "background": "oklab(0 0 0 / 0.055)",
+            "color": "oklab(0 0 0 / 0.5)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Modalità AUTO",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 297.640625
+          },
+          {
+            "background": "oklab(0 0 0 / 0.055)",
+            "color": "oklab(0 0 0 / 0.5)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Modalità FREDDO",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 297.640625
+          },
+          {
+            "background": "oklab(0 0 0 / 0.055)",
+            "color": "oklab(0 0 0 / 0.5)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Modalità DRY",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 297.640625
+          },
+          {
+            "background": "oklab(0 0 0 / 0.055)",
+            "color": "oklab(0 0 0 / 0.5)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Modalità VENTOLA",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 297.640625
+          },
+          {
+            "background": "oklab(0 0 0 / 0.05)",
+            "color": "oklab(0 0 0 / 0.45)",
+            "font": "17px",
+            "height": 29.75,
+            "label": "Ventola Auto; tocca per cambiare",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 124.453125
+          }
+        ],
+        "height": 298,
+        "size": "L",
+        "text": "Climatizzatore soggiornoRiscalda · CALDOONTemperatura stanza19,8°C Umidità 48%Set22,0°CModalitàCALDOAUTOFREDDODRYVENTOLAVentola AutoSwing verticalcomfort",
+        "width": 1240
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Climatizzatore soggiorno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          },
+          {
+            "background": "color(srgb 0.760784 0.254902 0.0470588 / 0.16)",
+            "color": "rgb(194, 65, 12)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Spegni Climatizzatore soggiorno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 55.5390625
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Diminuisci temperatura",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Aumenta temperatura",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          },
+          {
+            "background": "rgb(194, 65, 12)",
+            "color": "rgb(255, 255, 255)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Modalità CALDO",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 267.9609375
+          },
+          {
+            "background": "oklab(0 0 0 / 0.055)",
+            "color": "oklab(0 0 0 / 0.5)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Modalità AUTO",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 267.9609375
+          },
+          {
+            "background": "oklab(0 0 0 / 0.055)",
+            "color": "oklab(0 0 0 / 0.5)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Modalità FREDDO",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 267.9609375
+          },
+          {
+            "background": "oklab(0 0 0 / 0.055)",
+            "color": "oklab(0 0 0 / 0.5)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Modalità DRY",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 267.9609375
+          },
+          {
+            "background": "oklab(0 0 0 / 0.05)",
+            "color": "oklab(0 0 0 / 0.45)",
+            "font": "17px",
+            "height": 29.75,
+            "label": "Ventola Auto; tocca per cambiare",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 66.0859375
+          }
+        ],
+        "height": 142,
+        "size": "XL",
+        "text": "Climatizzatore soggiornoRiscalda · CALDOONStanza19,8°CVentola Auto · Swing vertical · Umidità 48%Set22,0°CCALDOAUTOFREDDODRYAutoSwing verticalcomfort",
+        "width": 1240
+      }
+    ]
+  },
+  {
+    "fixture": "climate.missing",
+    "theme": "light",
+    "cards": [
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 90,
+            "label": "Apri dettagli di Clima con temperatura assente",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          },
+          {
+            "background": "color(srgb 0.760784 0.254902 0.0470588 / 0.16)",
+            "color": "rgb(194, 65, 12)",
+            "font": "17px",
+            "height": 34,
+            "label": "Spegni Clima con temperatura assente",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 34
+          }
+        ],
+        "height": 90,
+        "size": "XS",
+        "text": "Clima con temperatura assenteIn pausa · CALDO0,0°CSET 0,0°C",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Clima con temperatura assente",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          },
+          {
+            "background": "color(srgb 0.760784 0.254902 0.0470588 / 0.16)",
+            "color": "rgb(194, 65, 12)",
+            "font": "17px",
+            "height": 34,
+            "label": "Spegni Clima con temperatura assente",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 34
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Diminuisci temperatura",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Aumenta temperatura",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          }
+        ],
+        "height": 142,
+        "size": "S",
+        "text": "Clima con temperatura assenteIn pausa · CALDOStanza0,0°CSet0,0°C",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Clima con temperatura assente",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 822
+          },
+          {
+            "background": "color(srgb 0.760784 0.254902 0.0470588 / 0.16)",
+            "color": "rgb(194, 65, 12)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Spegni Clima con temperatura assente",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 55.5390625
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Diminuisci temperatura",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Aumenta temperatura",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          }
+        ],
+        "height": 142,
+        "size": "M",
+        "text": "Clima con temperatura assenteIn pausa · CALDOONTemperatura stanza0,0°CUmidità 0%Set0,0°C",
+        "width": 822
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 298,
+            "label": "Apri dettagli di Clima con temperatura assente",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          },
+          {
+            "background": "color(srgb 0.760784 0.254902 0.0470588 / 0.16)",
+            "color": "rgb(194, 65, 12)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Spegni Clima con temperatura assente",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 55.5390625
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Diminuisci temperatura",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Aumenta temperatura",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          },
+          {
+            "background": "rgb(194, 65, 12)",
+            "color": "rgb(255, 255, 255)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Modalità CALDO",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 601.65625
+          }
+        ],
+        "height": 298,
+        "size": "L",
+        "text": "Clima con temperatura assenteIn pausa · CALDOONTemperatura stanza0,0°C Umidità 0%Set0,0°CModalitàCALDO",
+        "width": 1240
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Clima con temperatura assente",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          },
+          {
+            "background": "color(srgb 0.760784 0.254902 0.0470588 / 0.16)",
+            "color": "rgb(194, 65, 12)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Spegni Clima con temperatura assente",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 55.5390625
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Diminuisci temperatura",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Aumenta temperatura",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          },
+          {
+            "background": "rgb(194, 65, 12)",
+            "color": "rgb(255, 255, 255)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Modalità CALDO",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 267.9609375
+          }
+        ],
+        "height": 142,
+        "size": "XL",
+        "text": "Clima con temperatura assenteIn pausa · CALDOONStanza0,0°CUmidità 0%Set0,0°CCALDO",
+        "width": 1240
+      }
+    ]
+  },
+  {
+    "fixture": "cover.window",
+    "theme": "light",
+    "cards": [
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 90,
+            "label": "Apri dettagli di Tapparella grande soggiorno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 90,
+        "size": "XS",
+        "text": "Tapparella grande soggiornoIn apertura…",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Tapparella grande soggiorno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 142,
+        "size": "S",
+        "text": "Tapparella grande soggiornoIn apertura…",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Tapparella grande soggiorno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 822
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Apri",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Ferma",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          }
+        ],
+        "height": 142,
+        "size": "M",
+        "text": "Tapparella grande soggiornoIn apertura…",
+        "width": 822
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 298,
+            "label": "Apri dettagli di Tapparella grande soggiorno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Apri",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Ferma",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          }
+        ],
+        "height": 298,
+        "size": "L",
+        "text": "Tapparella grande soggiornoIn apertura…",
+        "width": 1240
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Tapparella grande soggiorno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Apri",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Ferma",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          }
+        ],
+        "height": 142,
+        "size": "XL",
+        "text": "Tapparella grande soggiornoIn apertura…",
+        "width": 1240
+      }
+    ]
+  },
+  {
+    "fixture": "lock.door",
+    "theme": "light",
+    "cards": [
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 90,
+            "label": "Apri dettagli di Porta principale",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 90,
+        "size": "XS",
+        "text": "Porta principaleBloccata",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Porta principale",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 142,
+        "size": "S",
+        "text": "Porta principaleBloccata",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Porta principale",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 822
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Tieni premuto per sbloccare",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          }
+        ],
+        "height": 142,
+        "size": "M",
+        "text": "Porta principaleBloccata",
+        "width": 822
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 298,
+            "label": "Apri dettagli di Porta principale",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Tieni premuto per sbloccare",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          }
+        ],
+        "height": 298,
+        "size": "L",
+        "text": "Porta principaleBloccata",
+        "width": 1240
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Porta principale",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Tieni premuto per sbloccare",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          }
+        ],
+        "height": 142,
+        "size": "XL",
+        "text": "Porta principaleBloccata",
+        "width": 1240
+      }
+    ]
+  },
+  {
+    "fixture": "media_player.speaker",
+    "theme": "light",
+    "cards": [
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 90,
+            "label": "Apri dettagli di Diffusore soggiorno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 90,
+        "size": "XS",
+        "text": "MusicaLiveIn riproduzioneTitolo del brano molto lungo da visualizzare",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Diffusore soggiorno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 142,
+        "size": "S",
+        "text": "MusicaLiveMusicaIn riproduzioneTitolo del brano molto lungo da visualizzareArtista · Album",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Diffusore soggiorno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 822
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Pausa",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          }
+        ],
+        "height": 142,
+        "size": "M",
+        "text": "MusicaLiveMusicaIn riproduzioneTitolo del brano molto lungo da visualizzareArtista · Album4:004:00",
+        "width": 822
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 298,
+            "label": "Apri dettagli di Diffusore soggiorno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Pausa",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          }
+        ],
+        "height": 298,
+        "size": "L",
+        "text": "MusicaLiveMusicaIn riproduzioneDiffusore soggiornoTitolo del brano molto lungo da visualizzareArtista · Album4:004:00",
+        "width": 1240
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Diffusore soggiorno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Pausa",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          }
+        ],
+        "height": 142,
+        "size": "XL",
+        "text": "MusicaLiveMusicaIn riproduzioneDiffusore soggiornoTitolo del brano molto lungo da visualizzareArtista · Album4:004:00",
+        "width": 1240
+      }
+    ]
+  },
+  {
+    "fixture": "vacuum.robot",
+    "theme": "light",
+    "cards": [
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 90,
+            "label": "Apri dettagli di Robot aspirapolvere",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 90,
+        "size": "XS",
+        "text": "Robot aspirapolverePulizia in corso · 72%",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Robot aspirapolvere",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 142,
+        "size": "S",
+        "text": "Robot aspirapolverePulizia in corso · 72%",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Robot aspirapolvere",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 822
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Rientra alla base",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          }
+        ],
+        "height": 142,
+        "size": "M",
+        "text": "Robot aspirapolverePulizia in corso · 72%",
+        "width": 822
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 298,
+            "label": "Apri dettagli di Robot aspirapolvere",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Rientra alla base",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          }
+        ],
+        "height": 298,
+        "size": "L",
+        "text": "Robot aspirapolverePulizia in corso · 72%",
+        "width": 1240
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Robot aspirapolvere",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Rientra alla base",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          }
+        ],
+        "height": 142,
+        "size": "XL",
+        "text": "Robot aspirapolverePulizia in corso · 72%",
+        "width": 1240
+      }
+    ]
+  },
+  {
+    "fixture": "lawn_mower.robot",
+    "theme": "light",
+    "cards": [
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 90,
+            "label": "Apri dettagli di Robot giardino",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 90,
+        "size": "XS",
+        "text": "Robot giardinoTaglio in corso · 38%",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Robot giardino",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 142,
+        "size": "S",
+        "text": "Robot giardinoTaglio in corso · 38%",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Robot giardino",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 822
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Rientra alla base",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          }
+        ],
+        "height": 142,
+        "size": "M",
+        "text": "Robot giardinoTaglio in corso · 38%",
+        "width": 822
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 298,
+            "label": "Apri dettagli di Robot giardino",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Rientra alla base",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          }
+        ],
+        "height": 298,
+        "size": "L",
+        "text": "Robot giardinoTaglio in corso · 38%",
+        "width": 1240
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Robot giardino",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Rientra alla base",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          }
+        ],
+        "height": 142,
+        "size": "XL",
+        "text": "Robot giardinoTaglio in corso · 38%",
+        "width": 1240
+      }
+    ]
+  },
+  {
+    "fixture": "humidifier.room",
+    "theme": "light",
+    "cards": [
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 90,
+            "label": "Apri dettagli di Umidificatore camera",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          },
+          {
+            "background": "rgb(8, 145, 178)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 34,
+            "label": "Accendi o spegni Umidificatore camera",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 52
+          }
+        ],
+        "height": 90,
+        "size": "XS",
+        "text": "Umidificatore cameraAcceso · target 55%",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Umidificatore camera",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          },
+          {
+            "background": "rgb(8, 145, 178)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 34,
+            "label": "Accendi o spegni Umidificatore camera",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 52
+          }
+        ],
+        "height": 142,
+        "size": "S",
+        "text": "Umidificatore cameraAcceso · target 55%",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Umidificatore camera",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 822
+          },
+          {
+            "background": "rgb(8, 145, 178)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 34,
+            "label": "Accendi o spegni Umidificatore camera",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 52
+          },
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 29.75,
+            "label": "Regola Umidificatore camera",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 792.25
+          }
+        ],
+        "height": 142,
+        "size": "M",
+        "text": "Umidificatore cameraAcceso · target 55%",
+        "width": 822
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 298,
+            "label": "Apri dettagli di Umidificatore camera",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          },
+          {
+            "background": "rgb(8, 145, 178)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 34,
+            "label": "Accendi o spegni Umidificatore camera",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 52
+          },
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 29.75,
+            "label": "Regola Umidificatore camera",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1206
+          }
+        ],
+        "height": 298,
+        "size": "L",
+        "text": "Umidificatore cameraAcceso · target 55%",
+        "width": 1240
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Umidificatore camera",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          },
+          {
+            "background": "rgb(8, 145, 178)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 34,
+            "label": "Accendi o spegni Umidificatore camera",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 52
+          },
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 29.75,
+            "label": "Regola Umidificatore camera",
+            "outside": true,
+            "touch": "manipulation",
+            "width": 1206
+          }
+        ],
+        "height": 142,
+        "size": "XL",
+        "text": "Umidificatore cameraAcceso · target 55%",
+        "width": 1240
+      }
+    ]
+  },
+  {
+    "fixture": "sensor.temp",
+    "theme": "light",
+    "cards": [
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 90,
+            "label": "Apri dettagli di Temperatura soggiorno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 90,
+        "size": "XS",
+        "text": "Temperatura soggiorno22,5°",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Temperatura soggiorno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 142,
+        "size": "S",
+        "text": "22,5°Temperatura soggiorno",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Temperatura soggiorno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 822
+          }
+        ],
+        "height": 142,
+        "size": "M",
+        "text": "22,5°Temperatura soggiorno",
+        "width": 822
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 298,
+            "label": "Apri dettagli di Temperatura soggiorno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          }
+        ],
+        "height": 298,
+        "size": "L",
+        "text": "22,5°Temperatura soggiorno",
+        "width": 1240
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Temperatura soggiorno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          }
+        ],
+        "height": 142,
+        "size": "XL",
+        "text": "22,5°Temperatura soggiorno",
+        "width": 1240
+      }
+    ]
+  },
+  {
+    "fixture": "sensor.fahrenheit",
+    "theme": "light",
+    "cards": [
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 90,
+            "label": "Apri dettagli di Temperatura esterna Fahrenheit",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 90,
+        "size": "XS",
+        "text": "Temperatura esterna Fahrenheit72°F",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Temperatura esterna Fahrenheit",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 142,
+        "size": "S",
+        "text": "72°FTemperatura esterna Fahrenheit",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Temperatura esterna Fahrenheit",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 822
+          }
+        ],
+        "height": 142,
+        "size": "M",
+        "text": "72°FTemperatura esterna Fahrenheit",
+        "width": 822
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 298,
+            "label": "Apri dettagli di Temperatura esterna Fahrenheit",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          }
+        ],
+        "height": 298,
+        "size": "L",
+        "text": "72°FTemperatura esterna Fahrenheit",
+        "width": 1240
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Temperatura esterna Fahrenheit",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          }
+        ],
+        "height": 142,
+        "size": "XL",
+        "text": "72°FTemperatura esterna Fahrenheit",
+        "width": 1240
+      }
+    ]
+  },
+  {
+    "fixture": "sensor.pm25",
+    "theme": "light",
+    "cards": [
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 90,
+            "label": "Apri dettagli di Polveri PM2.5",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 90,
+        "size": "XS",
+        "text": "Polveri PM2.5150µg/m³",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Polveri PM2.5",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 142,
+        "size": "S",
+        "text": "150µg/m³Polveri PM2.5",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Polveri PM2.5",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 822
+          }
+        ],
+        "height": 142,
+        "size": "M",
+        "text": "150µg/m³Polveri PM2.5",
+        "width": 822
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 298,
+            "label": "Apri dettagli di Polveri PM2.5",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          }
+        ],
+        "height": 298,
+        "size": "L",
+        "text": "150µg/m³Polveri PM2.5",
+        "width": 1240
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Polveri PM2.5",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          }
+        ],
+        "height": 142,
+        "size": "XL",
+        "text": "150µg/m³Polveri PM2.5",
+        "width": 1240
+      }
+    ]
+  },
+  {
+    "fixture": "sensor.battery",
+    "theme": "light",
+    "cards": [
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 90,
+            "label": "Apri dettagli di Batteria sensore ingresso",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 90,
+        "size": "XS",
+        "text": "Batteria sensore ingresso12%",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Batteria sensore ingresso",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 142,
+        "size": "S",
+        "text": "12%Batteria sensore ingresso",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Batteria sensore ingresso",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 822
+          }
+        ],
+        "height": 142,
+        "size": "M",
+        "text": "12%Batteria sensore ingresso",
+        "width": 822
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 298,
+            "label": "Apri dettagli di Batteria sensore ingresso",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          }
+        ],
+        "height": 298,
+        "size": "L",
+        "text": "12%Batteria sensore ingresso",
+        "width": 1240
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Batteria sensore ingresso",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          }
+        ],
+        "height": 142,
+        "size": "XL",
+        "text": "12%Batteria sensore ingresso",
+        "width": 1240
+      }
+    ]
+  },
+  {
+    "fixture": "sensor.power",
+    "theme": "light",
+    "cards": [
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 90,
+            "label": "Apri dettagli di Consumo elettrico casa",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 90,
+        "size": "XS",
+        "text": "Consumo elettrico casa2870W",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Consumo elettrico casa",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 142,
+        "size": "S",
+        "text": "2870WConsumo elettrico casa",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Consumo elettrico casa",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 822
+          }
+        ],
+        "height": 142,
+        "size": "M",
+        "text": "2870WConsumo elettrico casa",
+        "width": 822
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 298,
+            "label": "Apri dettagli di Consumo elettrico casa",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          }
+        ],
+        "height": 298,
+        "size": "L",
+        "text": "2870WConsumo elettrico casa",
+        "width": 1240
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Consumo elettrico casa",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          }
+        ],
+        "height": 142,
+        "size": "XL",
+        "text": "2870WConsumo elettrico casa",
+        "width": 1240
+      }
+    ]
+  },
+  {
+    "fixture": "alarm_control_panel.home",
+    "theme": "light",
+    "cards": [
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 90,
+            "label": "Apri dettagli di Allarme casa",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 90,
+        "size": "XS",
+        "text": "Allarme casaAllarme!",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Allarme casa",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 142,
+        "size": "S",
+        "text": "Allarme casaAllarme!",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Allarme casa",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 822
+          }
+        ],
+        "height": 142,
+        "size": "M",
+        "text": "Allarme casaAllarme!",
+        "width": 822
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 298,
+            "label": "Apri dettagli di Allarme casa",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          }
+        ],
+        "height": 298,
+        "size": "L",
+        "text": "Allarme casaAllarme!",
+        "width": 1240
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Allarme casa",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          }
+        ],
+        "height": 142,
+        "size": "XL",
+        "text": "Allarme casaAllarme!",
+        "width": 1240
+      }
+    ]
+  },
+  {
+    "fixture": "binary_sensor.smoke",
+    "theme": "light",
+    "cards": [
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 90,
+            "label": "Apri dettagli di Fumo cucina",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 90,
+        "size": "XS",
+        "text": "Fumo cucinaAllarme!",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Fumo cucina",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 142,
+        "size": "S",
+        "text": "Fumo cucinaAllarme!",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Fumo cucina",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 822
+          }
+        ],
+        "height": 142,
+        "size": "M",
+        "text": "Fumo cucinaAllarme!",
+        "width": 822
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 298,
+            "label": "Apri dettagli di Fumo cucina",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          }
+        ],
+        "height": 298,
+        "size": "L",
+        "text": "Fumo cucinaAllarme!",
+        "width": 1240
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Fumo cucina",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          }
+        ],
+        "height": 142,
+        "size": "XL",
+        "text": "Fumo cucinaAllarme!",
+        "width": 1240
+      }
+    ]
+  },
+  {
+    "fixture": "binary_sensor.leak",
+    "theme": "light",
+    "cards": [
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 90,
+            "label": "Apri dettagli di Perdita acqua cucina",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 90,
+        "size": "XS",
+        "text": "Perdita acqua cucinaAllarme!",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Perdita acqua cucina",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 142,
+        "size": "S",
+        "text": "Perdita acqua cucinaAllarme!",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Perdita acqua cucina",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 822
+          }
+        ],
+        "height": 142,
+        "size": "M",
+        "text": "Perdita acqua cucinaAllarme!",
+        "width": 822
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 298,
+            "label": "Apri dettagli di Perdita acqua cucina",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          }
+        ],
+        "height": 298,
+        "size": "L",
+        "text": "Perdita acqua cucinaAllarme!",
+        "width": 1240
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Perdita acqua cucina",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          }
+        ],
+        "height": 142,
+        "size": "XL",
+        "text": "Perdita acqua cucinaAllarme!",
+        "width": 1240
+      }
+    ]
+  },
+  {
+    "fixture": "binary_sensor.door",
+    "theme": "light",
+    "cards": [
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 90,
+            "label": "Apri dettagli di Finestra camera",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 90,
+        "size": "XS",
+        "text": "Finestra cameraAperta",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Finestra camera",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 142,
+        "size": "S",
+        "text": "Finestra cameraAperta",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Finestra camera",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 822
+          }
+        ],
+        "height": 142,
+        "size": "M",
+        "text": "Finestra cameraAperta",
+        "width": 822
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 298,
+            "label": "Apri dettagli di Finestra camera",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          }
+        ],
+        "height": 298,
+        "size": "L",
+        "text": "Finestra cameraAperta",
+        "width": 1240
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Finestra camera",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          }
+        ],
+        "height": 142,
+        "size": "XL",
+        "text": "Finestra cameraAperta",
+        "width": 1240
+      }
+    ]
+  },
+  {
+    "fixture": "binary_sensor.motion",
+    "theme": "light",
+    "cards": [
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 90,
+            "label": "Apri dettagli di Movimento corridoio",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 90,
+        "size": "XS",
+        "text": "Movimento corridoioMovimento rilevato",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Movimento corridoio",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 142,
+        "size": "S",
+        "text": "Movimento corridoioMovimento rilevato",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Movimento corridoio",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 822
+          }
+        ],
+        "height": 142,
+        "size": "M",
+        "text": "Movimento corridoioMovimento rilevato",
+        "width": 822
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 298,
+            "label": "Apri dettagli di Movimento corridoio",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          }
+        ],
+        "height": 298,
+        "size": "L",
+        "text": "Movimento corridoioMovimento rilevato",
+        "width": 1240
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Movimento corridoio",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          }
+        ],
+        "height": 142,
+        "size": "XL",
+        "text": "Movimento corridoioMovimento rilevato",
+        "width": 1240
+      }
+    ]
+  },
+  {
+    "fixture": "person.example",
+    "theme": "light",
+    "cards": [
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 90,
+            "label": "Apri dettagli di Persona esempio",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 90,
+        "size": "XS",
+        "text": "Persona esempioIn casa",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Persona esempio",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 142,
+        "size": "S",
+        "text": "Persona esempioIn casa",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Persona esempio",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 822
+          }
+        ],
+        "height": 142,
+        "size": "M",
+        "text": "Persona esempioIn casa",
+        "width": 822
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 298,
+            "label": "Apri dettagli di Persona esempio",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          }
+        ],
+        "height": 298,
+        "size": "L",
+        "text": "Persona esempioIn casa",
+        "width": 1240
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Persona esempio",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          }
+        ],
+        "height": 142,
+        "size": "XL",
+        "text": "Persona esempioIn casa",
+        "width": 1240
+      }
+    ]
+  },
+  {
+    "fixture": "scene.evening",
+    "theme": "light",
+    "cards": [
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 90,
+            "label": "Apri dettagli di Scenario sera",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Attiva Scenario sera",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          }
+        ],
+        "height": 90,
+        "size": "XS",
+        "text": "Scenario seraScena",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Scenario sera",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Attiva Scenario sera",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          }
+        ],
+        "height": 142,
+        "size": "S",
+        "text": "Scenario seraScena",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Scenario sera",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 822
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Attiva Scenario sera",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          }
+        ],
+        "height": 142,
+        "size": "M",
+        "text": "Scenario seraScena",
+        "width": 822
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 298,
+            "label": "Apri dettagli di Scenario sera",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Attiva Scenario sera",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          }
+        ],
+        "height": 298,
+        "size": "L",
+        "text": "Scenario seraScena",
+        "width": 1240
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Scenario sera",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Attiva Scenario sera",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          }
+        ],
+        "height": 142,
+        "size": "XL",
+        "text": "Scenario seraScena",
+        "width": 1240
+      }
+    ]
+  },
+  {
+    "fixture": "automation.lights",
+    "theme": "light",
+    "cards": [
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 90,
+            "label": "Apri dettagli di Automazione luci",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          },
+          {
+            "background": "rgb(0, 102, 204)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 34,
+            "label": "Accendi o spegni Automazione luci",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 52
+          }
+        ],
+        "height": 90,
+        "size": "XS",
+        "text": "Automazione luciAttiva",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Automazione luci",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          },
+          {
+            "background": "rgb(0, 102, 204)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 34,
+            "label": "Accendi o spegni Automazione luci",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 52
+          }
+        ],
+        "height": 142,
+        "size": "S",
+        "text": "Automazione luciAttiva",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Automazione luci",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 822
+          },
+          {
+            "background": "rgb(0, 102, 204)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 34,
+            "label": "Accendi o spegni Automazione luci",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 52
+          }
+        ],
+        "height": 142,
+        "size": "M",
+        "text": "Automazione luciAttiva",
+        "width": 822
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 298,
+            "label": "Apri dettagli di Automazione luci",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          },
+          {
+            "background": "rgb(0, 102, 204)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 34,
+            "label": "Accendi o spegni Automazione luci",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 52
+          }
+        ],
+        "height": 298,
+        "size": "L",
+        "text": "Automazione luciAttiva",
+        "width": 1240
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Automazione luci",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          },
+          {
+            "background": "rgb(0, 102, 204)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 34,
+            "label": "Accendi o spegni Automazione luci",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 52
+          }
+        ],
+        "height": 142,
+        "size": "XL",
+        "text": "Automazione luciAttiva",
+        "width": 1240
+      }
+    ]
+  },
+  {
+    "fixture": "timer.cooking",
+    "theme": "light",
+    "cards": [
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 90,
+            "label": "Apri dettagli di Timer cucina",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 90,
+        "size": "XS",
+        "text": "Timer cucinaAttivo",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Timer cucina",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 142,
+        "size": "S",
+        "text": "Timer cucinaAttivo",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Timer cucina",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 822
+          }
+        ],
+        "height": 142,
+        "size": "M",
+        "text": "Timer cucinaAttivo",
+        "width": 822
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 298,
+            "label": "Apri dettagli di Timer cucina",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          }
+        ],
+        "height": 298,
+        "size": "L",
+        "text": "Timer cucinaAttivo",
+        "width": 1240
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Timer cucina",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          }
+        ],
+        "height": 142,
+        "size": "XL",
+        "text": "Timer cucinaAttivo",
+        "width": 1240
+      }
+    ]
+  },
+  {
+    "fixture": "water_heater.tank",
+    "theme": "light",
+    "cards": [
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 90,
+            "label": "Apri dettagli di Scaldacqua bagno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 90,
+        "size": "XS",
+        "text": "Scaldacqua bagno50°",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Scaldacqua bagno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 142,
+        "size": "S",
+        "text": "50°Scaldacqua bagno",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Scaldacqua bagno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 822
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Diminuisci temperatura",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Aumenta temperatura",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          }
+        ],
+        "height": 142,
+        "size": "M",
+        "text": "50°Scaldacqua bagnoRiscalda · stanza 43°",
+        "width": 822
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 298,
+            "label": "Apri dettagli di Scaldacqua bagno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Diminuisci temperatura",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Aumenta temperatura",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          }
+        ],
+        "height": 298,
+        "size": "L",
+        "text": "50°Scaldacqua bagnoRiscalda · stanza 43°",
+        "width": 1240
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Scaldacqua bagno",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Diminuisci temperatura",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Aumenta temperatura",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          }
+        ],
+        "height": 142,
+        "size": "XL",
+        "text": "50°Scaldacqua bagnoRiscalda · stanza 43°",
+        "width": 1240
+      }
+    ]
+  },
+  {
+    "fixture": "valve.water",
+    "theme": "light",
+    "cards": [
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 90,
+            "label": "Apri dettagli di Valvola irrigazione",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 90,
+        "size": "XS",
+        "text": "Valvola irrigazione--",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Valvola irrigazione",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 142,
+        "size": "S",
+        "text": "--Valvola irrigazione",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Valvola irrigazione",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 822
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Apri valvola",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Chiudi valvola",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          }
+        ],
+        "height": 142,
+        "size": "M",
+        "text": "--Valvola irrigazione",
+        "width": 822
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 298,
+            "label": "Apri dettagli di Valvola irrigazione",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Apri valvola",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Chiudi valvola",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          }
+        ],
+        "height": 298,
+        "size": "L",
+        "text": "--Valvola irrigazione",
+        "width": 1240
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Valvola irrigazione",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Apri valvola",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          },
+          {
+            "background": "rgba(255, 255, 255, 0.65)",
+            "color": "oklab(0 0 0 / 0.55)",
+            "font": "17px",
+            "height": 38.25,
+            "label": "Chiudi valvola",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 38.25
+          }
+        ],
+        "height": 142,
+        "size": "XL",
+        "text": "--Valvola irrigazione",
+        "width": 1240
+      }
+    ]
+  },
+  {
+    "fixture": "number.value",
+    "theme": "light",
+    "cards": [
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 90,
+            "label": "Apri dettagli di Regolazione valore",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 90,
+        "size": "XS",
+        "text": "Regolazione valore20",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Regolazione valore",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 142,
+        "size": "S",
+        "text": "20Regolazione valore",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Regolazione valore",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 822
+          }
+        ],
+        "height": 142,
+        "size": "M",
+        "text": "20Regolazione valore",
+        "width": 822
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 298,
+            "label": "Apri dettagli di Regolazione valore",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          }
+        ],
+        "height": 298,
+        "size": "L",
+        "text": "20Regolazione valore",
+        "width": 1240
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Regolazione valore",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          }
+        ],
+        "height": 142,
+        "size": "XL",
+        "text": "20Regolazione valore",
+        "width": 1240
+      }
+    ]
+  },
+  {
+    "fixture": "select.mode",
+    "theme": "light",
+    "cards": [
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 90,
+            "label": "Apri dettagli di Selettore modalità",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 90,
+        "size": "XS",
+        "text": "Selettore modalitàcomfort",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Selettore modalità",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 142,
+        "size": "S",
+        "text": "Selettore modalitàcomfort",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Selettore modalità",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 822
+          }
+        ],
+        "height": 142,
+        "size": "M",
+        "text": "Selettore modalitàcomfort",
+        "width": 822
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 298,
+            "label": "Apri dettagli di Selettore modalità",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          }
+        ],
+        "height": 298,
+        "size": "L",
+        "text": "Selettore modalitàcomfort",
+        "width": 1240
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Selettore modalità",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          }
+        ],
+        "height": 142,
+        "size": "XL",
+        "text": "Selettore modalitàcomfort",
+        "width": 1240
+      }
+    ]
+  },
+  {
+    "fixture": "sensor.offline",
+    "theme": "light",
+    "cards": [
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 90,
+            "label": "Apri dettagli di Dispositivo non disponibile",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 90,
+        "size": "XS",
+        "text": "Dispositivo non disponibileNon disponibile",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Dispositivo non disponibile",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 142,
+        "size": "S",
+        "text": "Dispositivo non disponibileNon disponibile",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Dispositivo non disponibile",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 822
+          }
+        ],
+        "height": 142,
+        "size": "M",
+        "text": "Dispositivo non disponibileNon disponibile",
+        "width": 822
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 298,
+            "label": "Apri dettagli di Dispositivo non disponibile",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          }
+        ],
+        "height": 298,
+        "size": "L",
+        "text": "Dispositivo non disponibileNon disponibile",
+        "width": 1240
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Dispositivo non disponibile",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          }
+        ],
+        "height": 142,
+        "size": "XL",
+        "text": "Dispositivo non disponibileNon disponibile",
+        "width": 1240
+      }
+    ]
+  },
+  {
+    "fixture": "sensor.unknown",
+    "theme": "light",
+    "cards": [
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 90,
+            "label": "Apri dettagli di Dispositivo sconosciuto",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 90,
+        "size": "XS",
+        "text": "Dispositivo sconosciutoNon disponibile",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Dispositivo sconosciuto",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 142,
+        "size": "S",
+        "text": "Dispositivo sconosciutoNon disponibile",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Dispositivo sconosciuto",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 822
+          }
+        ],
+        "height": 142,
+        "size": "M",
+        "text": "Dispositivo sconosciutoNon disponibile",
+        "width": 822
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 298,
+            "label": "Apri dettagli di Dispositivo sconosciuto",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          }
+        ],
+        "height": 298,
+        "size": "L",
+        "text": "Dispositivo sconosciutoNon disponibile",
+        "width": 1240
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Dispositivo sconosciuto",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          }
+        ],
+        "height": 142,
+        "size": "XL",
+        "text": "Dispositivo sconosciutoNon disponibile",
+        "width": 1240
+      }
+    ]
+  },
+  {
+    "fixture": "sensor.long",
+    "theme": "light",
+    "cards": [
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 90,
+            "label": "Apri dettagli di Valore numerico molto lungo",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 90,
+        "size": "XS",
+        "text": "Valore numerico molto lungo123456789,1kWh",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Valore numerico molto lungo",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 404
+          }
+        ],
+        "height": 142,
+        "size": "S",
+        "text": "123456789,1kWhValore numerico molto lungo",
+        "width": 404
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Valore numerico molto lungo",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 822
+          }
+        ],
+        "height": 142,
+        "size": "M",
+        "text": "123456789,1kWhValore numerico molto lungo",
+        "width": 822
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 298,
+            "label": "Apri dettagli di Valore numerico molto lungo",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          }
+        ],
+        "height": 298,
+        "size": "L",
+        "text": "123456789,1kWhValore numerico molto lungo",
+        "width": 1240
+      },
+      {
+        "controls": [
+          {
+            "background": "rgba(0, 0, 0, 0)",
+            "color": "rgb(29, 29, 31)",
+            "font": "17px",
+            "height": 142,
+            "label": "Apri dettagli di Valore numerico molto lungo",
+            "outside": false,
+            "touch": "manipulation",
+            "width": 1240
+          }
+        ],
+        "height": 142,
+        "size": "XL",
+        "text": "123456789,1kWhValore numerico molto lungo",
+        "width": 1240
+      }
+    ]
+  }
+]

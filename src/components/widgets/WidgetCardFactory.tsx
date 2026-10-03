@@ -7,13 +7,14 @@ import { useHAService } from '../../hooks/useHAService'
 import { useHaptic } from '../../hooks/useHaptic'
 import { useActionFeedback } from '../../hooks/useActionFeedback'
 import { useDominantColor } from '../../hooks/useDominantColor'
+import { lucideIcon } from '../../lib/lucide'
 import { cn } from '../../lib/utils'
 import { linkedMediaPlayerEntityId } from '../../lib/mediaEntity'
 import { useEntityStore } from '../../store/entities'
 import { useUIStore } from '../../store/ui'
 import {
   WidgetCardControlButton, WidgetCardHoldButton, WidgetCardIcon, WidgetCardIdentity,
-  WidgetCardPowerState, WidgetCardShell, WidgetCardSlider, WidgetCardToggle,
+  WidgetCardShell, WidgetCardSlider, WidgetCardToggle,
 } from './WidgetCardBase'
 import { CameraStream } from './CameraStream'
 import { mapEntityToWidgetCard } from './utils/mapEntityToWidgetCard'
@@ -57,7 +58,10 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
     () => entityId === roomEntity.entityId ? roomEntity : { ...roomEntity, entityId },
     [entityId, roomEntity],
   )
-  const mapped = useMemo(() => mapEntityToWidgetCard(entity, effectiveRoomEntity), [entity, effectiveRoomEntity])
+  const mapped = useMemo(() => {
+    const mapping = mapEntityToWidgetCard(entity, effectiveRoomEntity)
+    return { ...mapping, Icon: lucideIcon(effectiveRoomEntity.icon) ?? mapping.Icon }
+  }, [entity, effectiveRoomEntity])
   const { call } = useHAService()
   const { light, medium, heavy } = useHaptic()
   const { feedbackClass, actionFailed } = useActionFeedback()
@@ -209,6 +213,12 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
     patchEntity(entityId, { attributes: { brightness: Math.round((value / 100) * 255) } })
   }
 
+  const cancelBrightness = () => {
+    const original = brightnessOriginRef.current
+    brightnessOriginRef.current = null
+    if (original) patchEntity(entityId, { attributes: { brightness: original.brightness } })
+  }
+
   const commitBrightness = (value: number) => {
     if (!entity || unavailable) return
     const original = brightnessOriginRef.current ?? {
@@ -217,8 +227,8 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
     }
     perform(
       'brightness',
-      () => { light(); setOptimisticState(entityId, 'on', { brightness: Math.round((value / 100) * 255) }) },
-      () => call('light', 'turn_on', { entity_id: entityId, brightness_pct: Math.round(value) }),
+      () => { light(); setOptimisticState(entityId, value > 0 ? 'on' : 'off', { brightness: Math.round((value / 100) * 255) }) },
+      () => call('light', value > 0 ? 'turn_on' : 'turn_off', { entity_id: entityId, ...(value > 0 ? { brightness_pct: Math.round(value) } : {}) }),
       () => setOptimisticState(entityId, original.state, original.brightness === undefined ? {} : { brightness: original.brightness }),
       () => { brightnessOriginRef.current = null },
     )
@@ -281,7 +291,7 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
   const trailing = (() => {
     if (unavailable) return null
     if (mapped.family === 'light') {
-      return <WidgetCardPowerState active={mapped.isActive} pending={busy} compact={size === 'XS'} />
+      return size === 'XS' || isEditing ? null : <WidgetCardControlButton onClick={() => setSelectedEntity(entityId)} label={`Dettagli di ${mapped.title}`}><ChevronDown size={18} aria-hidden="true" /></WidgetCardControlButton>
     }
     if (isEditing) return null
     if (domain === 'siren') {
@@ -297,8 +307,8 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
     if (mapped.family === 'climate' || mapped.family === 'thermostat') {
       return (
         <>
-          <WidgetCardControlButton disabled={busy} onClick={() => adjustClimate(-1)} label="Diminuisci temperatura"><Minus size={16} aria-hidden="true" /></WidgetCardControlButton>
-          <WidgetCardControlButton disabled={busy} onClick={() => adjustClimate(1)} label="Aumenta temperatura"><Plus size={16} aria-hidden="true" /></WidgetCardControlButton>
+          <WidgetCardControlButton disabled={busy || numericState(entity?.attributes?.temperature) === undefined} onClick={() => adjustClimate(-1)} label="Diminuisci temperatura"><Minus size={16} aria-hidden="true" /></WidgetCardControlButton>
+          <WidgetCardControlButton disabled={busy || numericState(entity?.attributes?.temperature) === undefined} onClick={() => adjustClimate(1)} label="Aumenta temperatura"><Plus size={16} aria-hidden="true" /></WidgetCardControlButton>
         </>
       )
     }
@@ -322,7 +332,7 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
       )
     }
     if (mapped.family === 'lock') {
-      return <WidgetCardHoldButton locked={entity?.state !== 'unlocked'} disabled={busy || ['locking', 'unlocking'].includes(entity?.state ?? '')} onUnlock={unlock} onLock={lock} accentColor={mapped.accentColor} />
+      return <WidgetCardHoldButton locked={entity?.state !== 'unlocked'} disabled={busy || ['locking', 'unlocking', 'jammed'].includes(entity?.state ?? '')} onUnlock={unlock} onLock={lock} accentColor={mapped.accentColor} />
     }
     if (MEDIA_FAMILIES.has(mapped.family)) {
       return (
@@ -364,6 +374,7 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
       <ClimateCard
         entityId={entityId}
         cardId={roomEntity.id}
+        iconOverride={roomEntity.icon ? lucideIcon(roomEntity.icon) ?? undefined : undefined}
         label={mapped.title}
         size={size}
         className={className}
@@ -384,13 +395,14 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
       accentColor={mapped.accentColor}
       isActive={mapped.isActive}
       isUnavailable={unavailable}
+      isUnknown={entity?.state === 'unknown'}
       isPending={busy}
       isEditing={isEditing}
       isDragging={isDragging}
       className={cn(className, feedbackClass, lightPowerCard && 'widget-card-light-power')}
-      onClick={lightPowerCard ? togglePower : () => setSelectedEntity(entityId)}
-      onClickLabel={lightPowerCard ? `${mapped.isActive ? 'Spegni' : 'Accendi'} ${mapped.title}` : undefined}
-      onClickPressed={lightPowerCard ? mapped.isActive : undefined}
+      onClick={lightPowerCard && size !== 'XS' ? togglePower : () => setSelectedEntity(entityId)}
+      onClickLabel={lightPowerCard && size !== 'XS' ? `${mapped.isActive ? 'Spegni' : 'Accendi'} ${mapped.title}` : undefined}
+      onClickPressed={lightPowerCard && size !== 'XS' ? mapped.isActive : undefined}
       media={liveCamera ? (
           <>
             <CameraStream entityId={entityId} fit="cover" badge className="h-full w-full" />
@@ -404,7 +416,6 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
             Icon={mapped.Icon}
             accentColor={mapped.accentColor}
             appName={(entity?.attributes?.app_name ?? entity?.attributes?.source) as string | undefined}
-            playing={entity?.state === 'playing'}
             onError={visibleArtworkUrl ? () => setFailedArtworkUrl(visibleArtworkUrl) : undefined}
           />
         ) : undefined}
@@ -419,7 +430,7 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
       ) : (
         mediaCoverStyle ? (
           <>
-            {trailing && <div className="flex shrink-0 items-center justify-end gap-1.5">{trailing}</div>}
+            {trailing && <div className={cn("flex shrink-0 items-center justify-end gap-1.5", (size === 'M' || size === 'XL') &&"media-card-compact-control absolute right-0 top-0")}>{trailing}</div>}
             <MediaCardContent
               entity={entity}
               deviceTitle={mapped.title}
@@ -433,12 +444,28 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
           <div className="flex h-full min-w-0 items-center gap-2">
             <WidgetCardIcon Icon={mapped.Icon} size={size} accentColor={mapped.accentColor} active={mapped.isActive} />
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[12px] font-semibold leading-tight text-[#1d1d1f] dark:text-white">{mapped.title}</p>
-              <p className="mt-0.5 truncate text-[11px] font-medium leading-tight text-black/45 dark:text-white/48" style={mapped.stateAccent ? { color: mapped.accentColor } : undefined}>
+              <p className="truncate text-[13px] font-semibold leading-tight text-[var(--ink)]">{mapped.title}</p>
+              <p className="mt-0.5 truncate text-[13px] font-normal leading-tight text-[var(--ink-secondary)]" style={mapped.stateAccent ? { color: mapped.accentColor } : undefined}>
                 {actionError ?? (mapped.value !== undefined ? `${mapped.value}${mapped.unit ?? ''}` : mapped.state)}
               </p>
             </div>
             {trailing && <div className="flex shrink-0 items-center">{trailing}</div>}
+          </div>
+        ) : size === 'M' || size === 'XL' ? (
+          <div className="widget-card-compact flex h-full min-w-0 items-center gap-3">
+            <WidgetCardIcon Icon={mapped.Icon} size={size} accentColor={mapped.accentColor} active={mapped.isActive || mapped.stateAccent === true} />
+            <WidgetCardIdentity title={mapped.title} state={actionError ?? (mapped.state || undefined)}
+              stateColor={actionError ? 'var(--danger-red)' : mapped.stateAccent ? mapped.accentColor : undefined}
+              value={mapped.value} unit={mapped.unit} size={size} active={mapped.isActive} />
+            {(trailing || showSlider) && <div className="widget-card-actions flex shrink-0 flex-col items-end gap-1.5">
+              {trailing && <div className="flex items-center gap-2">{trailing}</div>}
+              {showSlider && <div className="widget-card-inline-slider">
+                <WidgetCardSlider value={mapped.percent ?? 0} color={mapped.accentColor} label={`Regola ${mapped.title}`}
+                  disabled={busy} onChange={mapped.family === 'light' ? setBrightness : undefined}
+                  onCancel={mapped.family === 'light' ? cancelBrightness : undefined}
+                  onCommit={mapped.family === 'light' ? commitBrightness : mapped.family === 'fan' ? setFanSpeed : setTargetHumidity} />
+              </div>}
+            </div>}
           </div>
         ) : (
           <>
@@ -455,7 +482,7 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
               unit={mapped.unit}
               size={size}
               active={mapped.isActive}
-              singleLineTitle={showSlider && size === 'M'}
+              singleLineTitle={showSlider}
             />
 
             {showSlider && (
@@ -466,6 +493,7 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
                   label={`Regola ${mapped.title}`}
                   disabled={busy}
                   onChange={mapped.family === 'light' ? setBrightness : undefined}
+                  onCancel={mapped.family === 'light' ? cancelBrightness : undefined}
                   onCommit={mapped.family === 'light' ? commitBrightness : mapped.family === 'fan' ? setFanSpeed : setTargetHumidity}
                 />
               </div>
@@ -479,14 +507,13 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
 
 /** Copertina full-bleed: immagine a sinistra, dissolvenza bianca verso i controlli. */
 function ArtworkBackdrop({
-  url, title, Icon, accentColor, appName, playing, onError,
+  url, title, Icon, accentColor, appName, onError,
 }: {
   url?: string
   title: string
   Icon: ElementType
   accentColor: string
   appName?: string
-  playing: boolean
   onError?: () => void
 }) {
   return (
@@ -508,8 +535,7 @@ function ArtworkBackdrop({
             <span className="flex h-12 w-12 items-center justify-center rounded-[16px] bg-white/85 shadow-sm dark:bg-black/45">
               <Icon size={28} aria-hidden="true" />
             </span>
-            <span className="max-w-full truncate text-[11px] font-bold text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.4)]">{appName ?? 'Media'}</span>
-            {playing && <span className="rounded-full bg-white/20 px-2 py-0.5 text-[8px] font-bold uppercase tracking-[0.12em] text-white">Live</span>}
+            <span className="max-w-full truncate text-[13px] font-semibold text-[var(--ink-secondary)]">{appName ?? 'Media'}</span>
           </span>
         </div>
       )}

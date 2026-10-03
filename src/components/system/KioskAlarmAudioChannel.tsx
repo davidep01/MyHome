@@ -45,13 +45,13 @@ export function KioskAlarmAudioChannel({ active }: { active: boolean }) {
         <button
           type="button"
           onClick={() => { void armKioskAlarmChannel() }}
-          className="fixed bottom-[max(16px,env(safe-area-inset-bottom))] right-4 z-[130] flex min-h-[58px] max-w-[min(360px,calc(100%-32px))] items-center gap-3 rounded-[18px] bg-[#9f1028] px-4 text-left text-white shadow-2xl ring-1 ring-white/20 active:scale-[0.98]"
+          className={`${active ? 'z-[115]' : 'z-[82]'} relative m-3 flex min-h-[58px] shrink-0 self-start max-w-[calc(100%-24px)] items-center gap-3 rounded-[18px] bg-[#9f1028] px-4 text-left text-white shadow-2xl ring-1 ring-white/20 active:scale-[0.98]`}
           aria-label="Attiva il canale audio degli allarmi"
         >
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/15"><Volume2 size={21} aria-hidden="true" /></span>
           <span>
             <span className="block text-sm font-bold">Attiva audio allarmi</span>
-            <span className="block text-xs text-white/75">Tocca una volta su questo tablet</span>
+            <span className="block text-[13px] text-white/90">Tocca una volta su questo tablet</span>
           </span>
         </button>
       )}

@@ -22,6 +22,10 @@ export function SystemStatusWidget({ size }: { size: WidgetSize }) {
   const count = useMemo(() => Object.keys(entities).length, [entities])
   const s = STATUS[status] ?? STATUS.idle
   const online = status === 'connected'
+  if (size === 'xs') return <AnimatedCard className="h-full" contentClassName="gap-1">
+    <p className="text-[13px] font-semibold text-[var(--ink)]">Sistema · {count} entità</p>
+    <p className="truncate text-[13px]" style={{ color: s.color }}>Home Assistant · {s.label}</p>
+  </AnimatedCard>
 
   return (
     <AnimatedCard depth ambient="drift" ambientColor={`${s.color}1f`} index={5} className="h-full" contentClassName="gap-2">
@@ -30,8 +34,8 @@ export function SystemStatusWidget({ size }: { size: WidgetSize }) {
           <Cpu size={18} />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-black/90">Sistema</p>
-          <p className="truncate text-xs text-black/45">{count} entità</p>
+          <p className="text-sm font-semibold text-[var(--ink)]">Sistema</p>
+          <p className="truncate text-[13px] text-[var(--ink-secondary)]">{count} entità</p>
         </div>
         {online && <LiveDot color={s.color} />}
       </div>
@@ -42,7 +46,7 @@ export function SystemStatusWidget({ size }: { size: WidgetSize }) {
         <div className="mt-auto space-y-1.5">
           <Row icon={online ? Wifi : WifiOff} label="Home Assistant" value={s.label} color={s.color} />
           <Row icon={muted ? VolumeX : Volume2} label="Audio" value={muted ? 'Muto' : 'Attivo'} color={muted ? '#6e6e73' : '#15803d'} />
-          {(size === 'lg' || size === 'wide') && <Row icon={Cpu} label="Entità monitorate" value={String(count)} color="#0066cc" />}
+          {size === 'lg' && <Row icon={Cpu} label="Entità monitorate" value={String(count)} color="#0066cc" />}
         </div>
       )}
     </AnimatedCard>
@@ -51,9 +55,9 @@ export function SystemStatusWidget({ size }: { size: WidgetSize }) {
 
 function Row({ icon: Icon, label, value, color }: { icon: React.ElementType; label: string; value: string; color: string }) {
   return (
-    <div className="flex items-center gap-2 text-xs">
-      <Icon size={13} className="shrink-0 text-black/40" />
-      <span className="flex-1 truncate text-black/55">{label}</span>
+    <div className="flex items-center gap-2 text-[13px]">
+      <Icon size={13} className="shrink-0 text-[var(--ink-secondary)]" />
+      <span className="flex-1 truncate text-[var(--ink-secondary)]">{label}</span>
       <span className="shrink-0 font-semibold" style={{ color }}>{value}</span>
     </div>
   )

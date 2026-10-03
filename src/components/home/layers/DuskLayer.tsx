@@ -2,13 +2,14 @@ import { useHAEntity } from '../../../hooks/useHAEntity'
 
 /**
  * Dusk shift (DOMINICA M7, polish opzionale): velo caldo legato all'elevazione
- * solare (sun.sun). Max 6% di opacità in multiply — abbassa la temperatura
+ * solare (sun.sun). Max 6% di opacità, solo sul fondale — abbassa la temperatura
  * percepita del parchment al tramonto senza toccare i token. Solo `opacity`,
  * transizione lenta: costo GPU ≈ un layer composito statico.
  */
 export function DuskLayer() {
   const sun = useHAEntity('sun.sun')
-  const elevation = Number(sun?.attributes?.elevation)
+  const value = sun?.attributes?.elevation
+  const elevation = typeof value === 'number' ? value : Number.NaN
   if (!Number.isFinite(elevation)) return null
 
   // elevazione 10° → 0; -6° (crepuscolo civile) → max. Notte fonda: resta max.
@@ -19,10 +20,10 @@ export function DuskLayer() {
   return (
     <div
       aria-hidden
-      className="pointer-events-none fixed inset-0 z-[5]"
+      className="pointer-events-none absolute inset-0 z-0"
       style={{
         background: '#ff9a3c',
-        mixBlendMode: 'multiply',
+
         opacity,
         transition: 'opacity 2000ms linear',
       }}

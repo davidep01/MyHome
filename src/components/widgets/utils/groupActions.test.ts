@@ -38,9 +38,9 @@ describe('group actions', () => {
     expect(groupMemberStateLabel('lock', 'unavailable')).toBe('Non disponibile')
   })
 
-  it('uses member details in both tall and panoramic group cards', () => {
+  it('shows member details only when the footprint has sufficient height', () => {
     expect(groupShowsMemberDetails('L')).toBe(true)
-    expect(groupShowsMemberDetails('XL')).toBe(true)
+    expect(groupShowsMemberDetails('XL')).toBe(false)
     expect(groupShowsMemberDetails('M')).toBe(false)
   })
 })

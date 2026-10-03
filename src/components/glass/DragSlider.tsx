@@ -6,6 +6,7 @@ interface DragSliderProps {
   value: number        // 0–100
   onChange: (v: number) => void
   onChangeEnd?: (v: number) => void
+  onCancel?: () => void
   /** Pass any hex/css color — but prefer using `variant` for semantic styling */
   color?: string
   /** 'amber' = brightness (warm yellow fill), 'blue' = generic */
@@ -28,6 +29,7 @@ export function DragSlider({
   value,
   onChange,
   onChangeEnd,
+  onCancel,
   variant = 'amber',
   className,
   label,
@@ -35,9 +37,10 @@ export function DragSlider({
   disabled = false,
 }: DragSliderProps) {
   const inputId = useId()
+  const originValue = useRef(value)
   const pendingValue = useRef<number | null>(null)
 
-  const clamp = (v: number) => Math.min(100, Math.max(0, v))
+  const clamp = (v: number) => Math.min(100, Math.max(0, Number.isFinite(v) ? v : 0))
 
   const pct = clamp(value)
   const isAmber = variant === 'amber'
@@ -45,12 +48,13 @@ export function DragSlider({
 
   const updateValue = (next: number) => {
     const clamped = clamp(next)
+    if (pendingValue.current === null) originValue.current = value
     pendingValue.current = clamped
     onChange(clamped)
   }
 
   const commitPending = () => {
-    if (pendingValue.current === null) return
+    if (disabled || pendingValue.current === null) return
     const next = pendingValue.current
     pendingValue.current = null
     onChangeEnd?.(next)
@@ -71,7 +75,7 @@ export function DragSlider({
           'lg-slider focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[#0066cc]',
           disabled && 'opacity-40',
         )}
-        style={{ height: 36, cursor: disabled ? 'not-allowed' : 'pointer', touchAction: 'none', userSelect: 'none' }}
+        style={{ height: 44, cursor: disabled ? 'not-allowed' : 'pointer', touchAction: 'none', userSelect: 'none' }}
       >
         {/* A native range owns all pointer and keyboard interaction. It is
             visually transparent so the Liquid Glass presentation stays intact. */}
@@ -86,8 +90,10 @@ export function DragSlider({
           aria-label={label ? undefined : accessibleName}
           aria-valuetext={`${pct}%`}
           onChange={(event) => updateValue(Number(event.currentTarget.value))}
-          onPointerUp={commitPending}
-          onPointerCancel={commitPending}
+          onPointerUp={(event) => { event.stopPropagation(); commitPending() }}
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={(event) => event.stopPropagation()}
+          onPointerCancel={() => { pendingValue.current = null; if (onCancel) onCancel(); else onChange(originValue.current) }}
           onKeyUp={(event) => {
             if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End'].includes(event.key)) {
               commitPending()
@@ -101,7 +107,7 @@ export function DragSlider({
         {/* Coloured fill — amber variant carries a sun icon riding the fill */}
         <div
           className={cn('lg-slider-fill', isAmber && 'amber', !isAmber && 'blue')}
-          style={{ width: `calc(${pct}% - 2px)` }}
+          style={{ width: `max(0px, calc(${pct}% - 2px))` }}
         >
           {isAmber && (
             <Sun

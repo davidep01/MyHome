@@ -5,6 +5,7 @@ import { DragSlider } from '../glass/DragSlider'
 import { useHAService } from '../../hooks/useHAService'
 import { useEntityStore } from '../../store/entities'
 import { useActionFeedback } from '../../hooks/useActionFeedback'
+import { numericState } from '../widgets/utils/formatWidgetValue'
 import { cn } from '../../lib/utils'
 
 const PRESETS = [
@@ -26,10 +27,16 @@ export function LightDetail({ entity }: { entity: HassEntity }) {
 
   const entityId = entity.entity_id
   const isOn = entity.state === 'on'
-  const unavailable = entity.state === 'unavailable'
-  const brightness = entity.attributes?.brightness
-    ? Math.round((entity.attributes.brightness / 255) * 100)
-    : isOn ? 100 : 0
+  const unavailable = ['unavailable', 'unknown'].includes(entity.state)
+  const measuredBrightness = numericState(entity.attributes?.brightness)
+  const brightness = measuredBrightness !== undefined ? Math.round(Math.min(255, Math.max(0, measuredBrightness)) / 255 * 100) : 0
+  const colorModes = entity.attributes?.supported_color_modes
+  const dimmable = measuredBrightness !== undefined || (Array.isArray(colorModes) && colorModes.some((mode) => !['onoff', 'unknown'].includes(String(mode))))
+  const cancelBrightness = () => {
+    const original = brightnessOriginRef.current
+    brightnessOriginRef.current = null
+    if (original) patchEntity(entityId, { attributes: { brightness: original.brightness } })
+  }
 
   const run = (task: () => Promise<unknown>, optimistic: () => void, rollback: () => void, finish?: () => void) => {
     if (busyRef.current || unavailable) return
@@ -72,8 +79,8 @@ export function LightDetail({ entity }: { entity: HassEntity }) {
       brightness: typeof entity.attributes?.brightness === 'number' ? entity.attributes.brightness : undefined,
     }
     run(
-      () => call('light', 'turn_on', { entity_id: entityId, brightness_pct: Math.round(v) }),
-      () => setOptimisticState(entityId, 'on', { brightness: Math.round((v / 100) * 255) }),
+      () => call('light', v > 0 ? 'turn_on' : 'turn_off', { entity_id: entityId, ...(v > 0 ? { brightness_pct: Math.round(v) } : {}) }),
+      () => setOptimisticState(entityId, v > 0 ? 'on' : 'off', { brightness: Math.round((v / 100) * 255) }),
       () => setOptimisticState(entityId, original.state, { brightness: original.brightness }),
       () => { brightnessOriginRef.current = null },
     )
@@ -84,12 +91,12 @@ export function LightDetail({ entity }: { entity: HassEntity }) {
       {/* Big toggle row */}
       <div className="flex items-center justify-between rounded-[11px] px-4 py-3" style={{ background: 'var(--fill-subtle)' }}>
         <div className="flex items-center gap-3">
-          <div className={cn('flex h-10 w-10 items-center justify-center rounded-full transition-all', isOn ? 'bg-yellow-500/20' : 'bg-black/8')}>
-            <Lightbulb size={22} className={isOn ? 'text-yellow-500' : 'text-black/30'} aria-hidden="true" />
+          <div className={cn('flex h-10 w-10 items-center justify-center rounded-full transition-all', isOn ? 'bg-yellow-500/20' : 'bg-[var(--fill-subtle)]')}>
+            <Lightbulb size={22} className={isOn ? 'text-yellow-500' : 'text-[var(--ink-tertiary)]'} aria-hidden="true" />
           </div>
           <div>
             <p className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>{isOn ? 'Accesa' : 'Spenta'}</p>
-            {isOn && <p className="text-xs" style={{ color: 'var(--ink-secondary)' }}>{brightness}%</p>}
+            {isOn && measuredBrightness !== undefined && <p className="text-xs" style={{ color: 'var(--ink-secondary)' }}>{brightness}%</p>}
           </div>
         </div>
         <button
@@ -99,7 +106,7 @@ export function LightDetail({ entity }: { entity: HassEntity }) {
           aria-checked={isOn}
           disabled={unavailable || pending}
           className={cn(
-            'lg-toggle border-0 p-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0066cc] disabled:cursor-not-allowed disabled:opacity-40',
+            'lg-toggle min-h-11 min-w-14 border-0 p-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0066cc] disabled:cursor-not-allowed disabled:opacity-40',
             isOn && 'on',
           )}
           onClick={toggle}
@@ -109,7 +116,7 @@ export function LightDetail({ entity }: { entity: HassEntity }) {
       </div>
 
       {/* Brightness slider */}
-      <div className="rounded-[11px] p-4" style={{ background: 'var(--fill-subtle)' }}>
+      {dimmable && <div className="rounded-[11px] p-4" style={{ background: 'var(--fill-subtle)' }}>
         <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: 'var(--ink-tertiary)' }}>
           Luminosità — {brightness}%
         </p>
@@ -117,14 +124,15 @@ export function LightDetail({ entity }: { entity: HassEntity }) {
           value={brightness}
           onChange={preview}
           onChangeEnd={commit}
+          onCancel={cancelBrightness}
           variant="amber"
           ariaLabel="Luminosità"
           disabled={unavailable || pending}
         />
-      </div>
+      </div>}
 
       {/* Presets */}
-      <div className="rounded-[11px] p-4" style={{ background: 'var(--fill-subtle)' }}>
+      {dimmable && <div className="rounded-[11px] p-4" style={{ background: 'var(--fill-subtle)' }}>
         <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: 'var(--ink-tertiary)' }}>
           Preset
         </p>
@@ -136,7 +144,7 @@ export function LightDetail({ entity }: { entity: HassEntity }) {
               onClick={() => commit(p.pct)}
               disabled={unavailable || pending}
               aria-pressed={brightness === p.pct}
-              className="rounded-[8px] py-2.5 text-xs font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0066cc] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+              className="min-h-11 rounded-[8px] py-2.5 text-xs font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0066cc] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
               style={brightness === p.pct
                 ? { background: 'rgba(234,179,8,0.16)', color: '#7a5b08' }
                 : { background: 'var(--fill-subtle)', color: 'var(--ink-secondary)' }}
@@ -145,7 +153,7 @@ export function LightDetail({ entity }: { entity: HassEntity }) {
             </button>
           ))}
         </div>
-      </div>
+      </div>}
 
       {error && (
         <p role="alert" className="rounded-[11px] bg-red-500/10 px-3 py-2 text-sm font-semibold text-red-700">

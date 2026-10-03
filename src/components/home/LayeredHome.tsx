@@ -103,9 +103,10 @@ export function LayeredHome() {
   }
 
   return (
-    <div className="h-full overflow-hidden">
+    <div className="relative isolate h-full overflow-hidden">
+      <DuskLayer />
       <div
-        className="mx-auto grid h-full w-full max-w-[1440px] grid-rows-[auto_minmax(0,1fr)_auto] gap-[clamp(10px,1.8vh,20px)] overflow-hidden"
+        className="relative z-[1] mx-auto grid h-full w-full max-w-[1440px] grid-rows-[auto_minmax(0,1fr)_auto] gap-[clamp(10px,1.8vh,20px)] overflow-hidden"
         style={{
           paddingTop: 'calc(clamp(10px, 2vh, 20px) + env(safe-area-inset-top))',
           paddingRight: 'calc(clamp(16px, 2vw, 28px) + env(safe-area-inset-right))',
@@ -121,7 +122,10 @@ export function LayeredHome() {
           onAlertAction={runAlertAction}
           onClockTap={() => setTimelineOpen(true)}
           cameraRowVisible={cameraRowVisible}
-          onCameraRowToggle={toggleCameraRow}
+          onCameraRowToggle={() => {
+            if (!cameraRowVisible) setActiveRoomKey(null)
+            toggleCameraRow()
+          }}
         />
 
         <div className="min-h-0 overflow-hidden">
@@ -167,7 +171,6 @@ export function LayeredHome() {
 
         {/* Strato 4: lo screensaver ambient è montato dal KioskShell così copre
             sia il composer sia la griglia manuale. */}
-        <DuskLayer />
       </div>
     </div>
   )
@@ -182,7 +185,7 @@ function QuietSection() {
     && Number.isFinite(Number.parseFloat(entity.state))))
 
   return (
-    <section className="grid h-full min-h-0 grid-cols-1 gap-3.5 overflow-hidden sm:grid-cols-2 xl:grid-cols-3">
+    <section className="grid h-full min-h-0 auto-rows-min grid-cols-1 gap-3.5 overflow-y-auto overscroll-contain p-2 sm:grid-cols-2 xl:grid-cols-3">
       <AnimatedCard
         depth
         ambient="drift"

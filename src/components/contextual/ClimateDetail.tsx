@@ -8,11 +8,12 @@ import { useHaptic } from '../../hooks/useHaptic'
 import { useActionFeedback } from '../../hooks/useActionFeedback'
 import { useEntityStore } from '../../store/entities'
 import { tokens } from '../../design/tokens'
-import { TEMP_UNIT } from '../../lib/units'
 import { cn } from '../../lib/utils'
 import { temperatureTone } from '../widgets/utils/getRingColorScale'
 import {
   formatClimateTemp,
+  getClimateControls,
+  snapClimateTemperature,
   getClimateModes,
   getClimateOptionLabel,
   getClimateVisualState,
@@ -35,15 +36,10 @@ function listAttr(entity: HassEntity, key: string): string[] {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : []
 }
 
-function snapTemperature(value: number, min: number, max: number, step: number): number {
-  const snapped = Math.round(value / step) * step
-  return Math.min(max, Math.max(min, Number(snapped.toFixed(step < 1 ? 1 : 0))))
-}
-
 function controlButtonClass(active: boolean) {
   return cn(
     'flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-[14px] px-3 text-sm font-semibold transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-40',
-    active ? 'text-white shadow-sm' : 'bg-black/6 text-black/50 hover:text-black/75',
+    active ? 'text-[var(--on-accent)] shadow-sm' : 'bg-[var(--fill-subtle)] text-[var(--ink-secondary)] hover:text-[var(--ink)]',
   )
 }
 
@@ -58,11 +54,7 @@ export function ClimateDetail({ entity }: { entity: HassEntity }) {
   const busyRef = useRef(false)
 
   const entityId = entity.entity_id
-  const current = entity.attributes?.current_temperature as number | undefined
-  const target = (entity.attributes?.temperature as number | undefined) ?? current ?? 20
-  const min = (entity.attributes?.min_temp as number | undefined) ?? 7
-  const max = (entity.attributes?.max_temp as number | undefined) ?? 35
-  const step = (entity.attributes?.target_temp_step as number | undefined) ?? 0.5
+  const { current, target, min, max, step, unit, adjustable } = getClimateControls(entity)
   const mode = entity.state
   const modes = getClimateModes(entity)
   const fanModes = listAttr(entity, 'fan_modes')
@@ -73,7 +65,7 @@ export function ClimateDetail({ entity }: { entity: HassEntity }) {
   const presetMode = entity.attributes?.preset_mode as string | undefined
   const visual = getClimateVisualState(entity)
   const displayedTemperature = dragValue ?? target
-  const color = temperatureTone(displayedTemperature).color
+  const color = temperatureTone(displayedTemperature, unit).color
   const onMode = pickOnHvacMode(modes, mode)
 
   const run = (task: () => Promise<unknown>, optimistic: () => void, rollback: () => void) => {
@@ -96,7 +88,9 @@ export function ClimateDetail({ entity }: { entity: HassEntity }) {
   }
 
   const setTemp = (next: number) => {
-    const clamped = snapTemperature(next, min, max, step)
+    if (!adjustable || !Number.isFinite(next)) return
+    const clamped = snapClimateTemperature(next, min, max, step)
+    if (clamped === target) return
     run(
       () => call('climate', 'set_temperature', { entity_id: entityId, temperature: clamped }),
       () => { light(); setOptimisticState(entityId, mode, { temperature: clamped }) },
@@ -140,24 +134,24 @@ export function ClimateDetail({ entity }: { entity: HassEntity }) {
   return (
     <div className={cn('flex flex-col gap-5', feedbackClass)} aria-busy={pending}>
       <div className="grid grid-cols-2 gap-2">
-        <div className="rounded-[18px] bg-black/[0.05] p-3">
-          <p className="text-xs font-semibold text-black/45">Stanza</p>
-          <p className="mt-1 text-[30px] font-semibold leading-none text-[#1d1d1f] tabular-nums">
-            {formatClimateTemp(current, TEMP_UNIT)}
+        <div className="rounded-[18px] bg-[var(--fill-subtle)] p-3">
+          <p className="text-xs font-semibold text-[var(--ink-secondary)]">Stanza</p>
+          <p className="mt-1 text-[30px] font-semibold leading-none text-[var(--ink)] tabular-nums">
+            {formatClimateTemp(current, unit)}
           </p>
         </div>
-        <div className="rounded-[18px] bg-black/[0.05] p-3">
-          <p className="text-xs font-semibold text-black/45">Impostata</p>
+        <div className="rounded-[18px] bg-[var(--fill-subtle)] p-3">
+          <p className="text-xs font-semibold text-[var(--ink-secondary)]">Impostata</p>
           <p className="mt-1 text-[30px] font-semibold leading-none tabular-nums" style={{ color }}>
-            {formatClimateTemp(displayedTemperature, TEMP_UNIT)}
+            {formatClimateTemp(displayedTemperature, unit)}
           </p>
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-3 rounded-[18px] bg-black/[0.04] px-3 py-2.5">
+      <div className="flex items-center justify-between gap-3 rounded-[18px] bg-[var(--fill-subtle)] px-3 py-2.5">
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-[#1d1d1f]">{visual.actionLabel}</p>
-          <p className="mt-0.5 text-xs text-black/45">
+          <p className="text-sm font-semibold text-[var(--ink)]">{visual.actionLabel}</p>
+          <p className="mt-0.5 text-xs text-[var(--ink-secondary)]">
             Modalità {visual.modeLabel}
             {fanMode ? ` · Ventola ${getClimateOptionLabel(fanMode)}` : ''}
           </p>
@@ -165,33 +159,36 @@ export function ClimateDetail({ entity }: { entity: HassEntity }) {
         <span
           className={cn(
             'shrink-0 rounded-full px-3 py-1.5 text-xs font-bold',
-            visual.isOn ? 'bg-green-500/12 text-green-700' : 'bg-black/8 text-black/45',
+            visual.isOn ? 'bg-green-500/12 text-green-700' : 'bg-[var(--fill-subtle)] text-[var(--ink-secondary)]',
           )}
         >
           {visual.onOffLabel}
         </span>
       </div>
 
+      {!adjustable && <p className="text-[13px] text-[var(--ink-secondary)]">Temperatura impostabile non disponibile: i controlli di temperatura sono disabilitati.</p>}
       <div className="flex flex-col items-center gap-4 pt-1">
         <RadialDial
-          value={displayedTemperature}
+          value={displayedTemperature ?? min}
           min={min}
           max={max}
           step={step}
           color={color}
           size={236}
-          label={formatClimateTemp(displayedTemperature, TEMP_UNIT)}
-          sublabel={`Setpoint · ambiente ${formatClimateTemp(current, TEMP_UNIT)}`}
-          onChange={pending || visual.unavailable ? undefined : setDragValue}
-          onTick={pending || visual.unavailable ? undefined : tick}
-          onCommit={pending || visual.unavailable ? undefined : (value) => { setTemp(value); setDragValue(null) }}
+          label={formatClimateTemp(displayedTemperature, unit)}
+          sublabel={`Setpoint · ambiente ${formatClimateTemp(current, unit)}`}
+          onChange={pending || visual.unavailable || !adjustable ? undefined : setDragValue}
+          onTick={pending || visual.unavailable || !adjustable ? undefined : tick}
+          onCancel={() => setDragValue(null)}
+          ariaLabel="Temperatura impostata"
+          onCommit={pending || visual.unavailable || !adjustable ? undefined : (value) => { setTemp(value); setDragValue(null) }}
         />
-        <div className="flex items-center gap-3">
+        <div className="flex w-full flex-wrap items-center justify-center gap-3">
           <button
             type="button"
-            onClick={() => setTemp(target - step)}
-            disabled={pending || visual.unavailable}
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-black/8 text-black/70 transition hover:bg-black/14 active:scale-90 disabled:cursor-not-allowed disabled:opacity-40"
+            onClick={() => target !== undefined && setTemp(target - step)}
+            disabled={pending || visual.unavailable || !adjustable || target === undefined || target <= min}
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--fill-subtle)] text-[var(--ink-secondary)] transition hover:bg-[var(--widget-control)] active:scale-90 disabled:cursor-not-allowed disabled:opacity-40"
             aria-label="Diminuisci temperatura"
           >
             <Minus size={18} aria-hidden="true" />
@@ -199,17 +196,17 @@ export function ClimateDetail({ entity }: { entity: HassEntity }) {
           <button
             type="button"
             onClick={() => { if (current !== undefined) setTemp(current) }}
-            disabled={pending || visual.unavailable || current === undefined}
-            className="rounded-full bg-black/8 px-6 py-3 text-sm font-semibold text-black/80 transition hover:bg-black/14 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+            disabled={pending || visual.unavailable || !adjustable || current === undefined}
+            className="rounded-full bg-[var(--fill-subtle)] px-6 py-3 text-sm font-semibold text-[var(--ink-secondary)] transition hover:bg-[var(--widget-control)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
             aria-label="Imposta la temperatura ambiente come target"
           >
             Allinea all’ambiente
           </button>
           <button
             type="button"
-            onClick={() => setTemp(target + step)}
-            disabled={pending || visual.unavailable}
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-black/8 text-black/70 transition hover:bg-black/14 active:scale-90 disabled:cursor-not-allowed disabled:opacity-40"
+            onClick={() => target !== undefined && setTemp(target + step)}
+            disabled={pending || visual.unavailable || !adjustable || target === undefined || target >= max}
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--fill-subtle)] text-[var(--ink-secondary)] transition hover:bg-[var(--widget-control)] active:scale-90 disabled:cursor-not-allowed disabled:opacity-40"
             aria-label="Aumenta temperatura"
           >
             <Plus size={18} aria-hidden="true" />
@@ -218,17 +215,17 @@ export function ClimateDetail({ entity }: { entity: HassEntity }) {
       </div>
 
       <div>
-        <p className="mb-2 text-xs font-semibold text-black/40">Accensione</p>
-        <div className="flex gap-2 rounded-[18px] bg-black/5 p-1.5">
+        <p className="mb-2 text-xs font-semibold text-[var(--ink-secondary)]">Accensione</p>
+        <div className="flex gap-2 rounded-[18px] bg-[var(--fill-subtle)] p-1.5">
           <button
             type="button"
             onClick={() => setMode(onMode)}
             disabled={pending || visual.unavailable}
             aria-pressed={visual.isOn}
             className={controlButtonClass(visual.isOn)}
-            style={visual.isOn ? { background: tokens.accent.green } : undefined}
+            style={visual.isOn ? { background: tokens.accent.blue } : undefined}
           >
-            ON
+            Accendi
             <span className="text-[10px] font-semibold opacity-75">{getHvacModeLabel(onMode)}</span>
           </button>
           <button
@@ -237,16 +234,16 @@ export function ClimateDetail({ entity }: { entity: HassEntity }) {
             disabled={pending || visual.unavailable}
             aria-pressed={mode === 'off'}
             className={controlButtonClass(mode === 'off')}
-            style={mode === 'off' ? { background: 'rgba(29,29,31,0.70)' } : undefined}
+            style={mode === 'off' ? { background: tokens.accent.blue } : undefined}
           >
             <Power size={15} aria-hidden="true" />
-            OFF
+            Spegni
           </button>
         </div>
       </div>
 
       <div>
-        <p className="mb-2 text-xs font-semibold text-black/40">Modalità HASS</p>
+        <p className="mb-2 text-xs font-semibold text-[var(--ink-secondary)]">Modalità</p>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {modes.map((id) => {
             const active = mode === id
@@ -260,9 +257,9 @@ export function ClimateDetail({ entity }: { entity: HassEntity }) {
                 aria-pressed={active}
                 className={cn(
                   'flex min-h-[56px] flex-col items-center justify-center gap-1 rounded-[14px] px-2 text-xs font-semibold leading-tight transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-40',
-                  active ? 'text-white shadow-sm' : 'bg-black/6 text-black/45 hover:text-black/70',
+                  active ? 'text-[var(--on-accent)] shadow-sm' : 'bg-[var(--fill-subtle)] text-[var(--ink-secondary)] hover:text-[var(--ink)]',
                 )}
-                style={active ? { background: id === 'off' ? 'rgba(29,29,31,0.70)' : tokens.accent.blue } : undefined}
+                style={active ? { background: tokens.accent.blue } : undefined}
               >
                 <Icon size={18} aria-hidden="true" />
                 <span className="text-center">{getHvacModeLabel(id)}</span>
@@ -274,7 +271,7 @@ export function ClimateDetail({ entity }: { entity: HassEntity }) {
 
       {fanModes.length > 0 && (
         <div>
-          <p className="mb-2 text-xs font-semibold text-black/40">Ventilatore</p>
+          <p className="mb-2 text-xs font-semibold text-[var(--ink-secondary)]">Ventilatore</p>
           <div className="flex gap-2 overflow-x-auto pb-1">
             {fanModes.map((fan) => {
               const active = fanMode === fan
@@ -287,7 +284,7 @@ export function ClimateDetail({ entity }: { entity: HassEntity }) {
                   aria-pressed={active}
                   className={cn(
                     'flex min-h-[44px] min-w-[64px] items-center justify-center rounded-[14px] px-3 text-sm font-semibold transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-40',
-                    active ? 'bg-black/16 text-[#1d1d1f]' : 'bg-black/6 text-black/45 hover:text-black/70',
+                    active ? 'bg-[var(--action-fill)] text-[var(--on-accent)]' : 'bg-[var(--fill-subtle)] text-[var(--ink-secondary)] hover:text-[var(--ink)]',
                   )}
                 >
                   {getClimateOptionLabel(fan)}
@@ -300,8 +297,8 @@ export function ClimateDetail({ entity }: { entity: HassEntity }) {
 
       {swingModes.length > 0 && (
         <div>
-          <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-black/40">
-            <Wind size={13} aria-hidden="true" /> Swing
+          <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-[var(--ink-secondary)]">
+            <Wind size={13} aria-hidden="true" /> Oscillazione
           </p>
           <div className="flex gap-2 overflow-x-auto pb-1">
             {swingModes.map((swing) => {
@@ -315,7 +312,7 @@ export function ClimateDetail({ entity }: { entity: HassEntity }) {
                   aria-pressed={active}
                   className={cn(
                     'flex min-h-[44px] min-w-[76px] items-center justify-center rounded-[14px] px-3 text-sm font-semibold transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-40',
-                    active ? 'bg-black/16 text-[#1d1d1f]' : 'bg-black/6 text-black/45 hover:text-black/70',
+                    active ? 'bg-[var(--action-fill)] text-[var(--on-accent)]' : 'bg-[var(--fill-subtle)] text-[var(--ink-secondary)] hover:text-[var(--ink)]',
                   )}
                 >
                   {getClimateOptionLabel(swing)}
@@ -328,7 +325,7 @@ export function ClimateDetail({ entity }: { entity: HassEntity }) {
 
       {presetModes.length > 0 && (
         <div>
-          <p className="mb-2 text-xs font-semibold text-black/40">Preset</p>
+          <p className="mb-2 text-xs font-semibold text-[var(--ink-secondary)]">Preset</p>
           <div className="flex gap-2 overflow-x-auto pb-1">
             {presetModes.map((preset) => {
               const active = presetMode === preset
@@ -341,7 +338,7 @@ export function ClimateDetail({ entity }: { entity: HassEntity }) {
                   aria-pressed={active}
                   className={cn(
                     'flex min-h-[44px] min-w-[76px] items-center justify-center rounded-[14px] px-3 text-sm font-semibold transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-40',
-                    active ? 'bg-black/16 text-[#1d1d1f]' : 'bg-black/6 text-black/45 hover:text-black/70',
+                    active ? 'bg-[var(--action-fill)] text-[var(--on-accent)]' : 'bg-[var(--fill-subtle)] text-[var(--ink-secondary)] hover:text-[var(--ink)]',
                   )}
                 >
                   {getClimateOptionLabel(preset)}

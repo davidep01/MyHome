@@ -121,7 +121,7 @@ export function StatusHeader({
 
   return (
     <header className="min-w-0 shrink-0 space-y-3.5">
-      <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-5">
+      <div className="flex min-w-0 flex-col gap-3 lg:flex-row lg:items-start lg:justify-between sm:gap-5">
         <button
           type="button"
           onClick={onClockTap}
@@ -142,7 +142,7 @@ export function StatusHeader({
         </button>
 
         <div
-          className="flex h-14 shrink-0 items-center overflow-hidden rounded-[18px] border border-black/[0.07] bg-white/65 shadow-sm backdrop-blur-xl dark:border-white/[0.10] dark:bg-white/[0.07]"
+          className="flex min-h-14 max-w-full flex-wrap items-center gap-y-2 rounded-[18px] border border-black/[0.07] bg-white/65 shadow-sm backdrop-blur-xl dark:border-white/[0.10] dark:bg-white/[0.07]"
           aria-label="Stato temperature, energia e notifiche"
         >
           <StatusTemperature
@@ -220,7 +220,7 @@ export function StatusHeader({
                   onClick={() => { void runAction(chip) }}
                   disabled={pendingAction !== null}
                   aria-busy={pendingAction === chip.id}
-                  className="tap-target min-h-9 shrink-0 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-[#1d1d1f] shadow-sm transition active:scale-95"
+                  className="tap-target min-h-11 min-w-11 shrink-0 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-[#1d1d1f] shadow-sm transition active:scale-95"
                 >
                   {pendingAction === chip.id && <LoaderCircle size={14} className="mr-1 inline animate-spin" aria-hidden="true" />}
                   {pendingAction === chip.id ? 'Esecuzione…' : chip.action.label}

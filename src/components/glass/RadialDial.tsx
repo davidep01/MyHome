@@ -1,4 +1,5 @@
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
+import { controlRange, dialControlValue } from '../../lib/controlRange'
 import { tokens } from '../../design/tokens'
 
 interface RadialDialProps {
@@ -18,6 +19,7 @@ interface RadialDialProps {
   onCommit?: (value: number) => void
   /** Per-step haptic click. */
   onTick?: () => void
+  onCancel?: () => void
 }
 
 // 270° arc with a 90° gap at the bottom: from -135° to +135° (clockwise from top).
@@ -51,14 +53,23 @@ export function RadialDial({
   onChange,
   onCommit,
   onTick,
+  onCancel,
 }: RadialDialProps) {
   const svgRef = useRef<SVGSVGElement>(null)
   const lastValue = useRef(value)
   const keyboardDirty = useRef(false)
-  const interactive = Boolean(onChange || onCommit)
-  const safeStep = step > 0 ? step : 1
-
-  const clamped = Math.min(Math.max(value, min), max)
+  const pointerId = useRef<number | null>(null)
+  const pointerOrigin = useRef(value)
+  const pointerDirty = useRef(false)
+  const range = controlRange(min, max, step)
+  min = range.min
+  max = range.max
+  const safeStep = range.step
+  const interactive = Boolean(onChange || onCommit) && max > min && Number.isFinite(value)
+  const clamped = Math.min(max, Math.max(min, Number.isFinite(value) ? value : min))
+  useEffect(() => {
+    if (pointerId.current === null && !keyboardDirty.current) lastValue.current = clamped
+  }, [clamped])
   const pct = (clamped - min) / (max - min || 1)
   const valAngle = A0 + pct * SWEEP
 
@@ -72,17 +83,14 @@ export function RadialDial({
     const svg = svgRef.current
     if (!svg) return null
     const rect = svg.getBoundingClientRect()
+    if (!rect.width || !rect.height) return null
     const px = ((clientX - rect.left) / rect.width) * 200
     const py = ((clientY - rect.top) / rect.height) * 200
     const dx = px - CX
     const dy = py - CY
     const deg = (Math.atan2(dx, -dy) * 180) / Math.PI // clockwise from top, (-180,180]
-    // Outside the 270° arc → snap to the nearest end (clamp handles the bottom gap).
-    const clampedDeg = Math.min(A1, Math.max(A0, deg))
-    const p = (clampedDeg - A0) / SWEEP
-    const raw = min + p * (max - min)
-    const snapped = min + Math.round((raw - min) / safeStep) * safeStep
-    return Math.min(max, Math.max(min, Number(snapped.toFixed(6))))
+    if (Math.hypot(dx, dy) < 35) return null
+    return dialControlValue(deg, lastValue.current, min, max, safeStep)
   }
 
   const handleMove = (clientX: number, clientY: number) => {
@@ -90,26 +98,38 @@ export function RadialDial({
     if (next == null) return
     if (next !== lastValue.current) {
       lastValue.current = next
+      pointerDirty.current = true
       onTick?.()
       onChange?.(next)
     }
   }
 
   const onPointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
-    if (!interactive) return
+    if (!interactive || !e.isPrimary || e.button !== 0 || pointerId.current !== null) return
+    e.preventDefault()
+    e.stopPropagation()
+    pointerId.current = e.pointerId
+    pointerDirty.current = false
+    pointerOrigin.current = clamped
     e.currentTarget.setPointerCapture(e.pointerId)
     keyboardDirty.current = false
     lastValue.current = clamped
     handleMove(e.clientX, e.clientY)
   }
   const onPointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
-    if (!interactive || !e.currentTarget.hasPointerCapture(e.pointerId)) return
+    if (!interactive || pointerId.current !== e.pointerId) return
     handleMove(e.clientX, e.clientY)
   }
-  const onPointerUp = (e: React.PointerEvent<SVGSVGElement>) => {
-    if (!interactive) return
+  const finishPointer = (e: React.PointerEvent<SVGSVGElement>, cancelled = false) => {
+    if (pointerId.current !== e.pointerId) return
+    pointerId.current = null
     if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId)
-    onCommit?.(lastValue.current)
+    if (cancelled || !interactive) {
+      lastValue.current = clamped
+      if (onCancel) onCancel()
+      else onChange?.(pointerOrigin.current)
+    } else if (pointerDirty.current) onCommit?.(lastValue.current)
+    pointerDirty.current = false
   }
 
   const onKeyDown = (e: React.KeyboardEvent<SVGSVGElement>) => {
@@ -117,7 +137,7 @@ export function RadialDial({
 
     let next: number | undefined
     let shouldSnap = true
-    const current = lastValue.current
+    const current = keyboardDirty.current ? lastValue.current : clamped
     switch (e.key) {
       case 'ArrowRight':
       case 'ArrowUp':
@@ -146,6 +166,7 @@ export function RadialDial({
     }
 
     e.preventDefault()
+    e.stopPropagation()
     const snapped = shouldSnap ? min + Math.round((next - min) / safeStep) * safeStep : next
     const bounded = Math.min(max, Math.max(min, Number(snapped.toFixed(6))))
     if (bounded === lastValue.current) return
@@ -159,7 +180,8 @@ export function RadialDial({
   const commitKeyboardValue = () => {
     if (!keyboardDirty.current) return
     keyboardDirty.current = false
-    onCommit?.(lastValue.current)
+    if (interactive) onCommit?.(lastValue.current)
+    else onCancel?.()
   }
 
   const accessibleName = ariaLabel ?? sublabel?.split('·')[0]?.trim() ?? 'Valore'
@@ -193,8 +215,9 @@ export function RadialDial({
         onFocus={() => { lastValue.current = clamped }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerCancel={onPointerUp}
+        onPointerUp={(event) => finishPointer(event)}
+        onPointerCancel={(event) => finishPointer(event, true)}
+        onLostPointerCapture={(event) => finishPointer(event, true)}
         onKeyDown={onKeyDown}
         onKeyUp={(event) => {
           if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End'].includes(event.key)) {
@@ -208,25 +231,25 @@ export function RadialDial({
           <line
             key={t.key}
             x1={t.x} y1={t.y} x2={t.x2} y2={t.y2}
-            stroke={t.on ? color : 'rgba(0,0,0,0.12)'}
+            stroke={t.on ? color : 'var(--ink-tertiary)'}
             strokeWidth="2"
             strokeLinecap="round"
           />
         ))}
         {/* track + value arc */}
-        <path d={arc(CX, CY, R, A0, A1)} fill="none" stroke="rgba(0,0,0,0.08)" strokeWidth="12" strokeLinecap="round" />
+        <path d={arc(CX, CY, R, A0, A1)} fill="none" stroke="var(--fill-subtle)" strokeWidth="12" strokeLinecap="round" />
         <path d={arc(CX, CY, R, A0, Math.max(A0 + 0.01, valAngle))} fill="none" stroke={color} strokeWidth="12" strokeLinecap="round" />
         {/* knob */}
         {interactive && (
           <g>
-            <circle cx={knob.x} cy={knob.y} r="13" fill="#fff" stroke="rgba(0,0,0,0.10)" strokeWidth="1" />
+            <circle cx={knob.x} cy={knob.y} r="13" fill="var(--surface-elevated)" stroke="var(--glass-edge)" strokeWidth="1" />
             <circle cx={knob.x} cy={knob.y} r="5" fill={color} />
           </g>
         )}
       </svg>
       <div className="relative text-center pointer-events-none">
         <div className="text-[34px] font-semibold leading-none tabular-nums" style={{ color }}>{label}</div>
-        {sublabel && <div className="mt-1.5 text-[11px] text-black/40">{sublabel}</div>}
+        {sublabel && <div className="mt-1.5 text-[13px] text-[var(--ink-secondary)]">{sublabel}</div>}
       </div>
     </div>
   )

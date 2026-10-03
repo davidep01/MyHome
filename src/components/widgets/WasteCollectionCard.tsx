@@ -70,7 +70,7 @@ function WasteKindBadge({ item, compact = false }: { item: WasteKind; compact?: 
       title={item.label}
     >
       <Icon size={compact ? 12 : 14} strokeWidth={2.2} className="shrink-0" aria-hidden="true" />
-      <span className="truncate text-[11px]">{item.label}</span>
+      <span className="truncate text-[13px]">{item.label}</span>
     </span>
   )
 }
@@ -82,7 +82,7 @@ function WasteDayRow({ pickup, label, compact = false }: {
 }) {
   return (
     <div className="flex min-w-0 items-center gap-2">
-      <span className="w-[48px] shrink-0 text-[11px] font-semibold text-black/50">{label}</span>
+      <span className="w-[48px] shrink-0 text-[13px] font-semibold text-black/50">{label}</span>
       {pickup ? (
         <div className="flex min-w-0 flex-1 gap-1 overflow-hidden">
           {pickup.items.slice(0, compact ? 1 : 3).map((item) => (
@@ -90,7 +90,7 @@ function WasteDayRow({ pickup, label, compact = false }: {
           ))}
         </div>
       ) : (
-        <span className="truncate text-[11px] font-medium text-black/35">Nessun ritiro</span>
+        <span className="truncate text-[13px] font-medium text-black/35">Nessun ritiro</span>
       )}
     </div>
   )
@@ -204,7 +204,7 @@ export function WasteCollectionCard({
         <WasteDayRow pickup={tomorrow} label="Domani" />
         {pickups.filter((pickup) => pickup.daysUntil > 1).slice(0, futurePickupLimit).map((pickup) => (
           <div key={pickup.dateKey} className="flex items-center gap-2 border-t border-black/[0.05] pt-1.5">
-            <span className="w-[48px] shrink-0 text-[11px] font-semibold text-black/40">Tra {pickup.daysUntil}g</span>
+            <span className="w-[48px] shrink-0 text-[13px] font-semibold text-black/40">Tra {pickup.daysUntil}g</span>
             <div className="flex min-w-0 gap-1 overflow-hidden">
               {pickup.items.slice(0, 3).map((item) => <WasteKindBadge key={item.key} item={item} compact />)}
             </div>

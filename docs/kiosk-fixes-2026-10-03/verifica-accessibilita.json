@@ -1,0 +1,23 @@
+{
+  "themeAuthority": {
+    "htmlDark": false,
+    "ink": "rgb(29, 29, 31)",
+    "osDark": true
+  },
+  "modeColors": {
+    "background": "rgb(0, 102, 204)",
+    "fontSize": "13px",
+    "foreground": "rgb(255, 255, 255)",
+    "height": 46.75
+  },
+  "perfLite": {
+    "backdrop": "0px",
+    "blur": "0px",
+    "cardFilter": "none"
+  },
+  "reducedTransparency": {
+    "backdrop": "0px",
+    "blur": "0px",
+    "cardFilter": "none"
+  }
+}

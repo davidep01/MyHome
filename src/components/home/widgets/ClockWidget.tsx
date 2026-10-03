@@ -14,9 +14,9 @@ export function ClockWidget({ size, userName }: { size: WidgetSize; userName?: s
   return (
     <AnimatedCard depth ambient="sheen" index={0} className="h-full" contentClassName="justify-center">
       <div
-        className="font-light leading-none tracking-[-0.03em] text-[#1d1d1f] tabular-nums"
+        className="font-light leading-none tracking-[-0.03em] text-[var(--ink)] tabular-nums"
         style={{
-          fontSize: size === 'sm' ? 'clamp(30px, 5vw, 42px)'
+          fontSize: size === 'xs' ? '28px' : size === 'sm' ? 'clamp(30px, 5vw, 42px)'
             : size === 'md' ? 'clamp(42px, 6vw, 58px)'
               : size === 'lg' ? 'clamp(58px, 8vw, 78px)'
                 : 'clamp(46px, 6vw, 62px)',
@@ -24,8 +24,8 @@ export function ClockWidget({ size, userName }: { size: WidgetSize; userName?: s
       >
         {time}
       </div>
-      <div className="mt-2 truncate text-sm capitalize text-black/45">{date}</div>
-      {size !== 'sm' && <div className={expanded ? 'mt-1 truncate text-lg font-semibold text-black/70' : 'mt-0.5 truncate text-sm font-semibold text-black/70'}>{greeting}, {name}</div>}
+      <div className="mt-2 truncate text-sm capitalize text-[var(--ink-secondary)]">{date}</div>
+      {size !== 'sm' && size !== 'xs' && <div className={expanded ? 'mt-1 truncate text-lg font-semibold text-[var(--ink)]' : 'mt-0.5 truncate text-sm font-semibold text-[var(--ink)]'}>{greeting}, {name}</div>}
     </AnimatedCard>
   )
 }

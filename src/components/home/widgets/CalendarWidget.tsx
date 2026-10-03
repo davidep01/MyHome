@@ -25,7 +25,7 @@ function formatWhen(start: number, ongoing: boolean, allDay: boolean): string {
 /** Upcoming events from the calendar link configured in the S.I.M.I. backend. */
 export function CalendarWidget({ size }: { size: WidgetSize }) {
   const { now } = useClock()
-  const showList = size === 'lg' || size === 'wide'
+  const showList = size === 'lg'
   const linkedCalendar = useQuery({
     queryKey: ['calendar-events'],
     queryFn: calendarApi.events,
@@ -39,16 +39,20 @@ export function CalendarWidget({ size }: { size: WidgetSize }) {
   }, [linkedCalendar.data?.events, now])
 
   const next = events[0]
+  if (size === 'xs') return <AnimatedCard className="h-full" contentClassName="gap-1">
+    <p className="line-clamp-2 text-[13px] font-semibold text-[var(--ink)]">{next?.title ?? 'Calendario'}</p>
+    <p className="truncate text-[13px] text-[var(--ink-secondary)]">{next ? formatWhen(next.start, next.ongoing, next.allDay) : linkedCalendar.isError ? 'Non raggiungibile' : linkedCalendar.isPending ? 'Caricamento…' : 'Nessun evento'}</p>
+  </AnimatedCard>
 
   return (
     <AnimatedCard depth ambient="drift" ambientColor="rgba(124,58,237,0.19)" index={7} className="h-full" contentClassName="gap-2">
       <div className="flex items-center gap-2">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black/[0.05] text-[#7c3aed]">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--fill-subtle)] text-[#7c3aed]">
           <CalendarDays size={18} />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-black/90">Calendario</p>
-          <p className="truncate text-xs text-black/45">
+          <p className="text-sm font-semibold text-[var(--ink)]">Calendario</p>
+          <p className="truncate text-[13px] text-[var(--ink-secondary)]">
             {events.length
               ? `${events.length} ${events.length === 1 ? 'evento' : 'eventi'}`
               : linkedCalendar.isPending
@@ -62,25 +66,25 @@ export function CalendarWidget({ size }: { size: WidgetSize }) {
       </div>
 
       {!next ? (
-        <p className="mt-1 text-xs text-black/40">
+        <p className="mt-1 text-[13px] text-[var(--ink-secondary)]">
           {linkedCalendar.isError ? 'Il link non risponde. Nuovo tentativo automatico tra poco.' : 'Nessun evento in programma.'}
         </p>
       ) : showList ? (
-        <div className={size === 'wide' ? 'mt-1 grid min-h-0 flex-1 grid-cols-2 gap-x-4 gap-y-1.5 overflow-hidden' : 'mt-1 min-h-0 flex-1 space-y-1.5 overflow-hidden'}>
-          {events.slice(0, 4).map((e) => (
+        <div className={'mt-1 min-h-0 flex-1 space-y-1.5 overflow-y-auto'}>
+          {events.map((e) => (
             <div key={e.id} className="flex items-center gap-2">
               <span className="h-7 w-1 shrink-0 rounded-full" style={{ background: e.ongoing ? '#7c3aed' : 'rgba(124,58,237,0.3)' }} />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-black/85">{e.title}</p>
-                <p className="truncate text-[11px] text-black/45">{formatWhen(e.start, e.ongoing, e.allDay)} · {e.calendar}{e.location ? ` · ${e.location}` : ''}</p>
+                <p className="truncate text-sm font-semibold text-[var(--ink)]">{e.title}</p>
+                <p className="truncate text-[13px] text-[var(--ink-secondary)]">{formatWhen(e.start, e.ongoing, e.allDay)} · {e.calendar}{e.location ? ` · ${e.location}` : ''}</p>
               </div>
             </div>
           ))}
         </div>
       ) : (
         <div className="mt-auto">
-          <p className="truncate text-base font-semibold text-black/90">{next.title}</p>
-          <p className="mt-0.5 flex items-center gap-1 text-xs text-black/50"><Clock size={12} /> {formatWhen(next.start, next.ongoing, next.allDay)}</p>
+          <p className="truncate text-base font-semibold text-[var(--ink)]">{next.title}</p>
+          <p className="mt-0.5 flex items-center gap-1 text-[13px] text-[var(--ink-secondary)]"><Clock size={12} /> {formatWhen(next.start, next.ongoing, next.allDay)}</p>
         </div>
       )}
     </AnimatedCard>

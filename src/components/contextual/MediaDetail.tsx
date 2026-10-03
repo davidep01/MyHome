@@ -31,7 +31,7 @@ export function MediaDetail({ entity }: { entity: HassEntity }) {
   const attrs = entity.attributes ?? {}
   const state = entity.state
   const isPlaying = state === 'playing'
-  const unavailable = state === 'unavailable'
+  const unavailable = ['unavailable', 'unknown'].includes(state)
   const isOff = state === 'off' || state === 'standby'
   const busy = pendingAction !== null
 
@@ -120,13 +120,13 @@ export function MediaDetail({ entity }: { entity: HassEntity }) {
         {pic ? (
           <img src={pic} alt="" className="h-16 w-16 shrink-0 rounded-[14px] object-cover shadow-md" />
         ) : (
-          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[14px] bg-black/8" aria-hidden="true">
-            <Play size={22} className="text-black/30" />
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[14px] bg-[var(--fill-subtle)]" aria-hidden="true">
+            <Play size={22} className="text-[var(--ink-secondary)]" />
           </div>
         )}
         <div className="min-w-0 flex-1" aria-live="polite">
-          <p className="truncate text-base font-semibold text-[#1d1d1f]">{title ?? (isOff ? 'Spento' : 'Nessuna riproduzione')}</p>
-          {artist && <p className="truncate text-sm text-black/50">{artist}</p>}
+          <p className="truncate text-base font-semibold text-[var(--ink)]">{title ?? (isOff ? 'Spento' : 'Nessuna riproduzione')}</p>
+          {artist && <p className="truncate text-sm text-[var(--ink-secondary)]">{artist}</p>}
         </div>
         <button
           type="button"
@@ -138,7 +138,7 @@ export function MediaDetail({ entity }: { entity: HassEntity }) {
             () => setOptimisticState(entityId, state),
           )}
           disabled={busy || unavailable}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-black/8 text-black/55 active:scale-90 disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--fill-subtle)] text-[var(--ink-secondary)] active:scale-90 disabled:cursor-not-allowed disabled:opacity-40"
           aria-label={isOff ? 'Accendi' : 'Spegni'}
         >
           {pendingAction === 'power' ? <LoaderCircle size={17} className="animate-spin" aria-hidden="true" /> : <Power size={17} aria-hidden="true" />}
@@ -158,7 +158,7 @@ export function MediaDetail({ entity }: { entity: HassEntity }) {
             () => setOptimisticState(entityId, state),
           )}
           disabled={busy || unavailable || isOff}
-          className="flex h-14 w-14 items-center justify-center rounded-full bg-black/15 text-[#1d1d1f] active:scale-90 disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--fill-subtle)] text-[var(--ink)] active:scale-90 disabled:cursor-not-allowed disabled:opacity-40"
           aria-label={isPlaying ? 'Pausa' : 'Riproduci'}
         >
           {pendingAction === 'play-pause'
@@ -193,7 +193,7 @@ export function MediaDetail({ entity }: { entity: HassEntity }) {
             () => setOptimisticState(entityId, state, { is_volume_muted: muted }),
           )}
           disabled={busy || unavailable || isOff}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-black/8 text-black/55 active:scale-90 disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--fill-subtle)] text-[var(--ink-secondary)] active:scale-90 disabled:cursor-not-allowed disabled:opacity-40"
           aria-label={muted ? 'Riattiva audio' : 'Disattiva audio'}
           aria-pressed={muted}
         >
@@ -203,6 +203,7 @@ export function MediaDetail({ entity }: { entity: HassEntity }) {
           <DragSlider
             value={volPreview ?? Math.round(volume * 100)}
             onChange={(value) => setVolPreview(Math.round(value))}
+            onCancel={() => setVolPreview(null)}
             onChangeEnd={(value) => { setVolPreview(null); setVolume(value / 100) }}
             variant="blue"
             ariaLabel="Volume"
@@ -214,7 +215,7 @@ export function MediaDetail({ entity }: { entity: HassEntity }) {
       {/* Remote D-pad (Apple TV / pyatv) */}
       {hasRemote && (
         <div>
-          <p id="media-remote-label" className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-black/35">Telecomando</p>
+          <p id="media-remote-label" className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--ink-secondary)]">Telecomando</p>
           <div
             className="mx-auto grid w-[210px] grid-cols-3 grid-rows-3 gap-1.5"
             style={{ gridTemplateAreas: '". up ." "left mid right" ". down ."' }}
@@ -230,7 +231,7 @@ export function MediaDetail({ entity }: { entity: HassEntity }) {
                 style={{ gridArea: area }}
                 className={cn(
                   'flex h-16 items-center justify-center rounded-[16px] transition active:scale-90 disabled:cursor-not-allowed disabled:opacity-40',
-                  area === 'mid' ? 'bg-[#0066cc] text-sm font-semibold text-white' : 'bg-black/8 text-black/70 hover:bg-black/12',
+                  area === 'mid' ? 'bg-[#0066cc] text-sm font-semibold text-white' : 'bg-[var(--fill-subtle)] text-[var(--ink-secondary)] hover:bg-[var(--fill-subtle)]',
                 )}
                 aria-label={label}
               >
@@ -249,7 +250,7 @@ export function MediaDetail({ entity }: { entity: HassEntity }) {
       {/* App / source picker */}
       {sources.length > 0 && (
         <div>
-          <p id="media-source-label" className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-black/35">App</p>
+          <p id="media-source-label" className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--ink-secondary)]">App</p>
           <div className="grid grid-cols-3 gap-2" role="group" aria-labelledby="media-source-label">
             {sources.slice(0, 12).map((source) => (
               <button
@@ -266,7 +267,7 @@ export function MediaDetail({ entity }: { entity: HassEntity }) {
                 aria-pressed={currentSource === source}
                 className={cn(
                   'min-h-11 truncate rounded-[12px] px-2 py-2.5 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-40',
-                  currentSource === source ? 'bg-[#0066cc] text-white' : 'bg-black/8 text-black/65 hover:bg-black/12',
+                  currentSource === source ? 'bg-[#0066cc] text-white' : 'bg-[var(--fill-subtle)] text-[var(--ink-secondary)] hover:bg-[var(--fill-subtle)]',
                 )}
               >
                 {source}
@@ -292,7 +293,7 @@ function Round({ onClick, children, label, disabled }: { onClick: () => void; ch
       onClick={onClick}
       disabled={disabled}
       aria-label={label}
-      className="flex h-11 w-11 items-center justify-center rounded-full bg-black/8 text-black/60 transition hover:bg-black/12 active:scale-90 disabled:cursor-not-allowed disabled:opacity-40"
+      className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--fill-subtle)] text-[var(--ink-secondary)] transition hover:bg-[var(--fill-subtle)] active:scale-90 disabled:cursor-not-allowed disabled:opacity-40"
     >
       {children}
     </button>
@@ -305,7 +306,7 @@ function RemoteBtn({ onClick, Icon, label, disabled }: { onClick: () => void; Ic
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="flex min-h-11 flex-col items-center gap-1 rounded-[14px] bg-black/8 py-2.5 text-[11px] font-semibold text-black/65 transition hover:bg-black/12 active:scale-90 disabled:cursor-not-allowed disabled:opacity-40"
+      className="flex min-h-11 flex-col items-center gap-1 rounded-[14px] bg-[var(--fill-subtle)] py-2.5 text-[11px] font-semibold text-[var(--ink-secondary)] transition hover:bg-[var(--fill-subtle)] active:scale-90 disabled:cursor-not-allowed disabled:opacity-40"
     >
       <Icon size={18} aria-hidden="true" />
       {label}

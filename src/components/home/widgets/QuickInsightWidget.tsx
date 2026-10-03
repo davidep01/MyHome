@@ -33,21 +33,21 @@ export function QuickInsightWidget({ size }: { size: WidgetSize }) {
   }, [insights.length])
 
   const text = insights[i % insights.length]
-  const expanded = size === 'lg' || size === 'wide'
+  const expanded = size === 'lg'
 
   return (
     <AnimatedCard depth ambient="sheen" index={6} className="h-full" contentClassName="justify-center gap-2">
-      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0066cc]/10 text-[#0066cc]">
+      {size !== 'xs' && <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0066cc]/10 text-[#0066cc]">
         <Sparkles size={17} className="amb-float" />
-      </div>
+      </div>}
       {expanded ? (
         <div className="min-h-0 overflow-hidden">
-          <p className="text-lg font-semibold text-[#1d1d1f]">In questo momento</p>
-          <div className={size === 'wide' ? 'mt-2 grid grid-cols-2 gap-x-5 gap-y-1.5' : 'mt-2 space-y-2'}>
+          <p className="text-lg font-semibold text-[var(--ink)]">In questo momento</p>
+          <div className={'mt-2 space-y-2'}>
             {insights.slice(0, 4).map((insight, index) => (
-              <div key={insight} className="flex items-center gap-2 text-sm text-black/65">
+              <div key={insight} className="flex items-center gap-2 text-sm text-[var(--ink-secondary)]">
                 <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#0066cc]" />
-                <span className={index === 0 ? 'truncate font-semibold text-black/80' : 'truncate'}>{insight}</span>
+                <span className={index === 0 ? 'truncate font-semibold text-[var(--ink)]' : 'truncate'}>{insight}</span>
               </div>
             ))}
           </div>
@@ -56,7 +56,7 @@ export function QuickInsightWidget({ size }: { size: WidgetSize }) {
         <AnimatePresence mode="wait">
           <motion.p
             key={text}
-            className={size === 'sm' ? 'line-clamp-2 text-sm font-semibold leading-tight text-[#1d1d1f]' : 'text-base font-semibold leading-tight text-[#1d1d1f]'}
+            className={size === 'xs' || size === 'sm' ? 'line-clamp-2 text-sm font-semibold leading-tight text-[var(--ink)]' : 'text-base font-semibold leading-tight text-[var(--ink)]'}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}

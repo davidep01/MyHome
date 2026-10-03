@@ -795,7 +795,7 @@ function EntityDetail({
       </div>
 
       <div className="space-y-1.5">
-        <p className="text-xs font-semibold text-[var(--ink-secondary)]" id={`${id}-type-label`}>Tipo card</p>
+        <p className="text-xs font-semibold text-[var(--ink-secondary)]" id={`${id}-type-label`}>Categoria dispositivo</p>
         <div className="grid grid-cols-2 gap-2" role="group" aria-labelledby={`${id}-type-label`}>
           {TYPE_OPTIONS.map((t) => (
             <button
@@ -810,7 +810,7 @@ function EntityDetail({
             </button>
           ))}
         </div>
-        <p className="text-[11px] text-[var(--ink-tertiary)]">Vuoto = tipo automatico dal dominio.</p>
+        <p className="text-[11px] text-[var(--ink-tertiary)]">Vuoto = categoria automatica. Card e comandi restano coerenti con il dominio Home Assistant.</p>
       </div>
 
       <div className="space-y-1.5">
