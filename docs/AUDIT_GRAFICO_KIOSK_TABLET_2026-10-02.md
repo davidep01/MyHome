@@ -1,8 +1,8 @@
 # S.I.M.I. — Audit grafico kiosk e specifica Liquid Glass
 
-**Data:** 2 ottobre 2026  
-**Destinazione:** tablet a muro, Fully Kiosk / Android; Light e Dark  
-**Stato aggiornato al 3 ottobre 2026:** correzioni applicate nel repository e verificate localmente; collaudo fisico e deploy ancora da eseguire. Vedi §14. I §§1–13 conservano la diagnosi e la specifica iniziali.  
+**Data:** 2 ottobre 2026
+**Destinazione:** tablet a muro, Fully Kiosk / Android; Light e Dark
+**Stato aggiornato al 3 ottobre 2026:** correzioni applicate nel repository e verificate localmente; collaudo fisico e deploy ancora da eseguire. Vedi §14. I §§1–13 conservano la diagnosi e la specifica iniziali.
 **Richiesta aggiornata:** interfaccia costruita su più livelli, con profondità e tridimensionalità Liquid Glass.
 
 ## 1. Esito e perimetro
@@ -1094,3 +1094,18 @@ Corretto `selectDashboardCameraIds`: ammette sia le camere esplicitamente abilit
 Corretto anche il comando globale quando una stanza è aperta: «Mostra videocamere» ritorna alla home e apre l'elenco globale invece di applicare silenziosamente il filtro della stanza, che poteva risultare vuoto. Applicato sia alla home composta sia alla griglia manuale.
 
 Tre test di regressione: camere campanello senza flag, esclusioni esplicite, entità assenti/allowlist. Gate: lint, **643 test / 118 file**, build frontend/backend, typecheck backend e diff-check PASS. Nessun deploy o modifica di configurazione eseguito; finché il fix non è distribuito, l'installazione mantiene il filtro precedente. Non verificata una nuova sessione Ring.
+
+
+## Rilascio verificato del 3 ottobre 2026 — 2.2.118
+
+Le correzioni dei §§14–16 sono **pubblicate e installate**. Le precedenti diciture «deploy non effettuato» descrivono lo stato prima dell'autorizzazione al rilascio.
+
+- Commit sorgente `bdd027e`; workflow [37109502878](https://github.com/davidep01/MyHome/actions/runs/37109502878) SUCCESS, inclusi quality gate e smoke dell'immagine finale linux/amd64 + linux/arm64.
+- Immagine `ghcr.io/davidep01/myhome:2.2.118`, manifest digest `sha256:9a0845ceb54fbaa9e338d65ee3593b16975165cef08dd09f54c65bbe83b9b644`; manifest add-on allineato automaticamente dal commit `7347fe2`. Nessun bump manuale.
+- Preflight: installata 2.2.117; backup portatile v2 con `secretsIncluded:false` salvato in `/tmp/myhome-release-2026-10-03/config-before.json`, permessi 0600. Il contenuto non è stato stampato.
+- Il primo «Controlla e aggiorna ora» ha reso disponibile la 2.2.118 ma non completato l'installazione. Dopo lettura installed=117/latest=118/in_progress=false/state=on, inviata una sola chiamata diretta `update.install` tramite proxy dell'app. La connessione HTTP si è chiusa durante il riavvio: non reinviata la richiesta.
+- Verifica successiva: HA installed/latest **2.2.118**, in_progress false; health ok, HA raggiungibile, storage scrivibile, backend avviato alle `2026-10-03T08:28:30.639Z`, zero disconnessioni del bridge dall'avvio. Non confondere il riavvio previsto del rilascio con stabilità di lunga durata.
+- Export pre/post: `store` identico, nessuna impostazione, stanza o entità modificata. Tablet Fully reale online, screenOn=true e canale audio dichiarato ready; sono metriche digitali, non prova fisica o uditiva.
+- Browser sull'installazione: pulsante videocamere chiuso all'ingresso; dopo clic compaiono esattamente Entrata/Giardino. Entrambe con readyState=4, video non paused e dimensioni non nulle; Entrata currentTime 12,64→50,18→66,15s, Giardino 3,79→19,76s. La negoziazione ha variato le dimensioni da 1920×1080 a 1280×720; registrato il dato effettivo, senza attribuirlo a perdita di frame. Stream di prova chiusi uscendo dalla tendina/home. Nessuna fotografia o frame privato salvato nel repository.
+
+La prova live è nel browser LAN: non equivale a streaming continuativo sul tablet né a certificazione di touch, audio, pressione prolungata e wake. Il monitoraggio automatico precedente non è riattivato. Audit runtime frontend/backend: zero vulnerabilità; CI con **643 test** PASS. Le prove fisiche del §15 restano da accettare.

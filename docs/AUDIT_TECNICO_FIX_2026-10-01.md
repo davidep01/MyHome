@@ -894,3 +894,10 @@ Corretti ruota temperatura, snapping frazionario condiviso, sincronizzazione con
 ### Tendina Telecamere vuota
 
 Diagnosi LAN in sola lettura: Entrata/Giardino presenti in HA e nei campanelli attivi, ma senza `deviceOverrides.enabled: true`. Il filtro della tendina ignorava la configurazione del campanello. Corretto nel sorgente per riconoscere entrambe le forme di selezione, rispettando disabilitazioni/nascondimenti. Il pulsante globale riporta alla home quando aperto da una stanza. Registro in [audit grafico §16](AUDIT_GRAFICO_KIOSK_TABLET_2026-10-02.md#16-pulsante-telecamere-senza-camere--3-ottobre-2026). Tre regressioni aggiunte: totale **643 test PASS** e gate completi PASS. Nessun nuovo stream, deploy o cambio configurazione.
+
+
+## 25. Deploy delle correzioni kiosk — 3 ottobre 2026
+
+**2.2.118 pubblicata e installata**: sorgente `bdd027e`, workflow https://github.com/davidep01/MyHome/actions/runs/37109502878 SUCCESS; smoke finali amd64/arm64, quality gate e 643 test PASS. Manifest digest `sha256:9a0845ceb54fbaa9e338d65ee3593b16975165cef08dd09f54c65bbe83b9b644`, aggiornamento automatico add-on `7347fe2`. HA conferma installed/latest 2.2.118, in_progress false; health/HA/storage OK, nessuna caduta del bridge dal nuovo avvio. Export pre/post identico nella sezione store. Backup portatile pre-deploy locale v2 senza segreti, permessi 0600.
+
+Pulsante Telecamere verificato sulla LAN: dopo clic compaiono Entrata/Giardino e arrivano frame reali su entrambe; readyState 4 e currentTime avanzante. Stream di prova chiusi; nessun frame privato salvato. Tablet Fully online, screenOn=true, audioChannel=ready sono esiti digitali, non prove fisiche. Registro completo nell'ultima sezione del [report grafico](AUDIT_GRAFICO_KIOSK_TABLET_2026-10-02.md). La prova di questa sessione non certifica video continuativo, wake, audio udibile o gesti touch su Android. Monitor precedente non riattivato.
