@@ -19,7 +19,7 @@ export function SecurityWidget({ size }: { size: WidgetSize }) {
   return (
     <AnimatedCard depth ambient="drift" ambientColor="rgba(220,38,38,0.18)" index={4} className="h-full" contentClassName="gap-2">
       <div className="flex items-center gap-2">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black/[0.05] text-[#dc2626]">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--fill-subtle)] text-[#dc2626]">
           {last ? <Bell size={18} className="amb-float" /> : <ShieldCheck size={18} />}
         </div>
         <div className="min-w-0 flex-1">

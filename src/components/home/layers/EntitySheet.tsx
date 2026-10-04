@@ -1,4 +1,5 @@
-import { useState, type CSSProperties } from 'react'
+import { useMemo, useState, type CSSProperties } from 'react'
+import { Search } from 'lucide-react'
 import { GlassSheet } from '../../glass/GlassSheet'
 import { EntityCard } from '../../widgets/WidgetGrid'
 import { WidgetErrorBoundary } from '../widgets/WidgetErrorBoundary'
@@ -23,10 +24,28 @@ export function EntitySheet({
   overrides?: Record<string, DeviceOverride>
   onClose: () => void
 }) {
+  return <EntitySheetContent key={target?.key ?? 'closed'} target={target} overrides={overrides} onClose={onClose} />
+}
+
+function EntitySheetContent({ target, overrides, onClose }: {
+  target: RoomTarget | null
+  overrides?: Record<string, DeviceOverride>
+  onClose: () => void
+}) {
   const entities = useEntityStore((s) => s.entities)
   const [showAll, setShowAll] = useState(false)
-  const ids = target?.entityIds ?? []
-  const visible = showAll ? ids : ids.slice(0, INITIAL_CAP)
+  const [query, setQuery] = useState('')
+  const [availability, setAvailability] = useState('all')
+  const ids = useMemo(() => [...new Set(target?.entityIds ?? [])], [target?.entityIds])
+  const filtered = ids.filter(id => {
+    const entity = entities[id]
+    const available = Boolean(entity) && !['unavailable', 'unknown'].includes(entity.state)
+    if (availability === 'available' && !available || availability === 'unavailable' && available) return false
+    const label = overrides?.[id]?.label || entity?.attributes.friendly_name || id
+    const normalize = (text: string) => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('it')
+    return normalize(`${label} ${id}`).includes(normalize(query.trim()))
+  })
+  const visible = showAll ? filtered : filtered.slice(0, INITIAL_CAP)
 
   return (
     <GlassSheet
@@ -36,6 +55,16 @@ export function EntitySheet({
       side="center"
       wide
     >
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <label className="flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-xl bg-[var(--fill-subtle)] px-3 text-[var(--ink-secondary)]">
+          <Search size={18} aria-hidden="true" />
+          <input type="search" aria-label="Cerca dispositivo" placeholder="Cerca dispositivo" value={query} onChange={e => { setQuery(e.target.value); setShowAll(false) }} className="min-h-11 min-w-0 flex-1 bg-transparent text-[var(--ink)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--action-blue)]" />
+        </label>
+        <select aria-label="Disponibilità dispositivi" value={availability} onChange={e => { setAvailability(e.target.value); setShowAll(false) }} className="min-h-11 rounded-xl bg-[var(--fill-subtle)] px-3 text-[var(--ink)]">
+          <option value="all">Tutti</option><option value="available">Disponibili</option><option value="unavailable">Non disponibili</option>
+        </select>
+      </div>
+      <p className="mb-3 text-sm text-[var(--ink-secondary)]" aria-live="polite">{filtered.length ? `${filtered.length} dispositivi` : 'Nessun dispositivo corrisponde alla ricerca'}</p>
       <div className="grid w-full grid-flow-row-dense auto-rows-[38px] grid-cols-1 gap-3.5 sm:grid-cols-3">
         {visible.map((entityId, index) => {
           const size = resolveEnabledCardSize('M', overrides?.[entityId])
@@ -60,13 +89,13 @@ export function EntitySheet({
           )
         })}
       </div>
-      {!showAll && ids.length > INITIAL_CAP && (
+      {!showAll && filtered.length > INITIAL_CAP && (
         <button
           type="button"
           onClick={() => setShowAll(true)}
-          className="mx-auto mt-4 flex min-h-[44px] items-center rounded-full bg-black/[0.06] px-5 text-sm font-semibold text-black/60 transition active:scale-95"
+          className="mx-auto mt-4 flex min-h-[44px] items-center rounded-full bg-[var(--fill-subtle)] px-5 text-sm font-semibold text-[var(--ink-secondary)] transition active:scale-95"
         >
-          Mostra tutte ({ids.length})
+          Mostra tutte ({filtered.length})
         </button>
       )}
     </GlassSheet>

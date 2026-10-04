@@ -1,3 +1,4 @@
+import { performEntityAction } from '../../lib/entityActions'
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Check, Music, DoorOpen, Moon, Film, Sunrise, Home as House, Sparkles } from 'lucide-react'
@@ -40,7 +41,7 @@ export function SceneRow({ size = 'wide' }: { size?: WidgetSize }) {
       </div>
     )
   }
-  const visibleScenes = scenes.slice(0, size === 'sm' ? 2 : size === 'md' ? 4 : size === 'lg' ? 6 : 10)
+  const visibleScenes = scenes
   const large = size === 'lg'
 
   const setPhase = (entityId: string, phase: ScenePhase) => setPhases((current) => ({ ...current, [entityId]: phase }))
@@ -52,7 +53,7 @@ export function SceneRow({ size = 'wide' }: { size?: WidgetSize }) {
     medium()
     setPhase(entityId, 'pending')
     try {
-      await call('scene', 'turn_on', { entity_id: entityId })
+      await performEntityAction(entityId,()=>{},()=>call('scene','turn_on',{entity_id:entityId}))
       setPhase(entityId, 'done')
       window.setTimeout(() => setPhase(entityId, 'idle'), 1800)
     } catch {
@@ -65,7 +66,7 @@ export function SceneRow({ size = 'wide' }: { size?: WidgetSize }) {
   return (
     // pt/pb give the orb glow + press-scale room — overflow-x:auto also clips
     // the y-axis, so without padding the circles look cut off at the top.
-    <div className={large ? 'grid w-full grid-cols-3 gap-x-4 gap-y-5 overflow-hidden px-1 py-2 sm:grid-cols-4' : 'flex shrink-0 items-start gap-[18px] overflow-x-auto px-0.5 pb-3 pt-1.5'}>
+    <div className={large ? 'grid w-full grid-cols-3 gap-x-4 gap-y-5 min-h-0 max-h-full overflow-y-auto px-1 py-2 sm:grid-cols-4' : 'flex shrink-0 items-start gap-[18px] overflow-x-auto px-0.5 pb-3 pt-1.5'}>
       {visibleScenes.map((scene) => {
         const Icon = sceneIcons[scene.icon] ?? Sparkles
         const phase = phases[scene.entityId] ?? 'idle'

@@ -1321,3 +1321,32 @@ a, button, [role="button"] { -webkit-touch-callout: default; }
 .widget-card-media[data-widget-size='S'] [data-media-live-content] > p:nth-of-type(1) { display: none; }
 
 .widget-card-media [data-media-live-content] > :first-child > span:last-child { min-width: 0; flex-shrink: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Domus-inspired editor controls: one glass layer, semantic appearance, 44px touch. */
+.simi-editor-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; min-width: 44px; padding: 8px 14px; border-radius: var(--radius-pill); background: var(--fill-subtle); color: var(--ink); transition: transform 120ms; }
+.simi-editor-button:active { transform: scale(.96); }
+.simi-editor-button:disabled { opacity: .4; }
+.simi-editor-button:focus-visible { outline: 2px solid var(--action-blue); outline-offset: 3px; }
+.simi-editor-recovery { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 14px; margin-bottom: 12px; border: 1px solid var(--hairline-strong); border-radius: var(--radius-card); background: var(--surface-elevated); color: var(--ink-secondary); font-size: 14px; }
+
+/* Device controls remain distinct from the details surface at every size. */
+.simi-stack-choice { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:48px; width:100%; padding:8px 12px; border-radius:var(--radius-control, 12px); background:var(--fill-subtle); color:var(--ink); text-align:left; }
+.simi-stack-choice[aria-pressed="true"] { box-shadow:inset 0 0 0 2px var(--action-blue); }
+.simi-stack-choice:disabled { opacity:.45; }
+.simi-card-extras { pointer-events:auto; min-height:0; overflow:auto; overscroll-behavior:contain; margin-top:12px; padding-top:12px; border-top:1px solid var(--hairline); }
+.simi-card-extras label { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; min-height:44px; font-size:13px; color:var(--ink-secondary); }
+.simi-card-extras select { min-height:44px; max-width:100%; border-radius:12px; background:var(--fill-subtle); color:var(--ink); padding:4px 10px; }
+.simi-card-extras button { min-height:44px; min-width:44px; border-radius:12px; padding:8px 12px; color:var(--ink); background:var(--fill-subtle); }
+.simi-card-extras button:disabled,.simi-card-extras select:disabled { opacity:.45; }
+.simi-card-extras :focus-visible,.simi-stack-choice:focus-visible { outline:2px solid var(--action-blue); outline-offset:2px; }
+.widget-card-shell[data-widget-size="XS"] .widget-card-icon { flex-shrink:0; }
+@container (max-width:190px) { .widget-card-shell[data-widget-size="XS"] .widget-card-icon:has(~ div ~ div) { display:none; } }
+.media-card-expanded-content > :not(.simi-card-extras) { flex-shrink:0; }
+.media-card-expanded-content .simi-card-extras { flex:1; margin-top:8px; padding-top:8px; text-align:left; }
+.widget-card-shell[data-widget-size="L"] .widget-card-identity { flex-shrink:0; }
+.widget-card-shell[data-widget-size="L"] .simi-card-extras { flex:1; }
+@container (max-width:280px) {
+  .group-card > :first-child > :first-child { display:none; }
+  .group-card > :first-child { gap:4px; }
+}
+.widget-card-media[data-widget-size='L'] [data-media-live-content] { padding-top:0; justify-content:flex-start; }

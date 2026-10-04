@@ -13,21 +13,21 @@ function timeAgo(dateStr: string): string {
 }
 
 export function NewsWidget({ size = 'md' }: { size?: WidgetSize }) {
-  const { data: articles, isLoading, error } = useNews()
+  const { data: articles, isLoading, error, refetch } = useNews()
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="h-5 w-5 rounded-full border-2 border-black/20 border-t-black/50 animate-spin" />
+        <div className="h-5 w-5 rounded-full border-2 border-[var(--hairline)] border-t-[var(--ink-secondary)] animate-spin" />
       </div>
     )
   }
 
   if (!articles?.length) {
     return (
-      <p className="text-[13px] text-[var(--ink-tertiary)] text-center py-6">
-        {error instanceof Error ? error.message : 'Nessuna notizia'}
-      </p>
+      <div className="text-center"><p role={error ? "alert" : "status"} className="text-[13px] text-[var(--ink-tertiary)] py-3">
+        {error ? 'Notizie non raggiungibili' : 'Nessuna notizia'}
+      </p>{error && <button type="button" className="min-h-11 rounded-xl bg-[var(--fill-subtle)] px-3 text-sm text-[var(--ink)]" onClick={()=>void refetch()}>Riprova notizie</button>}</div>
     )
   }
 
@@ -42,13 +42,13 @@ export function NewsWidget({ size = 'md' }: { size?: WidgetSize }) {
           href={article.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="group flex min-h-[44px] shrink-0 gap-3 rounded-[14px] bg-black/5 p-2 transition-colors hover:bg-black/8"
+          className="group flex min-h-[44px] shrink-0 gap-3 rounded-[14px] bg-[var(--fill-subtle)] p-2 transition-colors hover:bg-[var(--fill-muted)]"
         >
           {expanded && article.urlToImage && (
             <img
               src={article.urlToImage}
               alt=""
-              className="h-14 w-14 shrink-0 rounded-[10px] object-cover bg-black/10"
+              className="h-14 w-14 shrink-0 rounded-[10px] object-cover bg-[var(--fill-muted)]"
               onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
             />
           )}

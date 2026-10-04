@@ -2,6 +2,7 @@ import { motion, type HTMLMotionProps } from 'framer-motion'
 import { AlertTriangle, GripVertical, Lock, LockOpen, WifiOff } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties, ElementType, KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent, ReactNode } from 'react'
+import { controlRange, snapControlValue } from '../../lib/controlRange'
 import { cn } from '../../lib/utils'
 import { getWidgetSizeConfig } from './utils/getWidgetSizeConfig'
 import { widgetTones } from './utils/getRingColorScale'
@@ -78,7 +79,7 @@ export function WidgetCardShell({
       {interactive && (
         <button
           type="button"
-          className="widget-card-primary-action absolute inset-0 z-20 cursor-pointer rounded-[var(--radius-card)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0066cc] disabled:cursor-wait"
+          className="widget-card-primary-action absolute inset-0 z-20 cursor-pointer rounded-[var(--radius-card)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--action-blue)] disabled:cursor-wait"
           onClick={onClick}
           disabled={isPending}
           aria-label={onClickLabel ?? `Apri dettagli di ${title}`}
@@ -104,6 +105,7 @@ export function WidgetCardShell({
           )
         )}
       </div>
+      {isPending && <span role="status" className="pointer-events-none absolute bottom-1 left-3 z-40 text-[11px] text-[var(--ink-secondary)]">Invio comando…</span>}
       {isEditing && <WidgetCardEditOverlay size={size} />}
     </motion.div>
   )
@@ -282,6 +284,9 @@ export function WidgetCardSlider({
   onCancel,
   label = 'Regola valore',
   disabled = false,
+  min = 0,
+  max = 100,
+  step = 1,
 }: {
   value: number
   color?: string
@@ -290,6 +295,9 @@ export function WidgetCardSlider({
   onCancel?: () => void
   label?: string
   disabled?: boolean
+  min?: number
+  max?: number
+  step?: number
 }) {
   const trackRef = useRef<HTMLDivElement>(null)
   const [drag, setDrag] = useState<number | null>(null)
@@ -301,12 +309,14 @@ export function WidgetCardSlider({
     if (next !== null && !disabled) onCommit?.(next)
   }
   const activePointer = useRef<number | null>(null)
-  const pct = Math.max(0, Math.min(100, Number.isFinite(drag ?? value) ? (drag ?? value) : 0))
+  const range = controlRange(min, max, step)
+  const current = Math.max(range.min, Math.min(range.max, Number.isFinite(drag ?? value) ? (drag ?? value) : range.min))
+  const pct = range.max > range.min ? 100 * (current - range.min) / (range.max - range.min) : 0
 
   const valueFromPointer = (event: ReactPointerEvent) => {
     const rect = trackRef.current?.getBoundingClientRect()
-    if (!rect || rect.width === 0) return pct
-    return Math.max(0, Math.min(100, Math.round(((event.clientX - rect.left) / rect.width) * 100)))
+    if (!rect || rect.width === 0) return current
+    return snapControlValue(range.min + ((event.clientX - rect.left) / rect.width) * (range.max - range.min), range.min, range.max, range.step)
   }
 
   return (
@@ -316,10 +326,10 @@ export function WidgetCardSlider({
       tabIndex={disabled ? -1 : 0}
       aria-label={label}
       aria-disabled={disabled}
-      aria-valuenow={Math.round(pct)}
-      aria-valuetext={`${Math.round(pct)}%`}
-      aria-valuemin={0}
-      aria-valuemax={100}
+      aria-valuenow={current}
+      aria-valuetext={`${Number(current.toFixed(2))}%`}
+      aria-valuemin={range.min}
+      aria-valuemax={range.max}
       className={cn('tap-target pointer-events-auto relative h-11 w-full touch-none select-none', disabled && 'cursor-not-allowed opacity-40')}
       onClick={(event) => event.stopPropagation()}
       onPointerDown={(event) => {
@@ -349,20 +359,20 @@ export function WidgetCardSlider({
       onLostPointerCapture={() => { if (activePointer.current !== null) { activePointer.current = null; setDrag(null); onCancel?.() } }}
       onKeyDown={(event: ReactKeyboardEvent<HTMLDivElement>) => {
         if (disabled) return
-        const step = event.shiftKey ? 10 : 5
+        const increment = range.step * (event.shiftKey ? 10 : 1)
         const next = event.key === 'ArrowLeft' || event.key === 'ArrowDown'
-          ? Math.max(0, pct - step)
+          ? snapControlValue(current - increment, range.min, range.max, range.step)
           : event.key === 'ArrowRight' || event.key === 'ArrowUp'
-            ? Math.min(100, pct + step)
+            ? snapControlValue(current + increment, range.min, range.max, range.step)
             : event.key === 'Home'
-              ? 0
+              ? range.min
               : event.key === 'End'
-                ? 100
+                ? range.max
                 : null
         if (next === null) return
         event.preventDefault()
         event.stopPropagation()
-        if (next === pct) return
+        if (next === current) return
         keyboardValue.current = next
         setDrag(next)
         onChange?.(next)

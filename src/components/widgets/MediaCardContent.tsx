@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import type { HassEntity } from 'home-assistant-js-websocket'
 import { cn } from '../../lib/utils'
 import type { WidgetVisualSize } from './types'
@@ -16,6 +16,7 @@ export function MediaCardContent({
   progress,
   accentColor,
   error,
+  controls,
 }: {
   entity?: HassEntity
   deviceTitle: string
@@ -23,6 +24,7 @@ export function MediaCardContent({
   progress?: MediaPlaybackProgress
   accentColor: string
   error?: string | null
+  controls?: ReactNode
 }) {
   const [clock, setClock] = useState(() => Date.now())
   useEffect(() => {
@@ -51,7 +53,7 @@ export function MediaCardContent({
       'ml-auto mt-auto flex w-[64%] min-w-0 flex-col text-right',
       (size === 'M' || size === 'XL') && 'media-card-compact-content',
       mini && 'w-[66%]',
-      expanded && 'w-[60%]',
+      expanded && 'media-card-expanded-content w-[60%] h-full min-h-0 justify-start pt-12',
     )} data-media-live-content>
       <div className="mb-1 flex min-w-0 items-center justify-end gap-1.5">
         {expanded && app && <span className="max-w-[60%] truncate rounded-full bg-[var(--fill-subtle)] px-2 py-0.5 text-[13px] font-bold text-[var(--ink-secondary)] ">{app}</span>}
@@ -96,6 +98,7 @@ export function MediaCardContent({
           )}
         </div>
       )}
+      {controls}
     </div>
   )
 }

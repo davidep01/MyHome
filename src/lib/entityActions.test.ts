@@ -28,3 +28,19 @@ describe('shared entity transactions', () => {
     await expect(performEntityAction('lock.entry', () => {}, async () => {})).rejects.toThrow('non disponibile')
   })
 })
+
+it('reserves an entire group and rolls back only members without newer live updates', async () => {
+ const {performGroupAction}=await import('./entityActions')
+ const ids=['light.one','light.two']
+ const entries=Object.fromEntries(ids.map(id=>[id,{...entity,entity_id:id,state:'off'}]))
+ useEntityStore.getState().setEntities(entries)
+ useEntityStore.getState().setConnectionStatus('connected')
+ let reject!: (error:Error)=>void
+ const first=performGroupAction(ids,()=>ids.forEach(id=>useEntityStore.getState().setOptimisticState(id,'on')),()=>new Promise((_resolve,fail)=>{reject=fail}),id=>useEntityStore.getState().setOptimisticState(id,'off'))
+ await expect(performEntityAction('light.two',()=>{},async()=>{})).rejects.toThrow('già in esecuzione')
+ useEntityStore.getState().applyEntityDelta([{...entries['light.one'],state:'on',attributes:{brightness:90}}],[])
+ reject(new Error('Rejected'))
+ await expect(first).rejects.toThrow('Rejected')
+ expect(useEntityStore.getState().entities['light.one'].attributes.brightness).toBe(90)
+ expect(useEntityStore.getState().entities['light.two'].state).toBe('off')
+})

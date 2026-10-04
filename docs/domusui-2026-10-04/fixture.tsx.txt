@@ -1,0 +1,67 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, react-refresh/only-export-components */
+import React,{useState} from 'react';
+import{createRoot}from'react-dom/client';
+import{QueryClient,QueryClientProvider}from'@tanstack/react-query';
+import './src/index.css';
+import{WidgetCardFactory}from'./src/components/widgets/WidgetCardFactory';
+import{RoomDashboard}from'./src/components/home/layers/RoomDashboard';
+import{KioskWidgetHome}from'./src/components/home/widgets/KioskWidgetHome';
+import{EntitySheet}from'./src/components/home/layers/EntitySheet';
+import{DetailBoundary}from'./src/components/contextual/DetailBoundary';
+import{ContextualPanel}from'./src/components/contextual/ContextualPanel';
+import{HomeWidgetView}from'./src/components/home/widgets/HomeWidgetView';
+import{useDoorbellEvents}from'./src/store/doorbellEvents';
+import{useEntityStore}from'./src/store/entities';
+const entries=[
+ ['light.lamp','Lampada soggiorno vicino alla finestra','on',{brightness:180}],
+ ['switch.plug','Presa lavatrice','on',{current_power_w:980}],
+ ['fan.vent','Ventilatore soggiorno','on',{percentage:50,percentage_step:25,supported_features:15,oscillating:false,direction:'forward',preset_modes:['eco','turbo'],preset_mode:'eco'}],
+ ['climate.room','Climatizzatore soggiorno','heat',{current_temperature:19.8,temperature:22,current_humidity:48,hvac_action:'heating',hvac_modes:['off','heat','cool','auto','dry','fan_only'],fan_modes:['auto','low','high'],fan_mode:'auto',swing_mode:'vertical',preset_mode:'comfort'}],
+ ['climate.missing','Clima con temperatura assente','heat',{current_temperature:null,temperature:null,current_humidity:null,hvac_modes:['off','heat'],hvac_action:'idle'}],
+ ['cover.window','Tapparella grande soggiorno','opening',{current_position:40}],
+ ['lock.door','Porta principale','locked',{}],
+ ['media_player.speaker','Diffusore soggiorno','playing',{device_class:'speaker',media_title:'Titolo del brano molto lungo da visualizzare',media_artist:'Artista',media_album_name:'Album',media_duration:240,media_position:60,media_position_updated_at:new Date().toISOString(),app_name:'Musica',entity_picture:'/cover-a'}],
+ ['vacuum.robot','Robot aspirapolvere','cleaning',{battery_level:72}],
+ ['lawn_mower.robot','Robot giardino','mowing',{battery_level:38}],
+ ['humidifier.room','Umidificatore camera','on',{humidity:55,current_humidity:42,min_humidity:30,max_humidity:70,target_humidity_step:1}],
+ ['sensor.temp','Temperatura soggiorno','22.5',{device_class:'temperature',unit_of_measurement:'°C'}],
+ ['sensor.fahrenheit','Temperatura esterna Fahrenheit','72',{device_class:'temperature',unit_of_measurement:'°F'}],
+ ['sensor.pm25','Polveri PM2.5','150',{device_class:'pm25',unit_of_measurement:'µg/m³'}],
+ ['sensor.battery','Batteria sensore ingresso','12',{device_class:'battery',unit_of_measurement:'%'}],
+ ['sensor.power','Consumo elettrico casa','2870',{device_class:'power',unit_of_measurement:'W'}],
+ ['alarm_control_panel.home','Allarme casa','triggered',{}],
+ ['binary_sensor.smoke','Fumo cucina','on',{device_class:'smoke'}],
+ ['binary_sensor.leak','Perdita acqua cucina','on',{device_class:'moisture'}],
+ ['binary_sensor.door','Finestra camera','on',{device_class:'window'}],
+ ['binary_sensor.motion','Movimento corridoio','on',{device_class:'motion'}],
+ ['person.example','Persona esempio','home',{}],
+ ['scene.evening','Scenario sera','scening',{}],
+ ['automation.lights','Automazione luci','on',{}],
+ ['timer.cooking','Timer cucina','active',{remaining:'00:05:00',finishes_at:new Date(Date.now()+300000).toISOString()}],
+ ['water_heater.tank','Scaldacqua bagno','heat',{current_temperature:43,temperature:50}],
+ ['valve.water','Valvola irrigazione','open',{current_position:100}],
+ ['number.value','Regolazione valore','20',{min:0,max:100,step:1}],
+ ['select.mode','Selettore modalità','comfort',{options:['comfort','eco']}],
+ ['sensor.offline','Dispositivo non disponibile','unavailable',{}],
+ ['sensor.unknown','Dispositivo sconosciuto','unknown',{}],
+ ['sensor.long','Valore numerico molto lungo','123456789.12',{unit_of_measurement:'kWh'}],
+];
+const entities=Object.fromEntries(entries.map(([id,name,state,attrs])=>[id,{entity_id:id,state,attributes:{friendly_name:name,...attrs},last_changed:new Date().toISOString(),last_updated:new Date().toISOString(),context:{id:'fixture',parent_id:null,user_id:null}}]));
+useEntityStore.getState().setEntities(entities as any); useEntityStore.getState().setConnected(true);
+const q=new QueryClient({defaultOptions:{queries:{retry:false,staleTime:Infinity}}});
+const publicConfig={layoutVersion:4,dashboardName:'Casa di prova',layout:{cols:3,rowHeight:38,items:{}},widgets:[{id:'one',type:'entity',entityId:'light.lamp',size:'xs'},{id:'two',type:'entity',entityId:'climate.room',size:'md'},{id:'three',type:'news',size:'wide'}],userName:'Casa di prova',deviceOverrides:Object.fromEntries(entries.map(e=>[e[0],{enabled:true}])),groups:[{id:'test',label:'Luci soggiorno',type:'light',entityIds:['light.lamp']}]};
+q.setQueryData(['tablet-layout','home'],publicConfig);
+q.setQueryData(['config'],publicConfig);q.setQueryData(['auth-status'],{role:'admin'});
+q.setQueryData(['system-status'],{integrations:{openweather:true}});
+q.setQueryData(['weather','current'],{temp:22,feels_like:21,humidity:50,description:'Parzialmente nuvoloso',icon:'02d',wind_speed:12,city:'Località di prova'});
+q.setQueryData(['weather','forecast'],Array.from({length:4},(_,i)=>({dt:Math.floor(Date.now()/1000)+86400*i,temp_min:15,temp_max:24,icon:'02d',description:'Nuvoloso'})));
+q.setQueryData(['news','technology'],Array.from({length:4},(_,i)=>({id:String(i),url:'#',title:'Notizia dimostrativa dal titolo lungo per controllare la leggibilità',source:'Fonte di prova',publishedAt:new Date().toISOString()})));
+q.setQueryData(['calendar-events'],{configured:true,events:Array.from({length:4},(_,i)=>({id:String(i),title:'Appuntamento di prova dal nome lungo',start:new Date(Date.now()+3600000*(i+1)).toISOString(),end:new Date(Date.now()+3600000*(i+2)).toISOString(),calendar:'Calendario di prova',allDay:false}))});
+useDoorbellEvents.getState().push({id:'test',doorbellId:'test',doorbellName:'Ingresso di prova',type:'press',timestamp:new Date().toISOString()});
+const infoTypes=['clock','status','security','system','insight','calendar','news','people','quickStats','scenes','weather','group','camera','sensor','entity'];
+
+function FixtureDetail({fail}:{fail:boolean}){if(fail)throw new Error('Errore fittizio di collaudo');return <p>Pannello di prova funzionante</p>}
+function App(){const[fault,setFault]=useState(false);const[attempt,setAttempt]=useState(0);const[sheet,setSheet]=useState(false);const[detail,setDetail]=useState(false);const[pick,setPick]=useState('media_player.speaker');const[dark,setDark]=useState(false);const[room,setRoom]=useState(false);const[grid,setGrid]=useState(false);const[perf,setPerf]=useState(false);const[roomHeight,setRoomHeight]=useState(500);const item=entries.find(e=>e[0]===pick)??[pick,pick];
+return <div style={{height:'100dvh',overflow:'auto',padding:20,background:'var(--canvas-page)',color:'var(--ink)'}}><header style={{display:'flex',gap:12,flexWrap:'wrap',marginBottom:14}}><button onClick={()=>setFault(true)}>Errore pannello</button><button onClick={()=>document.exitFullscreen().catch(()=>{})}>Esci schermo intero</button><button onClick={()=>setSheet(true)}>Inventario</button><button onClick={()=>setDetail(!detail)}>Controlli</button><button onClick={()=>q.setQueryData(['tablet-layout','home'],{...publicConfig,layoutVersion:5})}>Aggiornamento remoto</button><strong>Laboratorio locale · dati fittizi · API bloccate</strong><select aria-label="Famiglia" value={pick} onChange={e=>{setPick(e.target.value);setRoom(false)}}>{infoTypes.map(t=><option key={t} value={'widget:'+t}>{'widget:'+t}</option>)}{entries.map(e=><option key={e[0] as string} value={e[0] as string}>{e[0] as string}</option>)}</select><button onClick={()=>{document.documentElement.classList.toggle('dark',!dark);setDark(!dark)}}>Tema {dark?'scuro':'chiaro'}</button><button onClick={()=>{const e=useEntityStore.getState().entities['media_player.speaker'];useEntityStore.getState().setEntities({...useEntityStore.getState().entities,'media_player.speaker':{...e,attributes:{...e.attributes,entity_picture:'/cover-b',media_title:'Secondo contenuto'}}})}}>Contenuto successivo</button><button onClick={()=>{const e=useEntityStore.getState().entities['media_player.speaker'];useEntityStore.getState().setEntities({...useEntityStore.getState().entities,'media_player.speaker':{...e,state:'off'}})}}>Player spento</button><button onClick={()=>{const e=useEntityStore.getState().entities['media_player.speaker'];useEntityStore.getState().setEntities({...useEntityStore.getState().entities,'media_player.speaker':{...e,attributes:{...e.attributes,entity_picture:'/broken',media_image_url:'/cover-a'}}})}}>Errore cover</button><button onClick={()=>setGrid(!grid)}>Griglia manuale</button><button onClick={()=>setRoom(!room)}>Stanza 6 dispositivi</button><button onClick={()=>setRoomHeight(roomHeight===500?300:500)}>Altezza stanza {roomHeight}</button><button onClick={()=>{document.documentElement.classList.toggle('perf-lite',!perf);setPerf(!perf)}}>Prestazioni {perf?'lite':'normali'}</button></header>
+<DetailBoundary key={attempt} onRetry={()=>{setFault(false);setAttempt(attempt+1)}}><FixtureDetail fail={fault}/></DetailBoundary><EntitySheet target={sheet?{key:'all',title:'Inventario di prova',entityIds:entries.map(e=>e[0] as string)}:null} overrides={publicConfig.deviceOverrides as any} onClose={()=>setSheet(false)}/>{detail?<ContextualPanel entityId={pick}/>:grid?<div style={{height:600}}><KioskWidgetHome/></div>:room?<div style={{height:roomHeight}}><RoomDashboard room={{key:'test',title:'Stanza esempio',entityIds:entries.slice(0,6).map(e=>e[0]),active:6} as any} overrides={Object.fromEntries(entries.slice(0,6).map(e=>[e[0],{enabled:true}]))}/></div>:<><h1 style={{fontSize:20,marginBottom:12}}>{item[1] as string}</h1><div style={{display:'grid',gridTemplateColumns:'repeat(3,minmax(0,1fr))',gridAutoRows:38,gap:14}}>{(['XS','S','M','L','XL']as const).map((size,i)=><div key={size} className="home-widget-tile" style={{gridColumn:`span ${[1,1,2,3,3][i]}`,gridRow:`span ${[2,3,3,6,3][i]}`}}>{pick.startsWith('widget:')?<HomeWidgetView widget={{id:pick,type:pick.slice(7),size:['xs','sm','md','lg','wide'][i],entityId:'sensor.temp',groupId:'test'} as any} publicConfig={publicConfig as any}/>:<WidgetCardFactory entity={{id:pick+'-'+size,entityId:pick,type:undefined,label:item[1]} as any} size={size}/>}</div>)}</div></>}
+</div>};createRoot(document.getElementById('root')!).render(<QueryClientProvider client={q}><App/></QueryClientProvider>);

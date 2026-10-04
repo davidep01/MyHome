@@ -83,3 +83,10 @@ describe('parseHomeWidgets', () => {
     }
   })
 })
+
+it('preserves mixed collection metadata and refuses invalid members', () => {
+  const collection = { id:'collection', type:'stack', size:'md', label:' Soggiorno ', entityIds:['light.one','fan.two'] }
+  expect(parseHomeWidgets([collection])).toEqual([{...collection,label:'Soggiorno'}])
+  for (const entityIds of [['light.one','camera.ring'],['light.one','light.one'],['light.one']]) expect(parseHomeWidgets([{...collection,entityIds}])).toBeNull()
+  expect(parseHomeWidgets([{...collection,size:'xs'}])).toBeNull()
+})

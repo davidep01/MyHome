@@ -122,3 +122,14 @@ it('ignores object property order for otherwise identical widgets', () => {
   recordHomeRevision(store, previous, next, { source: 'edit', createdBy: 'desktop' })
   expect(store.homeRevisions ?? []).toHaveLength(0)
 })
+
+it('records collection renames and membership changes, keeping independent snapshots', () => {
+  const store=emptyStore()
+  const previous=home({widgets:[{id:'collection',type:'stack',size:'md',label:'Stanza',entityIds:['light.one','fan.two']}]})
+  const next=home({layoutVersion:2,widgets:[{...previous.widgets[0],label:'Soggiorno',entityIds:['light.one','fan.two','sensor.temp']}]})
+  recordHomeRevision(store,previous,next,{source:'edit',createdBy:'tablet'})
+  expect(store.homeRevisions!.at(-1)!.summary.widgetsUpdated).toBe(1)
+  next.widgets[0].entityIds!.push('light.other')
+  expect(findHomeRevision(store,2)?.home.widgets[0].entityIds).toHaveLength(3)
+  expect(findHomeRevision(store,1)?.home.widgets[0].label).toBe('Stanza')
+})

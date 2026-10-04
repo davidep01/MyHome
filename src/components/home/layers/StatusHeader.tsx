@@ -15,7 +15,8 @@ import { externalTemperatureFromEntities, indoorClimateTemperatureSources } from
 import { HOUSE_CONSUMPTION_ID, energyWindowAt, formatPowerKw, isEnergyRisk, powerInKw, totalPowerInKw, wallboxMode } from '../../../lib/statusBarEnergy'
 import { ALARM_STATE_LABELS, isArmed } from '../../../lib/alarm'
 import { GlassSheet } from '../../glass/GlassSheet'
-import { AlarmDetail } from '../../contextual/AlarmDetail'
+import { DetailLoader } from '../../contextual/DetailLoader'
+import { DetailBoundary } from '../../contextual/DetailBoundary'
 import {
   CAR_CHARGING_POWER_ID,
   EnergyDetailSheet,
@@ -63,6 +64,7 @@ export function StatusHeader({
   const [wallboxOpen, setWallboxOpen] = useState(false)
   const [energyOpen, setEnergyOpen] = useState(false)
   const [alarmOpen, setAlarmOpen] = useState(false)
+  const [alarmAttempt, setAlarmAttempt] = useState(0)
   const [selectedAlarmId, setSelectedAlarmId] = useState<string | null>(null)
   const [indoorOpen, setIndoorOpen] = useState(false)
   const [energyAlert, setEnergyAlert] = useState<EnergyAlertPayload | null>(null)
@@ -280,7 +282,7 @@ export function StatusHeader({
                   ))}
                 </div>
               )}
-              <AlarmDetail entity={selectedAlarmEntity} />
+              <DetailBoundary key={`${selectedAlarmEntity.entity_id}:${alarmAttempt}`} onRetry={() => setAlarmAttempt(value => value + 1)}><DetailLoader domain="alarm_control_panel" entity={selectedAlarmEntity} /></DetailBoundary>
             </div>
           : <p className="py-8 text-center text-sm text-black/45 dark:text-white/45">Allarme non disponibile</p>}
       </GlassSheet>

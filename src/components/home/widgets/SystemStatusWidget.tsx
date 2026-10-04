@@ -11,14 +11,14 @@ const STATUS = {
   connecting: { label: 'Connessione…', color: '#c2410c' },
   disconnected: { label: 'Offline', color: '#dc2626' },
   error: { label: 'Errore', color: '#dc2626' },
-  idle: { label: 'In attesa', color: '#6e6e73' },
+  idle: { label: 'In attesa', color: 'var(--ink-tertiary)' },
 } as const
 
 /** Live system health: HA connection, entity count, sound state. */
 export function SystemStatusWidget({ size }: { size: WidgetSize }) {
   const status = useEntityStore((s) => s.connectionStatus)
   const entities = useEntityStore((s) => s.entities)
-  const { muted } = useSoundNotifications()
+  const { muted, setMuted } = useSoundNotifications()
   const count = useMemo(() => Object.keys(entities).length, [entities])
   const s = STATUS[status] ?? STATUS.idle
   const online = status === 'connected'
@@ -30,7 +30,7 @@ export function SystemStatusWidget({ size }: { size: WidgetSize }) {
   return (
     <AnimatedCard depth ambient="drift" ambientColor={`${s.color}1f`} index={5} className="h-full" contentClassName="gap-2">
       <div className="flex items-center gap-2">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black/[0.05]" style={{ color: s.color }}>
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--fill-subtle)]" style={{ color: s.color }}>
           <Cpu size={18} />
         </div>
         <div className="min-w-0 flex-1">
@@ -40,12 +40,13 @@ export function SystemStatusWidget({ size }: { size: WidgetSize }) {
         {online && <LiveDot color={s.color} />}
       </div>
 
+      {size === 'lg' && <button type="button" aria-pressed={!muted} onClick={()=>setMuted(!muted)} className="min-h-11 rounded-xl bg-[var(--fill-subtle)] px-3 text-sm text-[var(--ink)]">{muted ? 'Attiva suoni' : 'Silenzia suoni'}</button>}
       {size === 'sm' ? (
         <p className="mt-auto truncate text-sm font-semibold" style={{ color: s.color }}>{s.label}</p>
       ) : (
         <div className="mt-auto space-y-1.5">
           <Row icon={online ? Wifi : WifiOff} label="Home Assistant" value={s.label} color={s.color} />
-          <Row icon={muted ? VolumeX : Volume2} label="Audio" value={muted ? 'Muto' : 'Attivo'} color={muted ? '#6e6e73' : '#15803d'} />
+          <Row icon={muted ? VolumeX : Volume2} label="Audio" value={muted ? 'Muto' : 'Abilitato'} color={muted ? 'var(--ink-tertiary)' : '#15803d'} />
           {size === 'lg' && <Row icon={Cpu} label="Entità monitorate" value={String(count)} color="#0066cc" />}
         </div>
       )}

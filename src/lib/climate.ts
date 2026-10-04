@@ -1,4 +1,5 @@
 import { controlRange, snapControlValue } from './controlRange'
+import { supportsCardFeature } from './cardCapabilities'
 import { temperatureValue } from './climateState'
 import type { HassEntity } from 'home-assistant-js-websocket'
 
@@ -138,7 +139,7 @@ export function getClimateControls(entity?: HassEntity | null) {
   const range = controlRange(min, max, step)
   const target = read(attrs.temperature)
   return { ...range, unit, current: read(attrs.current_temperature), target,
-    adjustable: target !== undefined && max > min && step > 0 }
+    adjustable: supportsCardFeature(attrs, 1, true) && target !== undefined && max > min && step > 0 }
 }
 
 export { snapControlValue as snapClimateTemperature }

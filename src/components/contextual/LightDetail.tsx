@@ -1,3 +1,5 @@
+import { performEntityAction } from '../../lib/entityActions'
+import { lightCanDim } from '../../lib/cardCapabilities'
 import { useRef, useState } from 'react'
 import { Lightbulb } from 'lucide-react'
 import type { HassEntity } from 'home-assistant-js-websocket'
@@ -30,8 +32,7 @@ export function LightDetail({ entity }: { entity: HassEntity }) {
   const unavailable = ['unavailable', 'unknown'].includes(entity.state)
   const measuredBrightness = numericState(entity.attributes?.brightness)
   const brightness = measuredBrightness !== undefined ? Math.round(Math.min(255, Math.max(0, measuredBrightness)) / 255 * 100) : 0
-  const colorModes = entity.attributes?.supported_color_modes
-  const dimmable = measuredBrightness !== undefined || (Array.isArray(colorModes) && colorModes.some((mode) => !['onoff', 'unknown'].includes(String(mode))))
+  const dimmable = lightCanDim(entity.attributes)
   const cancelBrightness = () => {
     const original = brightnessOriginRef.current
     brightnessOriginRef.current = null
@@ -43,11 +44,8 @@ export function LightDetail({ entity }: { entity: HassEntity }) {
     busyRef.current = true
     setPending(true)
     setError(null)
-    optimistic()
-    void Promise.resolve()
-      .then(task)
+    void performEntityAction(entityId, optimistic, task, rollback)
       .catch(() => {
-        rollback()
         actionFailed()
         setError('Comando luce non eseguito. Riprova.')
       })

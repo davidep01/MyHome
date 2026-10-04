@@ -116,7 +116,7 @@ export interface AlarmSettings {
 export type WidgetType =
   | 'clock' | 'weather' | 'quickStats' | 'scenes' | 'status'
   | 'entity' | 'group' | 'sensor' | 'camera' | 'people'
-  | 'security' | 'system' | 'insight' | 'news' | 'calendar'
+  | 'security' | 'system' | 'insight' | 'news' | 'calendar' | 'stack'
 
 export type WidgetSize = 'xs' | 'sm' | 'md' | 'lg' | 'wide'
 
@@ -126,6 +126,8 @@ export interface HomeWidget {
   size: WidgetSize
   entityId?: string
   groupId?: string
+  label?: string
+  entityIds?: string[]
 }
 
 export interface HomeConfig {

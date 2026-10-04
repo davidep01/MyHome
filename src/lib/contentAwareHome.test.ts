@@ -80,3 +80,9 @@ describe('widget che non possono mostrare nulla', () => {
     expect(contentAwareHomeWidgets(widgets, {} as HassEntities).map((w) => w.id)).toEqual(['a', 'b', 'c'])
   })
 })
+
+it('keeps collection footprints while filtering collections without curated members', () => {
+  const widgets: HomeWidget[] = [{id:'collection',type:'stack',size:'sm',label:'Stanza',entityIds:['light.one','sensor.two']}]
+  expect(contentAwareHomeWidgets(widgets,{} as HassEntities,{'light.one':{enabled:true}})).toEqual(widgets)
+  expect(contentAwareHomeWidgets(widgets,{} as HassEntities,{'light.one':{enabled:true}},[],['light.one'])).toEqual([])
+})

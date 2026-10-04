@@ -37,7 +37,7 @@ export function QuickInsightWidget({ size }: { size: WidgetSize }) {
 
   return (
     <AnimatedCard depth ambient="sheen" index={6} className="h-full" contentClassName="justify-center gap-2">
-      {size !== 'xs' && <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0066cc]/10 text-[#0066cc]">
+      {size !== 'xs' && <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--fill-subtle)] text-[var(--action-blue)]">
         <Sparkles size={17} className="amb-float" />
       </div>}
       {expanded ? (
@@ -46,7 +46,7 @@ export function QuickInsightWidget({ size }: { size: WidgetSize }) {
           <div className={'mt-2 space-y-2'}>
             {insights.slice(0, 4).map((insight, index) => (
               <div key={insight} className="flex items-center gap-2 text-sm text-[var(--ink-secondary)]">
-                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#0066cc]" />
+                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--action-blue)]" />
                 <span className={index === 0 ? 'truncate font-semibold text-[var(--ink)]' : 'truncate'}>{insight}</span>
               </div>
             ))}

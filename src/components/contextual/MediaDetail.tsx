@@ -1,3 +1,4 @@
+import { performEntityAction } from '../../lib/entityActions'
 import { useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { HassEntity } from 'home-assistant-js-websocket'
@@ -63,11 +64,8 @@ export function MediaDetail({ entity }: { entity: HassEntity }) {
     setPendingAction(key)
     setError(null)
     haptic()
-    optimistic?.()
-    void Promise.resolve()
-      .then(task)
+    void performEntityAction(allowWhenMediaUnavailable ? remoteId : entityId, () => optimistic?.(), task, rollback)
       .catch(() => {
-        rollback?.()
         actionFailed()
         setError('Comando multimediale non eseguito. Riprova.')
       })

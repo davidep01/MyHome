@@ -1,9 +1,7 @@
 import { X, Flame, Lightbulb, ShieldCheck, Cpu, Tv } from 'lucide-react'
-import { ClimateDetail } from './ClimateDetail'
-import { GenericDetail } from './GenericDetail'
-import { LightDetail } from './LightDetail'
-import { AlarmDetail } from './AlarmDetail'
-import { MediaDetail } from './MediaDetail'
+import { useState } from 'react'
+import { DetailLoader } from './DetailLoader'
+import { DetailBoundary } from './DetailBoundary'
 import { useHAEntity } from '../../hooks/useHAEntity'
 import { useUIStore } from '../../store/ui'
 import { stateLabel } from '../widgets/utils/stateLabel'
@@ -20,6 +18,7 @@ const domainMeta: Record<string, { Icon: React.ElementType; color: string }> = {
 export function ContextualPanel({ entityId }: { entityId: string }) {
   const entity = useHAEntity(entityId)
   const setSelectedEntity = useUIStore((s) => s.setSelectedEntity)
+  const [attempt, setAttempt] = useState(0)
   const domain = entityId.split('.')[0]
   const meta = domainMeta[domain] ?? { Icon: Cpu, color: tokens.accent.blue }
   const Icon = meta.Icon
@@ -38,15 +37,15 @@ export function ContextualPanel({ entityId }: { entityId: string }) {
           <Icon size={18} style={{ color: meta.color }} aria-hidden="true" />
         </div>
         <div className="min-w-0 flex-1">
-          <h2 className="truncate text-base font-semibold text-black/90">{name}</h2>
-          <p className="truncate text-xs text-black/40">
+          <h2 className="truncate text-base font-semibold text-[var(--ink)]">{name}</h2>
+          <p className="truncate text-xs text-[var(--ink-secondary)]">
             {displayState}
           </p>
         </div>
         <button
           type="button"
           onClick={() => setSelectedEntity(null)}
-          className="tap-target flex h-9 w-9 items-center justify-center rounded-full bg-black/10 text-black/60 transition hover:text-[#1d1d1f] active:scale-95"
+          className="tap-target flex h-9 w-9 items-center justify-center rounded-full bg-[var(--fill-subtle)] text-[var(--ink-secondary)] transition hover:text-[var(--ink)] active:scale-95"
           aria-label="Chiudi"
         >
           <X size={16} aria-hidden="true" />
@@ -56,17 +55,11 @@ export function ContextualPanel({ entityId }: { entityId: string }) {
       {/* Body — lo scroll è dello sheet, qui niente overflow */}
       <div>
         {!entity ? (
-          <p className="py-12 text-center text-sm text-black/40">Entità non disponibile</p>
-        ) : domain === 'climate' ? (
-          <ClimateDetail key={entity.entity_id} entity={entity} />
-        ) : domain === 'light' ? (
-          <LightDetail key={entity.entity_id} entity={entity} />
-        ) : domain === 'alarm_control_panel' ? (
-          <AlarmDetail entity={entity} />
-        ) : domain === 'media_player' ? (
-          <MediaDetail key={entity.entity_id} entity={entity} />
+          <p className="py-12 text-center text-sm text-[var(--ink-secondary)]">Entità non disponibile</p>
         ) : (
-          <GenericDetail key={entity.entity_id} entity={entity} />
+          <DetailBoundary key={`${entityId}:${attempt}`} onRetry={() => setAttempt(value => value + 1)}>
+            <DetailLoader key={`${entityId}:${attempt}`} domain={domain} entity={entity} />
+          </DetailBoundary>
         )}
       </div>
     </div>

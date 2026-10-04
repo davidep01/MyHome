@@ -34,6 +34,7 @@ export const WIDGET_META: Record<WidgetType, WidgetMeta> = {
   news: { label: 'News', Icon: Newspaper, sizes: STANDARD_SIZES, defaultSize: 'lg' },
   calendar: { label: 'Calendario', Icon: CalendarDays, sizes: STANDARD_SIZES, defaultSize: 'md' },
   entity: { label: 'Dispositivo', Icon: ToggleRight, sizes: DEVICE_SIZES, defaultSize: 'sm', needs: 'entity' },
+  stack: { label: 'Raccolta', Icon: Layers, sizes: STANDARD_SIZES, defaultSize: 'md' },
   group: { label: 'Gruppo', Icon: Layers, sizes: STANDARD_SIZES, defaultSize: 'md', needs: 'group' },
   sensor: { label: 'Sensore', Icon: Activity, sizes: DEVICE_SIZES, defaultSize: 'sm', needs: 'sensor' },
   camera: { label: 'Videocamera', Icon: Video, sizes: DEVICE_SIZES, defaultSize: 'lg', needs: 'camera' },
@@ -41,7 +42,7 @@ export const WIDGET_META: Record<WidgetType, WidgetMeta> = {
 
 export const WIDGET_ORDER: WidgetType[] = [
   'clock', 'status', 'quickStats', 'insight', 'weather', 'calendar', 'news',
-  'security', 'system', 'scenes', 'people', 'entity', 'group', 'sensor',
+  'security', 'system', 'scenes', 'people', 'entity', 'group', 'stack', 'sensor',
 ]
 
 // 'camera' resta nel WIDGET_META per rendere i layout salvati in passato, ma

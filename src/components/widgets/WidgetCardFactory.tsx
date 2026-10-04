@@ -1,3 +1,8 @@
+import { useTimerPresentation } from '../../hooks/useTimerPresentation'
+import { controlRange, snapControlValue } from '../../lib/controlRange'
+import { DeviceCardExtras, type CardCommand } from './DeviceCardExtras'
+import { lightCanDim, supportsCardFeature } from '../../lib/cardCapabilities'
+import { fanControls, fanPercentage, humidityTarget, humidityRange } from '../../lib/airControls'
 import { performEntityAction } from '../../lib/entityActions'
 import { ChevronDown, ChevronUp, Home, Minus, Pause, Play, Plus, Square } from 'lucide-react'
 import { useMemo, useRef, useState } from 'react'
@@ -43,16 +48,25 @@ function isOnState(state?: string) {
   return state === 'on' || state === 'open' || state === 'playing' || state === 'cleaning'
 }
 
-const TOGGLE_FAMILIES = new Set(['switch', 'smartPlug', 'fan', 'humidifier', 'automation'])
+const TOGGLE_FAMILIES = new Set(['light', 'switch', 'smartPlug', 'fan', 'humidifier', 'automation'])
 const MEDIA_FAMILIES = new Set(['media', 'speaker', 'tv'])
 const COVER_FAMILIES = new Set(['cover', 'curtain', 'gate', 'garage'])
 
-export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, isEditing, isDragging }: Props) {
+export function WidgetCardFactory(props: Props) {
+  const linkedId = linkedMediaPlayerEntityId(props.entity.entityId, props.entity.type)
+  const effectiveId = useEntityStore(state => linkedId && state.entities[linkedId] ? linkedId : props.entity.entityId)
+  // A rebound widget starts a fresh transaction/UI session; late completions
+  // from its previous device must never leak into the new card.
+  return <WidgetCardFactoryContent key={effectiveId} {...props} />
+}
+
+function WidgetCardFactoryContent({ entity: roomEntity, size = 'M', className, isEditing, isDragging }: Props) {
   const sourceEntity = useHAEntity(roomEntity.entityId)
   const linkedMediaId = linkedMediaPlayerEntityId(roomEntity.entityId, roomEntity.type)
   const linkedMediaEntity = useHAEntity(linkedMediaId ?? roomEntity.entityId)
   const entityId = linkedMediaId && linkedMediaEntity ? linkedMediaId : roomEntity.entityId
   const entity = linkedMediaId && linkedMediaEntity ? linkedMediaEntity : sourceEntity
+  const timerValue = useTimerPresentation(entity)
   const effectiveRoomEntity = useMemo(
     () => entityId === roomEntity.entityId ? roomEntity : { ...roomEntity, entityId },
     [entityId, roomEntity],
@@ -75,7 +89,6 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
   const domain = serviceDomain(entityId)
   const unavailable = mapped.isUnavailable
   const on = isOnState(entity?.state)
-  const lightPowerCard = mapped.family === 'light' && !unavailable
 
   const busy = pendingAction !== null
 
@@ -95,7 +108,7 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
     rollback?: () => void,
     finish?: () => void,
   ) => {
-    if (busyRef.current) return
+    if (busyRef.current || isEditing || unavailable) return
     busyRef.current = true
     setPendingAction(key)
     setActionError(null)
@@ -139,10 +152,12 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
     if (!entity || unavailable) return
     const target = numericState(entity.attributes?.temperature)
     if (target === undefined) return
-    const min = numericState(entity.attributes?.min_temp) ?? 7
-    const max = numericState(entity.attributes?.max_temp) ?? 35
-    const step = numericState(entity.attributes?.target_temp_step) ?? 0.5
-    const next = Math.min(max, Math.max(min, Number((target + delta * step).toFixed(1))))
+    const min = numericState(entity.attributes?.min_temp)
+    const max = numericState(entity.attributes?.max_temp)
+    if (min === undefined || max === undefined) return
+    const range = controlRange(min,max,numericState(entity.attributes?.target_temp_step) ?? 0.5)
+    const next = snapControlValue(target + delta * range.step, range.min, range.max, range.step)
+    if (next === target) return
     const serviceDomain = domain === 'water_heater' ? 'water_heater' : 'climate'
     perform(
       'temperature',
@@ -185,13 +200,14 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
     )
   }
 
-  const setTargetHumidity = (value: number) => {
+  const setTargetHumidity = (raw: number) => {
+    const value = humidityTarget(raw, entity?.attributes ?? {})
     if (!entity || unavailable) return
     const previous = numericState(entity.attributes?.humidity)
     perform(
       'humidity',
-      () => { light(); setOptimisticState(entityId, entity.state, { humidity: Math.round(value) }) },
-      () => call('humidifier', 'set_humidity', { entity_id: entityId, humidity: Math.round(value) }),
+      () => { light(); setOptimisticState(entityId, entity.state, { humidity: value }) },
+      () => call('humidifier', 'set_humidity', { entity_id: entityId, humidity: value }),
       () => setOptimisticState(entityId, entity.state, previous === undefined ? {} : { humidity: previous }),
     )
   }
@@ -226,7 +242,8 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
     )
   }
 
-  const setFanSpeed = (value: number) => {
+  const setFanSpeed = (raw: number) => {
+    const value = fanPercentage(raw, entity?.attributes ?? {})
     if (!entity || unavailable) return
     const previous = numericState(entity.attributes?.percentage)
     perform(
@@ -279,12 +296,16 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
     )
   }
 
+  const extraCommand: CardCommand = (service, data, attributes, state) => {
+    if (!entity || unavailable || isEditing) return
+    perform(service, () => { light(); if (attributes || state) setOptimisticState(entityId, state ?? entity.state, attributes) },
+      () => call(domain, service, {entity_id:entityId, ...data}),
+      () => setOptimisticState(entityId, entity.state, entity.attributes))
+  }
+
   // ── Controllo in alto a destra, per famiglia ───────────────────────────────
   const trailing = (() => {
     if (unavailable) return null
-    if (mapped.family === 'light') {
-      return size === 'XS' || isEditing ? null : <WidgetCardControlButton onClick={() => setSelectedEntity(entityId)} label={`Dettagli di ${mapped.title}`}><ChevronDown size={18} aria-hidden="true" /></WidgetCardControlButton>
-    }
     if (isEditing) return null
     if (domain === 'siren') {
       return <HoldDangerAction active={on} disabled={busy} onActivate={togglePower} onDeactivate={togglePower} label={mapped.title} compact />
@@ -296,18 +317,24 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
       return <WidgetCardControlButton disabled={busy} onClick={activate} label={`Attiva ${mapped.title}`}><Play size={15} aria-hidden="true" /></WidgetCardControlButton>
     }
     if (MEDIA_FAMILIES.has(mapped.family)) {
+      if (!supportsCardFeature(entity?.attributes ?? {}, entity?.state === 'playing' ? 1 : 16384, true)) return null
       return (
         <WidgetCardControlButton disabled={busy} onClick={mediaAction} label={entity?.state === 'playing' ? 'Pausa' : 'Riproduci'}>
           {entity?.state === 'playing' ? <Pause size={15} aria-hidden="true" /> : <Play size={15} aria-hidden="true" className="translate-x-px" />}
         </WidgetCardControlButton>
       )
     }
+    if (domain === 'timer') {
+      const running = entity?.state === 'active'
+      const remaining = timerValue && timerValue.split(':').length === 2 ? `00:${timerValue}` : timerValue
+      return <WidgetCardControlButton disabled={busy} label={running ? 'Pausa timer' : 'Avvia timer'} onClick={() => extraCommand(running ? 'pause' : 'start',undefined,running && remaining ? {remaining} : {finishes_at:undefined},running ? 'paused' : 'active')}>{running ? <Pause size={16} aria-hidden="true" /> : <Play size={16} aria-hidden="true" />}</WidgetCardControlButton>
+    }
     if (size === 'XS' || size === 'S') return null
     if (mapped.family === 'climate' || mapped.family === 'thermostat') {
       return (
         <>
-          <WidgetCardControlButton disabled={busy || numericState(entity?.attributes?.temperature) === undefined} onClick={() => adjustClimate(-1)} label="Diminuisci temperatura"><Minus size={16} aria-hidden="true" /></WidgetCardControlButton>
-          <WidgetCardControlButton disabled={busy || numericState(entity?.attributes?.temperature) === undefined} onClick={() => adjustClimate(1)} label="Aumenta temperatura"><Plus size={16} aria-hidden="true" /></WidgetCardControlButton>
+          <WidgetCardControlButton disabled={busy || numericState(entity?.attributes?.temperature) === undefined || numericState(entity?.attributes?.min_temp) === undefined || numericState(entity?.attributes?.max_temp) === undefined} onClick={() => adjustClimate(-1)} label="Diminuisci temperatura"><Minus size={16} aria-hidden="true" /></WidgetCardControlButton>
+          <WidgetCardControlButton disabled={busy || numericState(entity?.attributes?.temperature) === undefined || numericState(entity?.attributes?.min_temp) === undefined || numericState(entity?.attributes?.max_temp) === undefined} onClick={() => adjustClimate(1)} label="Aumenta temperatura"><Plus size={16} aria-hidden="true" /></WidgetCardControlButton>
         </>
       )
     }
@@ -315,10 +342,10 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
       const moving = entity?.state === 'opening' || entity?.state === 'closing'
       return (
         <>
-          <WidgetCardControlButton disabled={busy} onClick={() => cover('open_cover')} label="Apri"><ChevronUp size={16} aria-hidden="true" /></WidgetCardControlButton>
+          <WidgetCardControlButton disabled={busy || entity?.state === 'open' || !supportsCardFeature(entity?.attributes ?? {}, 1, true)} onClick={() => cover('open_cover')} label="Apri"><ChevronUp size={16} aria-hidden="true" /></WidgetCardControlButton>
           {moving
-            ? <WidgetCardControlButton disabled={busy} onClick={() => cover('stop_cover')} label="Ferma"><Square size={13} aria-hidden="true" /></WidgetCardControlButton>
-            : <WidgetCardControlButton disabled={busy} onClick={() => cover('close_cover')} label="Chiudi"><ChevronDown size={16} aria-hidden="true" /></WidgetCardControlButton>}
+            ? <WidgetCardControlButton disabled={busy || !supportsCardFeature(entity?.attributes ?? {}, 8, true)} onClick={() => cover('stop_cover')} label="Ferma"><Square size={13} aria-hidden="true" /></WidgetCardControlButton>
+            : <WidgetCardControlButton disabled={busy || entity?.state === 'closed' || !supportsCardFeature(entity?.attributes ?? {}, 2, true)} onClick={() => cover('close_cover')} label="Chiudi"><ChevronDown size={16} aria-hidden="true" /></WidgetCardControlButton>}
         </>
       )
     }
@@ -336,6 +363,7 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
     if (mapped.family === 'vacuum' || mapped.family === 'mower') {
       const working = entity?.state === 'cleaning' || entity?.state === 'mowing'
       const action = mapped.family === 'mower' ? mowerAction : vacuumAction
+      if (mapped.family === 'vacuum' && !supportsCardFeature(entity?.attributes ?? {}, working ? 16 : 8192, true)) return null
       return (
         <WidgetCardControlButton disabled={busy} onClick={action} label={working ? 'Rientra alla base' : 'Avvia'}>
           {working ? <Home size={15} aria-hidden="true" /> : <Play size={15} aria-hidden="true" className="translate-x-px" />}
@@ -345,7 +373,10 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
     return null
   })()
 
-  const showSlider = size !== 'XS' && size !== 'S' && mapped.percent !== undefined && mapped.isActive
+  const inlineRange = mapped.family === 'humidifier' ? humidityRange(entity?.attributes ?? {})
+    : { min: 0, max: 100, step: mapped.family === 'fan' ? fanControls(entity?.attributes ?? {}).step : 1 }
+  const fanCanAdjust = mapped.family !== 'fan' || fanControls(entity?.attributes ?? {}).speed
+  const showSlider = !isEditing && !unavailable && (mapped.family !== 'light' || lightCanDim(entity?.attributes ?? {})) && fanCanAdjust && size !== 'XS' && size !== 'S' && mapped.percent !== undefined && mapped.isActive
     && (mapped.family === 'light' || mapped.family === 'fan' || mapped.family === 'humidifier')
 
   if (entity && isWasteCollectionSensor(entity)) {
@@ -391,10 +422,8 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
       isPending={busy}
       isEditing={isEditing}
       isDragging={isDragging}
-      className={cn(className, feedbackClass, lightPowerCard && 'widget-card-light-power', mediaCoverStyle && 'widget-card-media')}
-      onClick={lightPowerCard && size !== 'XS' ? togglePower : () => setSelectedEntity(entityId)}
-      onClickLabel={lightPowerCard && size !== 'XS' ? `${mapped.isActive ? 'Spegni' : 'Accendi'} ${mapped.title}` : undefined}
-      onClickPressed={lightPowerCard && size !== 'XS' ? mapped.isActive : undefined}
+      className={cn(className, feedbackClass, mediaCoverStyle && 'widget-card-media')}
+      onClick={() => setSelectedEntity(entityId)}
       media={liveCamera ? (
           <>
             <CameraStream entityId={entityId} fit="cover" badge className="h-full w-full" />
@@ -405,6 +434,7 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
           <MediaArtwork key={entityId} entityId={entityId} attributes={entity?.attributes} playing={entity?.state === 'playing'} title={(entity?.attributes?.media_title as string | undefined) ?? mapped.title} Icon={mapped.Icon} />
         ) : undefined}
     >
+      {actionError && <span role="alert" className="sr-only">{actionError}</span>}
       {liveCamera ? (
         <div className="mt-auto min-w-0 pt-2">
           <p className={cn('line-clamp-1 font-semibold leading-snug text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.55)]', size === 'XS' ? 'text-[12px]' : 'text-[15px]')}>
@@ -423,6 +453,7 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
               progress={mapped.mediaProgress}
               accentColor={mediaAccent}
               error={actionError}
+              controls={size === 'L' && entity && !isEditing ? <DeviceCardExtras entity={entity} disabled={busy} command={extraCommand} /> : undefined}
             />
           </>
         ) : size === 'XS' ? (
@@ -431,7 +462,7 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
             <div className="min-w-0 flex-1">
               <p className="truncate text-[13px] font-semibold leading-tight text-[var(--ink)]">{mapped.title}</p>
               <p className="mt-0.5 truncate text-[13px] font-normal leading-tight text-[var(--ink-secondary)]" style={mapped.stateAccent ? { color: mapped.accentColor } : undefined}>
-                {actionError ?? (mapped.value !== undefined ? `${mapped.value}${mapped.unit ?? ''}` : mapped.state)}
+                {actionError ?? (mapped.family === 'timer' && timerValue ? timerValue : mapped.value !== undefined ? `${mapped.value}${mapped.unit ?? ''}` : mapped.state)}
               </p>
             </div>
             {trailing && <div className="flex shrink-0 items-center">{trailing}</div>}
@@ -441,11 +472,11 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
             <WidgetCardIcon Icon={mapped.Icon} size={size} accentColor={mapped.accentColor} active={mapped.isActive || mapped.stateAccent === true} />
             <WidgetCardIdentity title={mapped.title} state={actionError ?? (mapped.state || undefined)}
               stateColor={actionError ? 'var(--danger-red)' : mapped.stateAccent ? mapped.accentColor : undefined}
-              value={mapped.value} unit={mapped.unit} size={size} active={mapped.isActive} />
+              value={mapped.family === 'timer' ? timerValue : mapped.value} unit={mapped.unit} size={size} active={mapped.isActive} />
             {(trailing || showSlider) && <div className="widget-card-actions flex shrink-0 flex-col items-end gap-1.5">
               {trailing && <div className="flex items-center gap-2">{trailing}</div>}
               {showSlider && <div className="widget-card-inline-slider">
-                <WidgetCardSlider value={mapped.percent ?? 0} color={mapped.accentColor} label={`Regola ${mapped.title}`}
+                <WidgetCardSlider {...inlineRange} value={mapped.percent ?? 0} color={mapped.accentColor} label={`Regola ${mapped.title}`}
                   disabled={busy} onChange={mapped.family === 'light' ? setBrightness : undefined}
                   onCancel={mapped.family === 'light' ? cancelBrightness : undefined}
                   onCommit={mapped.family === 'light' ? commitBrightness : mapped.family === 'fan' ? setFanSpeed : setTargetHumidity} />
@@ -462,17 +493,19 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
             <WidgetCardIdentity
               title={mapped.title}
               state={actionError ?? (size === 'S' && mapped.value !== undefined ? undefined : mapped.state || undefined)}
-              stateColor={actionError ? '#b42318' : mapped.stateAccent ? mapped.accentColor : undefined}
-              value={mapped.value}
+              stateColor={actionError ? 'var(--danger-red)' : mapped.stateAccent ? mapped.accentColor : undefined}
+              value={mapped.family === 'timer' ? timerValue : mapped.value}
               unit={mapped.unit}
               size={size}
               active={mapped.isActive}
               singleLineTitle={showSlider}
             />
 
+            {size === 'L' && entity && !isEditing && <DeviceCardExtras entity={entity} disabled={busy} command={extraCommand} />}
             {showSlider && (
               <div className="mt-1.5">
                 <WidgetCardSlider
+                  {...inlineRange}
                   value={mapped.percent ?? 0}
                   color={mapped.accentColor}
                   label={`Regola ${mapped.title}`}

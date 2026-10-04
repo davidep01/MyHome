@@ -9,7 +9,7 @@ import type { HomeWidget, TabletDashboardLayout } from '../../../api/backend'
 
 const GRID_PADDING: [number, number] = [0, 0]
 
-type PublicWidgetConfig = Pick<TabletDashboardLayout, 'deviceOverrides' | 'groups' | 'userName'>
+type PublicWidgetConfig = Pick<TabletDashboardLayout, 'deviceOverrides' | 'groups' | 'userName' | 'hiddenEntities'>
 
 interface HomeGridCanvasProps {
   widgets: HomeWidget[]

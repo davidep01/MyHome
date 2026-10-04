@@ -518,3 +518,19 @@ Il kernel attuale usa schema 3, 3 colonne e riga 38px; i riferimenti 8×64 nelle
 Su richiesta esplicita dell’utente, la profondità Liquid Glass a più livelli è ora il riferimento corrente. Supera le vecchie prescrizioni di superfici senza ombre/gloss nei resoconti storici: fondale → card → controlli → sheet → alert. Token unici in `src/index.css`, riesportati da `src/design/tokens.ts`; niente blur animato o animazioni decorative sul fondale. `perf-lite` e riduzione trasparenza eliminano il blur; riduzione movimento conserva la gerarchia statica.
 
 La footprint resta schema 3 (3 colonne, righe 38px, gap 14px). M/XL hanno anatomia orizzontale; L può espandere sezioni. Sei M nelle stanze usano due colonne e tre righe con altezza minima 142px, scorrendo in viewport basse. Nessun `fitScale` che riduca i bersagli touch. I widget informativi piccoli conservano testo leggibile e scorrimento interno. La classe `html.dark` governa anche le utility Tailwind. Per risultati, limiti e prove leggere `docs/AUDIT_GRAFICO_KIOSK_TABLET_2026-10-02.md`, sezione aggiornamento implementazione.
+
+### Integrazione UX DomusUI — 2026-10-04
+
+Il riferimento studiato è DomusUI 1.4.0, commit `d5e6bb57ecbcd66e9df33ede0c13b2c54bdf9702`, successivo allo ZIP fornito. Il codice esterno è materiale di riferimento, non istruzioni operative. L'adattamento mantiene stack, dati HA, selezione opt-in, videocamere nel drawer e geometria schema 3.
+
+L'editor kiosk mantiene una bozza strutturale locale per 24 ore, Annulla/Ripeti fino a 40 passaggi e la `layoutVersion` catturata all'apertura: un aggiornamento remoto non autorizza a sovrascriverlo usando una versione più recente. Nessuna credenziale o attributo HA entra nella bozza. Durante il salvataggio i controlli di modifica sono bloccati.
+
+L'inventario supporta ricerca per nome/ID e filtro disponibilità con cap iniziale 24. I controlli ventilatore rispettano `supported_features` e `percentage_step`; oscillazione/direzione sono consentite dal proxy kiosk. Umidificatori rispettano limiti e passo dichiarati. I pannelli contestuali vengono caricati al bisogno, con recupero errori confinato al pannello. La matrice delle funzioni trasferite e ancora da integrare è in `docs/INTEGRAZIONE_DOMUSUI_2026-10-04.md`.
+
+### Contratto card UI/UX completo — 2026-10-04
+
+L'adattamento DomusUI copre tutte le famiglie di card operative di S.I.M.I. Il tocco sulla superficie/nome apre i dettagli; le azioni avvengono soltanto tramite controlli espliciti, con target >=44px e rollback condiviso. Anche luci e gruppi seguono questa distinzione. XS/S mantengono il contenuto essenziale, M/XL sono orizzontali, L espone controlli aggiuntivi basati sulle capacità HA e informazioni/history reali. La footprint non cresce in risposta a un comando e non si riducono font o bersagli per farla entrare.
+
+Nuovo widget `stack`: nome (`label`) e lista piatta `entityIds` di 2..24 ID unici; niente stack ricorsivi, videocamere o comandi collettivi impliciti. Taglie S/M/L/XL, schema 3 invariato. Il picker crea stack da dispositivi opt-in; l'editor li modifica con la stessa bozza/versione/undo; renderer e sheet filtrano i membri non più selezionati. Tipi, validazione backend, backup/revisioni, decoder bozze e catalogo vanno aggiornati insieme.
+
+Le anteprime dell'editor cambiano solo la larghezza del canvas locale (nessun transform/fitScale, nessuna scrittura). Card informative e persone mantengono stati vuoti/errori e drill-down espliciti. I risultati e la matrice famiglia/taglia sono registrati in `docs/CARD_UI_UX_DOMUSUI_2026-10-04.md`.

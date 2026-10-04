@@ -29,7 +29,7 @@ const SERVICE_ALLOWLIST: Record<string, Set<string>> = {
   input_boolean: new Set(['turn_on', 'turn_off', 'toggle']),
   cover: new Set(['open_cover', 'close_cover', 'stop_cover', 'set_cover_position']),
   climate: new Set(['turn_on', 'turn_off', 'set_temperature', 'set_hvac_mode', 'set_fan_mode', 'set_swing_mode', 'set_preset_mode']),
-  fan: new Set(['turn_on', 'turn_off', 'toggle', 'set_percentage', 'set_preset_mode']),
+  fan: new Set(['turn_on', 'turn_off', 'toggle', 'set_percentage', 'set_preset_mode', 'oscillate', 'set_direction']),
   lock: new Set(['lock', 'unlock', 'open']),
   alarm_control_panel: new Set([
     'alarm_arm_home', 'alarm_arm_away', 'alarm_arm_night', 'alarm_arm_vacation',
@@ -44,6 +44,7 @@ const SERVICE_ALLOWLIST: Record<string, Set<string>> = {
   script: new Set(['turn_on']),
   button: new Set(['press']),
   input_button: new Set(['press']),
+  timer: new Set(['start', 'pause', 'cancel']),
   siren: new Set(['turn_on', 'turn_off', 'toggle']),
   number: new Set(['set_value']),
   input_number: new Set(['set_value']),

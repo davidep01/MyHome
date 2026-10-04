@@ -1,3 +1,4 @@
+import { visibleStackIds } from './cardStack'
 import type { HassEntities } from 'home-assistant-js-websocket'
 import type { DeviceOverride, EntityGroup, HomeWidget, WidgetSize } from '../api/backend'
 import { isConfiguredEntity } from './entityVisibility'
@@ -44,6 +45,7 @@ export function contentAwareHomeWidgets(
   entities: HassEntities,
   overrides?: Record<string, DeviceOverride>,
   groups?: EntityGroup[],
+  hiddenEntities?: string[],
 ): HomeWidget[] {
   return widgets
     // Un widget che non può mostrare nulla non deve occupare uno slot: la
@@ -51,6 +53,7 @@ export function contentAwareHomeWidgets(
     // Le videocamere escono sempre (il video vive nella tendina); i
     // dispositivi escono finché non sono scelti nel wizard.
     .filter((widget) => widget.type !== 'camera')
+    .filter(widget => widget.type !== 'stack' || visibleStackIds(widget.entityIds ?? [],overrides,hiddenEntities).length > 0)
     .filter((widget) => !widget.entityId || isConfiguredEntity(widget.entityId, overrides))
     .map((widget) => {
     const override = widget.entityId ? overrides?.[widget.entityId] : undefined

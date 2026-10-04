@@ -1,0 +1,9704 @@
+[
+  {
+    "family": "widget:clock",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:status",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:security",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:system",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:insight",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:calendar",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:news",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:people",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:quickStats",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:scenes",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:weather",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:group",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:camera",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:sensor",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:entity",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:stack",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "light.lamp",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "light.second",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "switch.plug",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "fan.vent",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "climate.room",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "climate.missing",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "cover.window",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "lock.door",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "media_player.speaker",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "vacuum.robot",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "lawn_mower.robot",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "humidifier.room",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.temp",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.fahrenheit",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.pm25",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.battery",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.power",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "alarm_control_panel.home",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "binary_sensor.smoke",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "binary_sensor.leak",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "binary_sensor.door",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "binary_sensor.motion",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "person.example",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "scene.evening",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "automation.lights",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "timer.cooking",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "water_heater.tank",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "valve.water",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "number.value",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "select.mode",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.offline",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.unknown",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.long",
+    "width": 600,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:clock",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:status",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:security",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:system",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:insight",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:calendar",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:news",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:people",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:quickStats",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:scenes",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:weather",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:group",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:camera",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:sensor",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:entity",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:stack",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "light.lamp",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "light.second",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "switch.plug",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "fan.vent",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "climate.room",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "climate.missing",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "cover.window",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "lock.door",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "media_player.speaker",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "vacuum.robot",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "lawn_mower.robot",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "humidifier.room",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.temp",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.fahrenheit",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.pm25",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.battery",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.power",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "alarm_control_panel.home",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "binary_sensor.smoke",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "binary_sensor.leak",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "binary_sensor.door",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "binary_sensor.motion",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "person.example",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "scene.evening",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "automation.lights",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "timer.cooking",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "water_heater.tank",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "valve.water",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "number.value",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "select.mode",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.offline",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.unknown",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.long",
+    "width": 600,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 177.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 177.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 368.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 559.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 559.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:clock",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:status",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:security",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:system",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:insight",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:calendar",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:news",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:people",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:quickStats",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:scenes",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:weather",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:group",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:camera",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:sensor",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:entity",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:stack",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "light.lamp",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "light.second",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "switch.plug",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "fan.vent",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "climate.room",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "climate.missing",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "cover.window",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "lock.door",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "media_player.speaker",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "vacuum.robot",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "lawn_mower.robot",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "humidifier.room",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.temp",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.fahrenheit",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.pm25",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.battery",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.power",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "alarm_control_panel.home",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "binary_sensor.smoke",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "binary_sensor.leak",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "binary_sensor.door",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "binary_sensor.motion",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "person.example",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "scene.evening",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "automation.lights",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "timer.cooking",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "water_heater.tank",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "valve.water",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "number.value",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "select.mode",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.offline",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.unknown",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.long",
+    "width": 768,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:clock",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:status",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:security",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:system",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:insight",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:calendar",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:news",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:people",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:quickStats",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:scenes",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:weather",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:group",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:camera",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:sensor",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:entity",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:stack",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "light.lamp",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "light.second",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "switch.plug",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "fan.vent",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "climate.room",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "climate.missing",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "cover.window",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "lock.door",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "media_player.speaker",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "vacuum.robot",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "lawn_mower.robot",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "humidifier.room",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.temp",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.fahrenheit",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.pm25",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.battery",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.power",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "alarm_control_panel.home",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "binary_sensor.smoke",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "binary_sensor.leak",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "binary_sensor.door",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "binary_sensor.motion",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "person.example",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "scene.evening",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "automation.lights",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "timer.cooking",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "water_heater.tank",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "valve.water",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "number.value",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "select.mode",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.offline",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.unknown",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.long",
+    "width": 768,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 233.328125
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 233.3359375
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 480.6640625
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 727.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 727.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:clock",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:status",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:security",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:system",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:insight",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:calendar",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:news",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:people",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:quickStats",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:scenes",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:weather",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:group",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:camera",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:sensor",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:entity",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:stack",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "light.lamp",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "light.second",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "switch.plug",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "fan.vent",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "climate.room",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "climate.missing",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "cover.window",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "lock.door",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "media_player.speaker",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "vacuum.robot",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "lawn_mower.robot",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "humidifier.room",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.temp",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.fahrenheit",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.pm25",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.battery",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.power",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "alarm_control_panel.home",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "binary_sensor.smoke",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "binary_sensor.leak",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "binary_sensor.door",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "binary_sensor.motion",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "person.example",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "scene.evening",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "automation.lights",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "timer.cooking",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "water_heater.tank",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "valve.water",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "number.value",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "select.mode",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.offline",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.unknown",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.long",
+    "width": 1024,
+    "theme": "light",
+    "appearance": "light",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:clock",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:status",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:security",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:system",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:insight",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:calendar",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:news",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:people",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:quickStats",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:scenes",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:weather",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:group",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:camera",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:sensor",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:entity",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "widget:stack",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "light.lamp",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "light.second",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "switch.plug",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "fan.vent",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "climate.room",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "climate.missing",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "cover.window",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "lock.door",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "media_player.speaker",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "vacuum.robot",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "lawn_mower.robot",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "humidifier.room",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.temp",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.fahrenheit",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.pm25",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.battery",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.power",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "alarm_control_panel.home",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "binary_sensor.smoke",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "binary_sensor.leak",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "binary_sensor.door",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "binary_sensor.motion",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "person.example",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "scene.evening",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "automation.lights",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "timer.cooking",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "water_heater.tank",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "valve.water",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "number.value",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "select.mode",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.offline",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.unknown",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  },
+  {
+    "family": "sensor.long",
+    "width": 1024,
+    "theme": "dark",
+    "appearance": "dark",
+    "metrics": [
+      {
+        "errors": [],
+        "h": 90,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 318.6640625
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 651.328125
+      },
+      {
+        "errors": [],
+        "h": 298,
+        "w": 983.9921875
+      },
+      {
+        "errors": [],
+        "h": 142,
+        "w": 983.9921875
+      }
+    ]
+  }
+]

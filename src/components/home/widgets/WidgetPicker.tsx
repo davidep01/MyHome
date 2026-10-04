@@ -1,3 +1,4 @@
+import { StackEditor } from './StackEditor'
 import { useMemo, useState } from 'react'
 import { Check, Layers, Search } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -53,6 +54,7 @@ export function WidgetPicker({
   const { sections } = useDiscoveredEntities(curation)
   const configGroups: EntityGroup[] = curation?.groups ?? []
   const [query, setQuery] = useState('')
+  const [stackOpen, setStackOpen] = useState(false)
 
   const presentTypes = useMemo(() => new Set(existing.map((w) => w.type)), [existing])
   const presentEntities = useMemo(() => new Set(existing.map((w) => w.entityId).filter(Boolean)), [existing])
@@ -70,12 +72,15 @@ export function WidgetPicker({
 
   const groups = configGroups.filter((g) => !q || g.label.toLowerCase().includes(q))
 
+  if (stackOpen && open) return <StackEditor curation={curation} onClose={() => setStackOpen(false)} onSave={onAdd} />
+
   return (
     <GlassSheet open={open} onClose={onClose} side="bottom" wide title="Aggiungi alla home">
       <div className="space-y-6 pb-2">
+        <button type="button" className="simi-editor-button w-full" onClick={() => setStackOpen(true)}>Crea raccolta di dispositivi</button>
         {/* Widget informativi */}
         <section className="space-y-2">
-          <h3 className="px-0.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-black/40">Widget</h3>
+          <h3 className="px-0.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--ink-secondary)]">Widget</h3>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {STATIC_WIDGETS.map((type) => {
               const meta = WIDGET_META[type]
@@ -88,17 +93,17 @@ export function WidgetPicker({
                   disabled={added}
                   onClick={() => onAdd(makeWidget(type))}
                   className={cn(
-                    'flex min-h-[64px] items-center gap-3 rounded-[14px] border border-black/[0.06] bg-white/70 px-3 py-2.5 text-left transition active:scale-[0.98]',
-                    added ? 'opacity-45' : 'hover:bg-white',
+                    'flex min-h-[64px] items-center gap-3 rounded-[14px] border border-[var(--hairline)] bg-[var(--fill-subtle)] px-3 py-2.5 text-left transition active:scale-[0.98]',
+                    added ? 'opacity-45' : 'hover:bg-[var(--fill-muted)]',
                   )}
                 >
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-black/[0.05] text-black/60">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-[var(--fill-subtle)] text-[var(--ink-secondary)]">
                     <Icon size={18} aria-hidden="true" />
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-semibold text-[#1d1d1f]">{meta.label}</span>
+                    <span className="block truncate text-sm font-semibold text-[var(--ink)]">{meta.label}</span>
                   </span>
-                  {added && <Check size={16} className="shrink-0 text-[#0066cc]" aria-label="Già presente" />}
+                  {added && <Check size={16} className="shrink-0 text-[var(--action-blue)]" aria-label="Già presente" />}
                 </button>
               )
             })}
@@ -107,21 +112,21 @@ export function WidgetPicker({
 
         {/* Ricerca dispositivi */}
         <section className="space-y-2">
-          <h3 className="px-0.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-black/40">Dispositivi</h3>
-          <div className="flex items-center gap-2 rounded-[12px] bg-black/[0.05] px-3">
-            <Search size={16} className="shrink-0 text-black/35" aria-hidden="true" />
+          <h3 className="px-0.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--ink-secondary)]">Dispositivi</h3>
+          <div className="flex items-center gap-2 rounded-[12px] bg-[var(--fill-subtle)] px-3">
+            <Search size={16} className="shrink-0 text-[var(--ink-tertiary)]" aria-hidden="true" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Cerca una luce, un sensore, una camera…"
+              placeholder="Cerca una luce, un sensore, un dispositivo…"
               aria-label="Cerca un dispositivo da aggiungere"
-              className="min-h-[44px] w-full bg-transparent text-sm text-[#1d1d1f] outline-none placeholder:text-black/35"
+              className="min-h-[44px] w-full bg-transparent text-sm text-[var(--ink)] outline-none placeholder:text-[var(--ink-tertiary)]"
             />
           </div>
 
           {groups.length > 0 && (
             <div className="space-y-1 pt-1">
-              <p className="px-0.5 text-[11px] font-semibold text-black/35">Gruppi</p>
+              <p className="px-0.5 text-[11px] font-semibold text-[var(--ink-tertiary)]">Gruppi</p>
               {groups.map((group) => {
                 const added = presentGroups.has(group.id)
                 return (
@@ -139,13 +144,13 @@ export function WidgetPicker({
           )}
 
           {deviceMatches.length === 0 && groups.length === 0 ? (
-            <p className="px-0.5 py-6 text-center text-sm text-black/40">
+            <p className="px-0.5 py-6 text-center text-sm text-[var(--ink-secondary)]">
               {q ? 'Nessun dispositivo corrisponde alla ricerca.' : 'Nessun dispositivo disponibile.'}
             </p>
           ) : (
             deviceMatches.map((section) => (
               <div key={section.label} className="space-y-1 pt-1">
-                <p className="px-0.5 text-[11px] font-semibold text-black/35">{section.label}</p>
+                <p className="px-0.5 text-[11px] font-semibold text-[var(--ink-tertiary)]">{section.label}</p>
                 {section.entities.map((entity) => {
                   const added = presentEntities.has(entity.entityId)
                   return (
@@ -186,13 +191,13 @@ function DeviceRow({
         added ? 'opacity-45' : 'hover:bg-black/[0.04]',
       )}
     >
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-black/[0.05] text-black/55">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--fill-subtle)] text-black/55">
         <DynamicIcon name={icon} fallback={fallbackIcon ?? Layers} size={17} />
       </span>
-      <span className="min-w-0 flex-1 truncate text-sm font-semibold text-[#1d1d1f]">{label}</span>
+      <span className="min-w-0 flex-1 truncate text-sm font-semibold text-[var(--ink)]">{label}</span>
       {added
-        ? <Check size={16} className="shrink-0 text-[#0066cc]" aria-label="Già presente" />
-        : <span className="shrink-0 rounded-full bg-[#0066cc]/10 px-2.5 py-1 text-[11px] font-semibold text-[#0066cc]">Aggiungi</span>}
+        ? <Check size={16} className="shrink-0 text-[var(--action-blue)]" aria-label="Già presente" />
+        : <span className="shrink-0 rounded-full bg-[#0066cc]/10 px-2.5 py-1 text-[11px] font-semibold text-[var(--action-blue)]">Aggiungi</span>}
     </button>
   )
 }

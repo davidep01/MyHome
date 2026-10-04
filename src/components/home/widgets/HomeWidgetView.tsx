@@ -1,3 +1,4 @@
+import { StackCard } from './StackCard'
 import { useEntityStore } from '../../../store/entities'
 import { useDashboardConfig } from '../../../hooks/useDashboardConfig'
 import { DOMAIN_TYPE } from '../../../hooks/useDiscoveredEntities'
@@ -20,7 +21,7 @@ import { AnimatedCard } from '../../anim/AnimatedCard'
 import type { EntityType, HomeWidget, RoomEntity, TabletDashboardLayout } from '../../../api/backend'
 import { widgetVisualSizeFromHomeSize } from '../../widgets/utils/getWidgetSizeConfig'
 
-type PublicWidgetConfig = Pick<TabletDashboardLayout, 'deviceOverrides' | 'groups' | 'userName'>
+type PublicWidgetConfig = Pick<TabletDashboardLayout, 'deviceOverrides' | 'groups' | 'userName' | 'hiddenEntities'>
 
 /** Build a RoomEntity for a bare entity id, honouring admin overrides. */
 function useRoomEntity(entityId?: string, publicConfig?: PublicWidgetConfig): RoomEntity | null {
@@ -46,7 +47,7 @@ function useRoomEntity(entityId?: string, publicConfig?: PublicWidgetConfig): Ro
 function MissingWidget({ text }: { text: string }) {
   return (
     <GlassCard className="flex h-full items-center justify-center">
-      <p className="text-xs text-black/35">{text}</p>
+      <p className="text-xs text-[var(--ink-secondary)]">{text}</p>
     </GlassCard>
   )
 }
@@ -62,6 +63,7 @@ function HomeWidgetContent({ widget, publicConfig }: { widget: HomeWidget; publi
   const visualSize = widgetVisualSizeFromHomeSize(widget.size)
 
   switch (widget.type) {
+    case 'stack': return <StackCard widget={widget} config={config} />
     case 'clock': return <ClockWidget size={widget.size} userName={config?.userName} />
     case 'status': return <StatusWidget size={widget.size} />
     case 'security': return <SecurityWidget size={widget.size} />
@@ -101,7 +103,7 @@ function HomeWidgetContent({ widget, publicConfig }: { widget: HomeWidget; publi
 /** The saved footprint is authoritative. Small informational cards scroll their
  * content instead of shrinking the font or clipping an unreachable control. */
 export function HomeWidgetView(props: { widget: HomeWidget; publicConfig?: PublicWidgetConfig }) {
-  const informational = !['sensor', 'entity', 'group'].includes(props.widget.type)
+  const informational = !['sensor', 'entity', 'group', 'stack'].includes(props.widget.type)
   return <div className={`home-widget-view h-full min-h-0 ${informational ? 'home-widget-info' : ''}`} data-home-widget-size={props.widget.size}>
     <HomeWidgetContent {...props} />
   </div>

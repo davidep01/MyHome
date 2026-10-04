@@ -1,0 +1,51 @@
+{
+  "date": "2026-10-04",
+  "upstream": {
+    "url": "https://github.com/Mattia2399/DomusUI",
+    "version": "1.4.0",
+    "commit": "d5e6bb57ecbcd66e9df33ede0c13b2c54bdf9702",
+    "zipCommit": "23c496040de7ba09b21622013aaa760460ad081c",
+    "remoteHeadRechecked": true
+  },
+  "validation": {
+    "lint": "PASS",
+    "tests": 655,
+    "testFiles": 121,
+    "buildAll": "PASS",
+    "backendTypecheck": "PASS",
+    "runtimeAuditFrontend": 0,
+    "runtimeAuditBackend": 0
+  },
+  "browser": {
+    "origin": "http://127.0.0.1:5198",
+    "syntheticData": true,
+    "apiBlocked": true,
+    "checks": [
+      "undo/redo",
+      "draft recovery new opening",
+      "remote-version warning",
+      "search and no-results state",
+      "filter unknown/unavailable",
+      "reset search on reopen",
+      "humidity bounds inline and detail",
+      "fan direction rollback after 503",
+      "panel lazy domain switch",
+      "render error confined and retry",
+      "Light/Dark inventory 768px",
+      "editor no horizontal overflow 600px",
+      "undo redo touch target 44x46"
+    ]
+  },
+  "deployment": {
+    "performed": false,
+    "physicalTabletTest": false,
+    "liveHACommands": false,
+    "newVideoSessions": false
+  },
+  "knownLimitations": [
+    "Integration is partial; consult report matrix.",
+    "No production chunk-download failure simulated.",
+    "No physical Android touch/wake/audio or fan/humidifier test.",
+    "Existing kioskDevice ineffective dynamic-import warning."
+  ]
+}

@@ -1,3 +1,4 @@
+import { performEntityAction } from '../../lib/entityActions'
 import type { ElementType, MouseEvent as ReactMouseEvent } from 'react'
 import { useMemo, useRef, useState } from 'react'
 import { Droplets, Fan, Flame, Minus, Plus, Power, Snowflake, Sparkles, Thermometer, Wind } from 'lucide-react'
@@ -133,11 +134,8 @@ export function ClimateCard({
     busyRef.current = true
     setPendingAction(key)
     setError(null)
-    optimistic()
-    void Promise.resolve()
-      .then(task)
+    void performEntityAction(entityId, optimistic, task, rollback)
       .catch(() => {
-        rollback()
         actionFailed()
         setError('Comando non eseguito')
       })
@@ -232,6 +230,7 @@ export function ClimateCard({
       onClick={() => setSelectedEntity(entityId)}
       className={cn('widget-card-climate', feedbackClass, className)}
     >
+      {error && <span role="alert" className="sr-only">{error}</span>}
       {size === 'XS' ? <ClimateXS {...common} />
         : size === 'S' ? <ClimateS {...common} />
           : size === 'M' ? <ClimateM {...common} />

@@ -7,13 +7,13 @@ import type { WidgetSize } from '../../api/backend'
 const DAYS = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab']
 
 export function WeatherWidget({ size = 'md' }: { size?: WidgetSize }) {
-  const { data: current, isLoading: loadingCurrent, error } = useCurrentWeather()
+  const { data: current, isLoading: loadingCurrent, error, refetch } = useCurrentWeather()
   const { data: forecast } = useWeatherForecast()
 
   if (loadingCurrent) {
     return (
       <div className="h-full flex items-center justify-center">
-        <div className="h-6 w-6 rounded-full border-2 border-black/20 border-t-black/50 animate-spin" />
+        <div className="h-6 w-6 rounded-full border-2 border-[var(--hairline)] border-t-[var(--ink-secondary)] animate-spin" />
       </div>
     )
   }
@@ -25,11 +25,12 @@ export function WeatherWidget({ size = 'md' }: { size?: WidgetSize }) {
           <CloudSun size={27} strokeWidth={1.7} aria-hidden="true" />
         </div>
         <div>
-          <p className="text-sm font-semibold text-[var(--ink)]">Meteo da configurare</p>
+          <p className="text-sm font-semibold text-[var(--ink)]">{error ? 'Meteo non raggiungibile' : 'Meteo da configurare'}</p>
           <p className="mx-auto mt-1 max-w-[280px] text-[13px] leading-5 text-[var(--ink-tertiary)]">
-            Aggiungi la chiave OpenWeather dalla regia per vedere condizioni e previsioni.
+            {error ? 'Impossibile aggiornare le condizioni meteo.' : 'Aggiungi la chiave OpenWeather dalla regia per vedere condizioni e previsioni.'}
           </p>
         </div>
+        {error && <button type="button" className="min-h-11 rounded-xl bg-[var(--fill-subtle)] px-3 text-sm text-[var(--ink)]" onClick={()=>void refetch()}>Riprova meteo</button>}
         <span className="sr-only">{error instanceof Error ? error.message : 'Meteo non disponibile'}</span>
       </div>
     )

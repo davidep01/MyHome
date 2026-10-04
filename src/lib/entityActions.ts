@@ -22,3 +22,19 @@ export async function performEntityAction(
     }
   } finally { pending.delete(entityId) }
 }
+
+/** Reserve the entire group before sending its single HA command. */
+export async function performGroupAction(entityIds: string[], start: () => void, task: () => Promise<unknown>, rollback: (id: string) => void): Promise<void> {
+  const ids = [...new Set(entityIds)]
+  const store = useEntityStore.getState()
+  if (!ids.length || !store.connected || ids.some(id => pending.has(id) || !store.entities[id] || ['unknown', 'unavailable'].includes(store.entities[id].state))) throw new Error('Gruppo non disponibile')
+  ids.forEach(id => pending.add(id))
+  try {
+    start()
+    const optimistic = new Map(ids.map(id => [id, useEntityStore.getState().entities[id]]))
+    try { await task() } catch (error) {
+      ids.forEach(id => { if (useEntityStore.getState().entities[id] === optimistic.get(id)) rollback(id) })
+      throw error
+    }
+  } finally { ids.forEach(id => pending.delete(id)) }
+}

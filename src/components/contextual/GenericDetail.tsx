@@ -1,3 +1,4 @@
+import { fanControls, fanPercentage, humidityRange, humidityTarget, humidityModes } from '../../lib/airControls'
 import { controlRange, snapControlValue } from '../../lib/controlRange'
 import { performEntityAction } from '../../lib/entityActions'
 import { useEffect, useId, useRef, useState } from 'react'
@@ -56,6 +57,8 @@ export function GenericDetail({ entity }: { entity: HassEntity }) {
   const attrs = entity.attributes ?? {}
   const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : undefined)
   const disabled = unavailable || pending
+  const fan = fanControls(attrs)
+  const humidity = humidityRange(attrs)
 
   const on = entity.state === 'on'
   const toggle = () => {
@@ -87,12 +90,14 @@ export function GenericDetail({ entity }: { entity: HassEntity }) {
       {domain === 'fan' && (
         <>
           <ToggleRow label={on ? 'In funzione' : 'Spento'} checked={on} disabled={disabled} onToggle={toggle} />
-          {num(attrs.percentage) !== undefined && (
+          {fan.speed && num(attrs.percentage) !== undefined && (
             <SliderRow
               label="Velocità"
+              step={fan.step}
               value={num(attrs.percentage) ?? 0}
               disabled={disabled || !on}
-              onCommit={(v) => {
+              onCommit={(raw) => {
+                const v = fanPercentage(raw, attrs)
                 act(
                   () => call('set_percentage', { percentage: v }),
                   () => setOptimisticState(entity.entity_id, v > 0 ? 'on' : 'off', { percentage: v }),
@@ -103,7 +108,7 @@ export function GenericDetail({ entity }: { entity: HassEntity }) {
           )}
           <OptionChips
             label="Modalità"
-            options={(attrs.preset_modes as string[] | undefined) ?? []}
+            options={fan.presets ? fan.modes : []}
             current={attrs.preset_mode as string | undefined}
             disabled={disabled}
             onPick={(mode) => act(
@@ -112,6 +117,15 @@ export function GenericDetail({ entity }: { entity: HassEntity }) {
               () => setOptimisticState(entity.entity_id, entity.state, { preset_mode: attrs.preset_mode }),
             )}
           />
+          {fan.oscillation && <ToggleRow label="Oscillazione" checked={attrs.oscillating === true} disabled={disabled || !on} onToggle={() => act(
+            () => call('oscillate', {oscillating:attrs.oscillating !== true}),
+            () => setOptimisticState(entity.entity_id, entity.state, {oscillating:attrs.oscillating !== true}),
+            () => setOptimisticState(entity.entity_id, entity.state, {oscillating:attrs.oscillating}),
+          )} />}
+          {fan.direction && <OptionChips label="Direzione" options={['Avanti','Indietro']} current={attrs.direction === 'reverse' ? 'Indietro' : 'Avanti'} disabled={disabled || !on} onPick={label => {
+            const direction = label === 'Avanti' ? 'forward' : 'reverse'
+            act(() => call('set_direction', {direction}), () => setOptimisticState(entity.entity_id, entity.state, {direction}), () => setOptimisticState(entity.entity_id, entity.state, {direction:attrs.direction}))
+          }} />}
         </>
       )}
 
@@ -122,10 +136,12 @@ export function GenericDetail({ entity }: { entity: HassEntity }) {
             <SliderRow
               label={`Umidità target${num(attrs.current_humidity) !== undefined ? ` · attuale ${Math.round(num(attrs.current_humidity)!)}%` : ''}`}
               value={num(attrs.humidity) ?? 50}
-              min={num(attrs.min_humidity) ?? 20}
-              max={num(attrs.max_humidity) ?? 90}
+              min={humidity.min}
+              max={humidity.max}
+              step={humidity.step}
               disabled={disabled || !on}
-              onCommit={(v) => {
+              onCommit={(raw) => {
+                const v = humidityTarget(raw, attrs)
                 act(
                   () => call('set_humidity', { humidity: v }),
                   () => setOptimisticState(entity.entity_id, 'on', { humidity: v }),
@@ -136,7 +152,7 @@ export function GenericDetail({ entity }: { entity: HassEntity }) {
           )}
           <OptionChips
             label="Modalità"
-            options={(attrs.available_modes as string[] | undefined) ?? []}
+            options={humidityModes(attrs)}
             current={attrs.mode as string | undefined}
             disabled={disabled}
             onPick={(mode) => act(
@@ -354,15 +370,14 @@ function ToggleRow({ label, checked, disabled, onToggle }: { label: string; chec
         id={controlId}
         type="button"
         className={cn(
-          'lg-toggle min-h-11 min-w-14 border-0 p-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0066cc]',
+          'lg-toggle min-h-11 min-w-14 border-0 p-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--action-blue)]',
           checked && 'on',
         )}
         onClick={onToggle}
         disabled={disabled}
         role="switch"
         aria-checked={checked}
-        aria-label="Accensione"
-        aria-describedby={statusId}
+        aria-labelledby={statusId}
       >
         <span className="lg-toggle-knob" aria-hidden="true" />
       </button>
@@ -421,7 +436,7 @@ function SliderRow({
           }
         }}
         onBlur={commitDraft}
-        className="min-h-11 w-full touch-none accent-[#0066cc] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0066cc] disabled:opacity-40"
+        className="min-h-11 w-full touch-none accent-[var(--action-blue)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--action-blue)] disabled:opacity-40"
       />
     </div>
   )
@@ -447,7 +462,7 @@ function OptionChips({
             aria-pressed={option === current}
             className={cn(
               'min-h-[44px] rounded-full px-4 text-sm font-semibold transition active:scale-95 disabled:opacity-40',
-              option === current ? 'bg-[#0066cc] text-white' : 'bg-[var(--fill-subtle)] text-[var(--ink-secondary)]',
+              option === current ? 'bg-[var(--action-blue)] text-white' : 'bg-[var(--fill-subtle)] text-[var(--ink-secondary)]',
             )}
           >
             {stateLabel(option)}
@@ -470,7 +485,7 @@ function ActionButton({
       disabled={disabled}
       className={cn(
         'flex min-h-[48px] items-center justify-center gap-2 rounded-[12px] text-sm font-semibold transition active:scale-[0.97] disabled:opacity-40',
-        primary ? 'w-full bg-[#0066cc] text-white' : 'bg-[var(--fill-subtle)] text-[var(--ink-secondary)]',
+        primary ? 'w-full bg-[var(--action-blue)] text-white' : 'bg-[var(--fill-subtle)] text-[var(--ink-secondary)]',
       )}
     >
       <Icon size={16} aria-hidden="true" /> {label}
@@ -551,15 +566,15 @@ function LockControl({
       aria-describedby={instructionId}
       aria-busy={holding}
       className={cn(
-        'relative flex w-full min-h-[56px] items-center justify-center gap-2 overflow-hidden rounded-[14px] text-base font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0066cc] disabled:cursor-not-allowed disabled:opacity-40',
-        locked ? 'bg-[var(--fill-subtle)] text-[var(--ink)]' : 'bg-[#0066cc] text-white',
+        'relative flex w-full min-h-[56px] items-center justify-center gap-2 overflow-hidden rounded-[14px] text-base font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--action-blue)] disabled:cursor-not-allowed disabled:opacity-40',
+        locked ? 'bg-[var(--fill-subtle)] text-[var(--ink)]' : 'bg-[var(--action-blue)] text-white',
         holding && 'scale-[0.98]',
       )}
     >
       {/* progress della pressione prolungata */}
       {holding && (
         <span
-          className="absolute inset-y-0 left-0 bg-[#0066cc]/25"
+          className="absolute inset-y-0 left-0 bg-[var(--action-blue)]/25"
           style={{ animation: 'lock-hold-fill 900ms linear forwards' }}
         />
       )}

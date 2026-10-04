@@ -1,3 +1,4 @@
+import { performEntityAction } from '../../lib/entityActions'
 import { useRef, useState } from 'react'
 import type { ElementType } from 'react'
 import { Minus, Plus, Power, Flame, Sparkles, Snowflake, Droplets, Fan, Wind, Thermometer } from 'lucide-react'
@@ -73,11 +74,8 @@ export function ClimateDetail({ entity }: { entity: HassEntity }) {
     busyRef.current = true
     setPending(true)
     setError(null)
-    optimistic()
-    void Promise.resolve()
-      .then(task)
+    void performEntityAction(entityId, optimistic, task, rollback)
       .catch(() => {
-        rollback()
         actionFailed()
         setError('Comando clima non eseguito. Riprova.')
       })

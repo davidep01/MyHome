@@ -4,6 +4,9 @@
  * con grazia a "snake_case → parole".
  */
 const STATE_LABELS: Record<string, string> = {
+  forward: 'Avanti',
+  reverse: 'Indietro',
+  normal: 'Normale',
   // generici
   on: 'Acceso',
   off: 'Spento',

@@ -39,6 +39,7 @@ const WIDGET_TYPES = new Set<WidgetType>([
   'insight',
   'news',
   'calendar',
+  'stack',
 ])
 
 const WIDGET_SIZES = new Set<WidgetSize>(['xs', 'sm', 'md', 'lg', 'wide'])
@@ -73,6 +74,12 @@ export function sanitizeWidget(value: unknown): HomeWidget | null {
 
   if (!/^[a-z0-9][a-z0-9_-]*$/i.test(id)) return null
   const widget: HomeWidget = { id, type: value.type, size: value.size }
+  if (value.type === 'stack') {
+    if (typeof value.label !== 'string' || !value.label.trim() || value.label.trim().length > 80 || !Array.isArray(value.entityIds) || value.entityIds.length < 2 || value.entityIds.length > 24 || new Set(value.entityIds).size !== value.entityIds.length || !value.entityIds.every(id => typeof id === 'string' && /^[a-z0-9_]+\.[a-z0-9_]+$/.test(id) && !id.startsWith('camera.'))) return null
+    widget.label = value.label.trim()
+    widget.entityIds = [...value.entityIds]
+    return widget
+  }
   const entityId = stringOrUndefined(value.entityId)
   const groupId = stringOrUndefined(value.groupId)
   if (entityId && /^[a-z0-9_]+\.[a-z0-9_]+$/.test(entityId)) widget.entityId = entityId

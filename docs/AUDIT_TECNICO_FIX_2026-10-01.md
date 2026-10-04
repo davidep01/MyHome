@@ -915,3 +915,24 @@ Corretti caricamento/fallback delle cover, conservazione in stato `off`, invalid
 Installazione richiesta una sola volta tramite l'entità update dedicata. La connessione HTTP si è chiusa durante il riavvio; nessun reinvio: il successivo controllo HA ha confermato installed/latest `2.2.119` e in_progress false. `/api/health` HTTP 200, storage scrivibile, HA raggiungibile e bridge WS connesso con 260 entità. La SPA kiosk restituisce il bundle `index-DhydO0Bx.js` contenente la versione 2.2.119 e la nuova gestione cover. Export v2 pre/post senza segreti: sezione store identica. Backup locale protetto in `/tmp/myhome-media-release-2026-10-04/config-before.json`.
 
 Il controllo remoto verifica installazione, bundle e servizi, ma non dimostra ricezione di una copertina reale da ogni integrazione o resa sul tablet fisico; la verifica grafica Light/Dark con dati fittizi resta documentata nel §17 dell'audit grafico.
+
+
+## 28. Aggiornamento riferimento DomusUI e adattamenti UX — 4 ottobre 2026
+
+Confrontato lo ZIP del 2 settembre con GitHub: HEAD confermato `d5e6bb57ecbcd66e9df33ede0c13b2c54bdf9702`, release 1.4.0 del 1 ottobre. Applicati nel sorgente locale editor undo/redo e recupero bozza, cattura versione contro clobber da refetch, ricerca/filtro nell'inventario, capability e limiti reali per fan/humidifier, allowlist oscillazione/direzione e dettagli caricati al bisogno con recupero confinato. Canone Liquid Glass, selezione opt-in, schema 3 e camera drawer conservati.
+
+Verifica: **655 test / 121 file**, lint, build:all, typecheck backend PASS; audit runtime FE/BE 0 vulnerabilità. Prove browser isolate Light/Dark, nessuna azione sull'impianto o nuova sessione video. Fonte aggiornata, matrice completa, istruzioni per le funzioni ancora aperte ed evidenze in [INTEGRAZIONE_DOMUSUI_2026-10-04.md](INTEGRAZIONE_DOMUSUI_2026-10-04.md).
+
+**Integrazione generale ancora parziale:** stack arbitrari/preview editor, calendario editabile, amministrazione persone, mappe, irrigazione server e drawer assistente richiedono ulteriori adattamenti. Il nuovo Automation Builder del riferimento è ancora dichiarato non disponibile. Nessun deploy di questa sessione: la LAN 2.2.119 resta il rilascio media del §27.
+
+## 29. Implementazione completa del passaggio UI/UX card — 4 ottobre 2026
+
+Applicato il contratto card aggiornato in AGENTS e DESIGN_SYSTEM: superficie → dettagli, comandi espliciti, capability autorevoli, target touch, pending/errore, Light/Dark e contenuti estesi L. Nuove raccolte miste piatte con editor, validazione frontend/backend, revisioni, bozza e undo/redo; anteprima tablet locale senza modificare lo schema 3. Agenda sette giorni/dettaglio eventi in sola lettura, persone senza coordinate e senza troncamento, storico sensori reale e countdown timer. Media L conserva artwork/metadata e aggiunge comandi compatibili in area scorrevole.
+
+Corretti inoltre token editor inesistente, errore residuo al cambio entità, overflow media, intervallo scaldacqua, funzioni luce/clima dichiarate assenti e rollback collettivo che poteva cancellare aggiornamenti HA più recenti. Card, plance e azioni di gruppo usano la prenotazione condivisa per entità.
+
+**Verifica finale:** lint PASS; **668 test / 125 file PASS**; build:all e typecheck backend PASS; git diff --check PASS. Audit dipendenze runtime frontend/backend: **0 vulnerabilità**. La build mantiene l'avviso preesistente sul modulo kioskDevice importato sia staticamente sia dinamicamente; non impedisce compilazione o produce una nuova funzionalità lazy.
+
+Browser isolato: **294 combinazioni / 1.470 layout**, 49 selezioni × Light/Dark effettivamente verificati × 600/768/1024px. Nessun target troppo piccolo o controllo fuori dal contenitore rilevato; le aree intenzionalmente scorrevoli sono ammesse. Verificati dettagli/toggle separati, rollback HTTP 503 e sorgente media, limiti umidità, reset errore entità, raccolte/undo/redo, bozza conservata dopo rifiuto e agenda/dettaglio. Screenshot e fixture sintetiche in `docs/card-ui-ux-2026-10-04/`; specifica dettagliata in [CARD_UI_UX_DOMUSUI_2026-10-04.md](CARD_UI_UX_DOMUSUI_2026-10-04.md).
+
+Questo completa il passaggio sulle card, non tutti i servizi backend DomusUI: calendario CRUD, amministrazione persone/account, mappe, scheduler irrigazione e drawer assistente rimangono separati nella matrice generale. **Nessun deploy o comando all'impianto eseguito.** Le prove non attestano tablet fisico, audio udibile, wake o streaming Ring continuativo. La LAN 2.2.119 resta il rilascio del §27 finché queste modifiche non vengono distribuite.

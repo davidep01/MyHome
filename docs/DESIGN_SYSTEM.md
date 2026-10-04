@@ -555,3 +555,17 @@ Blur normale 12px, backdrop 8px; entrambi 0 in `perf-lite` o riduzione trasparen
 Footprint schema 3: XS 90px, S/M/XL 142px, L 298px a gap 14px. M e XL dispongono identità e controllo affiancati. I pannelli di dettaglio ospitano le funzioni che non entrano nella card; le piccole card informative possono scorrere senza cambiare footprint. Gli elenchi estesi dei gruppi sono riservati a L. Le luci espongono un accesso al dettaglio indipendente dal toggle; XS apre direttamente il dettaglio.
 
 Il documento operativo completo e lo stato delle correzioni sono in `docs/AUDIT_GRAFICO_KIOSK_TABLET_2026-10-02.md`. Non aggiungere grafici o telemetria inventati per riempire gli spazi; il modello dati HA resta invariato.
+
+### Adattamento DomusUI 1.4 — 4 ottobre 2026
+
+La home resta Liquid Glass a strati con token semantici Light/Dark e griglia schema 3. L'editor aggiunge guida contestuale, controlli Annulla/Ripeti da almeno 44px e banner di recupero bozza; la toolbar va a capo nei tablet stretti. Solo Salva pubblica il layout. Bozze obsolete mostrano un avviso e conservano la versione iniziale.
+
+Il foglio inventario presenta ricerca, selettore Tutti/Disponibili/Non disponibili, conteggio risultati e stato vuoto esplicito. I filtri si azzerano al cambio stanza; la prima pagina contiene al massimo 24 card. Tutti i controlli adottano inchiostri, riempimenti e superfici semantiche. Le nuove funzioni fan/humidifier riusano la plancia esistente e l'ottimismo con rollback.
+
+I pannelli contestuali si caricano quando aperti; durante il caricamento il titolo e il pulsante Chiudi restano disponibili. Un errore di caricamento/rendering offre Riprova nel solo pannello. Non aggiungere un loader fullscreen o un nuovo percorso dati HA.
+
+### Card: gerarchia e interazioni DomusUI — 4 ottobre 2026
+
+Superficie = dettagli, controllo esplicito = comando; pulsanti con nome italiano e stato selezionato, mai azioni nascoste dietro hover. Le card misura privilegiano valore/unità, quelle dispositivo nome/stato/controllo. Stato non disponibile resta consultabile; pending ed errore sono visibili. XS/S essenziali, M/XL orizzontali, L con una seconda zona scorrevole per controlli e informazioni reali. Le superfici rispettano i livelli Liquid Glass esistenti e i token Light/Dark, perf-lite e reduced-motion.
+
+Stack = card glass con nome, conteggio, icone e stati dei membri; tap apre il foglio condiviso di card, senza accendere/spegnere un insieme misto. Contenuto piatto, 2..24 dispositivi, nessuna camera. Le anteprime 600/1024/1280 nell'editor cambiano solo il canvas, mantenendo tre colonne e bersagli touch reali.
