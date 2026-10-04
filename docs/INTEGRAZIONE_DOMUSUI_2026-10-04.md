@@ -1,6 +1,6 @@
 # S.I.M.I. — integrazione UX DomusUI e aggiornamento del riferimento
 
-Data: 4 ottobre 2026. Stato: adattamenti descritti sotto implementati nel sorgente locale; integrazione complessiva ancora parziale, deploy non effettuato in questa sessione.
+Data: 4 ottobre 2026. Stato attuale: adattamenti UX/editor/card distribuiti in LAN con **2.2.120**; integrazione complessiva ancora parziale per i servizi backend indicati nella matrice. I paragrafi di verifica precedenti descrivono il momento del collaudo locale; rilascio nel §30 dell’audit tecnico.
 
 ## 1. Riferimento verificato
 

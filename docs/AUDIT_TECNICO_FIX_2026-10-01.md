@@ -936,3 +936,14 @@ Corretti inoltre token editor inesistente, errore residuo al cambio entità, ove
 Browser isolato: **294 combinazioni / 1.470 layout**, 49 selezioni × Light/Dark effettivamente verificati × 600/768/1024px. Nessun target troppo piccolo o controllo fuori dal contenitore rilevato; le aree intenzionalmente scorrevoli sono ammesse. Verificati dettagli/toggle separati, rollback HTTP 503 e sorgente media, limiti umidità, reset errore entità, raccolte/undo/redo, bozza conservata dopo rifiuto e agenda/dettaglio. Screenshot e fixture sintetiche in `docs/card-ui-ux-2026-10-04/`; specifica dettagliata in [CARD_UI_UX_DOMUSUI_2026-10-04.md](CARD_UI_UX_DOMUSUI_2026-10-04.md).
 
 Questo completa il passaggio sulle card, non tutti i servizi backend DomusUI: calendario CRUD, amministrazione persone/account, mappe, scheduler irrigazione e drawer assistente rimangono separati nella matrice generale. **Nessun deploy o comando all'impianto eseguito.** Le prove non attestano tablet fisico, audio udibile, wake o streaming Ring continuativo. La LAN 2.2.119 resta il rilascio del §27 finché queste modifiche non vengono distribuite.
+
+
+## 30. Distribuzione card e integrazione UX — 4 ottobre 2026
+
+**2.2.120 pubblicata e installata in LAN.** Commit applicativo `d1de61b`, manifest automatico `5a51a19`; workflow [37235177160](https://github.com/davidep01/MyHome/actions/runs/37235177160) SUCCESS. Quality gate, smoke delle immagini amd64/arm64, pubblicazione e promozione latest confermati SUCCESS. Verifiche locali precedenti: 668 test, lint, build:all, typecheck e audit runtime FE/BE senza vulnerabilità.
+
+Home Assistant ha avviato automaticamente l’installazione quando è stata rilevata la nuova versione; non inviata una seconda richiesta update.install. Stato finale installed/latest `2.2.120`, in_progress false. Health OK, HA raggiungibile, bridge WS con 260 entità, storage scrivibile e zero disconnessioni rilevate dopo il riavvio. Il kiosk risponde HTTP 200 e serve `/assets/index-LeTRvQnc.js`, contenente la versione 2.2.120.
+
+Export portatile pre/post con secretsIncluded false, store presente e identico. Backup locali protetti in `/tmp/myhome-card-release-2026-10-04/`. Configurazione conservata; ZIP di riferimento e registro collaudo periodico esclusi dai commit di questa distribuzione.
+
+Il controllo LAN prova installazione, disponibilità API e bundle aggiornato. Non certifica il touch fisico Fully, audio udibile, wake o streaming Ring continuativo; la resa grafica documentata nel §29 è stata verificata con fixture isolate Light/Dark. Le funzioni backend DomusUI residue della matrice generale non sono dichiarate implementate da questa release.

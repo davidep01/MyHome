@@ -1,6 +1,6 @@
 # S.I.M.I. — implementazione UI/UX delle card da DomusUI
 
-4 ottobre 2026. Implementazione nel sorgente locale, non distribuita. Riferimento studiato: DomusUI 1.4.0, commit `d5e6bb57ecbcd66e9df33ede0c13b2c54bdf9702`. Questo documento completa la passata sulle card e sull'editor descritta in [INTEGRAZIONE_DOMUSUI_2026-10-04.md](INTEGRAZIONE_DOMUSUI_2026-10-04.md). Non dichiara parità con tutti i servizi backend di DomusUI.
+4 ottobre 2026. Implementazione distribuita in LAN con la versione **2.2.120**; esito nel §30 dell’audit tecnico. Riferimento studiato: DomusUI 1.4.0, commit `d5e6bb57ecbcd66e9df33ede0c13b2c54bdf9702`. Questo documento completa la passata sulle card e sull'editor descritta in [INTEGRAZIONE_DOMUSUI_2026-10-04.md](INTEGRAZIONE_DOMUSUI_2026-10-04.md). Non dichiara parità con tutti i servizi backend di DomusUI.
 
 ## Contratto comune applicato
 
