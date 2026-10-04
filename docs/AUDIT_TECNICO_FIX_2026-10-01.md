@@ -906,3 +906,12 @@ Pulsante Telecamere verificato sulla LAN: dopo clic compaiono Entrata/Giardino e
 ## 26. Card media: copertina persistente e aggiornamento live — 2026-10-03
 
 Corretti caricamento/fallback delle cover, conservazione in stato `off`, invalidazione della cache al cambio contenuto e refresh periodico di 30 s. Alternativa automatica dopo errore o timeout, con retry; allowlist backend allineata alle proprietà immagini già utilizzate dal frontend, senza autorizzare URL arbitrari. Copertina intera in regione dedicata e pulsanti touch anche in XS/S. Dettagli, screenshot e matrice di collaudo nel §17 di [AUDIT_GRAFICO_KIOSK_TABLET_2026-10-02.md](AUDIT_GRAFICO_KIOSK_TABLET_2026-10-02.md). Verifica locale con dati fittizi: lint, 647 test, build:all e typecheck backend; nessun deploy o comando sull'impianto.
+
+
+## 27. Distribuzione correzione media — 4 ottobre 2026
+
+**2.2.119 pubblicata e installata in LAN.** Commit sorgente `6507f8d`, workflow [37217503550](https://github.com/davidep01/MyHome/actions/runs/37217503550) SUCCESS; 647 test, lint, build:all, typecheck backend e audit runtime frontend/backend (0 vulnerabilità) PASS. Smoke finali amd64/arm64 PASS. Manifest multiarch `sha256:dd9f21c6adea26c8568fabfb78402bf98cba61f2df11df0a2c668e020a9fcdda`; manifest add-on aggiornato automaticamente dal commit `7107122`.
+
+Installazione richiesta una sola volta tramite l'entità update dedicata. La connessione HTTP si è chiusa durante il riavvio; nessun reinvio: il successivo controllo HA ha confermato installed/latest `2.2.119` e in_progress false. `/api/health` HTTP 200, storage scrivibile, HA raggiungibile e bridge WS connesso con 260 entità. La SPA kiosk restituisce il bundle `index-DhydO0Bx.js` contenente la versione 2.2.119 e la nuova gestione cover. Export v2 pre/post senza segreti: sezione store identica. Backup locale protetto in `/tmp/myhome-media-release-2026-10-04/config-before.json`.
+
+Il controllo remoto verifica installazione, bundle e servizi, ma non dimostra ricezione di una copertina reale da ogni integrazione o resa sul tablet fisico; la verifica grafica Light/Dark con dati fittizi resta documentata nel §17 dell'audit grafico.

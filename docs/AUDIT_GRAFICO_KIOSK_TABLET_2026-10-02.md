@@ -1131,3 +1131,8 @@ Laboratorio locale isolato, cinque footprint a 600 e 1280 px in entrambe le appe
 ![Card media Dark, dati fittizi](kiosk-media-2026-10-03/media-dark-600.jpg)
 
 Verifiche: lint, 647 test, build frontend/backend e typecheck backend. Nessun comando HA o cambiamento della riproduzione domestica. Modifica locale, non ancora distribuita. Il test non prova la disponibilità reale della cover da ogni integrazione né il funzionamento fisico del tablet: se HA non fornisce l'immagine, il client non può ricostruirla.
+
+
+### Distribuzione della card media — 4 ottobre 2026
+
+Il gruppo §17 è ora pubblicato e installato in **2.2.119**. Workflow 37217503550 SUCCESS; Home Assistant conferma installed/latest 2.2.119, installazione conclusa. Il kiosk LAN serve il bundle con la nuova gestione cover. Configurazione invariata rispetto al backup portatile pre-installazione. Dettagli del deploy nel §27 di [AUDIT_TECNICO_FIX_2026-10-01.md](AUDIT_TECNICO_FIX_2026-10-01.md).
