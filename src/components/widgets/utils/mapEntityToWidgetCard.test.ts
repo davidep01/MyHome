@@ -75,3 +75,8 @@ describe('safety widget mapping', () => {
     })
   })
 })
+
+it('retains advertised artwork when a media player is switched off', () => {
+  const entity = {...light('off'), entity_id: 'media_player.tv', attributes: {entity_picture: '/api/media_player_proxy/media_player.tv'}}
+  expect(mapEntityToWidgetCard(entity, {...roomEntity, entityId: entity.entity_id}).artwork).toBe(entity.attributes.entity_picture)
+})

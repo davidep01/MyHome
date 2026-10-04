@@ -1,12 +1,11 @@
 import { performEntityAction } from '../../lib/entityActions'
 import { ChevronDown, ChevronUp, Home, Minus, Pause, Play, Plus, Square } from 'lucide-react'
-import { useMemo, useRef, useState, type CSSProperties, type ElementType } from 'react'
-import { haApi, type RoomEntity } from '../../api/backend'
+import { useMemo, useRef, useState } from 'react'
+import type { RoomEntity } from '../../api/backend'
 import { useHAEntity } from '../../hooks/useHAEntity'
 import { useHAService } from '../../hooks/useHAService'
 import { useHaptic } from '../../hooks/useHaptic'
 import { useActionFeedback } from '../../hooks/useActionFeedback'
-import { useDominantColor } from '../../hooks/useDominantColor'
 import { lucideIcon } from '../../lib/lucide'
 import { cn } from '../../lib/utils'
 import { linkedMediaPlayerEntityId } from '../../lib/mediaEntity'
@@ -23,7 +22,7 @@ import type { WidgetVisualSize } from './types'
 import { HoldDangerAction } from '../controls/HoldDangerAction'
 import { isWasteCollectionSensor } from '../../lib/wasteCollection'
 import { WasteCollectionCard } from './WasteCollectionCard'
-import { mediaArtworkRevision } from '../../lib/mediaArtwork'
+import { MediaArtwork } from './MediaArtwork'
 import { shouldRenderCameraStream } from './utils/cameraCardStream'
 import { MediaCardContent } from './MediaCardContent'
 import { ClimateCard } from './ClimateCard'
@@ -70,7 +69,6 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
   const setSelectedEntity = useUIStore((s) => s.setSelectedEntity)
   const [pendingAction, setPendingAction] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
-  const [failedArtworkUrl, setFailedArtworkUrl] = useState<string | null>(null)
   const busyRef = useRef(false)
   const brightnessOriginRef = useRef<{ state: string; brightness?: number } | null>(null)
 
@@ -83,13 +81,7 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
 
   // ── Card dinamiche: copertina per i media, live feed per le camere ─────────
   const isMediaCard = MEDIA_FAMILIES.has(mapped.family)
-  const artworkRevision = isMediaCard ? mediaArtworkRevision(entity?.attributes) : undefined
-  const artworkUrl = isMediaCard && mapped.artwork
-    ? haApi.imageUrl(mapped.artwork, entityId, artworkRevision)
-    : undefined
-  const visibleArtworkUrl = failedArtworkUrl === artworkUrl ? undefined : artworkUrl
-  const dominant = useDominantColor(artworkUrl)
-  const mediaAccent = dominant ?? mapped.accentColor
+  const mediaAccent = mapped.accentColor
   // Il live riempie qualsiasi footprint XS/S/M/L/XL; CameraStream sospende da sé
   // le tile fuori viewport o coperte dal full screen.
   const liveCamera = !isEditing && shouldRenderCameraStream(mapped.family, size, unavailable)
@@ -303,6 +295,13 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
     if (mapped.family === 'scene' || mapped.family === 'script') {
       return <WidgetCardControlButton disabled={busy} onClick={activate} label={`Attiva ${mapped.title}`}><Play size={15} aria-hidden="true" /></WidgetCardControlButton>
     }
+    if (MEDIA_FAMILIES.has(mapped.family)) {
+      return (
+        <WidgetCardControlButton disabled={busy} onClick={mediaAction} label={entity?.state === 'playing' ? 'Pausa' : 'Riproduci'}>
+          {entity?.state === 'playing' ? <Pause size={15} aria-hidden="true" /> : <Play size={15} aria-hidden="true" className="translate-x-px" />}
+        </WidgetCardControlButton>
+      )
+    }
     if (size === 'XS' || size === 'S') return null
     if (mapped.family === 'climate' || mapped.family === 'thermostat') {
       return (
@@ -333,13 +332,6 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
     }
     if (mapped.family === 'lock') {
       return <WidgetCardHoldButton locked={entity?.state !== 'unlocked'} disabled={busy || ['locking', 'unlocking', 'jammed'].includes(entity?.state ?? '')} onUnlock={unlock} onLock={lock} accentColor={mapped.accentColor} />
-    }
-    if (MEDIA_FAMILIES.has(mapped.family)) {
-      return (
-        <WidgetCardControlButton disabled={busy} onClick={mediaAction} label={entity?.state === 'playing' ? 'Pausa' : 'Riproduci'}>
-          {entity?.state === 'playing' ? <Pause size={15} aria-hidden="true" /> : <Play size={15} aria-hidden="true" className="translate-x-px" />}
-        </WidgetCardControlButton>
-      )
     }
     if (mapped.family === 'vacuum' || mapped.family === 'mower') {
       const working = entity?.state === 'cleaning' || entity?.state === 'mowing'
@@ -399,7 +391,7 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
       isPending={busy}
       isEditing={isEditing}
       isDragging={isDragging}
-      className={cn(className, feedbackClass, lightPowerCard && 'widget-card-light-power')}
+      className={cn(className, feedbackClass, lightPowerCard && 'widget-card-light-power', mediaCoverStyle && 'widget-card-media')}
       onClick={lightPowerCard && size !== 'XS' ? togglePower : () => setSelectedEntity(entityId)}
       onClickLabel={lightPowerCard && size !== 'XS' ? `${mapped.isActive ? 'Spegni' : 'Accendi'} ${mapped.title}` : undefined}
       onClickPressed={lightPowerCard && size !== 'XS' ? mapped.isActive : undefined}
@@ -410,14 +402,7 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
             <span className="camera-card-scrim absolute inset-x-0 bottom-0 h-16" />
           </>
         ) : mediaCoverStyle ? (
-          <ArtworkBackdrop
-            url={visibleArtworkUrl}
-            title={(entity?.attributes?.media_title as string | undefined) ?? mapped.title}
-            Icon={mapped.Icon}
-            accentColor={mapped.accentColor}
-            appName={(entity?.attributes?.app_name ?? entity?.attributes?.source) as string | undefined}
-            onError={visibleArtworkUrl ? () => setFailedArtworkUrl(visibleArtworkUrl) : undefined}
-          />
+          <MediaArtwork key={entityId} entityId={entityId} attributes={entity?.attributes} playing={entity?.state === 'playing'} title={(entity?.attributes?.media_title as string | undefined) ?? mapped.title} Icon={mapped.Icon} />
         ) : undefined}
     >
       {liveCamera ? (
@@ -430,7 +415,7 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
       ) : (
         mediaCoverStyle ? (
           <>
-            {trailing && <div className={cn("flex shrink-0 items-center justify-end gap-1.5", (size === 'M' || size === 'XL') &&"media-card-compact-control absolute right-0 top-0")}>{trailing}</div>}
+            {trailing && <div className={cn("flex shrink-0 items-center justify-end gap-1.5", "media-card-compact-control absolute right-0 top-0")}>{trailing}</div>}
             <MediaCardContent
               entity={entity}
               deviceTitle={mapped.title}
@@ -502,44 +487,5 @@ export function WidgetCardFactory({ entity: roomEntity, size = 'M', className, i
         )
       )}
     </WidgetCardShell>
-  )
-}
-
-/** Copertina full-bleed: immagine a sinistra, dissolvenza bianca verso i controlli. */
-function ArtworkBackdrop({
-  url, title, Icon, accentColor, appName, onError,
-}: {
-  url?: string
-  title: string
-  Icon: ElementType
-  accentColor: string
-  appName?: string
-  onError?: () => void
-}) {
-  return (
-    <div className="media-card-artwork absolute inset-0" data-media-cover-style data-media-cover-source={url ? 'provided' : 'generated'}>
-      {url ? (
-        <img
-          src={url}
-          alt={`Copertina: ${title}`}
-          className="h-full w-full object-cover object-center"
-          onError={onError}
-        />
-      ) : (
-        <div
-          className="media-card-generated-cover flex h-full w-full items-center"
-          style={{ '--media-cover-accent': accentColor } as CSSProperties}
-          aria-label={`Copertina non disponibile: ${title}`}
-        >
-          <span className="flex w-[50%] flex-col items-center justify-center gap-2 px-3 text-center" style={{ color: accentColor }}>
-            <span className="flex h-12 w-12 items-center justify-center rounded-[16px] bg-white/85 shadow-sm dark:bg-black/45">
-              <Icon size={28} aria-hidden="true" />
-            </span>
-            <span className="max-w-full truncate text-[13px] font-semibold text-[var(--ink-secondary)]">{appName ?? 'Media'}</span>
-          </span>
-        </div>
-      )}
-      <span className="media-card-artwork-fade absolute inset-0" />
-    </div>
   )
 }

@@ -437,7 +437,7 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
           : rawState === 'off' ? 'Spenta' : stateLabel(rawState),
         // Apple TV conserva spesso la locandina o l'icona dell'app anche in
         // idle/standby: è comunque informazione viva e non va nascosta.
-        ...(picture && !unavailable && rawState !== 'off' ? { artwork: picture } : {}),
+        ...(picture ? { artwork: picture } : {}),
         ...(position !== undefined && duration !== undefined && duration > 0 && (playing || paused)
           ? {
               mediaProgress: {

@@ -26,3 +26,7 @@ describe('HA advertised artwork', () => {
     ])
   })
 })
+
+it('allows all advertised frontend fallback attributes but ignores unrelated URLs', () => {
+  expect(advertisedArtworkSources({media_thumbnail: 'a', thumbnail_url: 'b', poster_url: 'c', media_artwork: 'd', unrelated_url: 'forbidden'})).toEqual(['a', 'b', 'c', 'd'])
+})

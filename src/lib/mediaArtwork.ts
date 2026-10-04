@@ -80,14 +80,17 @@ export function embeddedMediaArtwork(source: string): string | undefined {
  * app icon, so resolve the first usable source without coupling the card to a
  * specific integration or playback state.
  */
-export function resolveMediaArtwork(attributes?: Record<string, unknown>): string | undefined {
-  if (!attributes) return undefined
-  for (const key of ARTWORK_ATTRIBUTES) {
+export function mediaArtworkSources(attributes?: Record<string, unknown>): string[] {
+  if (!attributes) return []
+  return [...new Set(ARTWORK_ATTRIBUTES.flatMap((key) => {
     const value = attributes[key]
-    if (typeof value === 'string' && value.trim()) {
-      const source = value.trim()
-      return embeddedMediaArtwork(source) ?? source
-    }
-  }
-  return undefined
+    if (typeof value !== 'string' || !value.trim()) return []
+    const source = value.trim()
+    const embedded = embeddedMediaArtwork(source)
+    return embedded ? [embedded, source] : [source]
+  }))]
+}
+
+export function resolveMediaArtwork(attributes?: Record<string, unknown>): string | undefined {
+  return mediaArtworkSources(attributes)[0]
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { embeddedMediaArtwork, mediaArtworkRevision, resolveMediaArtwork } from './mediaArtwork'
+import { embeddedMediaArtwork, mediaArtworkRevision, mediaArtworkSources, resolveMediaArtwork } from './mediaArtwork'
 
 describe('resolveMediaArtwork', () => {
   it('prefers the canonical Home Assistant entity picture', () => {
@@ -57,5 +57,15 @@ describe('resolveMediaArtwork', () => {
     })
 
     expect(next).toBe(first)
+  })
+})
+
+ describe('mediaArtworkSources', () => {
+  it('keeps ordered alternatives for failed covers without duplicates', () => {
+    expect(mediaArtworkSources({entity_picture: ' first ', media_image_url: 'first', media_thumbnail: 'second', app_icon: 'third'})).toEqual(['first', 'second', 'third'])
+  })
+  it('keeps the HA proxy as fallback for an embedded JPEG', () => {
+    const proxy = '/api/media_player_proxy/test?cache=https%3A%2F%2Fexample.test%2F%7Bw%7Dx%7Bh%7D.%7Bf%7D'
+    expect(mediaArtworkSources({entity_picture: proxy})).toEqual(['https://example.test/512x512.jpg', proxy])
   })
 })

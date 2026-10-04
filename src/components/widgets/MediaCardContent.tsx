@@ -54,10 +54,10 @@ export function MediaCardContent({
       expanded && 'w-[60%]',
     )} data-media-live-content>
       <div className="mb-1 flex min-w-0 items-center justify-end gap-1.5">
-        {expanded && app && <span className="max-w-[60%] truncate rounded-full bg-[var(--fill-subtle)] px-2 py-0.5 text-[13px] font-bold text-[var(--ink-secondary)] dark:bg-white/[0.09]">{app}</span>}
+        {expanded && app && <span className="max-w-[60%] truncate rounded-full bg-[var(--fill-subtle)] px-2 py-0.5 text-[13px] font-bold text-[var(--ink-secondary)] ">{app}</span>}
         <span className="flex shrink-0 items-center gap-1 text-[13px] font-bold  text-[var(--ink-tertiary)]">
-          <span className={cn('h-1.5 w-1.5 rounded-full', playing ? 'media-live-dot' : 'bg-black/25 dark:bg-white/28')} style={playing ? { background: accentColor } : undefined} />
-          {playback}
+          <span className={cn('h-1.5 w-1.5 shrink-0 rounded-full', playing ? 'media-live-dot' : 'bg-[var(--ink-tertiary)]')} style={playing ? { background: accentColor } : undefined} />
+          <span className="truncate">{playback}</span>
         </span>
       </div>
 
@@ -82,7 +82,7 @@ export function MediaCardContent({
           aria-valuemax={100}
           aria-valuenow={Math.round(pct)}
         >
-          <div className="h-[3px] overflow-hidden rounded-full bg-[var(--fill-subtle)] dark:bg-white/12">
+          <div className="h-[3px] overflow-hidden rounded-full bg-[var(--fill-subtle)] ">
             <span
               className="block h-full w-full origin-left rounded-full transition-transform duration-1000 ease-linear"
               style={{ transform: `scaleX(${pct / 100})`, background: accentColor }}

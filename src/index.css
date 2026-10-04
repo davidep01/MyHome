@@ -528,20 +528,6 @@ html.dark .kiosk-color-canvas {
   animation: media-live-pulse 1s ease-in-out infinite;
 }
 
-/* Copertina media full-bleed. Il leggero overscan evita hairline sui bordi
-   mentre la dissolvenza porta l'immagine nel vetro bianco dei controlli. */
-.media-card-artwork img {
-  transform: scale(1.015);
-}
-.media-card-artwork-fade {
-  background: linear-gradient(90deg,
-    var(--artwork-fade-0) 0%,
-    var(--artwork-fade-1) 28%,
-    var(--artwork-fade-2) 48%,
-    var(--artwork-fade-3) 72%,
-    var(--artwork-fade-4) 100%);
-}
-
 .media-card-generated-cover {
   background:
     radial-gradient(circle at 18% 28%, color-mix(in srgb, var(--media-cover-accent) 82%, white) 0%, transparent 30%),
@@ -1319,3 +1305,19 @@ a, button, [role="button"] { -webkit-touch-callout: default; }
 }
 
 .widget-card-climate[data-widget-size="M"] { padding: 12px; }
+
+
+/* The full media cover has its own unobscured region, in every appearance. */
+.widget-card-media { --media-cover-width: 34%; }
+.media-card-cover-frame { position: absolute; left: 12px; top: 12px; bottom: 12px; width: var(--media-cover-width, 34%); display: grid; place-items: center; overflow: hidden; border-radius: 12px; background: var(--fill-subtle); }
+.media-card-cover-image { position: absolute; width: 100%; height: 100%; object-fit: contain; transform: none; }
+.media-card-cover-loading { opacity: 0; pointer-events: none; }
+.media-card-cover-placeholder { color: var(--ink-secondary); }
+.media-card-cover-status { align-self: end; position: relative; max-width: 100%; padding: 3px 5px; font-size: 10px; background: var(--surface-elevated); color: var(--ink-secondary); }
+.widget-card-media [data-media-live-content] { width: 60%; height: 100%; justify-content: center; padding-right: 0; margin-top: 0; }
+.widget-card-media [data-media-live-content] > :first-child { min-height: 44px; padding-right: 52px; }
+.widget-card-media[data-widget-size='XS'] [data-media-live-content] > :first-child { display: none; }
+.widget-card-media[data-widget-size='XS'] [data-media-live-content] { justify-content: flex-end; padding-top: 0; padding-right: 0; }
+.widget-card-media[data-widget-size='S'] [data-media-live-content] > p:nth-of-type(1) { display: none; }
+
+.widget-card-media [data-media-live-content] > :first-child > span:last-child { min-width: 0; flex-shrink: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

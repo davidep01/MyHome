@@ -1109,3 +1109,25 @@ Le correzioni dei §§14–16 sono **pubblicate e installate**. Le precedenti di
 - Browser sull'installazione: pulsante videocamere chiuso all'ingresso; dopo clic compaiono esattamente Entrata/Giardino. Entrambe con readyState=4, video non paused e dimensioni non nulle; Entrata currentTime 12,64→50,18→66,15s, Giardino 3,79→19,76s. La negoziazione ha variato le dimensioni da 1920×1080 a 1280×720; registrato il dato effettivo, senza attribuirlo a perdita di frame. Stream di prova chiusi uscendo dalla tendina/home. Nessuna fotografia o frame privato salvato nel repository.
 
 La prova live è nel browser LAN: non equivale a streaming continuativo sul tablet né a certificazione di touch, audio, pressione prolungata e wake. Il monitoraggio automatico precedente non è riattivato. Audit runtime frontend/backend: zero vulnerabilità; CI con **643 test** PASS. Le prove fisiche del §15 restano da accettare.
+
+
+## 17. Correzione card media e copertina live — 2026-10-03
+
+La copertina ha una regione dedicata sulla sinistra in XS/S/M/L/XL: immagine intera (`object-fit: contain`), senza overscan, gradienti o alterazioni dei colori. Il testo rimane nel vetro a destra; i controlli Riproduci/Pausa sono disponibili anche in XS e S con target effettivo di 46,75 px. Le superfici e gli stati utilizzano token semantici Light/Dark.
+
+### Correzioni tecniche
+
+- `MediaArtwork` mantiene la cover caricata mentre la successiva viene scaricata: niente svuotamento dell'immagine durante il cambio. La revisione deriva dall'identità del contenuto, escludendo posizione e volume.
+- Aggiornamento immediato quando cambiano metadati/sorgente; refresh ogni 30 s durante la riproduzione, sospeso quando la scheda del browser è nascosta o la card è fuori dal viewport. Il parametro `revision` evita la cache obsoleta del proxy. Il refresh non invia comandi al player.
+- Sorgenti alternative ordinate e deduplicate: JPEG Apple TV incorporato, proxy HA, immagini/thumbnail/poster/artwork annunciati dall'entità e infine icona app. Il backend autorizza le stesse proprietà effettivamente annunciate: protezioni sui domini, formati e dimensioni restano attive.
+- Errore di caricamento o attesa oltre 10 s passa alla sorgente successiva; le sorgenti fallite vengono ritentate ogni 30 s quando la card è visibile.
+- Il mapper conserva l'immagine annunciata anche con player `off`. Se il nuovo contenuto non dispone di una cover utilizzabile, l'ultima immagine rimane accompagnata da «Ultima copertina»; in assenza di un'immagine precedente viene mostrato un placeholder onesto. Non si genera una falsa copertina del contenuto.
+
+### Evidenza e limiti
+
+Laboratorio locale isolato, cinque footprint a 600 e 1280 px in entrambe le appearance: cover caricate, nessuna sovrapposizione con il testo o overflow verticale delle card, comandi superiori a 44 px. Cambio contenuto, fallback da HTTP 500, cover mantenuta con player spento e invalidazione periodica verificati nel browser. Fixture riproducibile e misure in [kiosk-media-2026-10-03](kiosk-media-2026-10-03/matrix.json).
+
+![Card media Light, dati fittizi](kiosk-media-2026-10-03/media-light-1280.jpg)
+![Card media Dark, dati fittizi](kiosk-media-2026-10-03/media-dark-600.jpg)
+
+Verifiche: lint, 647 test, build frontend/backend e typecheck backend. Nessun comando HA o cambiamento della riproduzione domestica. Modifica locale, non ancora distribuita. Il test non prova la disponibilità reale della cover da ogni integrazione né il funzionamento fisico del tablet: se HA non fornisce l'immagine, il client non può ricostruirla.

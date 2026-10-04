@@ -1,0 +1,433 @@
+{
+  "matrix": [
+    {
+      "width": 600,
+      "theme": "light",
+      "cards": [
+        {
+          "buttons": [
+            {
+              "h": 46.75,
+              "w": 46.75
+            }
+          ],
+          "height": 90,
+          "images": [
+            {
+              "fit": "contain",
+              "loaded": true,
+              "src": "/api/ha/image?url=%2Fcover-a&entity=media_player.speaker&revision=1jtr8uy-0"
+            }
+          ],
+          "overflow": false,
+          "overlap": false,
+          "size": "XS",
+          "width": 177.328125
+        },
+        {
+          "buttons": [
+            {
+              "h": 46.75,
+              "w": 46.75
+            }
+          ],
+          "height": 142,
+          "images": [
+            {
+              "fit": "contain",
+              "loaded": true,
+              "src": "/api/ha/image?url=%2Fcover-a&entity=media_player.speaker&revision=1jtr8uy-0"
+            }
+          ],
+          "overflow": false,
+          "overlap": false,
+          "size": "S",
+          "width": 177.3359375
+        },
+        {
+          "buttons": [
+            {
+              "h": 46.75,
+              "w": 46.75
+            }
+          ],
+          "height": 142,
+          "images": [
+            {
+              "fit": "contain",
+              "loaded": true,
+              "src": "/api/ha/image?url=%2Fcover-a&entity=media_player.speaker&revision=1jtr8uy-0"
+            }
+          ],
+          "overflow": false,
+          "overlap": false,
+          "size": "M",
+          "width": 368.6640625
+        },
+        {
+          "buttons": [
+            {
+              "h": 46.75,
+              "w": 46.75
+            }
+          ],
+          "height": 298,
+          "images": [
+            {
+              "fit": "contain",
+              "loaded": true,
+              "src": "/api/ha/image?url=%2Fcover-a&entity=media_player.speaker&revision=1jtr8uy-0"
+            }
+          ],
+          "overflow": false,
+          "overlap": false,
+          "size": "L",
+          "width": 559.9921875
+        },
+        {
+          "buttons": [
+            {
+              "h": 46.75,
+              "w": 46.75
+            }
+          ],
+          "height": 142,
+          "images": [
+            {
+              "fit": "contain",
+              "loaded": true,
+              "src": "/api/ha/image?url=%2Fcover-a&entity=media_player.speaker&revision=1jtr8uy-0"
+            }
+          ],
+          "overflow": false,
+          "overlap": false,
+          "size": "XL",
+          "width": 559.9921875
+        }
+      ]
+    },
+    {
+      "width": 600,
+      "theme": "dark",
+      "cards": [
+        {
+          "buttons": [
+            {
+              "h": 46.75,
+              "w": 46.75
+            }
+          ],
+          "height": 90,
+          "images": [
+            {
+              "fit": "contain",
+              "loaded": true,
+              "src": "/api/ha/image?url=%2Fcover-a&entity=media_player.speaker&revision=1jtr8uy-0"
+            }
+          ],
+          "overflow": false,
+          "overlap": false,
+          "size": "XS",
+          "width": 177.328125
+        },
+        {
+          "buttons": [
+            {
+              "h": 46.75,
+              "w": 46.75
+            }
+          ],
+          "height": 142,
+          "images": [
+            {
+              "fit": "contain",
+              "loaded": true,
+              "src": "/api/ha/image?url=%2Fcover-a&entity=media_player.speaker&revision=1jtr8uy-0"
+            }
+          ],
+          "overflow": false,
+          "overlap": false,
+          "size": "S",
+          "width": 177.3359375
+        },
+        {
+          "buttons": [
+            {
+              "h": 46.75,
+              "w": 46.75
+            }
+          ],
+          "height": 142,
+          "images": [
+            {
+              "fit": "contain",
+              "loaded": true,
+              "src": "/api/ha/image?url=%2Fcover-a&entity=media_player.speaker&revision=1jtr8uy-0"
+            }
+          ],
+          "overflow": false,
+          "overlap": false,
+          "size": "M",
+          "width": 368.6640625
+        },
+        {
+          "buttons": [
+            {
+              "h": 46.75,
+              "w": 46.75
+            }
+          ],
+          "height": 298,
+          "images": [
+            {
+              "fit": "contain",
+              "loaded": true,
+              "src": "/api/ha/image?url=%2Fcover-a&entity=media_player.speaker&revision=1jtr8uy-0"
+            }
+          ],
+          "overflow": false,
+          "overlap": false,
+          "size": "L",
+          "width": 559.9921875
+        },
+        {
+          "buttons": [
+            {
+              "h": 46.75,
+              "w": 46.75
+            }
+          ],
+          "height": 142,
+          "images": [
+            {
+              "fit": "contain",
+              "loaded": true,
+              "src": "/api/ha/image?url=%2Fcover-a&entity=media_player.speaker&revision=1jtr8uy-0"
+            }
+          ],
+          "overflow": false,
+          "overlap": false,
+          "size": "XL",
+          "width": 559.9921875
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "theme": "dark",
+      "cards": [
+        {
+          "buttons": [
+            {
+              "h": 46.75,
+              "w": 46.75
+            }
+          ],
+          "height": 90,
+          "images": [
+            {
+              "fit": "contain",
+              "loaded": true,
+              "src": "/api/ha/image?url=%2Fcover-a&entity=media_player.speaker&revision=1jtr8uy-59701621"
+            }
+          ],
+          "overflow": false,
+          "overlap": false,
+          "size": "XS",
+          "width": 404
+        },
+        {
+          "buttons": [
+            {
+              "h": 46.75,
+              "w": 46.75
+            }
+          ],
+          "height": 142,
+          "images": [
+            {
+              "fit": "contain",
+              "loaded": true,
+              "src": "/api/ha/image?url=%2Fcover-a&entity=media_player.speaker&revision=1jtr8uy-59701621"
+            }
+          ],
+          "overflow": false,
+          "overlap": false,
+          "size": "S",
+          "width": 404
+        },
+        {
+          "buttons": [
+            {
+              "h": 46.75,
+              "w": 46.75
+            }
+          ],
+          "height": 142,
+          "images": [
+            {
+              "fit": "contain",
+              "loaded": true,
+              "src": "/api/ha/image?url=%2Fcover-a&entity=media_player.speaker&revision=1jtr8uy-59701621"
+            }
+          ],
+          "overflow": false,
+          "overlap": false,
+          "size": "M",
+          "width": 822
+        },
+        {
+          "buttons": [
+            {
+              "h": 46.75,
+              "w": 46.75
+            }
+          ],
+          "height": 298,
+          "images": [
+            {
+              "fit": "contain",
+              "loaded": true,
+              "src": "/api/ha/image?url=%2Fcover-a&entity=media_player.speaker&revision=1jtr8uy-59701621"
+            }
+          ],
+          "overflow": false,
+          "overlap": false,
+          "size": "L",
+          "width": 1240
+        },
+        {
+          "buttons": [
+            {
+              "h": 46.75,
+              "w": 46.75
+            }
+          ],
+          "height": 142,
+          "images": [
+            {
+              "fit": "contain",
+              "loaded": true,
+              "src": "/api/ha/image?url=%2Fcover-a&entity=media_player.speaker&revision=1jtr8uy-59701621"
+            }
+          ],
+          "overflow": false,
+          "overlap": false,
+          "size": "XL",
+          "width": 1240
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "theme": "light",
+      "cards": [
+        {
+          "buttons": [
+            {
+              "h": 46.75,
+              "w": 46.75
+            }
+          ],
+          "height": 90,
+          "images": [
+            {
+              "fit": "contain",
+              "loaded": true,
+              "src": "/api/ha/image?url=%2Fcover-a&entity=media_player.speaker&revision=1jtr8uy-59701621"
+            }
+          ],
+          "overflow": false,
+          "overlap": false,
+          "size": "XS",
+          "width": 404
+        },
+        {
+          "buttons": [
+            {
+              "h": 46.75,
+              "w": 46.75
+            }
+          ],
+          "height": 142,
+          "images": [
+            {
+              "fit": "contain",
+              "loaded": true,
+              "src": "/api/ha/image?url=%2Fcover-a&entity=media_player.speaker&revision=1jtr8uy-59701621"
+            }
+          ],
+          "overflow": false,
+          "overlap": false,
+          "size": "S",
+          "width": 404
+        },
+        {
+          "buttons": [
+            {
+              "h": 46.75,
+              "w": 46.75
+            }
+          ],
+          "height": 142,
+          "images": [
+            {
+              "fit": "contain",
+              "loaded": true,
+              "src": "/api/ha/image?url=%2Fcover-a&entity=media_player.speaker&revision=1jtr8uy-59701621"
+            }
+          ],
+          "overflow": false,
+          "overlap": false,
+          "size": "M",
+          "width": 822
+        },
+        {
+          "buttons": [
+            {
+              "h": 46.75,
+              "w": 46.75
+            }
+          ],
+          "height": 298,
+          "images": [
+            {
+              "fit": "contain",
+              "loaded": true,
+              "src": "/api/ha/image?url=%2Fcover-a&entity=media_player.speaker&revision=1jtr8uy-59701621"
+            }
+          ],
+          "overflow": false,
+          "overlap": false,
+          "size": "L",
+          "width": 1240
+        },
+        {
+          "buttons": [
+            {
+              "h": 46.75,
+              "w": 46.75
+            }
+          ],
+          "height": 142,
+          "images": [
+            {
+              "fit": "contain",
+              "loaded": true,
+              "src": "/api/ha/image?url=%2Fcover-a&entity=media_player.speaker&revision=1jtr8uy-59701621"
+            }
+          ],
+          "overflow": false,
+          "overlap": false,
+          "size": "XL",
+          "width": 1240
+        }
+      ]
+    }
+  ],
+  "refresh": {
+    "beforeRefresh": "/api/ha/image?url=%2Fcover-a&entity=media_player.speaker&revision=1jtr8uy-59701621",
+    "afterRefresh": "/api/ha/image?url=%2Fcover-a&entity=media_player.speaker&revision=1jtr8uy-59701623"
+  },
+  "scope": "Dati fittizi; API HA bloccate"
+}
