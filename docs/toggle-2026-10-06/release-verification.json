@@ -1,0 +1,32 @@
+{
+  "timestamp": "2026-10-06T18:35:14.094654+00:00",
+  "version": "2.2.122",
+  "kioskHTTP": 200,
+  "bundle": "/assets/index-ChWvHxL4.js",
+  "css": "/assets/index-BHDhilmI.css",
+  "assetChecks": {
+    "bundleVersion122": true,
+    "width56": true,
+    "touch44": true,
+    "track32": true,
+    "knob26": true,
+    "inset3": true
+  },
+  "sourceCommit": "59751bc",
+  "manifestCommit": "4a7bb16",
+  "workflow": "https://github.com/davidep01/MyHome/actions/runs/37489923503",
+  "workflowConclusion": "success",
+  "installedVersion": "2.2.122",
+  "latestVersion": "2.2.122",
+  "inProgress": false,
+  "health": "ok",
+  "haReachable": true,
+  "storageWritable": true,
+  "stream": {
+    "mode": "idle",
+    "subscribers": 0,
+    "entities": 0
+  },
+  "disconnections": 0,
+  "configStoreUnchanged": true
+}

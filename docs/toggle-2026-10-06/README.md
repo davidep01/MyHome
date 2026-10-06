@@ -28,3 +28,7 @@ Non sono stati eseguiti comandi sull'impianto o prove video/audio/wake. Le misur
 ## Gate locali
 
 Lint, 673 test / 126 file, build:all, typecheck backend e diff check PASS. Audit runtime frontend/backend: zero vulnerabilità. La prima esecuzione parallela ha avuto timeout in cinque file; la ripetizione integrale senza altri gate simultanei passa 673/673 in 3,06s. Nessuna modifica ai test o ai loro timeout.
+
+## Distribuzione
+
+**2.2.122 installata in LAN**, sorgente `59751bc`, manifest `4a7bb16`, [CI SUCCESS](https://github.com/davidep01/MyHome/actions/runs/37489923503). Kiosk HTTP 200 e bundle/CSS aggiornati confermati, health/HA/storage OK, export pre/post identico. Una sola installazione richiesta con backup HA; nessun reinvio dopo la chiusura HTTP durante il riavvio. Bridge idle con zero client è uno stato previsto quando non vi sono sottoscrittori. [Evidenza](release-verification.json) e §34 dell'audit tecnico.
