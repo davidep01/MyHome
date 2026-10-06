@@ -1,6 +1,6 @@
 # S.I.M.I. — card dinamiche, gesti e adattamento tablet
 
-Passaggio avviato il 5 ottobre e verificato il 6 ottobre 2026. Integra il lavoro distribuito nella 2.2.120. Stato al quality gate locale: implementato e verificato; il rilascio e il riscontro LAN sono registrati nel §32 di [AUDIT_TECNICO_FIX_2026-10-01.md](AUDIT_TECNICO_FIX_2026-10-01.md).
+Passaggio avviato il 5 ottobre e verificato il 6 ottobre 2026. **Distribuito e installato in LAN nella 2.2.121**, con il lavoro della 2.2.120 conservato. Rilascio e riscontro LAN nel §32 di [AUDIT_TECNICO_FIX_2026-10-01.md](AUDIT_TECNICO_FIX_2026-10-01.md).
 
 ## Riferimento e confini
 
@@ -10,7 +10,7 @@ Le telecamere restano **nella tendina Telecamere**, secondo la scelta esplicita 
 
 ## Uso nella home
 
-1. Per la disposizione manuale scegliere **Funzioni → Kiosk → Home del tablet → Griglia drag & drop**. La modalità Auto-composta mantiene il composer e le sue priorità; non viene convertita automaticamente dal rilascio.
+1. Per la disposizione manuale scegliere **Funzioni → Kiosk → Home del tablet → Personalizzabile**. La modalità Auto-composta mantiene il composer e le sue priorità; non viene convertita automaticamente dal rilascio.
 2. Nella home scegliere **Personalizza → Aggiungi**. Le card dispositivo usano le entità selezionate nel sistema; la disponibilità dei comandi deriva dalle capacità reali HA.
 3. Per un insieme sfogliabile scegliere **Crea raccolta**, assegnare un nome e 2–24 dispositivi. Camere e raccolte ricorsive sono escluse. **Modifica raccolta** cambia i membri nella stessa bozza dell'editor.
 4. La raccolta si sfoglia orizzontalmente con il dito, con drag mouse o con le frecce. L'indice mostra il membro corrente; il pulsante inventario apre tutti i membri visibili nel foglio filtrabile.
@@ -81,3 +81,11 @@ Card e plance riusano `performEntityAction`: prenotazione per entità, pending, 
 Provare swipe e scroll verticale nella raccolta, slider senza cambio pagina, drag dall'editor, annulla/ripeti/salva, serratura incompleta/completa/cancel e selettore colore nativo. Verificare che le azioni realmente supportate arrivino a HA e che il rollback sia leggibile dopo un rifiuto. Queste prove richiedono una persona davanti a Fully: browser e heartbeat non attestano touch/multitouch Android, audio udibile, accensione fisica, wake o streaming continuativo.
 
 I servizi backend DomusUI ancora elencati nella matrice generale — calendario CRUD, gestione persone/account/mappe, scheduler irrigazione e assistente — non sono dichiarati implementati da questo passaggio sulle card.
+
+## Rilascio verificato — 6 ottobre
+
+Commit `a6ffd31`, manifest automatico `520ec8a`; workflow [37421854332](https://github.com/davidep01/MyHome/actions/runs/37421854332) SUCCESS, inclusi quality gate, smoke amd64/arm64, pubblicazione e promozione latest. Home Assistant ha avviato l'installazione automaticamente; nessuna richiesta update.install aggiuntiva.
+
+Alle 06:10–06:11 UTC: installed/latest 2.2.121, in_progress false; health OK, storage scrivibile, bridge WS con 260 entità e zero disconnessioni rilevate dal nuovo avvio. `/kiosk` HTTP 200, bundle `/assets/index-BHefdm76.js` con versione 2.2.121, chunk `KioskWidgetHome-BG3YerJf.js` con il carosello e CSS con le nuove interazioni.
+
+Export portatili pre/post senza segreti e protetti localmente. Durante il lavoro la configurazione live è passata da home `composer` a `grid` e configVersion 6→7; questo flusso di rilascio non ha inviato scritture configurazione. Conservata la scelta live: **tutti gli altri campi dello store sono identici**, compreso il layout. Non dichiarare identico l'intero export o ripristinare il backup sopra questa modifica concorrente. Riepilogo privo di dati della casa in `release-verification.json`; backup in `/tmp/myhome-dynamic-release-2026-10-06/` con permessi 0600.

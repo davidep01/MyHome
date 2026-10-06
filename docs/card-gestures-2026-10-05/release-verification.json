@@ -1,0 +1,33 @@
+{
+  "checkedAt": "2026-10-06T06:10:32.415986+00:00",
+  "http": 200,
+  "bundle": "/assets/index-BHefdm76.js",
+  "kioskChunk": "KioskWidgetHome-BG3YerJf.js",
+  "versionInBundle": "2.2.121",
+  "cardPagerInKioskChunk": true,
+  "gestureStyles": true,
+  "installedVersion": "2.2.121",
+  "latestVersion": "2.2.121",
+  "inProgress": false,
+  "haReachable": true,
+  "bridgeMode": "ws",
+  "entities": 260,
+  "disconnections": 0,
+  "storageWritable": true,
+  "workflow": {
+    "url": "https://github.com/davidep01/MyHome/actions/runs/37421854332",
+    "conclusion": "success",
+    "headSha": "a6ffd31f170eb3efdebf4e682cb8edc84d8f8dfc",
+    "manifestCommit": "520ec8a"
+  },
+  "configComparison": {
+    "checkedAt": "2026-10-06T06:11:19.070204+00:00",
+    "secretsIncludedBefore": false,
+    "secretsIncludedAfter": false,
+    "homeModeBefore": "composer",
+    "homeModeAfter": "grid",
+    "configVersionBefore": 6,
+    "configVersionAfter": 7,
+    "allOtherStoreFieldsEqual": true
+  }
+}
