@@ -29,11 +29,11 @@ export const SIZE_WH: Record<WidgetSize, { w: number; h: number }> = {
 
 export type HomePositions = Record<string, DashboardPosition>
 
-export function widgetLayoutItem(widget: HomeWidget, pos?: Partial<DashboardPosition>): LayoutItem {
-  const wh = SIZE_WH[widget.size]
+export function widgetLayoutItem(widget: HomeWidget, pos?: Partial<DashboardPosition>, cols = HOME_COLS): LayoutItem {
+  const wh = { ...SIZE_WH[widget.size], w: Math.min(cols, SIZE_WH[widget.size].w) }
   return {
     i: widget.id,
-    x: Math.max(0, Math.min(pos?.x ?? 0, HOME_COLS - wh.w)),
+    x: Math.max(0, Math.min(pos?.x ?? 0, cols - wh.w)),
     y: Math.max(0, pos?.y ?? 0),
     w: wh.w,
     h: wh.h,
@@ -48,8 +48,8 @@ function cellsFor(item: Pick<LayoutItem, 'x' | 'y' | 'w' | 'h'>): string[] {
   return cells
 }
 
-function fits(occupied: Set<string>, item: Pick<LayoutItem, 'x' | 'y' | 'w' | 'h'>): boolean {
-  if (item.x < 0 || item.y < 0 || item.x + item.w > HOME_COLS) return false
+function fits(occupied: Set<string>, item: Pick<LayoutItem, 'x' | 'y' | 'w' | 'h'>, cols = HOME_COLS): boolean {
+  if (item.x < 0 || item.y < 0 || item.x + item.w > cols) return false
   return cellsFor(item).every((cell) => !occupied.has(cell))
 }
 
@@ -57,12 +57,12 @@ function occupy(occupied: Set<string>, item: Pick<LayoutItem, 'x' | 'y' | 'w' | 
   cellsFor(item).forEach((cell) => occupied.add(cell))
 }
 
-function firstFreeSlot(occupied: Set<string>, widget: HomeWidget): { x: number; y: number } {
-  const wh = SIZE_WH[widget.size]
-  for (let y = 0; y < 1000; y += 1) {
-    for (let x = 0; x <= HOME_COLS - wh.w; x += 1) {
+function firstFreeSlot(occupied: Set<string>, widget: HomeWidget, cols = HOME_COLS, minY = 0, minX = 0): { x: number; y: number } {
+  const wh = { ...SIZE_WH[widget.size], w: Math.min(cols, SIZE_WH[widget.size].w) }
+  for (let y = minY; y < 1000; y += 1) {
+    for (let x = y === minY ? minX : 0; x <= cols - wh.w; x += 1) {
       const candidate = { x, y, w: wh.w, h: wh.h }
-      if (fits(occupied, candidate)) return { x, y }
+      if (fits(occupied, candidate, cols)) return { x, y }
     }
   }
   return { x: 0, y: 0 }
@@ -73,7 +73,7 @@ function firstFreeSlot(occupied: Set<string>, widget: HomeWidget): { x: number; 
  * otherwise pack the rest into the first free slot. Deterministic and
  * collision-free — mirrors the backend `normalizeHomePositions`.
  */
-export function buildLayout(widgets: HomeWidget[], saved: HomePositions = {}, priorityId?: string): Layout {
+export function buildLayout(widgets: HomeWidget[], saved: HomePositions = {}, priorityId?: string, cols = HOME_COLS, preserveReadingOrder = false): Layout {
   const occupied = new Set<string>()
   const layout: LayoutItem[] = []
   const missing: HomeWidget[] = []
@@ -89,8 +89,8 @@ export function buildLayout(widgets: HomeWidget[], saved: HomePositions = {}, pr
   })
 
   placementOrder.forEach((widget) => {
-    const item = widgetLayoutItem(widget, saved[widget.id])
-    if (saved[widget.id] && fits(occupied, item)) {
+    const item = widgetLayoutItem(widget, saved[widget.id], cols)
+    if (saved[widget.id] && fits(occupied, item, cols)) {
       layout.push(item)
       occupy(occupied, item)
     } else {
@@ -98,14 +98,16 @@ export function buildLayout(widgets: HomeWidget[], saved: HomePositions = {}, pr
     }
   })
 
+  let cursor = { x: 0, y: 0 }
   missing.forEach((widget) => {
-    const { x, y } = firstFreeSlot(occupied, widget)
-    const item = widgetLayoutItem(widget, { x, y })
+    const { x, y } = firstFreeSlot(occupied, widget, cols, cursor.y, cursor.x)
+    const item = widgetLayoutItem(widget, { x, y }, cols)
     layout.push(item)
     occupy(occupied, item)
+    if (preserveReadingOrder) cursor = { x, y }
   })
 
-  const compacted = compactVertically(layout)
+  const compacted = preserveReadingOrder ? layout : compactVertically(layout)
   const byId = new Map(compacted.map((item) => [item.i, item]))
   return widgets.map((widget) => byId.get(widget.id)).filter(Boolean) as Layout
 }
@@ -168,4 +170,22 @@ export function layoutPixelHeight(layout: Layout, rowHeight: number, rowGap: num
   const safeRowHeight = Math.max(1, rowHeight)
   const safeGap = Math.max(0, rowGap)
   return rows * safeRowHeight + Math.max(0, rows - 1) * safeGap
+}
+
+/** Read-only viewport projection; never feed its positions to persistence. */
+export function displayHomeColumns(width:number):number {
+  return Number.isFinite(width) ? Math.min(HOME_COLS,Math.max(1,Math.floor((width+14)/184))) : HOME_COLS
+}
+
+/** Project in canonical reading order, without reusing coordinates from wider rows. */
+export function projectHomeLayout(widgets: HomeWidget[], canonical: Layout, cols: number): Layout {
+  if (cols === HOME_COLS) return canonical
+  const byId = new Map(widgets.map(widget => [widget.id, widget]))
+  const ordered = orderFromLayout(canonical).flatMap(id => {
+    const widget = byId.get(id)
+    byId.delete(id)
+    return widget ? [widget] : []
+  })
+  ordered.push(...byId.values())
+  return buildLayout(ordered, {}, undefined, cols, true)
 }

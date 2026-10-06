@@ -8,6 +8,7 @@ import {
   orderFromLayout,
   positionsFromLayout,
   sameLayout,
+  projectHomeLayout,
 } from './homeLayout'
 import type { HomeWidget } from '../api/backend'
 
@@ -140,4 +141,39 @@ describe('sameLayout', () => {
     expect(sameLayout(base, [{ i: 'a', x: 1, y: 0, w: 2, h: 2 }])).toBe(false)
     expect(sameLayout(base, [{ i: 'a', x: 0, y: 0, w: 2, h: 2 }, { i: 'b', x: 2, y: 0, w: 2, h: 2 }])).toBe(false)
   })
+})
+
+it('la proiezione viewport conserva tutte le card senza mutare geometria e posizioni salvate', () => {
+  const widgets = [widget('a','wide'),widget('b','md'),widget('c','sm'),widget('d','lg')]
+  const canonical = buildLayout(widgets)
+  const saved = positionsFromLayout(canonical,widgets)
+  const before = JSON.stringify({widgets,saved,canonical})
+  for(const cols of [1,2]) {
+    const projected=projectHomeLayout(widgets,canonical,cols)
+    expect(projected).toHaveLength(widgets.length)
+    expect(hasOverlap(projected)).toBe(false)
+    expect(projected.every(item=>item.x>=0 && item.x+item.w<=cols)).toBe(true)
+    expect(projected.map(item=>item.h).sort()).toEqual(canonical.map(item=>item.h).sort())
+  }
+  expect(JSON.stringify({widgets,saved,canonical})).toBe(before)
+})
+
+it('la proiezione stretta preserva l ordine canonico e non anticipa card per riempire buchi', () => {
+  const widgets = [widget('stack', 'md'), widget('news', 'wide'), widget('climate', 'md'), widget('light', 'xs'), widget('small', 'xs')]
+  const canonical = buildLayout(widgets, {
+    light: { x: 0, y: 0, w: 1, h: 2 },
+    climate: { x: 1, y: 0, w: 2, h: 3 },
+    news: { x: 0, y: 3, w: 3, h: 3 },
+    stack: { x: 0, y: 6, w: 2, h: 3 },
+    small: { x: 2, y: 6, w: 1, h: 2 },
+  })
+  const before = JSON.stringify(canonical)
+  for (const cols of [1, 2]) {
+    const projected = projectHomeLayout(widgets, canonical, cols)
+    expect(orderFromLayout(projected)).toEqual(orderFromLayout(canonical))
+    expect(hasOverlap(projected)).toBe(false)
+    expect(projected.every(item => item.x + item.w <= cols)).toBe(true)
+  }
+  expect(projectHomeLayout(widgets, canonical, HOME_COLS)).toBe(canonical)
+  expect(JSON.stringify(canonical)).toBe(before)
 })

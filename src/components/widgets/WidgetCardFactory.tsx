@@ -1,3 +1,4 @@
+import { SlideToUnlock } from './SlideToUnlock'
 import { useTimerPresentation } from '../../hooks/useTimerPresentation'
 import { controlRange, snapControlValue } from '../../lib/controlRange'
 import { DeviceCardExtras, type CardCommand } from './DeviceCardExtras'
@@ -342,7 +343,7 @@ function WidgetCardFactoryContent({ entity: roomEntity, size = 'M', className, i
       const moving = entity?.state === 'opening' || entity?.state === 'closing'
       return (
         <>
-          <WidgetCardControlButton disabled={busy || entity?.state === 'open' || !supportsCardFeature(entity?.attributes ?? {}, 1, true)} onClick={() => cover('open_cover')} label="Apri"><ChevronUp size={16} aria-hidden="true" /></WidgetCardControlButton>
+          <WidgetCardControlButton disabled={busy || (entity?.state === 'open' && (numericState(entity.attributes.current_position) === undefined || Number(entity.attributes.current_position) >= 100)) || !supportsCardFeature(entity?.attributes ?? {}, 1, true)} onClick={() => cover('open_cover')} label="Apri"><ChevronUp size={16} aria-hidden="true" /></WidgetCardControlButton>
           {moving
             ? <WidgetCardControlButton disabled={busy || !supportsCardFeature(entity?.attributes ?? {}, 8, true)} onClick={() => cover('stop_cover')} label="Ferma"><Square size={13} aria-hidden="true" /></WidgetCardControlButton>
             : <WidgetCardControlButton disabled={busy || entity?.state === 'closed' || !supportsCardFeature(entity?.attributes ?? {}, 2, true)} onClick={() => cover('close_cover')} label="Chiudi"><ChevronDown size={16} aria-hidden="true" /></WidgetCardControlButton>}
@@ -358,6 +359,7 @@ function WidgetCardFactoryContent({ entity: roomEntity, size = 'M', className, i
       )
     }
     if (mapped.family === 'lock') {
+      if (['M','L','XL'].includes(size) && entity?.state === 'locked') return <SlideToUnlock disabled={busy || Boolean(isEditing)} onUnlock={unlock} />
       return <WidgetCardHoldButton locked={entity?.state !== 'unlocked'} disabled={busy || ['locking', 'unlocking', 'jammed'].includes(entity?.state ?? '')} onUnlock={unlock} onLock={lock} accentColor={mapped.accentColor} />
     }
     if (mapped.family === 'vacuum' || mapped.family === 'mower') {
@@ -466,6 +468,11 @@ function WidgetCardFactoryContent({ entity: roomEntity, size = 'M', className, i
               </p>
             </div>
             {trailing && <div className="flex shrink-0 items-center">{trailing}</div>}
+          </div>
+        ) : mapped.family === 'lock' && (size === 'M' || size === 'XL') ? (
+          <div className="flex h-full min-h-0 flex-col justify-between gap-2">
+            <div className="flex min-w-0 items-center gap-3"><WidgetCardIcon Icon={mapped.Icon} size="S" accentColor={mapped.accentColor}/><WidgetCardIdentity title={mapped.title} state={actionError??mapped.state} size="S" /></div>
+            <div className="pointer-events-auto shrink-0">{trailing}</div>
           </div>
         ) : size === 'M' || size === 'XL' ? (
           <div className="widget-card-compact flex h-full min-w-0 items-center gap-3">

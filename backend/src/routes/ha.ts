@@ -27,8 +27,8 @@ const SERVICE_ALLOWLIST: Record<string, Set<string>> = {
   light: new Set(['turn_on', 'turn_off', 'toggle']),
   switch: new Set(['turn_on', 'turn_off', 'toggle']),
   input_boolean: new Set(['turn_on', 'turn_off', 'toggle']),
-  cover: new Set(['open_cover', 'close_cover', 'stop_cover', 'set_cover_position']),
-  climate: new Set(['turn_on', 'turn_off', 'set_temperature', 'set_hvac_mode', 'set_fan_mode', 'set_swing_mode', 'set_preset_mode']),
+  cover: new Set(['open_cover', 'close_cover', 'stop_cover', 'set_cover_position', 'set_cover_tilt_position']),
+  climate: new Set(['turn_on', 'turn_off', 'set_temperature', 'set_hvac_mode', 'set_fan_mode', 'set_swing_mode', 'set_swing_horizontal_mode', 'set_humidity', 'set_preset_mode']),
   fan: new Set(['turn_on', 'turn_off', 'toggle', 'set_percentage', 'set_preset_mode', 'oscillate', 'set_direction']),
   lock: new Set(['lock', 'unlock', 'open']),
   alarm_control_panel: new Set([
@@ -38,7 +38,7 @@ const SERVICE_ALLOWLIST: Record<string, Set<string>> = {
   media_player: new Set([
     'turn_on', 'turn_off', 'media_play', 'media_pause', 'media_play_pause',
     'media_previous_track', 'media_next_track', 'media_stop', 'volume_set',
-    'volume_mute', 'select_source',
+    'volume_mute', 'select_source', 'media_seek', 'shuffle_set', 'repeat_set',
   ]),
   scene: new Set(['turn_on']),
   script: new Set(['turn_on']),
@@ -50,7 +50,7 @@ const SERVICE_ALLOWLIST: Record<string, Set<string>> = {
   input_number: new Set(['set_value']),
   select: new Set(['select_option']),
   input_select: new Set(['select_option']),
-  vacuum: new Set(['start', 'pause', 'stop', 'return_to_base', 'locate']),
+  vacuum: new Set(['start', 'pause', 'stop', 'return_to_base', 'locate', 'set_fan_speed']),
   remote: new Set(['turn_on', 'turn_off', 'toggle', 'send_command']),
   valve: new Set(['open_valve', 'close_valve', 'set_valve_position', 'stop_valve']),
   water_heater: new Set(['turn_on', 'turn_off', 'set_temperature', 'set_operation_mode']),

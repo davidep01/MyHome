@@ -1,5 +1,7 @@
+import { DeviceCardExtras, type CardCommand } from './DeviceCardExtras'
 import { performEntityAction } from '../../lib/entityActions'
-import type { ElementType, MouseEvent as ReactMouseEvent } from 'react'
+import { supportsCardFeature } from '../../lib/cardCapabilities'
+import type { ReactNode, ElementType, MouseEvent as ReactMouseEvent } from 'react'
 import { useMemo, useRef, useState } from 'react'
 import { Droplets, Fan, Flame, Minus, Plus, Power, Snowflake, Sparkles, Thermometer, Wind } from 'lucide-react'
 import { useHAEntity } from '../../hooks/useHAEntity'
@@ -106,6 +108,7 @@ export function ClimateCard({
   const humidity = numberAttr(entity?.attributes?.current_humidity)
   const modes = getClimateModes(entity)
   const fanModes = listAttr(entity?.attributes?.fan_modes)
+  const fanSupported = supportsCardFeature(entity?.attributes ?? {}, 8, fanModes.length > 0) && fanModes.length > 0
   const fanMode = typeof entity?.attributes?.fan_mode === 'string' ? entity.attributes.fan_mode : undefined
   const swingMode = typeof entity?.attributes?.swing_mode === 'string' ? entity.attributes.swing_mode : undefined
   const presetMode = typeof entity?.attributes?.preset_mode === 'string' ? entity.attributes.preset_mode : undefined
@@ -171,7 +174,7 @@ export function ClimateCard({
   const togglePower = () => setMode(visual.isOn ? 'off' : onMode)
 
   const cycleFan = () => {
-    if (!entity || fanModes.length === 0) return
+    if (!entity || !fanSupported) return
     const index = Math.max(0, fanModes.indexOf(fanMode ?? fanModes[0]))
     const next = fanModes[(index + 1) % fanModes.length]
     perform(
@@ -180,6 +183,11 @@ export function ClimateCard({
       () => call('climate', 'set_fan_mode', { entity_id: entityId, fan_mode: next }),
       () => setOptimisticState(entityId, entity.state, { fan_mode: fanMode }),
     )
+  }
+
+  const extraCommand:CardCommand=(service,data,attributes,state)=>{
+    if(!entity)return
+    perform(service,()=>{light();if(attributes||state)setOptimisticState(entityId,state??entity.state,attributes)},()=>call('climate',service,{entity_id:entityId,...data}),()=>setOptimisticState(entityId,entity.state,entity.attributes))
   }
 
   const common = {
@@ -209,7 +217,8 @@ export function ClimateCard({
     onAdjust: (delta: number) => target !== undefined && setTemperature(target + delta * step),
     onPower: togglePower,
     onMode: setMode,
-    onFan: cycleFan,
+    onFan: fanSupported ? cycleFan : undefined,
+    extras:entity && !isEditing?<DeviceCardExtras entity={entity} disabled={controlsDisabled} command={extraCommand}/>:null,
   }
 
   return (
@@ -241,6 +250,7 @@ export function ClimateCard({
 }
 
 interface ClimateLayoutProps {
+  extras?:ReactNode
   label: string
   size: WidgetVisualSize
   Icon: ElementType
@@ -267,7 +277,7 @@ interface ClimateLayoutProps {
   onPower: () => void
   onMode: (mode: string) => void
   onDetails: () => void
-  onFan: () => void
+  onFan?: () => void
 }
 
 function ClimateXS(props: ClimateLayoutProps) {
@@ -320,7 +330,7 @@ function ClimateL(props: ClimateLayoutProps) {
         <TemperatureMetric unit={props.unit} label="Attuale" value={props.current} size="xl" />
         <Setpoint {...props} />
       </div>
-      <QuickModes {...props} />
+      <div className="min-h-0 self-stretch overflow-y-auto space-y-2"><QuickModes {...props} />{props.extras}</div>
     </div>
     <ClimateFooter {...props} />
   </div>
@@ -340,7 +350,7 @@ function ClimateHeader(props: ClimateLayoutProps & { compact?: boolean }) {
       <WidgetCardIcon Icon={props.Icon} size={props.compact ? 'S' : props.size} accentColor={props.accent} active={props.visual.isOn} />
       <div className="min-w-0 flex-1 pt-0.5">
         <p className={cn('truncate font-semibold leading-tight text-[var(--ink)] ', props.compact ? 'text-[14px]' : 'text-[15px]')}>{props.label}</p>
-        <p className="mt-0.5 truncate text-[13px] font-normal" style={{ color: props.error ? '#dc2626' : props.accent }}>
+        <p className="mt-0.5 truncate text-[13px] font-normal" style={{ color: props.error ? 'var(--danger-red)' : props.accent }}>
           {props.error ?? climateHeadline(props.visual)}
         </p>
       </div>

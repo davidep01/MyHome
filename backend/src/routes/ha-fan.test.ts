@@ -36,3 +36,19 @@ it('permits only targeted timer controls from the kiosk', async () => {
  expect((await app.request('/api/ha/services/timer/finish',{method:'POST',body:JSON.stringify({entity_id:'timer.cooking'})})).status).toBe(403)
  expect(fetchMock).toHaveBeenCalledTimes(3)
 })
+
+it('permits targeted adaptive card services without opening arbitrary robot commands',async()=>{
+  const mock=vi.fn(async()=>new Response('[]',{headers:{'Content-Type':'application/json'}}))
+  globalThis.fetch=mock as unknown as typeof fetch
+  const app=new Hono();app.route('/api/ha',haRouter)
+  for(const [domain,service,data] of [
+    ['media_player','shuffle_set',{shuffle:true}],['media_player','repeat_set',{repeat:'all'}],['media_player','media_seek',{seek_position:30}],
+    ['cover','set_cover_tilt_position',{tilt_position:50}],['vacuum','set_fan_speed',{fan_speed:'balanced'}],
+    ['climate','set_swing_horizontal_mode',{swing_horizontal_mode:'on'}],['climate','set_humidity',{humidity:50}],
+  ] as const){
+    expect((await app.request(`/api/ha/services/${domain}/${service}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({entity_id:`${domain}.test`,...data})})).status).toBe(200)
+    expect((await app.request(`/api/ha/services/${domain}/${service}`,{method:'POST',body:'{}'})).status).toBe(400)
+  }
+  expect((await app.request('/api/ha/services/vacuum/send_command',{method:'POST',body:JSON.stringify({entity_id:'vacuum.test',command:'anything'})})).status).toBe(403)
+  expect(mock).toHaveBeenCalledTimes(7)
+})

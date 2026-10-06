@@ -2,11 +2,13 @@ import { useEffect, useRef, useState, type ComponentProps } from 'react'
 import ReactGridLayout from 'react-grid-layout/legacy'
 
 type Props = Omit<ComponentProps<typeof ReactGridLayout>, 'width'> & {
+  projectLayout?: (width:number)=>Pick<Props,'layout'|'cols'|'compactType'>
   placeholderClassName?: string
 }
 
 export function MeasuredGridLayout({
   className,
+  projectLayout,
   placeholderClassName = 'min-h-[140px]',
   ...props
 }: Props) {
@@ -37,7 +39,7 @@ export function MeasuredGridLayout({
   return (
     <div ref={ref} className="min-w-0 w-full">
       {width > 0 ? (
-        <ReactGridLayout {...props} width={width} className={className} />
+        <ReactGridLayout {...props} {...projectLayout?.(width)} width={width} className={className} />
       ) : (
         <div className={placeholderClassName} />
       )}

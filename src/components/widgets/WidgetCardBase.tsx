@@ -287,6 +287,7 @@ export function WidgetCardSlider({
   min = 0,
   max = 100,
   step = 1,
+  unit = '%',
 }: {
   value: number
   color?: string
@@ -298,6 +299,7 @@ export function WidgetCardSlider({
   min?: number
   max?: number
   step?: number
+  unit?: string
 }) {
   const trackRef = useRef<HTMLDivElement>(null)
   const [drag, setDrag] = useState<number | null>(null)
@@ -327,7 +329,7 @@ export function WidgetCardSlider({
       aria-label={label}
       aria-disabled={disabled}
       aria-valuenow={current}
-      aria-valuetext={`${Number(current.toFixed(2))}%`}
+      aria-valuetext={`${Number(current.toFixed(2))}${unit === '%' ? unit : unit ? ` ${unit}` : ''}`}
       aria-valuemin={range.min}
       aria-valuemax={range.max}
       className={cn('tap-target pointer-events-auto relative h-11 w-full touch-none select-none', disabled && 'cursor-not-allowed opacity-40')}

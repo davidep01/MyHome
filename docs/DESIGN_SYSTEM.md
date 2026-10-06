@@ -569,3 +569,13 @@ I pannelli contestuali si caricano quando aperti; durante il caricamento il tito
 Superficie = dettagli, controllo esplicito = comando; pulsanti con nome italiano e stato selezionato, mai azioni nascoste dietro hover. Le card misura privilegiano valore/unità, quelle dispositivo nome/stato/controllo. Stato non disponibile resta consultabile; pending ed errore sono visibili. XS/S essenziali, M/XL orizzontali, L con una seconda zona scorrevole per controlli e informazioni reali. Le superfici rispettano i livelli Liquid Glass esistenti e i token Light/Dark, perf-lite e reduced-motion.
 
 Stack = card glass con nome, conteggio, icone e stati dei membri; tap apre il foglio condiviso di card, senza accendere/spegnere un insieme misto. Contenuto piatto, 2..24 dispositivi, nessuna camera. Le anteprime 600/1024/1280 nell'editor cambiano solo il canvas, mantenendo tre colonne e bersagli touch reali.
+
+## Interazioni dinamiche card — 2026-10-05
+
+Raccolte con card live sfogliabili: swipe orizzontale o drag desktop solo sulle superfici libere; frecce >=44px, indicatore pagina, pannello inventario esplicito. Non intercettare slider/pulsanti o scroll verticale. Il membro attivo mantiene tutti i controlli del renderer condiviso, senza doppi blur o seconda geometria. Slide e ritorno a riposo animano soltanto transform; reduced-motion/perf-lite disattivano la transizione.
+
+Serratura M/L/XL: scorrimento protetto fino alla fine per sbloccare; tastiera con hold 900ms e cancellazione su blur/cancel. XS/S restano hold. Controlli aggiunti per luce, media, tapparelle e robot rimangono semantici Light/Dark, touch >=44px e capability-gated.
+
+La home in sola lettura proietta con lo stesso kernel a 1/2 colonne quando lo slot scenderebbe sotto circa 170px. Salva riceve sempre la geometria canonica dell'editor; nessuna variante mobile viene persistita. Le animazioni delle pagine possono attraversare il clip orizzontale per 160ms; la geometria e i bersagli si verificano a riposo oppure in perf-lite.
+
+La proiezione stretta conserva l'ordine di lettura canonico, anche quando le card hanno larghezze e altezze diverse. Una card successiva non risale per riempire un buco sopra una precedente.

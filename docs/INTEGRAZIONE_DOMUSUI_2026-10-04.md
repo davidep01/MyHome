@@ -2,6 +2,8 @@
 
 Data: 4 ottobre 2026. Stato attuale: adattamenti UX/editor/card distribuiti in LAN con **2.2.120**; integrazione complessiva ancora parziale per i servizi backend indicati nella matrice. I paragrafi di verifica precedenti descrivono il momento del collaudo locale; rilascio nel §30 dell’audit tecnico.
 
+Passaggio dinamico del 5–6 ottobre: [CARD_DINAMICHE_DOMUSUI_2026-10-05.md](CARD_DINAMICHE_DOMUSUI_2026-10-05.md), 14 famiglie demo mappate, raccolte con swipe/drag, controlli aggiuntivi e responsive. HEAD riferimento ricontrollato e invariato il 6 ottobre. La camera rimane nella tendina per scelta esplicita dell'utente.
+
 ## 1. Riferimento verificato
 
 - Repository: [Mattia2399/DomusUI](https://github.com/Mattia2399/DomusUI).

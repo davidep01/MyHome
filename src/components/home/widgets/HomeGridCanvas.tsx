@@ -4,7 +4,7 @@ import 'react-grid-layout/css/styles.css'
 import { MeasuredGridLayout } from './MeasuredGridLayout'
 import { HomeWidgetView } from './HomeWidgetView'
 import { WidgetErrorBoundary } from './WidgetErrorBoundary'
-import { HOME_COLS } from '../../../lib/homeLayout'
+import { HOME_COLS, projectHomeLayout, displayHomeColumns } from '../../../lib/homeLayout'
 import type { HomeWidget, TabletDashboardLayout } from '../../../api/backend'
 
 const GRID_PADDING: [number, number] = [0, 0]
@@ -55,6 +55,10 @@ export function HomeGridCanvas({
     <MeasuredGridLayout
       className={className}
       layout={layout}
+      projectLayout={!editMode ? width => {
+        const cols = displayHomeColumns(width)
+        return { cols, layout: projectHomeLayout(widgets, layout, cols), compactType: cols === HOME_COLS ? 'vertical' : null }
+      } : undefined}
       cols={HOME_COLS}
       rowHeight={rowHeight}
       margin={gap as [number, number]}

@@ -1,0 +1,11 @@
+{"path":"/api/ha/services/media_player/shuffle_set","body":"{\"entity_id\":\"media_player.speaker\",\"shuffle\":true}"}
+{"path":"/api/ha/services/lock/unlock","body":"{\"entity_id\":\"lock.door\"}"}
+{"path":"/api/ha/services/light/turn_on","body":"{\"entity_id\":\"light.lamp\",\"color_temp_kelvin\":3050}"}
+{"path":"/api/ha/services/climate/set_fan_mode","body":"{\"entity_id\":\"climate.room\",\"fan_mode\":\"high\"}"}
+{"path":"/api/ha/services/climate/set_temperature","body":"{\"entity_id\":\"climate.room\",\"target_temp_low\":18.5,\"target_temp_high\":24}"}
+{"path":"/api/ha/services/climate/set_humidity","body":"{\"entity_id\":\"climate.room\",\"humidity\":46}"}
+{"path":"/api/ha/services/media_player/repeat_set","body":"{\"entity_id\":\"media_player.speaker\",\"repeat\":\"all\"}"}
+{"path":"/api/ha/services/media_player/media_seek","body":"{\"entity_id\":\"media_player.speaker\",\"seek_position\":61}"}
+{"path":"/api/ha/services/cover/set_cover_tilt_position","body":"{\"entity_id\":\"cover.window\",\"tilt_position\":36}"}
+{"path":"/api/ha/services/vacuum/set_fan_speed","body":"{\"entity_id\":\"vacuum.robot\",\"fan_speed\":\"turbo\"}"}
+{"path":"/api/layout/home","body":"{\"layoutVersion\":4,\"widgets\":[{\"id\":\"one\",\"type\":\"entity\",\"entityId\":\"light.lamp\",\"size\":\"xs\"},{\"id\":\"two\",\"type\":\"entity\",\"entityId\":\"climate.room\",\"size\":\"md\"},{\"id\":\"three\",\"type\":\"news\",\"size\":\"wide\"},{\"id\":\"collection\",\"type\":\"stack\",\"size\":\"md\",\"label\":\"Il soggiorno\",\"entityIds\":[\"light.lamp\",\"fan.vent\",\"sensor.temp\"]}],\"items\":{\"one\":{\"x\":2,\"y\":3,\"w\":1,\"h\":2},\"two\":{\"x\":1,\"y\":0,\"w\":2,\"h\":3},\"three\":{\"x\":0,\"y\":5,\"w\":3,\"h\":3},\"collection\":{\"x\":0,\"y\":8,\"w\":2,\"h\":3}},\"order\":[\"two\",\"one\",\"three\",\"collection\"]}"}

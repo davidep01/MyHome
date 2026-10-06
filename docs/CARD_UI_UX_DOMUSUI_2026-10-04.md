@@ -2,6 +2,8 @@
 
 4 ottobre 2026. Implementazione distribuita in LAN con la versione **2.2.120**; esito nel §30 dell’audit tecnico. Riferimento studiato: DomusUI 1.4.0, commit `d5e6bb57ecbcd66e9df33ede0c13b2c54bdf9702`. Questo documento completa la passata sulle card e sull'editor descritta in [INTEGRAZIONE_DOMUSUI_2026-10-04.md](INTEGRAZIONE_DOMUSUI_2026-10-04.md). Non dichiara parità con tutti i servizi backend di DomusUI.
 
+Aggiornamento 5–6 ottobre: raccolte sfogliabili, serratura a scorrimento, controlli L estesi e proiezione responsive ordinata sono descritti in [CARD_DINAMICHE_DOMUSUI_2026-10-05.md](CARD_DINAMICHE_DOMUSUI_2026-10-05.md). Le descrizioni delle raccolte qui sotto documentano il comportamento della 2.2.120, superato per la presentazione interna dal nuovo carosello; schema/editor/visibilità restano validi.
+
 ## Contratto comune applicato
 
 - Superficie della card e nome aprono i dettagli. Accensione, pausa e altri comandi hanno controlli espliciti. Il tocco su slider e select non apre accidentalmente il pannello.

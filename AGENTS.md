@@ -534,3 +534,13 @@ L'adattamento DomusUI copre tutte le famiglie di card operative di S.I.M.I. Il t
 Nuovo widget `stack`: nome (`label`) e lista piatta `entityIds` di 2..24 ID unici; niente stack ricorsivi, videocamere o comandi collettivi impliciti. Taglie S/M/L/XL, schema 3 invariato. Il picker crea stack da dispositivi opt-in; l'editor li modifica con la stessa bozza/versione/undo; renderer e sheet filtrano i membri non più selezionati. Tipi, validazione backend, backup/revisioni, decoder bozze e catalogo vanno aggiornati insieme.
 
 Le anteprime dell'editor cambiano solo la larghezza del canvas locale (nessun transform/fitScale, nessuna scrittura). Card informative e persone mantengono stati vuoti/errori e drill-down espliciti. I risultati e la matrice famiglia/taglia sono registrati in `docs/CARD_UI_UX_DOMUSUI_2026-10-04.md`.
+
+### Card dinamiche e gesti DomusUI — 2026-10-05
+
+Le raccolte espongono pagine di dispositivi live con swipe orizzontale, drag mouse, frecce e indice corrente. Una sola card membro è montata per volta; IDs opt-in e schema 3 restano invariati. Slider, select e pulsanti non avviano il cambio pagina. Il gesto verticale resta disponibile per scorrere la home. Cancellazione pointer e riduzione movimento devono ripristinare uno stato stabile; nessun comando HA nasce da un gesto di navigazione.
+
+La serratura in M/L/XL offre uno scorrimento esplicito fino a fine corsa per sbloccare; un tap o un trascinamento incompleto non inviano comandi. La tastiera mantiene il hold protetto da 900ms. XS/S conservano il hold esistente. Tutti i nuovi controlli di luce/clima/media/cover/robot dipendono dalle capability HA e condividono pending, ottimismo e rollback. La camera resta nel drawer su richiesta.
+
+In sola visualizzazione, `HomeGridCanvas` proietta la griglia con lo stesso kernel su 1/2 colonne quando la larghezza non garantisce circa 170px per slot. Le posizioni proiettate non entrano mai in Salva; l'editing conserva la griglia canonica a tre colonne. Nessuno scaling di font o target e nessun layout mobile persistito in parallelo.
+
+La proiezione conserva l'ordine di lettura della disposizione canonica (dall'alto, da sinistra), anche con taglie miste: non riempie un vuoto precedente con una card successiva. Il packing ordinato è una modalità dello stesso kernel, riservata alla visualizzazione stretta.

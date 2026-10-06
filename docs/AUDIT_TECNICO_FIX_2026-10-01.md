@@ -947,3 +947,15 @@ Home Assistant ha avviato automaticamente l’installazione quando è stata rile
 Export portatile pre/post con secretsIncluded false, store presente e identico. Backup locali protetti in `/tmp/myhome-card-release-2026-10-04/`. Configurazione conservata; ZIP di riferimento e registro collaudo periodico esclusi dai commit di questa distribuzione.
 
 Il controllo LAN prova installazione, disponibilità API e bundle aggiornato. Non certifica il touch fisico Fully, audio udibile, wake o streaming Ring continuativo; la resa grafica documentata nel §29 è stata verificata con fixture isolate Light/Dark. Le funzioni backend DomusUI residue della matrice generale non sono dichiarate implementate da questa release.
+
+## 31. Card dinamiche, swipe e controlli adattivi — 5–6 ottobre 2026
+
+Riferimento DomusUI 1.4.0 ricontrollato il 6 ottobre: HEAD ancora `d5e6bb57ecbcd66e9df33ede0c13b2c54bdf9702`. Le raccolte ora montano una card dispositivo live per pagina, con swipe orizzontale, drag mouse, frecce/indice e inventario. Gesti di navigazione, scroll verticale e comandi sono separati. Serratura M/L/XL con scorrimento completo + rilascio; hold 900ms da tastiera e XS/S conservati.
+
+Nuovi controlli capability-gated: colore luce; range temperatura/umidità e swing orizzontale clima; shuffle/repeat/seek media; inclinazione tapparelle; potenza robot. Corretto Apri su tapparella parzialmente aperta, tilt senza simulare movimento dell'apertura, unità ARIA e capability del controllo fan nel footer clima. Ottimismo/pending/rollback riusano il percorso condiviso. Sette servizi mirati aggiunti al proxy kiosk; richieste senza target e servizi robot arbitrari restano rifiutati.
+
+Home stretta in sola lettura su 1/2 colonne con lo stesso kernel, senza scaling e senza persistere la proiezione. Corretto l'ordine delle card miste: nessun riempimento di un buco che anticipi un widget successivo. Editing e Salva restano canonici a tre colonne/versione iniziale. Telecamere mantenute nella tendina secondo la scelta esplicita dell'utente.
+
+**Quality gate locale PASS:** lint, **673 test / 126 file**, build:all, typecheck backend, diff check; audit runtime FE/BE zero vulnerabilità. Browser isolato: **392 combinazioni / 1.856 layout selezionabili**, Light/Dark a 390/600/768/1024px senza target piccoli o overflow orizzontali involontari rilevati. Provati navigazione/slider separati, rollback 503 per i nuovi controlli rappresentativi, protezione serratura, griglia effettiva a una/due colonne, drag/undo/redo e Salva con versione 4 dopo cache remota 5. La bozza rimane dopo rifiuto.
+
+Specifica, mappa di tutte le 14 famiglie della demo, istruzioni operative, artefatti e limiti in [CARD_DINAMICHE_DOMUSUI_2026-10-05.md](CARD_DINAMICHE_DOMUSUI_2026-10-05.md). Il laboratorio non ha eseguito comandi sull'impianto o nuove sessioni Ring. Non certifica Fully fisico, colore nativo Android, hold/cancel touch, audio/wake o video continuativo. Le funzioni backend residue della matrice generale restano distinte da questo passaggio.
