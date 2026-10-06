@@ -86,6 +86,14 @@
   --radius-sm:    8px;
   --radius-pill:  999px;
 
+  /* Oval switch: visual track separate from its tablet touch target. */
+  --switch-width: 56px;
+  --switch-hit-height: 44px;
+  --switch-track-height: 32px;
+  --switch-knob-size: 26px;
+  --switch-inset: 3px;
+  --switch-thumb: #fff;
+
   /* Motion */
   --spring:    cubic-bezier(0.32, 0.72, 0, 1);
   --dur-fast:  140ms;
@@ -673,22 +681,49 @@ html.dark .kiosk-color-canvas {
   border-radius: inherit;
 }
 
-/* Interruttore iOS delle card: visivo 32px, tocco ≥44 via ::before. */
-.widget-card-toggle {
-  background: var(--fill-strong);
-  box-shadow: inset 0 1px 2px rgba(0,0,0,0.10);
+/* One oval track and symmetric travel for cards, groups and details. */
+.widget-card-toggle, .lg-toggle {
+  position: relative;
+  width: var(--switch-width);
+  min-width: var(--switch-width);
+  height: var(--switch-hit-height);
+  min-height: var(--switch-hit-height);
+  flex: none;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  cursor: pointer;
 }
-.widget-card-toggle::before {
+.widget-card-toggle::before, .lg-toggle::before {
   content: '';
   position: absolute;
-  inset: -7px -4px;
-  border-radius: 999px;
+  left: 0;
+  top: calc((var(--switch-hit-height) - var(--switch-track-height)) / 2);
+  width: 100%;
+  height: var(--switch-track-height);
+  border-radius: var(--radius-pill);
+  background: var(--fill-strong);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.10);
+  pointer-events: none;
 }
-.widget-card-toggle.on {
-  background: var(--toggle-color);
+.widget-card-toggle.on::before, .lg-toggle.on::before {
+  background: var(--toggle-color, var(--ok-green));
 }
-.widget-card-toggle.on > span {
-  transform: translateX(20px);
+.widget-card-toggle-knob, .lg-toggle-knob {
+  position: absolute;
+  left: var(--switch-inset);
+  top: calc((var(--switch-hit-height) - var(--switch-knob-size)) / 2);
+  width: var(--switch-knob-size);
+  height: var(--switch-knob-size);
+  border-radius: var(--radius-pill);
+  background: var(--switch-thumb);
+  box-shadow: var(--glass-control-shadow);
+  transition: transform var(--dur) var(--spring);
+  pointer-events: none;
+}
+.widget-card-toggle.on > .widget-card-toggle-knob, .lg-toggle.on > .lg-toggle-knob {
+  transform: translateX(calc(var(--switch-width) - 2 * var(--switch-inset) - var(--switch-knob-size)));
 }
 
 /* Feedback delle card: shimmer di caricamento + shake sul rollback. Sono le
@@ -964,41 +999,6 @@ html.dark .glass-border::before {
 }
 
 /* ============================================================================
-   Toggle pill (switch cards)
-   ============================================================================ */
-.lg-toggle {
-  width: 48px;
-  height: 30px;
-  border-radius: 999px;
-  background: var(--fill-strong);
-  position: relative;
-  flex: none;
-  transition: background var(--dur) var(--spring);
-  cursor: pointer;
-}
-.lg-toggle.on { background: var(--ok-green); }
-/* Expand the tap area to ≥44px tall without changing the visual size —
-   reliable touch on a wall-mounted tablet. */
-.lg-toggle::before {
-  content: '';
-  position: absolute;
-  inset: -7px -4px;
-  border-radius: 999px;
-}
-.lg-toggle-knob {
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 24px;
-  height: 24px;
-  border-radius: 999px;
-  background: #fff;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
-  transition: transform var(--dur) var(--spring);
-}
-.lg-toggle.on .lg-toggle-knob { transform: translateX(18px); }
-
-/* ============================================================================
    Scene orbs
    ============================================================================ */
 .scene-orb {
@@ -1120,8 +1120,7 @@ html.dark [class~="text-red-600"] { color: var(--danger-red); }
 /* Media/critical controls deliberately keep white overlays over imagery. */
 html.dark .critical-screen [class~="bg-white"] { background-color: #fff; }
 html.dark .critical-screen [class~="text-[#7d0617]"] { color: #7d0617; }
-html.dark [role="switch"] [class~="bg-white"],
-html.dark .widget-card-toggle [class~="bg-white"] { background-color: #fff; }
+html.dark [role="switch"] [class~="bg-white"] { background-color: #fff; }
 html.dark [class~="bg-black/35"] [class~="bg-white/70"] { background-color: rgba(255,255,255,.70); }
 
 /* ============================================================================
@@ -1229,7 +1228,6 @@ a, button, [role="button"] { -webkit-touch-callout: default; }
 .widget-card-control { background: var(--widget-control); color: var(--ink-secondary); box-shadow: var(--glass-control-shadow); }
 .widget-card-primary-action { outline-offset: -3px; }
 .widget-card-shell:focus-within { outline: 3px solid var(--action-blue); outline-offset: 2px; }
-.widget-card-toggle.on > span { transform: translateX(22px); }
 .widget-card-icon { box-shadow: inset 0 1px 0 var(--glass-edge); }
 .glass { border-radius: var(--radius-card); }
 .glass[role='dialog'] { background: var(--surface-elevated); box-shadow: var(--glass-sheet-shadow); }
@@ -1279,7 +1277,6 @@ a, button, [role="button"] { -webkit-touch-callout: default; }
 .group-card-horizontal > :first-child { flex-shrink: 0; }
 .group-card-horizontal > :nth-child(2) { margin-top: 0; flex: 1; }
 .group-card-mini .widget-card-power-state { display: none; }
-.group-card .lg-toggle { min-height: 44px; min-width: 56px; }
 @container (max-width: 360px) {
   .media-card-compact-content { width: 78%; padding-right: 52px; }
   .media-card-generated-cover > span { width: 22%; }

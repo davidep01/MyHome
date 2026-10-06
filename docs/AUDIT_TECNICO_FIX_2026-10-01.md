@@ -969,3 +969,12 @@ Home Assistant ha rilevato la nuova release dopo un singolo aggiornamento metada
 Backup portatili pre/post con secretsIncluded false, locali protetti in `/tmp/myhome-dynamic-release-2026-10-06/`. Confronto: sono cambiati soltanto `config.kiosk.homeMode` (`composer`→`grid`) e `config.configVersion` (6→7) durante il lavoro; il flusso di rilascio non ha inviato scritture configurazione. La scelta live Personalizzabile è conservata e **tutti gli altri campi dello store coincidono**, incluso il layout. Non è corretto dichiarare identico l'intero export. ZIP originale e registro del collaudo periodico rimangono esclusi dai commit.
 
 Report aggiornato e prove sintetiche in [CARD_DINAMICHE_DOMUSUI_2026-10-05.md](CARD_DINAMICHE_DOMUSUI_2026-10-05.md). Questi riscontri provano release, API e asset aggiornati; il collaudo fisico Fully e le funzioni backend DomusUI residue mantengono i limiti espliciti del §31. Nessuna nuova sessione Ring o prova audio/wake eseguita.
+
+
+## 33. Toggle ovale e simmetrico — 6 ottobre 2026
+
+Separata la pista visiva 56×32px dal bersaglio touch 56×44px. Cursore 26px, inset 3px e corsa derivata 24px: acceso/spento sono speculari. Unificata la geometria di card, gruppi e pannelli, eliminando le copie divergenti e mantenendo token semantici Light/Dark, colori funzionali, pending e rollback.
+
+Browser isolato: **48 combinazioni / 240 toggle** su cinque taglie grezze della fixture, Light/Dark a 390/600/768/1024px; tutte con margini e misure corretti. Verificato anche il pannello luce e un comando sintetico rifiutato con rollback. Specifica e screenshot in [toggle-2026-10-06/README.md](toggle-2026-10-06/README.md).
+
+**Gate locale PASS:** lint, **673 test / 126 file**, build:all, typecheck backend e diff check; audit runtime frontend/backend zero vulnerabilità. La prima suite in parallelo con build/lint/typecheck ha avuto cinque file in timeout, senza assertion fallite; ripetuta integralmente da sola, 673/673 PASS in 3,06s. Avviso di build preesistente sul modulo kioskDevice statico/dinamico invariato. Nessun comando sull'impianto o nuova sessione video avviati durante la verifica grafica; rendering e touch Fully fisici restano da provare.

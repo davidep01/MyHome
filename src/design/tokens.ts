@@ -1,4 +1,12 @@
 export const tokens = {
+  switch: {
+    width: 'var(--switch-width)',
+    hitHeight: 'var(--switch-hit-height)',
+    trackHeight: 'var(--switch-track-height)',
+    knobSize: 'var(--switch-knob-size)',
+    inset: 'var(--switch-inset)',
+    thumb: 'var(--switch-thumb)',
+  },
   blur: {
     glass: 'blur(var(--glass-blur))',
     heavy: 'blur(var(--glass-backdrop-blur))',

@@ -218,7 +218,7 @@ export function WidgetCardIdentity({
   )
 }
 
-/** Interruttore iOS — visivo 32×52, area tocco ≥44 via ::before. */
+/** Oval 56×32 track inside a 56×44 touch target; geometry shared with group/detail switches. */
 export function WidgetCardToggle({
   checked,
   disabled,
@@ -235,14 +235,14 @@ export function WidgetCardToggle({
   return (
     <button
       type="button"
-      className={cn('widget-card-toggle pointer-events-auto relative h-11 w-[56px] shrink-0 rounded-full transition active:scale-95 disabled:opacity-40', checked ? 'on' : '')}
+      className={cn('widget-card-toggle pointer-events-auto transition-transform active:scale-95 disabled:opacity-40', checked ? 'on' : '')}
       style={{ '--toggle-color': color } as CSSProperties}
       onClick={(event) => { event.stopPropagation(); onToggle() }}
       disabled={disabled}
       aria-label={label}
       aria-pressed={checked}
     >
-      <span className="absolute left-[4px] top-[9px] h-[26px] w-[26px] rounded-full bg-white shadow-sm transition-transform" />
+      <span className="widget-card-toggle-knob" aria-hidden="true" />
     </button>
   )
 }

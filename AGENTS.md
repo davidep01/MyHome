@@ -544,3 +544,7 @@ La serratura in M/L/XL offre uno scorrimento esplicito fino a fine corsa per sbl
 In sola visualizzazione, `HomeGridCanvas` proietta la griglia con lo stesso kernel su 1/2 colonne quando la larghezza non garantisce circa 170px per slot. Le posizioni proiettate non entrano mai in Salva; l'editing conserva la griglia canonica a tre colonne. Nessuno scaling di font o target e nessun layout mobile persistito in parallelo.
 
 La proiezione conserva l'ordine di lettura della disposizione canonica (dall'alto, da sinistra), anche con taglie miste: non riempie un vuoto precedente con una card successiva. Il packing ordinato è una modalità dello stesso kernel, riservata alla visualizzazione stretta.
+
+### Toggle ovale simmetrico — 2026-10-06
+
+Card, gruppi e pannelli condividono una pista visiva ovale 56×32px, separata dal pulsante touch 56×44px. Cursore 26px, margini orizzontali e verticali sulla pista di 3px, corsa derivata di 24px: gli estremi acceso/spento sono speculari. Le dimensioni sono token unici in `src/index.css`, riesportati da `src/design/tokens.ts`; non ingrandire la pista per raggiungere il target touch. Il cursore resta bianco funzionale in Light/Dark, con movimento soltanto transform.

@@ -579,3 +579,7 @@ Serratura M/L/XL: scorrimento protetto fino alla fine per sbloccare; tastiera co
 La home in sola lettura proietta con lo stesso kernel a 1/2 colonne quando lo slot scenderebbe sotto circa 170px. Salva riceve sempre la geometria canonica dell'editor; nessuna variante mobile viene persistita. Le animazioni delle pagine possono attraversare il clip orizzontale per 160ms; la geometria e i bersagli si verificano a riposo oppure in perf-lite.
 
 La proiezione stretta conserva l'ordine di lettura canonico, anche quando le card hanno larghezze e altezze diverse. Una card successiva non risale per riempire un buco sopra una precedente.
+
+### Toggle — 6 ottobre 2026
+
+Unica geometria per card, gruppi e dettagli: pista ovale 56×32px dentro il pulsante 56×44px; cursore 26px con inset 3px e corsa derivata 24px. Margini uguali sopra/sotto e ai due estremi. La pista è lo pseudo-elemento del pulsante; l'area touch non ne modifica la proporzione. Dimensioni e colore funzionale del cursore usano token condivisi; Light/Dark mantengono la stessa forma.

@@ -1,0 +1,4898 @@
+[
+  {
+    "width": 390,
+    "theme": "light",
+    "family": "light.lamp",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "theme": "light",
+    "family": "light.second",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "theme": "light",
+    "family": "switch.plug",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "theme": "light",
+    "family": "fan.vent",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "theme": "light",
+    "family": "humidifier.room",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "theme": "light",
+    "family": "widget:group",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "theme": "dark",
+    "family": "light.lamp",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "theme": "dark",
+    "family": "light.second",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "theme": "dark",
+    "family": "switch.plug",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "theme": "dark",
+    "family": "fan.vent",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "theme": "dark",
+    "family": "humidifier.room",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "theme": "dark",
+    "family": "widget:group",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 600,
+    "theme": "light",
+    "family": "light.lamp",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 600,
+    "theme": "light",
+    "family": "light.second",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 600,
+    "theme": "light",
+    "family": "switch.plug",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 600,
+    "theme": "light",
+    "family": "fan.vent",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 600,
+    "theme": "light",
+    "family": "humidifier.room",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 600,
+    "theme": "light",
+    "family": "widget:group",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 600,
+    "theme": "dark",
+    "family": "light.lamp",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 600,
+    "theme": "dark",
+    "family": "light.second",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 600,
+    "theme": "dark",
+    "family": "switch.plug",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 600,
+    "theme": "dark",
+    "family": "fan.vent",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 600,
+    "theme": "dark",
+    "family": "humidifier.room",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 600,
+    "theme": "dark",
+    "family": "widget:group",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 768,
+    "theme": "light",
+    "family": "light.lamp",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 768,
+    "theme": "light",
+    "family": "light.second",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 768,
+    "theme": "light",
+    "family": "switch.plug",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 768,
+    "theme": "light",
+    "family": "fan.vent",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 768,
+    "theme": "light",
+    "family": "humidifier.room",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 768,
+    "theme": "light",
+    "family": "widget:group",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 768,
+    "theme": "dark",
+    "family": "light.lamp",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 768,
+    "theme": "dark",
+    "family": "light.second",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 768,
+    "theme": "dark",
+    "family": "switch.plug",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 768,
+    "theme": "dark",
+    "family": "fan.vent",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 768,
+    "theme": "dark",
+    "family": "humidifier.room",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 768,
+    "theme": "dark",
+    "family": "widget:group",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 1024,
+    "theme": "light",
+    "family": "light.lamp",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 1024,
+    "theme": "light",
+    "family": "light.second",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 1024,
+    "theme": "light",
+    "family": "switch.plug",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 1024,
+    "theme": "light",
+    "family": "fan.vent",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 1024,
+    "theme": "light",
+    "family": "humidifier.room",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 1024,
+    "theme": "light",
+    "family": "widget:group",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 1024,
+    "theme": "dark",
+    "family": "light.lamp",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 1024,
+    "theme": "dark",
+    "family": "light.second",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 3,
+          "right": 27,
+          "top": 3,
+          "w": 26
+        },
+        "on": false,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 1024,
+    "theme": "dark",
+    "family": "switch.plug",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 1024,
+    "theme": "dark",
+    "family": "fan.vent",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 1024,
+    "theme": "dark",
+    "family": "humidifier.room",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  },
+  {
+    "width": 1024,
+    "theme": "dark",
+    "family": "widget:group",
+    "toggles": [
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      },
+      {
+        "button": {
+          "h": 44,
+          "w": 56
+        },
+        "knob": {
+          "bottom": 3,
+          "h": 26,
+          "left": 27,
+          "right": 3,
+          "top": 3,
+          "w": 26
+        },
+        "on": true,
+        "track": {
+          "h": 32,
+          "w": 56
+        }
+      }
+    ]
+  }
+]
