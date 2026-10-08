@@ -1,0 +1,2332 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "event_id",
+        "source",
+        "occurred_at",
+        "received_at",
+        "delivery",
+        "scope",
+        "actor_id",
+        "context",
+        "quality",
+        "causation_event_id",
+        "privacy_scope_version",
+        "kind",
+        "payload"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "event_id": {
+          "type": "string",
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+        },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "kind",
+            "native_id"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+            },
+            "kind": {
+              "enum": [
+                "ha",
+                "dashboard",
+                "calendar",
+                "weather",
+                "fixture"
+              ]
+            },
+            "native_id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 128
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        },
+        "occurred_at": {
+          "type": "string",
+          "maxLength": 40,
+          "format": "date-time"
+        },
+        "received_at": {
+          "type": "string",
+          "maxLength": 40,
+          "format": "date-time"
+        },
+        "delivery": {
+          "enum": [
+            "live",
+            "snapshot",
+            "backfill",
+            "replay"
+          ]
+        },
+        "scope": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "subject_id"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "household"
+                },
+                "subject_id": {
+                  "type": "null"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "subject_id"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "person"
+                },
+                "subject_id": {
+                  "type": "string",
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "subject_id"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "anonymous"
+                },
+                "subject_id": {
+                  "type": "null"
+                }
+              }
+            }
+          ]
+        },
+        "actor_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "context": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "parent_id"
+          ],
+          "properties": {
+            "id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 64
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "parent_id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 64
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        },
+        "quality": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "attribution",
+            "attribution_score",
+            "reason_codes",
+            "coverage",
+            "stale"
+          ],
+          "properties": {
+            "attribution": {
+              "enum": [
+                "manual_confirmed",
+                "manual_likely",
+                "automation",
+                "system",
+                "unknown"
+              ]
+            },
+            "attribution_score": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "reason_codes": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[A-Z][A-Z0-9_]*$"
+              },
+              "maxItems": 20
+            },
+            "coverage": {
+              "enum": [
+                "complete",
+                "partial",
+                "unknown"
+              ]
+            },
+            "stale": {
+              "type": "boolean"
+            }
+          }
+        },
+        "causation_event_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "privacy_scope_version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000
+        },
+        "kind": {
+          "const": "manual.intent"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "operation_id",
+            "interaction_id",
+            "control",
+            "action_key",
+            "target_entity_ids",
+            "requested"
+          ],
+          "properties": {
+            "operation_id": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+            },
+            "interaction_id": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+            },
+            "control": {
+              "enum": [
+                "button",
+                "toggle",
+                "slider",
+                "scene",
+                "other"
+              ]
+            },
+            "action_key": {
+              "type": "string",
+              "maxLength": 80,
+              "minLength": 1,
+              "pattern": "^[a-z][a-z0-9_.-]*$"
+            },
+            "target_entity_ids": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 128,
+                "pattern": "^[a-z_][a-z0-9_]*\\.[a-z0-9_]+$"
+              },
+              "maxItems": 100,
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "requested": {
+              "type": "object",
+              "maxProperties": 20,
+              "propertyNames": {
+                "maxLength": 80
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 256
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          },
+          "$id": "urn:home-ai-core:manual-intent-payload:v1"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "event_id",
+        "source",
+        "occurred_at",
+        "received_at",
+        "delivery",
+        "scope",
+        "actor_id",
+        "context",
+        "quality",
+        "causation_event_id",
+        "privacy_scope_version",
+        "kind",
+        "payload"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "event_id": {
+          "type": "string",
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+        },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "kind",
+            "native_id"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+            },
+            "kind": {
+              "enum": [
+                "ha",
+                "dashboard",
+                "calendar",
+                "weather",
+                "fixture"
+              ]
+            },
+            "native_id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 128
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        },
+        "occurred_at": {
+          "type": "string",
+          "maxLength": 40,
+          "format": "date-time"
+        },
+        "received_at": {
+          "type": "string",
+          "maxLength": 40,
+          "format": "date-time"
+        },
+        "delivery": {
+          "enum": [
+            "live",
+            "snapshot",
+            "backfill",
+            "replay"
+          ]
+        },
+        "scope": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "subject_id"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "household"
+                },
+                "subject_id": {
+                  "type": "null"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "subject_id"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "person"
+                },
+                "subject_id": {
+                  "type": "string",
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "subject_id"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "anonymous"
+                },
+                "subject_id": {
+                  "type": "null"
+                }
+              }
+            }
+          ]
+        },
+        "actor_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "context": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "parent_id"
+          ],
+          "properties": {
+            "id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 64
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "parent_id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 64
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        },
+        "quality": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "attribution",
+            "attribution_score",
+            "reason_codes",
+            "coverage",
+            "stale"
+          ],
+          "properties": {
+            "attribution": {
+              "enum": [
+                "manual_confirmed",
+                "manual_likely",
+                "automation",
+                "system",
+                "unknown"
+              ]
+            },
+            "attribution_score": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "reason_codes": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[A-Z][A-Z0-9_]*$"
+              },
+              "maxItems": 20
+            },
+            "coverage": {
+              "enum": [
+                "complete",
+                "partial",
+                "unknown"
+              ]
+            },
+            "stale": {
+              "type": "boolean"
+            }
+          }
+        },
+        "causation_event_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "privacy_scope_version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000
+        },
+        "kind": {
+          "const": "manual.result"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "operation_id",
+            "result",
+            "reason_code",
+            "ha_context_id"
+          ],
+          "properties": {
+            "operation_id": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+            },
+            "result": {
+              "enum": [
+                "accepted",
+                "failed",
+                "unknown"
+              ]
+            },
+            "reason_code": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 64,
+                  "minLength": 1,
+                  "pattern": "^[A-Z][A-Z0-9_]*$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "ha_context_id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 64
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "event_id",
+        "source",
+        "occurred_at",
+        "received_at",
+        "delivery",
+        "scope",
+        "actor_id",
+        "context",
+        "quality",
+        "causation_event_id",
+        "privacy_scope_version",
+        "kind",
+        "payload"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "event_id": {
+          "type": "string",
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+        },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "kind",
+            "native_id"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+            },
+            "kind": {
+              "enum": [
+                "ha",
+                "dashboard",
+                "calendar",
+                "weather",
+                "fixture"
+              ]
+            },
+            "native_id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 128
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        },
+        "occurred_at": {
+          "type": "string",
+          "maxLength": 40,
+          "format": "date-time"
+        },
+        "received_at": {
+          "type": "string",
+          "maxLength": 40,
+          "format": "date-time"
+        },
+        "delivery": {
+          "enum": [
+            "live",
+            "snapshot",
+            "backfill",
+            "replay"
+          ]
+        },
+        "scope": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "subject_id"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "household"
+                },
+                "subject_id": {
+                  "type": "null"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "subject_id"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "person"
+                },
+                "subject_id": {
+                  "type": "string",
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "subject_id"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "anonymous"
+                },
+                "subject_id": {
+                  "type": "null"
+                }
+              }
+            }
+          ]
+        },
+        "actor_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "context": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "parent_id"
+          ],
+          "properties": {
+            "id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 64
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "parent_id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 64
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        },
+        "quality": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "attribution",
+            "attribution_score",
+            "reason_codes",
+            "coverage",
+            "stale"
+          ],
+          "properties": {
+            "attribution": {
+              "enum": [
+                "manual_confirmed",
+                "manual_likely",
+                "automation",
+                "system",
+                "unknown"
+              ]
+            },
+            "attribution_score": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "reason_codes": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[A-Z][A-Z0-9_]*$"
+              },
+              "maxItems": 20
+            },
+            "coverage": {
+              "enum": [
+                "complete",
+                "partial",
+                "unknown"
+              ]
+            },
+            "stale": {
+              "type": "boolean"
+            }
+          }
+        },
+        "causation_event_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "privacy_scope_version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000
+        },
+        "kind": {
+          "const": "state.changed"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "entity_id",
+            "before",
+            "after",
+            "effect_of_operation_id"
+          ],
+          "properties": {
+            "entity_id": {
+              "type": "string",
+              "maxLength": 128,
+              "pattern": "^[a-z_][a-z0-9_]*\\.[a-z0-9_]+$"
+            },
+            "before": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "state",
+                    "attributes",
+                    "source_updated_at",
+                    "availability"
+                  ],
+                  "properties": {
+                    "state": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "maxLength": 255
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "attributes": {
+                      "type": "object",
+                      "maxProperties": 20,
+                      "propertyNames": {
+                        "maxLength": 80
+                      },
+                      "additionalProperties": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "maxLength": 256
+                          },
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "source_updated_at": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "maxLength": 40,
+                          "format": "date-time"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "availability": {
+                      "enum": [
+                        "available",
+                        "unknown",
+                        "unavailable"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "after": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "state",
+                    "attributes",
+                    "source_updated_at",
+                    "availability"
+                  ],
+                  "properties": {
+                    "state": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "maxLength": 255
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "attributes": {
+                      "type": "object",
+                      "maxProperties": 20,
+                      "propertyNames": {
+                        "maxLength": 80
+                      },
+                      "additionalProperties": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "maxLength": 256
+                          },
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "source_updated_at": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "maxLength": 40,
+                          "format": "date-time"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "availability": {
+                      "enum": [
+                        "available",
+                        "unknown",
+                        "unavailable"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "effect_of_operation_id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "event_id",
+        "source",
+        "occurred_at",
+        "received_at",
+        "delivery",
+        "scope",
+        "actor_id",
+        "context",
+        "quality",
+        "causation_event_id",
+        "privacy_scope_version",
+        "kind",
+        "payload"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "event_id": {
+          "type": "string",
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+        },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "kind",
+            "native_id"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+            },
+            "kind": {
+              "enum": [
+                "ha",
+                "dashboard",
+                "calendar",
+                "weather",
+                "fixture"
+              ]
+            },
+            "native_id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 128
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        },
+        "occurred_at": {
+          "type": "string",
+          "maxLength": 40,
+          "format": "date-time"
+        },
+        "received_at": {
+          "type": "string",
+          "maxLength": 40,
+          "format": "date-time"
+        },
+        "delivery": {
+          "enum": [
+            "live",
+            "snapshot",
+            "backfill",
+            "replay"
+          ]
+        },
+        "scope": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "subject_id"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "household"
+                },
+                "subject_id": {
+                  "type": "null"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "subject_id"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "person"
+                },
+                "subject_id": {
+                  "type": "string",
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "subject_id"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "anonymous"
+                },
+                "subject_id": {
+                  "type": "null"
+                }
+              }
+            }
+          ]
+        },
+        "actor_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "context": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "parent_id"
+          ],
+          "properties": {
+            "id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 64
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "parent_id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 64
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        },
+        "quality": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "attribution",
+            "attribution_score",
+            "reason_codes",
+            "coverage",
+            "stale"
+          ],
+          "properties": {
+            "attribution": {
+              "enum": [
+                "manual_confirmed",
+                "manual_likely",
+                "automation",
+                "system",
+                "unknown"
+              ]
+            },
+            "attribution_score": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "reason_codes": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[A-Z][A-Z0-9_]*$"
+              },
+              "maxItems": 20
+            },
+            "coverage": {
+              "enum": [
+                "complete",
+                "partial",
+                "unknown"
+              ]
+            },
+            "stale": {
+              "type": "boolean"
+            }
+          }
+        },
+        "causation_event_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "privacy_scope_version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000
+        },
+        "kind": {
+          "const": "presence.signal"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "presence_source_id",
+            "status",
+            "subject_id"
+          ],
+          "properties": {
+            "presence_source_id": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+            },
+            "status": {
+              "enum": [
+                "home",
+                "away",
+                "unknown"
+              ]
+            },
+            "subject_id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "event_id",
+        "source",
+        "occurred_at",
+        "received_at",
+        "delivery",
+        "scope",
+        "actor_id",
+        "context",
+        "quality",
+        "causation_event_id",
+        "privacy_scope_version",
+        "kind",
+        "payload"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "event_id": {
+          "type": "string",
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+        },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "kind",
+            "native_id"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+            },
+            "kind": {
+              "enum": [
+                "ha",
+                "dashboard",
+                "calendar",
+                "weather",
+                "fixture"
+              ]
+            },
+            "native_id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 128
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        },
+        "occurred_at": {
+          "type": "string",
+          "maxLength": 40,
+          "format": "date-time"
+        },
+        "received_at": {
+          "type": "string",
+          "maxLength": 40,
+          "format": "date-time"
+        },
+        "delivery": {
+          "enum": [
+            "live",
+            "snapshot",
+            "backfill",
+            "replay"
+          ]
+        },
+        "scope": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "subject_id"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "household"
+                },
+                "subject_id": {
+                  "type": "null"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "subject_id"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "person"
+                },
+                "subject_id": {
+                  "type": "string",
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "subject_id"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "anonymous"
+                },
+                "subject_id": {
+                  "type": "null"
+                }
+              }
+            }
+          ]
+        },
+        "actor_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "context": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "parent_id"
+          ],
+          "properties": {
+            "id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 64
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "parent_id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 64
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        },
+        "quality": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "attribution",
+            "attribution_score",
+            "reason_codes",
+            "coverage",
+            "stale"
+          ],
+          "properties": {
+            "attribution": {
+              "enum": [
+                "manual_confirmed",
+                "manual_likely",
+                "automation",
+                "system",
+                "unknown"
+              ]
+            },
+            "attribution_score": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "reason_codes": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[A-Z][A-Z0-9_]*$"
+              },
+              "maxItems": 20
+            },
+            "coverage": {
+              "enum": [
+                "complete",
+                "partial",
+                "unknown"
+              ]
+            },
+            "stale": {
+              "type": "boolean"
+            }
+          }
+        },
+        "causation_event_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "privacy_scope_version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000
+        },
+        "kind": {
+          "const": "forecast.updated"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "forecast_source_id",
+            "issued_at",
+            "fetched_at",
+            "expires_at",
+            "points"
+          ],
+          "properties": {
+            "forecast_source_id": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+            },
+            "issued_at": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 40,
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "fetched_at": {
+              "type": "string",
+              "maxLength": 40,
+              "format": "date-time"
+            },
+            "expires_at": {
+              "type": "string",
+              "maxLength": 40,
+              "format": "date-time"
+            },
+            "points": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "from",
+                  "until",
+                  "resolution",
+                  "condition",
+                  "rain_probability",
+                  "precipitation_mm",
+                  "temperature_c",
+                  "wind_kmh"
+                ],
+                "properties": {
+                  "from": {
+                    "type": "string",
+                    "maxLength": 40,
+                    "format": "date-time"
+                  },
+                  "until": {
+                    "type": "string",
+                    "maxLength": 40,
+                    "format": "date-time"
+                  },
+                  "resolution": {
+                    "enum": [
+                      "hourly",
+                      "daily",
+                      "other"
+                    ]
+                  },
+                  "condition": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 64
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "rain_probability": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "precipitation_mm": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1000
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "temperature_c": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": -90,
+                        "maximum": 70
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "wind_kmh": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 500
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                }
+              },
+              "maxItems": 240
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "event_id",
+        "source",
+        "occurred_at",
+        "received_at",
+        "delivery",
+        "scope",
+        "actor_id",
+        "context",
+        "quality",
+        "causation_event_id",
+        "privacy_scope_version",
+        "kind",
+        "payload"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "event_id": {
+          "type": "string",
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+        },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "kind",
+            "native_id"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+            },
+            "kind": {
+              "enum": [
+                "ha",
+                "dashboard",
+                "calendar",
+                "weather",
+                "fixture"
+              ]
+            },
+            "native_id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 128
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        },
+        "occurred_at": {
+          "type": "string",
+          "maxLength": 40,
+          "format": "date-time"
+        },
+        "received_at": {
+          "type": "string",
+          "maxLength": 40,
+          "format": "date-time"
+        },
+        "delivery": {
+          "enum": [
+            "live",
+            "snapshot",
+            "backfill",
+            "replay"
+          ]
+        },
+        "scope": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "subject_id"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "household"
+                },
+                "subject_id": {
+                  "type": "null"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "subject_id"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "person"
+                },
+                "subject_id": {
+                  "type": "string",
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "subject_id"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "anonymous"
+                },
+                "subject_id": {
+                  "type": "null"
+                }
+              }
+            }
+          ]
+        },
+        "actor_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "context": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "parent_id"
+          ],
+          "properties": {
+            "id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 64
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "parent_id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 64
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        },
+        "quality": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "attribution",
+            "attribution_score",
+            "reason_codes",
+            "coverage",
+            "stale"
+          ],
+          "properties": {
+            "attribution": {
+              "enum": [
+                "manual_confirmed",
+                "manual_likely",
+                "automation",
+                "system",
+                "unknown"
+              ]
+            },
+            "attribution_score": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "reason_codes": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[A-Z][A-Z0-9_]*$"
+              },
+              "maxItems": 20
+            },
+            "coverage": {
+              "enum": [
+                "complete",
+                "partial",
+                "unknown"
+              ]
+            },
+            "stale": {
+              "type": "boolean"
+            }
+          }
+        },
+        "causation_event_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "privacy_scope_version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000
+        },
+        "kind": {
+          "const": "calendar.updated"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "calendar_id",
+            "revision",
+            "status"
+          ],
+          "properties": {
+            "calendar_id": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000000
+            },
+            "status": {
+              "enum": [
+                "draft",
+                "approved",
+                "expired",
+                "conflict"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "event_id",
+        "source",
+        "occurred_at",
+        "received_at",
+        "delivery",
+        "scope",
+        "actor_id",
+        "context",
+        "quality",
+        "causation_event_id",
+        "privacy_scope_version",
+        "kind",
+        "payload"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "event_id": {
+          "type": "string",
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+        },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "kind",
+            "native_id"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+            },
+            "kind": {
+              "enum": [
+                "ha",
+                "dashboard",
+                "calendar",
+                "weather",
+                "fixture"
+              ]
+            },
+            "native_id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 128
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        },
+        "occurred_at": {
+          "type": "string",
+          "maxLength": 40,
+          "format": "date-time"
+        },
+        "received_at": {
+          "type": "string",
+          "maxLength": 40,
+          "format": "date-time"
+        },
+        "delivery": {
+          "enum": [
+            "live",
+            "snapshot",
+            "backfill",
+            "replay"
+          ]
+        },
+        "scope": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "subject_id"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "household"
+                },
+                "subject_id": {
+                  "type": "null"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "subject_id"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "person"
+                },
+                "subject_id": {
+                  "type": "string",
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "subject_id"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "anonymous"
+                },
+                "subject_id": {
+                  "type": "null"
+                }
+              }
+            }
+          ]
+        },
+        "actor_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "context": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "parent_id"
+          ],
+          "properties": {
+            "id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 64
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "parent_id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 64
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        },
+        "quality": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "attribution",
+            "attribution_score",
+            "reason_codes",
+            "coverage",
+            "stale"
+          ],
+          "properties": {
+            "attribution": {
+              "enum": [
+                "manual_confirmed",
+                "manual_likely",
+                "automation",
+                "system",
+                "unknown"
+              ]
+            },
+            "attribution_score": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "reason_codes": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[A-Z][A-Z0-9_]*$"
+              },
+              "maxItems": 20
+            },
+            "coverage": {
+              "enum": [
+                "complete",
+                "partial",
+                "unknown"
+              ]
+            },
+            "stale": {
+              "type": "boolean"
+            }
+          }
+        },
+        "causation_event_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "privacy_scope_version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000
+        },
+        "kind": {
+          "const": "coverage.gap"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "source_id",
+            "from",
+            "until",
+            "reason_code"
+          ],
+          "properties": {
+            "source_id": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+            },
+            "from": {
+              "type": "string",
+              "maxLength": 40,
+              "format": "date-time"
+            },
+            "until": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 40,
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "reason_code": {
+              "type": "string",
+              "maxLength": 64,
+              "minLength": 1,
+              "pattern": "^[A-Z][A-Z0-9_]*$"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$id": "urn:home-ai-core:observed-event.v1",
+  "title": "ObservedEvent"
+}

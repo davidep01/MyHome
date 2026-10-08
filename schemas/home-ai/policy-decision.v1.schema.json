@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "decision_id",
+    "candidate_key",
+    "outcome",
+    "reason_codes",
+    "constraints",
+    "missing_data",
+    "policy_version",
+    "evaluated_at",
+    "context_snapshot_id"
+  ],
+  "properties": {
+    "decision_id": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+    },
+    "candidate_key": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1
+    },
+    "outcome": {
+      "enum": [
+        "allow_local",
+        "defer",
+        "reject",
+        "simulate_only"
+      ]
+    },
+    "reason_codes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 64,
+        "minLength": 1,
+        "pattern": "^[A-Z][A-Z0-9_]*$"
+      },
+      "maxItems": 20
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 200
+      },
+      "maxItems": 20
+    },
+    "missing_data": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 120
+      },
+      "maxItems": 20
+    },
+    "policy_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "evaluated_at": {
+      "type": "string",
+      "maxLength": 40,
+      "format": "date-time"
+    },
+    "context_snapshot_id": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+    }
+  },
+  "$id": "urn:home-ai-core:policy-decision.v1",
+  "title": "PolicyDecision"
+}

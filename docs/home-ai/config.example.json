@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "runtime": {
+    "mode": "suggest",
+    "timezone": "Europe/Rome",
+    "demo": false,
+    "workers": 2,
+    "physical_execution": "disabled",
+    "external_notifications": "disabled"
+  },
+  "sources": {
+    "fixtures": {
+      "enabled": false,
+      "dataset": "demo-home-v1"
+    },
+    "home_assistant": {
+      "enabled": true,
+      "selected_entities": [
+        "light.ingresso",
+        "light.soggiorno",
+        "climate.soggiorno"
+      ],
+      "selected_event_types": [
+        "state_changed"
+      ],
+      "rest_fallback_seconds": 60,
+      "presence_entities": [
+        "person.esempio"
+      ],
+      "door_entities": [
+        "binary_sensor.porta_ingresso"
+      ],
+      "window_entities": [
+        "binary_sensor.finestra_cucina"
+      ]
+    },
+    "weather": {
+      "adapter": "none",
+      "forecast_ttl_minutes": 180,
+      "external_network_enabled": false
+    }
+  },
+  "privacy": {
+    "real_observation_enabled": true,
+    "real_learning_enabled": true,
+    "personal_profiles_enabled": false,
+    "capture_audio": false,
+    "capture_video": false,
+    "retention_days": {
+      "events": 30,
+      "episodes": 90,
+      "statistics": 90,
+      "audit": 90,
+      "quarantine": 1
+    }
+  },
+  "learning": {
+    "confirmed_manual_only": true,
+    "min_opportunities": 10,
+    "min_successes": 7,
+    "min_distinct_days": 3,
+    "min_observation_days": 14,
+    "min_coverage": 0.9,
+    "min_frequency": 0.75,
+    "min_wilson_lower": 0.45,
+    "decay_half_life_days": 30,
+    "max_sequence_steps": 5
+  },
+  "arrival": {
+    "previous_absence_minutes": 10,
+    "presence_stability_seconds": 60,
+    "episode_before_minutes": 2,
+    "episode_after_minutes": 20,
+    "duplicate_cooldown_minutes": 30
+  },
+  "attention": {
+    "proactive_daily_budget": 3,
+    "topic_cooldown_hours": 6,
+    "quiet_hours": {
+      "from": "22:30",
+      "until": "07:30"
+    }
+  },
+  "agents": {
+    "arrival": true,
+    "waste": true,
+    "weather": true,
+    "comfort": false,
+    "energy": false
+  },
+  "waste": {
+    "expansion_horizon_days": 60
+  },
+  "policy": {
+    "weights": {
+      "utility": 1,
+      "imminence": 1,
+      "support": 1,
+      "attention_cost": 1,
+      "uncertainty": 1
+    },
+    "min_score": 0
+  },
+  "reasoner": {
+    "adapter": "disabled",
+    "network_enabled": false,
+    "model_path": null
+  },
+  "operator_label": "amministratore"
+}

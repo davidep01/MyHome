@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "approval_id",
+    "proposal_id",
+    "proposal_revision",
+    "plan_hash",
+    "actor_id",
+    "scope",
+    "purpose",
+    "granted_at",
+    "expires_at",
+    "revoked_at"
+  ],
+  "properties": {
+    "approval_id": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+    },
+    "proposal_id": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+    },
+    "proposal_revision": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000000
+    },
+    "plan_hash": {
+      "type": "string",
+      "maxLength": 64,
+      "minLength": 64,
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "actor_id": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+    },
+    "scope": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "subject_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "household"
+            },
+            "subject_id": {
+              "type": "null"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "subject_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "person"
+            },
+            "subject_id": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "subject_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "anonymous"
+            },
+            "subject_id": {
+              "type": "null"
+            }
+          }
+        }
+      ]
+    },
+    "purpose": {
+      "enum": [
+        "save_preference",
+        "simulate_once"
+      ]
+    },
+    "granted_at": {
+      "type": "string",
+      "maxLength": 40,
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "maxLength": 40,
+      "format": "date-time"
+    },
+    "revoked_at": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 40,
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "$id": "urn:home-ai-core:approval.v1",
+  "title": "Approval"
+}

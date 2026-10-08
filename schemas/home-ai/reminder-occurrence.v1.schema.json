@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "occurrence_id",
+    "calendar_id",
+    "calendar_revision",
+    "rule_id",
+    "fraction_id",
+    "fraction_label",
+    "collection_date",
+    "collection_time",
+    "exposure_from",
+    "exposure_until",
+    "reminder_at",
+    "time_resolution",
+    "state",
+    "snoozed_until",
+    "updated_at"
+  ],
+  "properties": {
+    "occurrence_id": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+    },
+    "calendar_id": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+    },
+    "calendar_revision": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000000
+    },
+    "rule_id": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+    },
+    "fraction_id": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+    },
+    "fraction_label": {
+      "type": "string",
+      "maxLength": 60
+    },
+    "collection_date": {
+      "type": "string",
+      "maxLength": 10,
+      "format": "date"
+    },
+    "collection_time": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 5,
+          "format": "time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "exposure_from": {
+      "type": "string",
+      "maxLength": 40,
+      "format": "date-time"
+    },
+    "exposure_until": {
+      "type": "string",
+      "maxLength": 40,
+      "format": "date-time"
+    },
+    "reminder_at": {
+      "type": "string",
+      "maxLength": 40,
+      "format": "date-time"
+    },
+    "time_resolution": {
+      "enum": [
+        "exact",
+        "shifted_forward",
+        "first_of_ambiguous"
+      ]
+    },
+    "state": {
+      "enum": [
+        "scheduled",
+        "due",
+        "visible",
+        "snoozed",
+        "completed",
+        "dismissed",
+        "expired",
+        "superseded"
+      ]
+    },
+    "snoozed_until": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 40,
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "updated_at": {
+      "type": "string",
+      "maxLength": 40,
+      "format": "date-time"
+    }
+  },
+  "$id": "urn:home-ai-core:reminder-occurrence.v1",
+  "title": "ReminderOccurrence"
+}

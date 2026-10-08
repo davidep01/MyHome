@@ -1,7 +1,7 @@
 # CLAUDE.md — MyHome / S.I.M.I.
 
 > Documento sorgente unico (grafico + tecnico) per lo sviluppo di MyHome. Il nome prodotto mostrato all'utente è **S.I.M.I. — Sistema Integrato di Monitoraggio Intelligente**; “MyHome” resta il nome tecnico di repository, package e chiavi di compatibilità.
-> Versione doc: 2.1 · Allineato a app `2.2.x` · Aggiornato: 2026-07-17 · Lingua: italiano (identificatori in inglese).
+> Versione doc: 2.2 · Allineato a app `2.2.x` · Aggiornato: 2026-10-08 · Lingua: italiano (identificatori in inglese).
 >
 > Questo file ha **precedenza** sulle assunzioni generiche. `docs/DESIGN_SYSTEM.md` resta il riferimento grafico esteso; questo file lo riassume e ne risolve le incongruenze. Quando i due divergono, **vince questo file** e va aggiornato `docs/DESIGN_SYSTEM.md` di conseguenza.
 
@@ -28,7 +28,7 @@ Dashboard domotica personale per **Home Assistant**, estetica **Apple "Liquid Gl
 | Contesto | Dispositivo | Shell | Scopo |
 |---|---|---|---|
 | **Kiosk** | Tablet Android a muro (Fully Kiosk) | `KioskShell` | Controllo quotidiano, sempre acceso, touch |
-| **Desktop / Regia** | Browser desktop | `DesktopShell` | Regia in 4 viste: Stato, Entità, Funzioni, Sistema |
+| **Desktop / Regia** | Browser desktop | `DesktopShell` | Regia in 5 viste: Stato, Entità, Funzioni, Memoria, Sistema |
 
 La home si **auto-configura** dallo stream live di HA (entità raggruppate per dominio/area). Zero setup manuale per l'utente finale.
 
@@ -75,7 +75,7 @@ npm --prefix backend run typecheck
 ### 4.1 Shell e routing
 `AppShell` (`src/components/layout/AppShell.tsx`) sceglie la shell dal **pathname**:
 - `/kiosk`, `/tablet`, `/dashboard` **oppure** non-desktop → `KioskShell` (→ `TabletDashboard` → `LayeredHome`, o grid legacy via flag).
-- Resto su desktop → `DesktopShell` = **la regia, 4 viste**: Stato (`/`), Entità (`/entities`), Funzioni (`/functions`), Sistema (`/system`); alias legacy `/settings`→Sistema. Il controllo della casa da desktop è il kiosk stesso (`/kiosk`, linkato in sidebar).
+- Resto su desktop → `DesktopShell` = **la regia, 5 viste**: Stato (`/`), Entità (`/entities`), Funzioni (`/functions`), Memoria (`/memoria`, HOME AI CORE), Sistema (`/system`); alias legacy `/settings`→Sistema. Il controllo della casa da desktop è il kiosk stesso (`/kiosk`, linkato in sidebar).
 - La vista attiva (`useUIStore().activeView`) è **sincronizzata bidirezionalmente con l'URL** (`useViewRouting` in `AppShell.tsx` + `VIEW_PATHS`/`viewFromPath` in `src/store/ui.ts`): deep-link, back/forward e refresh funzionano. Nessun router library (scelta deliberata).
 
 > ✅ **Risolto (P6, 2026-06-09):** routing ibrido chiuso con il sync URL↔store di cui sopra. Le viste desktop sono inoltre **lazy** (un chunk per pagina) e `hls.js` è caricato on-demand solo quando parte uno stream.
@@ -89,7 +89,7 @@ npm --prefix backend run typecheck
 Stato entità in `useEntityStore` (Zustand): i delta sono **coalescenti** (finestra 50ms, un solo set per batch, riferimenti stabili per le entità non toccate → `useHAEntity` non ridisegna ciò che non cambia). Update ottimistici via `setOptimisticState` / `patchEntity`.
 
 ### 4.3 Backend (`backend/src/`)
-Hono con route montate in `app.ts`: `config`, `layout`, `rooms`, `entities`, `weather`, `news`, `ha`, `ai` + `/api/health`. `index.ts` serve la SPA da `dist/` con cache-control studiata per il kiosk (entry-point `no-store`, asset hashati `immutable`), e fa SPA fallback **escludendo** `/api/*`.
+Hono con route montate in `app.ts`: `config`, `layout`, `rooms`, `entities`, `weather`, `news`, `ha`, `ai` + `/api/health` + `/api/home-ai/v1` (HOME AI CORE, §4.5). `index.ts` serve la SPA da `dist/` con cache-control studiata per il kiosk (entry-point `no-store`, asset hashati `immutable`), e fa SPA fallback **escludendo** `/api/*`.
 
 **Persistenza** (`backend/src/db/client.ts`): un unico documento locale `DbStore` (`{ config, rooms, entities }`) scritto atomicamente in `data/db.json` (add-on HA: `/data/db.json`). Con `MYHOME_READ_ONLY=true` nessuna scrittura è consentita.
 
@@ -106,6 +106,14 @@ Ogni `write` fa read-modify-write dell'intero blob. La route `layout` usa **conc
 - **Backup portatile** — export versione 2 con `secretsIncluded:false`; token HA e chiavi d'installazione non sono inclusi e il restore conserva le credenziali locali.
 - **Release** — il workflow su `main` esegue lint/test/build/audit, pubblica il manifest multi-arch e allinea automaticamente `ha-addon/config.yaml` alla versione `2.2.<run_number>`. Non fare bump manuali concorrenti.
 - **Nessun Service Worker**: Fully Kiosk carica direttamente l'URL LAN. La freschezza è gestita dagli header cache-control del backend, evitando shell obsolete sul tablet.
+
+### 4.5 HOME AI CORE — Memoria (`backend/src/home-ai/`)
+Modulo **osserva → impara → propone**, mai esegue. Docs complete in [docs/home-ai/](docs/home-ai/README.md); contratti/schemi in `domain/contracts.ts` → [schemas/home-ai/](schemas/home-ai).
+- **Confine inderogabile**: nessun percorso verso comandi fisici, `call_service`, `fire_event`, MQTT, notifiche o LLM. Gateway HA = allowlist di **sola lettura** (`adapters/ha-gateway.ts`); il core si iscrive allo stream del ponte esistente (`adapters/ha-feed.ts`), non apre un secondo canale. Config: `physical_execution`/`external_notifications`/`reasoner.adapter` sono letterali `disabled`; env `HOME_AI_PHYSICAL*|EXECUT*|NOTIFY*|LLM*|MODEL*|REASONER*` rifiuta l'avvio; il router blocca `/execute`, `/call-service`, `/publish-mqtt`, `/ha/*`. Approvazioni = solo `save_preference` | `simulate_once`. **Non allentare mai questi vincoli senza una richiesta esplicita e una nuova ADR.**
+- **Archivio separato** `home-ai.sqlite` (`node:sqlite`, Node ≥ 22.13) accanto a `db.json`: un guasto del core lo mette *disattivo/degradato*, mai la dashboard. `HOME_AI_CORE=off` lo spegne.
+- **Telemetria dei click**: `callService` registra l'intenzione su un canale separato (`src/lib/manualTelemetry.ts`) e il proxy servizi correla l'esito (`X-MyHome-Operation`); il comando parte identico anche se la telemetria fallisce.
+- **Opt-in e consensi**: entità osservate scelte in Memoria → Impostazioni; tre consensi distinti (osservazione, apprendimento, profili personali). Oblio con tombstone (anche dopo restore), backup AES-256-GCM con chiave separata.
+- **Default**: `runtime.demo: true` + modalità `shadow` — la demo (dataset sintetico `demo-home-v1`) gira senza token/HA/Internet.
 
 ---
 
@@ -379,6 +387,12 @@ Fasi 2–6 applicate. La Definition of Done richiede a ogni rilascio lint, suite
 - **"L'aggiornamento non parte"** — `homeassistant.update_entity` ripete solo ciò che sa il Supervisor, che rilegge il repository ogni qualche ora: la nuova versione restava invisibile. Ora "Controlla e aggiorna ora" chiama prima `POST /api/system/addon/reload-store` → Supervisor `POST /store/reload` ([supervisor.ts](backend/src/lib/supervisor.ts), test). Richiede `hassio_api: true` + `hassio_role: manager` nel manifest (aggiunti); in Docker standalone risponde `no-supervisor` senza fingere.
 - Verifica: lint ✅ · test 694/694 ✅ · build:all ✅ · typecheck backend ✅ · provato con config `homeMode:'grid'` + 6 dispositivi + uso simulato: bento con tutte le card, la più usata in cima a tessera doppia. **Da provare con l'add-on vero:** la rilettura del repository col ruolo manager.
 
+**Risolti (2026-10-08, notte) — HOME AI CORE (Memoria), impalcatura verificata in demo:**
+- **Nuovo modulo** `backend/src/home-ai/` (§4.5) + vista regia **Memoria** (`src/pages/MemoryPage.tsx`, `src/components/memory/*`, 7 sottosezioni): eventi con outbox e checkpoint, proiezione di stato con gap, rientri, pattern mining statistico (Wilson, baseline, validazione temporale, decadimento), calendario raccolta (RRULE/ICS, eccezioni, revisioni, DST), forecast con validità, 5 agenti deterministici, arbitraggio + policy engine a precedenze fisse con DSL chiuso, proposte con feedback e approvazioni legate a `plan_hash`, simulatore a secco, privacy (consensi, export, oblio con tombstone), backup cifrati, audit redatto.
+- **Bug trovati dai test e corretti**: due click distinti fusi in una "sessione" (solo slider ora); presenza riordinata che annullava un rientro; quarantena senza tetto (1.000 righe); ospiti nel profilo ordinario; abitudine ritirata che tornava "candidata"; proposte di routine non ritirate su feedback/ritiro; abitudine *dimenticata* ricostruita dal miner con lo stesso ID; due proposte aperte per la stessa routine; proposta visibile che oscillava per cooldown/budget di sé stessa; `/memoria` non riconosciuta dal fallback SPA (refresh → 404).
+- **Misure** (container di sviluppo, non l'hardware di casa): 1.000 entità, 3.000 eventi a 50 ev/s simulati → ~730 ev/s, p95 2,7 ms, contesto 46 ms.
+- **Non verificato**: casa reale, tablet fisico, calendario del comune reale. Matrice T01–T52 in `docs/home-ai/verification.md`.
+
 **Residui noti (non bloccanti):** WebRTC/talk-back via signaling proxy backend; rimozione definitiva della grid legacy dopo validazione del composer sul tablet reale; AI write-back automazioni (roadmap); modalità ospiti/pulizie (§6.4) non ancora implementata.
 
 ---
@@ -406,7 +420,7 @@ src/
   design/         # tokens.ts (colore/raggio/spring), typography.ts (scala tipografica)
   config/         # rooms.ts, doorbell.ts
   lib/            # utils puri: alarm, climate, rooms, time, units, sound/SoundManager, lucide
-  pages/          # regia desktop: StatusPage, EntitiesPage, FunctionsPage, SystemPage + TabletDashboard (kiosk)
+  pages/          # regia desktop: StatusPage, EntitiesPage, FunctionsPage, MemoryPage, SystemPage + TabletDashboard (kiosk)
   index.css       # token CSS + glass + griglia + animazioni + dark/kiosk
 backend/src/
   app.ts          # montaggio route Hono
@@ -414,7 +428,10 @@ backend/src/
   routes/         # config, layout, rooms, entities, weather, news, ha, ai
   lib/            # home-layout.ts (griglia canonica), ha-config.ts, configEvents.ts (SSE), security.ts
   db/             # client.ts (file locale/read-only), types.ts (TIPI CONDIVISI)
-docs/             # DESIGN_SYSTEM.md (canon grafico esteso), SMART_FUNCTIONS_ROADMAP.md
+  home-ai/        # HOME AI CORE (§4.5): domain/ storage/ ingestion/ adapters/ context/ episodes/ learning/
+                  # waste/ weather/ agents/ policy/ suggestions/ simulation/ reasoner/ privacy/ api/
+docs/             # DESIGN_SYSTEM.md (canon grafico esteso), SMART_FUNCTIONS_ROADMAP.md, home-ai/ (core Memoria)
+schemas/home-ai/  # JSON Schema 2020-12 generati dai contratti del core (test di coerenza)
 ha-addon/         # config.yaml add-on
 ```
 

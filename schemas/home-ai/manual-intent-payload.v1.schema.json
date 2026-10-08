@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "operation_id",
+    "interaction_id",
+    "control",
+    "action_key",
+    "target_entity_ids",
+    "requested"
+  ],
+  "properties": {
+    "operation_id": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+    },
+    "interaction_id": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+    },
+    "control": {
+      "enum": [
+        "button",
+        "toggle",
+        "slider",
+        "scene",
+        "other"
+      ]
+    },
+    "action_key": {
+      "type": "string",
+      "maxLength": 80,
+      "minLength": 1,
+      "pattern": "^[a-z][a-z0-9_.-]*$"
+    },
+    "target_entity_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 128,
+        "pattern": "^[a-z_][a-z0-9_]*\\.[a-z0-9_]+$"
+      },
+      "maxItems": 100,
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "requested": {
+      "type": "object",
+      "maxProperties": 20,
+      "propertyNames": {
+        "maxLength": 80
+      },
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "type": "string",
+            "maxLength": 256
+          },
+          {
+            "type": "number"
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    }
+  },
+  "$id": "urn:home-ai-core:manual-intent-payload.v1",
+  "title": "ManualIntentPayload"
+}

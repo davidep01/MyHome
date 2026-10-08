@@ -2,7 +2,8 @@ import type { HassEntities, HassEntity } from 'home-assistant-js-websocket'
 import { useEntityStore } from '../store/entities'
 import { useDoorbellEvents } from '../store/doorbellEvents'
 import { alarmTestNeedsSync, useAlarmTestStore } from '../store/alarmTest'
-import { alarmApi, haApi, kioskApi, type AlarmTestRemoteState } from './backend'
+import { alarmApi, ApiError, haApi, kioskApi, type AlarmTestRemoteState } from './backend'
+import { reportManualIntent, reportManualResult } from '../lib/manualTelemetry'
 
 /**
  * Live Home Assistant data for every client (kiosk AND desktop).
@@ -303,5 +304,17 @@ export async function callService(
   service: string,
   serviceData?: Record<string, unknown>,
 ): Promise<void> {
-  await haApi.service(domain, service, serviceData)
+  // HOME AI CORE osserva il gesto su un canale separato: il comando parte
+  // comunque, identico, anche se la telemetria non è disponibile.
+  const operationId = reportManualIntent(domain, service, serviceData)
+  try {
+    await haApi.service(domain, service, serviceData, operationId)
+    if (operationId) reportManualResult(operationId, 'accepted')
+  } catch (error) {
+    if (operationId) {
+      const status = error instanceof ApiError ? error.status : undefined
+      reportManualResult(operationId, status && status < 500 ? 'failed' : 'unknown', status)
+    }
+    throw error
+  }
 }

@@ -1,16 +1,17 @@
 import { create } from 'zustand'
 
 /**
- * Viste desktop = la regia (DOMINICA): Stato, Entità, Funzioni, Sistema.
+ * Viste desktop = la regia (DOMINICA): Stato, Entità, Funzioni, Memoria, Sistema.
  * Il controllo della casa vive sul kiosk (/kiosk), identico su ogni device.
  */
-export type AppView = 'home' | 'entities' | 'functions' | 'system'
+export type AppView = 'home' | 'entities' | 'functions' | 'memory' | 'system'
 
 /** Canonical URL for every desktop view — keeps the SPA deep-linkable e refresh-safe. */
 export const VIEW_PATHS: Record<AppView, string> = {
   home: '/',
   entities: '/entities',
   functions: '/functions',
+  memory: '/memoria',
   system: '/system',
 }
 

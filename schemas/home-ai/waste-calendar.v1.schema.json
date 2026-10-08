@@ -1,0 +1,415 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "calendar_id",
+    "revision",
+    "municipality",
+    "area",
+    "timezone",
+    "valid_from",
+    "valid_until",
+    "source",
+    "approval",
+    "fractions",
+    "rules",
+    "exceptions",
+    "demo"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "calendar_id": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000000
+    },
+    "municipality": {
+      "type": "string",
+      "maxLength": 120
+    },
+    "area": {
+      "type": "string",
+      "maxLength": 120
+    },
+    "timezone": {
+      "type": "string",
+      "maxLength": 64,
+      "format": "iana-timezone"
+    },
+    "valid_from": {
+      "type": "string",
+      "maxLength": 10,
+      "format": "date"
+    },
+    "valid_until": {
+      "type": "string",
+      "maxLength": 10,
+      "format": "date"
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "reference",
+        "document_url",
+        "checksum",
+        "acquired_at"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "manual",
+            "local_ics",
+            "ha_calendar"
+          ]
+        },
+        "reference": {
+          "type": "string",
+          "maxLength": 256,
+          "minLength": 1
+        },
+        "document_url": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 512,
+              "pattern": "^https:\\/\\/[^\\s]+$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "checksum": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "acquired_at": {
+          "type": "string",
+          "maxLength": 40,
+          "format": "date-time"
+        }
+      }
+    },
+    "approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "actor_id",
+        "confirmed_at"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "draft",
+            "approved",
+            "expired",
+            "conflict"
+          ]
+        },
+        "actor_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "confirmed_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 40,
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "fractions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "label"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1
+          }
+        }
+      },
+      "maxItems": 12,
+      "minItems": 1
+    },
+    "rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "rule_id",
+          "fraction_id",
+          "recurrence",
+          "collection_time",
+          "exposure",
+          "reminders"
+        ],
+        "properties": {
+          "rule_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+          },
+          "fraction_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+          },
+          "recurrence": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "kind",
+                  "dates"
+                ],
+                "properties": {
+                  "kind": {
+                    "const": "dates"
+                  },
+                  "dates": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "maxLength": 10,
+                      "format": "date"
+                    },
+                    "maxItems": 400,
+                    "minItems": 1,
+                    "uniqueItems": true
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "kind",
+                  "dtstart",
+                  "value"
+                ],
+                "properties": {
+                  "kind": {
+                    "const": "rrule"
+                  },
+                  "dtstart": {
+                    "type": "string",
+                    "maxLength": 10,
+                    "format": "date"
+                  },
+                  "value": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "minLength": 1
+                  }
+                }
+              }
+            ]
+          },
+          "collection_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 5,
+                "format": "time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "exposure": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "start_day_offset",
+              "start_time",
+              "end_day_offset",
+              "end_time"
+            ],
+            "properties": {
+              "start_day_offset": {
+                "type": "integer",
+                "minimum": -7,
+                "maximum": 0
+              },
+              "start_time": {
+                "type": "string",
+                "maxLength": 5,
+                "format": "time"
+              },
+              "end_day_offset": {
+                "type": "integer",
+                "minimum": -7,
+                "maximum": 0
+              },
+              "end_time": {
+                "type": "string",
+                "maxLength": 5,
+                "format": "time"
+              }
+            }
+          },
+          "reminders": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "day_offset",
+                "at"
+              ],
+              "properties": {
+                "day_offset": {
+                  "type": "integer",
+                  "minimum": -7,
+                  "maximum": 0
+                },
+                "at": {
+                  "type": "string",
+                  "maxLength": 5,
+                  "format": "time"
+                }
+              }
+            },
+            "maxItems": 4
+          }
+        }
+      },
+      "maxItems": 40
+    },
+    "exceptions": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "rule_id",
+              "original_date",
+              "kind"
+            ],
+            "properties": {
+              "rule_id": {
+                "type": "string",
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+              },
+              "original_date": {
+                "type": "string",
+                "maxLength": 10,
+                "format": "date"
+              },
+              "kind": {
+                "const": "cancel"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "rule_id",
+              "original_date",
+              "kind",
+              "replacement_date",
+              "collection_time"
+            ],
+            "properties": {
+              "rule_id": {
+                "type": "string",
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+              },
+              "original_date": {
+                "type": "string",
+                "maxLength": 10,
+                "format": "date"
+              },
+              "kind": {
+                "const": "replace"
+              },
+              "replacement_date": {
+                "type": "string",
+                "maxLength": 10,
+                "format": "date"
+              },
+              "collection_time": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 5,
+                    "format": "time"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "maxItems": 400
+    },
+    "demo": {
+      "type": "boolean"
+    }
+  },
+  "$id": "urn:home-ai-core:waste-calendar.v1",
+  "title": "WasteCalendar"
+}

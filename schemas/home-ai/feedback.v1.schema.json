@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "feedback_id",
+    "target_kind",
+    "target_id",
+    "kind",
+    "actor_id",
+    "scope",
+    "note",
+    "created_at"
+  ],
+  "properties": {
+    "feedback_id": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+    },
+    "target_kind": {
+      "enum": [
+        "proposal",
+        "reminder",
+        "pattern"
+      ]
+    },
+    "target_id": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+    },
+    "kind": {
+      "enum": [
+        "not_useful",
+        "wrong_context",
+        "never_suggest",
+        "forget",
+        "snooze",
+        "dismiss",
+        "done"
+      ]
+    },
+    "actor_id": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+    },
+    "scope": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "subject_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "household"
+            },
+            "subject_id": {
+              "type": "null"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "subject_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "person"
+            },
+            "subject_id": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "subject_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "anonymous"
+            },
+            "subject_id": {
+              "type": "null"
+            }
+          }
+        }
+      ]
+    },
+    "note": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 280
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "maxLength": 40,
+      "format": "date-time"
+    }
+  },
+  "$id": "urn:home-ai-core:feedback.v1",
+  "title": "Feedback"
+}

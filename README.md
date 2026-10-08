@@ -12,6 +12,7 @@
 - Regia amministrativa per stato, entità, funzioni, sistema e backup
 - Sessioni locali separate per amministratore e kiosk
 - Persistenza atomica su `/data/db.json`
+- **Memoria** (HOME AI CORE): osserva in sola lettura, impara abitudini statistiche in locale e propone — non comanda mai la casa ([docs/home-ai](docs/home-ai/README.md))
 
 ## Architettura di sicurezza
 
@@ -95,6 +96,15 @@ Dalla pagina **Stato** un amministratore può esportare e ripristinare la config
 - può contenere configurazione personale e riferimenti ai volti conosciuti: conservalo comunque in modo riservato.
 
 Il backup Home Assistant dell'add-on include invece il volume persistente `/data`, come previsto dal Supervisor.
+
+## Memoria (HOME AI CORE)
+
+Modulo locale che osserva Home Assistant **in sola lettura**, riconosce i rientri, cerca abitudini con statistica deterministica (niente LLM, niente cloud), gestisce il calendario della raccolta differenziata e propone suggerimenti nella regia (**Memoria**, `/memoria`). In questa release **non esiste alcun percorso** verso comandi fisici, servizi o eventi HA, MQTT o notifiche: un'approvazione salva una preferenza o autorizza una simulazione a secco.
+
+- Demo senza token, HA o Internet: `npm run dev:all` e apri `http://localhost:5173/memoria` (dati sintetici marcati).
+- Casa reale: Memoria → Impostazioni e privacy → disattiva la demo, seleziona le entità (opt-in) e dai i consensi separati.
+- Archivio separato `home-ai.sqlite` accanto a `db.json`; `HOME_AI_CORE=off` lo disattiva senza toccare la dashboard.
+- Stato della release: **impalcatura verificata in demo**, non verificata nella casa reale. Dettagli, limiti e matrice di verifica in [docs/home-ai](docs/home-ai/README.md).
 
 ## Diagnostica
 

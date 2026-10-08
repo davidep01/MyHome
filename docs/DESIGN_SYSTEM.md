@@ -140,7 +140,8 @@ L'elevazione viene dal cambiamento di superficie (glass su parchment) e dal `bac
 │ Stato            │ Titolo e descrizione della vista        │
 │ Entità           │ Sottosezioni quando necessarie          │
 │ Funzioni         │                                        │
-│ Sistema          │ Contenuto adattivo, scorrimento interno  │
+│ Memoria          │ Contenuto adattivo, scorrimento interno  │
+│ Sistema          │                                        │
 │                  │                                        │
 │ Apri dashboard   │ Dettagli dispositivo in un pannello      │
 └──────────────────┴────────────────────────────────────────┘
@@ -153,9 +154,19 @@ L'elevazione viene dal cambiamento di superficie (glass su parchment) e dal `bac
 
 ### Navigazione della regia
 
-Un solo catalogo definisce Stato, Entità, Funzioni e Sistema per sidebar e barra mobile. L'etichetta è sempre visibile e la destinazione attiva usa `aria-current`; un tooltip non è necessario per comprenderla. In fondo alla sidebar: stato HA, collegamento al kiosk, notifiche, versione e logout soltanto con autenticazione richiesta.
+Un solo catalogo definisce Stato, Entità, Funzioni, Memoria e Sistema per sidebar e barra mobile. L'etichetta è sempre visibile e la destinazione attiva usa `aria-current`; un tooltip non è necessario per comprenderla. In fondo alla sidebar: stato HA, collegamento al kiosk, notifiche, versione e logout soltanto con autenticazione richiesta.
 
 Le sottosezioni sono linkabili con `?section=…` e seguono back/forward e refresh. Le modifiche non salvate dei form restano al cambio di sottosezione. I video diagnostici vengono chiusi, evitando sessioni cloud lasciate attive dietro la pagina. HA offline mostra un avviso senza impedire la navigazione della regia.
+
+### Vista Memoria (HOME AI CORE, 2026-10-08)
+
+Sette sottosezioni (`?section=`): Adesso · Cosa ho osservato · Abitudini · Raccolta differenziata · Simulazioni · Impostazioni e privacy · Stato del sistema. Regole specifiche:
+
+- **Onestà dello stato**: sotto il titolo, badge sempre visibili per modalità (`Suggerimenti`/`In ombra`/`Sola osservazione`), `Demo · dati sintetici` quando attiva, `Esecuzione fisica disattivata`. Ogni proposta o abitudine demo porta il badge *Demo*; ogni simulazione il badge *Simulazione · nessun effetto fisico*.
+- **Numeri, non percentuali di "intelligenza"**: un'abitudine mostra campione (k su n rientri osservabili), controesempi, giorni, periodo, Wilson, copertura e baseline — mai un "92% sicuro" senza denominatore.
+- **Azioni di una proposta** (pill da 44px): *Perché me lo proponi?*, *Salva come preferenza*, *Simula*, *Non utile*, *Contesto sbagliato*, *Più tardi*, *Non suggerire più*, *Dimentica questi dati*. Nessun bottone "Esegui"/"Applica".
+- **Colori**: stessi token della regia; badge demo in `alert` (arancio), simulazione in Action Blue, nessun nuovo colore.
+- Light e Dark verificati a 390/768/1024/1440px senza scroll orizzontale.
 
 ---
 

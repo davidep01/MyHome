@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "preference_id",
+    "revision",
+    "scope",
+    "kind",
+    "topic",
+    "description",
+    "pattern_id",
+    "plan_hash",
+    "created_by",
+    "created_at",
+    "revoked_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "preference_id": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000000
+    },
+    "scope": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "subject_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "household"
+            },
+            "subject_id": {
+              "type": "null"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "subject_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "person"
+            },
+            "subject_id": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "subject_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "anonymous"
+            },
+            "subject_id": {
+              "type": "null"
+            }
+          }
+        }
+      ]
+    },
+    "kind": {
+      "enum": [
+        "never_suggest",
+        "routine",
+        "quiet",
+        "guest_rule",
+        "reminder_time"
+      ]
+    },
+    "topic": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 280,
+      "minLength": 1
+    },
+    "pattern_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "plan_hash": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 64,
+          "minLength": 64
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "created_by": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+    },
+    "created_at": {
+      "type": "string",
+      "maxLength": 40,
+      "format": "date-time"
+    },
+    "revoked_at": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 40,
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "$id": "urn:home-ai-core:preference.v1",
+  "title": "Preference"
+}
