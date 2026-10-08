@@ -25,8 +25,13 @@ describe('status bar energy', () => {
     expect(wallboxMode(entity('CONNECTED'))).toBe('connected')
     expect(wallboxMode(entity('CHARGING'))).toBe('charging')
     expect(wallboxMode(entity('Suspended EVSE'))).toBe('connected')
-    expect(wallboxMode(entity('NOT CHARGING'))).toBe('connected')
     expect(wallboxMode(entity('NOT_CONNECTED'))).toBe('hidden')
+  })
+
+  it('never claims a connected car for idle "ready to charge" states', () => {
+    for (const state of ['Ready', 'Waiting', 'Preparing', 'Not charging', 'Available', 'Idle', 'Standby', 'ready_for_charging']) {
+      expect(wallboxMode(entity(state))).toBe('hidden')
+    }
   })
 
   it('formats live house consumption using the source unit', () => {

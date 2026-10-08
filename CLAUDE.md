@@ -365,6 +365,11 @@ Fasi 2–6 applicate. La Definition of Done richiede a ogni rilascio lint, suite
 - **Ordine stabile** (categoria → nome): una card non salta di posto quando la tocchi, quindi l'isteresi non serve più nella home. Le **P0 di sicurezza** del composer restano in testa anche su dispositivi non configurati; `hero: 'never'` continua a escludere.
 - Verifica: lint ✅ · test 677/677 ✅ · build:all ✅ · typecheck backend ✅ · screenshot con 1/3/4/9 dispositivi in light e dark su backend reale + HA simulato.
 
+**Risolti (2026-10-08, sera) — falsa "Auto collegata" e avvisi offline dai nascosti:**
+- **Wallbox** — `wallboxMode` ([statusBarEnergy.ts](src/lib/statusBarEnergy.ts)) considerava "collegata" anche `ready`/`waiting`/`preparing`/`not_charging`, che su molte wallbox significano "pronta, nessuna auto": l'icona restava accesa con l'auto staccata. Ora solo stati che implicano un'auto inserita; qualunque altro stato (anche sconosciuto) nasconde l'icona. Il fallback `includes('charging')` (che trasformava `ready_for_charging` in ricarica) è sostituito da `startsWith('charging_')`.
+- **Offline solo per il configurato** — notifiche (`useNotifications`), chip "N dispositivi offline" del composer e report offline della regia ignorano i dispositivi non scelti nel wizard (nella regia restano contati come sfondo, mai elencati).
+- Verifica: lint ✅ · test 680/680 ✅ · build:all ✅ · typecheck backend ✅. **Da confermare sul tablet:** lo stato grezzo reale della ChargeSplit con auto staccata/attaccata.
+
 **Residui noti (non bloccanti):** WebRTC/talk-back via signaling proxy backend; rimozione definitiva della grid legacy dopo validazione del composer sul tablet reale; AI write-back automazioni (roadmap); modalità ospiti/pulizie (§6.4) non ancora implementata.
 
 ---

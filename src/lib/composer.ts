@@ -199,7 +199,9 @@ export function composeHome(entities: ComposerEntity[], opts: ComposeOptions): C
   for (const e of entities) {
     const domain = domainOf(e.entity_id)
     if (e.state === 'unavailable') {
-      if (isRelevantUnavailableEntity(e)) unavailableEntityIds.push(e.entity_id)
+      // Opt-in anche per gli avvisi: un dispositivo mai scelto (o nascosto)
+      // non deve far comparire "N dispositivi offline".
+      if (isRelevantUnavailableEntity(e) && configured(e.entity_id)) unavailableEntityIds.push(e.entity_id)
       continue
     }
     if (e.state === 'unknown') continue

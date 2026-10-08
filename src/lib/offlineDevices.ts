@@ -40,6 +40,8 @@ export interface OfflineLookups {
   areaNameOf: (entityId: string) => string | undefined
   /** Entità già escluse dalle superfici utente (nascoste/diagnostiche). */
   excludedEntityIds?: ReadonlySet<string>
+  /** Opt-in: i dispositivi non scelti nel wizard si contano, non si elencano. */
+  isConfigured?: (entityId: string) => boolean
 }
 
 const UNKNOWN_PLATFORM = 'Altro'
@@ -51,7 +53,7 @@ export function buildOfflineReport(entities: HassEntity[], lookups: OfflineLooku
   for (const entity of entities) {
     if (entity.state !== 'unavailable') continue
     if (lookups.excludedEntityIds?.has(entity.entity_id)) continue
-    if (!isRelevantUnavailableEntity(entity)) {
+    if (!isRelevantUnavailableEntity(entity) || lookups.isConfigured?.(entity.entity_id) === false) {
       backgroundCount += 1
       continue
     }
