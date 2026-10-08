@@ -688,7 +688,6 @@ function KioskCard() {
   )
 
   const current = config?.kiosk?.wakeEntityId ?? ''
-  const homeMode = config?.kiosk?.homeMode ?? 'composer'
   const perfProfile = config?.kiosk?.perfProfile ?? 'balanced'
   const readOnly = config?.storage?.writable === false
   const screensaver = config?.kiosk?.screensaver
@@ -732,35 +731,15 @@ function KioskCard() {
     }, successText)
   }
 
-  const modes: { id: 'composer' | 'grid'; label: string }[] = [
-    { id: 'composer', label: 'Auto-composta' },
-    { id: 'grid', label: 'Personalizzabile' },
-  ]
-
   return (
     <GlassCard className="space-y-3">
       <FeatureHeader Icon={MonitorSmartphone} title="Kiosk" badge={current ? 'Presenza HA attiva' : 'Sensori del tablet'} tone={current ? 'ok' : 'neutral'} />
       {readOnly && <ReadOnlyNotice />}
       <div className="space-y-1.5">
-        <p className="flex items-center gap-1.5 text-xs font-semibold text-[var(--ink-secondary)]" id={`${id}-home-mode`}><LayoutGrid size={12} /> Home del tablet</p>
-        <div className="flex gap-2" role="group" aria-labelledby={`${id}-home-mode`}>
-          {modes.map((m) => (
-            <button
-              key={m.id}
-              type="button"
-              disabled={readOnly || isPending}
-              onClick={() => saveKiosk({ ...config?.kiosk, homeMode: m.id }, 'Modalità home del kiosk aggiornata.')}
-              aria-pressed={homeMode === m.id}
-              className={cn('min-h-[44px] flex-1 rounded-[12px] text-sm font-semibold transition', homeMode === m.id ? 'bg-[var(--action-blue)] text-[var(--on-accent)]' : 'bg-[var(--fill-subtle)] text-[var(--ink-secondary)]')}
-            >
-              {m.label}
-            </button>
-          ))}
-        </div>
-        <p className="text-[11px] text-[var(--ink-tertiary)]">
-          {homeMode === 'grid'
-            ? 'Sul tablet appare "Personalizza": aggiungi, rimuovi, ridimensiona e trascina i widget. Le modifiche arrivano live.'
-            : 'Le card si scelgono da sole per rilevanza (composer): niente da disporre.'}
+        <p className="flex items-center gap-1.5 text-xs font-semibold text-[var(--ink-secondary)]"><LayoutGrid size={12} /> Home del tablet</p>
+        <p className="text-[12px] text-[var(--ink-tertiary)]">
+          Dinamica: mostra tutti i dispositivi attivati in Entità, a schermo pieno. Quelli che usi di più e quelli
+          in funzione salgono in cima e diventano più grandi; la disposizione si aggiorna solo quando nessuno sta toccando lo schermo.
         </p>
       </div>
       <p className="text-[12px] text-[var(--ink-tertiary)]">

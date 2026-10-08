@@ -47,6 +47,10 @@ export function ServiceHealthCard({ status }: { status?: SystemStatus }) {
     let installAttempted = false
     setUpdating('checking')
     try {
+      // Prima il Supervisor deve rileggere il repository: senza questo passo
+      // la nuova versione resta invisibile per ore e non si installa nulla.
+      // Best effort: se fallisce (permesso, Docker standalone) si prosegue.
+      await systemApi.reloadAddonStore().catch(() => undefined)
       await callService('homeassistant', 'update_entity', { entity_id: addon.entityId })
       // HA aggiorna lo stato dell'entità in modo asincrono: si concede un
       // momento prima di decidere se c'è davvero qualcosa da installare.

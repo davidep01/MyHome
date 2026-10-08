@@ -7,6 +7,7 @@ import { configuredIntegrations } from '../lib/integration-config.js'
 import { getAuditLog } from '../lib/audit-log.js'
 import { getBridgeHealth, getServiceErrors, recordServiceError } from '../lib/service-health.js'
 import { getUpdateInfo } from '../lib/update-check.js'
+import { reloadAddonStore } from '../lib/supervisor.js'
 import { emitConfigChange } from '../lib/configEvents.js'
 import { findHomeRevision, listHomeRevisionsMeta, recordHomeRevision } from '../lib/home-revisions.js'
 import { mergeHomeConfig, tabletHomeLayout } from '../lib/home-layout.js'
@@ -28,6 +29,14 @@ systemRouter.get('/errors', (c) => c.json({ entries: getServiceErrors() }))
 
 // Ultima versione pubblicata (cache 6h lato server). Il confronto lo fa il client.
 systemRouter.get('/update', async (c) => c.json(await getUpdateInfo(c.req.query('force') === '1')))
+
+// Forza il Supervisor a rileggere il repository dell'add-on: senza, la nuova
+// versione resta invisibile per ore e "Controlla e aggiorna ora" non installa nulla.
+systemRouter.post('/addon/reload-store', async (c) => {
+  const result = await reloadAddonStore()
+  if (!result.ok && result.reason !== 'no-supervisor') recordServiceError('ha', `Rilettura repository add-on fallita (${result.reason})`)
+  return c.json(result, result.ok || result.reason === 'no-supervisor' ? 200 : 502)
+})
 
 // Cronologia versioni della home (§4.4): ultime revisioni, più recente per prima.
 systemRouter.get('/home-revisions', async (c) => c.json({ entries: listHomeRevisionsMeta(await db.read()) }))

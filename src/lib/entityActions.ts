@@ -1,4 +1,5 @@
 import { useEntityStore } from '../store/entities'
+import { noteCardUsage } from './cardUsage'
 const pending = new Set<string>()
 export function entityActionPending(entityId: string): boolean { return pending.has(entityId) }
 
@@ -12,6 +13,8 @@ export async function performEntityAction(
   if (!state.connected || !entity || ['unknown', 'unavailable'].includes(entity.state)) throw new Error('Dispositivo non disponibile')
   if (entityId.startsWith('lock.') && ['locking', 'unlocking'].includes(entity.state)) throw new Error('Serratura in movimento')
   pending.add(entityId)
+  // Ogni comando reale su un dispositivo insegna alla home cosa usi davvero.
+  noteCardUsage(entityId)
   try {
     start()
     const optimistic = useEntityStore.getState().entities[entityId]

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { composeHome, type AlertChip, type HeroSlot } from '../lib/composer'
-import { orderBentoEntities } from '../lib/bentoHome'
+import { isEntityActive, rankBentoEntities, settleBentoOrder } from '../lib/bentoHome'
+import { lastCardInteractionAt, readUsage, usageScore } from '../lib/cardUsage'
 import { entityName } from '../components/widgets/utils/mapEntityToWidgetCard'
 import { isRenderableDomain } from '../components/home/layers/makeRoomEntity'
 import { computeInsights, type InsightAction } from '../lib/insights'
@@ -25,22 +26,26 @@ export interface KioskCurationConfig {
 }
 
 const TICK_MS = 1000
+/** La home si riordina solo dopo 90s senza tocchi, e al massimo una volta al minuto. */
+const SETTLE_AFTER_MS = 90_000
+const MIN_REORDER_INTERVAL_MS = 60_000
 const IDLE: ComposedHomeView = { hero: [], alerts: [], quiet: true }
 
 /**
  * Composizione live della home bento: TUTTI i dispositivi scelti nel wizard,
- * in ordine stabile (`orderBentoEntities`), preceduti dalle P0 di sicurezza
- * del composer — che restano visibili anche su dispositivi non configurati.
- * L'insieme non dipende da cosa è acceso, quindi niente isteresi: una card
- * non sparisce né salta di posto quando la tocchi. Ogni delta push avvia il
- * ricalcolo; il tick a 1Hz resta per le scadenze temporali (es. notte). Il
- * setState avviene solo quando la composizione cambia davvero.
+ * preceduti dalle P0 di sicurezza del composer (visibili anche su dispositivi
+ * non configurati). L'ordine lo decide `rankBentoEntities` — uso appreso,
+ * attività in corso, categoria — e le prime card prendono le tessere grandi.
+ * Il riordino avviene solo a home ferma (`settleBentoOrder`): una card non
+ * salta via mentre la tocchi. Ogni delta push avvia il ricalcolo; il tick a
+ * 1Hz fa maturare le scadenze. Il setState avviene solo se cambia qualcosa.
  */
 export function useComposedHome(cfg?: KioskCurationConfig): ComposedHomeView {
   const { areaNameOf, areaIdOf } = useAreaIndex(cfg?.deviceOverrides)
   const [view, setView] = useState<ComposedHomeView>(IDLE)
 
   const signatureRef = useRef('')
+  const orderRef = useRef<{ ids: string[]; at: number }>({ ids: [], at: 0 })
 
   const deviceOverrides = cfg?.deviceOverrides
 
@@ -60,17 +65,30 @@ export function useComposedHome(cfg?: KioskCurationConfig): ComposedHomeView {
       })
       const safety = raw.hero.filter((slot) => slot.priority === 0)
       const safetyIds = new Set(safety.map((slot) => slot.entityId))
-      const configured = orderBentoEntities(
+      const nowMs = Date.now()
+      const usage = readUsage()
+      const usageOf = (id: string) => usageScore(usage[id], nowMs)
+      const activeOf = (id: string) => isEntityActive(entities[id])
+      const ranked = rankBentoEntities(
         Object.keys(entities).filter((id) =>
           isDashboardCardEntity(id, deviceOverrides)
           && isRenderableDomain(id)
           && deviceOverrides?.[id]?.hero !== 'never'
           && !safetyIds.has(id)),
-        (id) => entityName(entities[id], deviceOverrides?.[id]?.label),
+        { nameOf: (id) => entityName(entities[id], deviceOverrides?.[id]?.label), usageOf, activeOf },
       )
+      const canReorder = nowMs - lastCardInteractionAt() >= SETTLE_AFTER_MS
+        && nowMs - orderRef.current.at >= MIN_REORDER_INTERVAL_MS
+      const configured = settleBentoOrder(orderRef.current.ids, ranked, canReorder)
+      if (configured.join() !== orderRef.current.ids.join()) orderRef.current = { ids: configured, at: nowMs }
       const hero: HeroSlot[] = [
         ...safety,
-        ...configured.map((id): HeroSlot => ({ key: id, entityId: id, priority: 4, reason: 'Configurato' })),
+        ...configured.map((id): HeroSlot => ({
+          key: id,
+          entityId: id,
+          priority: 4,
+          reason: usageOf(id) >= 1 ? 'Usata spesso' : activeOf(id) ? 'In funzione' : 'Configurato',
+        })),
       ]
       const insights = connected && hydrated !== false ? computeInsights(
         Object.values(entities).filter((e) => isDashboardCardEntity(e.entity_id, deviceOverrides)),

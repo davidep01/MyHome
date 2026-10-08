@@ -11,6 +11,10 @@ stage: stable
 # Home Assistant 2026.2 Apps panel. Do not advertise an untested legacy floor.
 homeassistant: "2026.2.0"
 homeassistant_api: true
+# Serve solo a "Controlla e aggiorna ora": il ruolo manager permette
+# POST /store/reload, cioè far vedere subito al Supervisor la nuova versione.
+hassio_api: true
+hassio_role: manager
 arch:
   - aarch64
   - amd64

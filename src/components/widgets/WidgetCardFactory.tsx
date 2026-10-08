@@ -32,6 +32,7 @@ import { MediaArtwork } from './MediaArtwork'
 import { shouldRenderCameraStream } from './utils/cameraCardStream'
 import { MediaCardContent } from './MediaCardContent'
 import { ClimateCard } from './ClimateCard'
+import { noteCardUsage } from '../../lib/cardUsage'
 
 interface Props {
   entity: RoomEntity
@@ -123,6 +124,11 @@ function WidgetCardFactoryContent({ entity: roomEntity, size = 'M', className, i
         setPendingAction(null)
         finish?.()
       })
+  }
+
+  const openDetail = () => {
+    if (!isEditing) noteCardUsage(entityId)
+    setSelectedEntity(entityId)
   }
 
   const togglePower = () => {
@@ -389,7 +395,7 @@ function WidgetCardFactoryContent({ entity: roomEntity, size = 'M', className, i
         className={cn(className, feedbackClass)}
         isEditing={isEditing}
         isDragging={isDragging}
-        onClick={() => setSelectedEntity(entityId)}
+        onClick={openDetail}
       />
     )
   }
@@ -425,7 +431,7 @@ function WidgetCardFactoryContent({ entity: roomEntity, size = 'M', className, i
       isEditing={isEditing}
       isDragging={isDragging}
       className={cn(className, feedbackClass, mediaCoverStyle && 'widget-card-media')}
-      onClick={() => setSelectedEntity(entityId)}
+      onClick={openDetail}
       media={liveCamera ? (
           <>
             <CameraStream entityId={entityId} fit="cover" badge className="h-full w-full" />

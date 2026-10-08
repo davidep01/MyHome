@@ -14,7 +14,7 @@ import type { ElementType } from 'react'
 import type { EntityType, RoomEntity } from '../../../api/backend'
 import { DOMAIN_TYPE } from '../../../hooks/useDiscoveredEntities'
 import { airQualityTone, batteryTone, securityTone, temperatureTone, widgetTones } from './getRingColorScale'
-import { numericState } from './formatWidgetValue'
+import { formatExact, numericState } from './formatWidgetValue'
 import { stateLabel } from './stateLabel'
 import type { WidgetCardStatus } from '../types'
 import { isArmed } from '../../../lib/alarm'
@@ -177,9 +177,9 @@ function mediaFamily(entity?: HassEntity | null): WidgetFamily {
   return 'media'
 }
 
-/** Formatta un numero per la riga di stato/valore: una sola cifra decimale. */
-function fmt(n: number): string {
-  return new Intl.NumberFormat('it-IT', { maximumFractionDigits: 1 }).format(n)
+/** Formatta un numero per la riga di stato/valore: i decimali di HA, mai arrotondati. */
+function fmt(n: number, source?: unknown): string {
+  return formatExact(n, source ?? n)
 }
 
 export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roomEntity: RoomEntity): WidgetEntityMapping {
@@ -255,7 +255,7 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
         status: on ? 'on' : 'off',
         accentColor: family === 'smartPlug' ? widgetTones.energy.color : widgetTones.ok.color,
         isActive: on,
-        state: on ? (power !== undefined ? `Acceso · ${Math.round(power)} W` : 'Acceso') : 'Spento',
+        state: on ? (power !== undefined ? `Acceso · ${fmt(power)} W` : 'Acceso') : 'Spento',
       }
     case 'climate':
     case 'thermostat': {
@@ -389,7 +389,7 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
         isActive: false,
         state: family === 'battery' && number !== undefined && number < 20 ? 'Batteria scarica' : '',
         stateAccent: family === 'battery' && number !== undefined && number < 20,
-        value: number !== undefined ? fmt(number) : '--',
+        value: number !== undefined ? fmt(number, number === value ? entity?.state : undefined) : '--',
         unit,
       }
     }
@@ -511,7 +511,7 @@ export function mapEntityToWidgetCard(entity: HassEntity | null | undefined, roo
         isActive: false,
         isUnavailable: unavailable,
         state: numeric ? '' : stateLabel(rawState),
-        value: numeric ? fmt(value) : undefined,
+        value: numeric ? fmt(value, entity?.state) : undefined,
         unit: numeric ? unit : undefined,
       }
     }

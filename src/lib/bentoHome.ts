@@ -1,17 +1,17 @@
 import type { HeroVisualSize } from './composer'
 
 /**
- * Home bento: TUTTI i dispositivi scelti nel wizard, sempre a schermo pieno.
+ * Home bento dinamica: TUTTI i dispositivi scelti nel wizard, sempre a
+ * schermo pieno, ordinati da un punteggio che ragiona su tre segnali:
  *
- * Il composer di rilevanza mostrava solo ciò che "stava succedendo" (max 4):
- * una casa tranquilla diventava una home con una card sola e tanto vuoto.
- * Qui l'insieme è fisso (il configurato) e cambia solo la geometria: meno
- * dispositivi → card più grandi, più dispositivi → card più piccole, e la
- * griglia è sempre satura (nessun buco).
+ * 1. **uso** — quante volte tocchi quella card (decadimento a 7 giorni, vedi
+ *    `cardUsage.ts`): ciò che usi di più sale e diventa più grande;
+ * 2. **attività** — ciò che sta funzionando adesso (luce accesa, musica,
+ *    clima che scalda) vale come un paio di tocchi recenti;
+ * 3. **categoria** — a parità, sicurezza e clima prima dei sensori.
  *
- * Ordine stabile (categoria, poi nome): una card non deve saltare di posto
- * quando la tocchi. I primi della lista — le categorie più importanti —
- * ricevono le tessere doppie quando servono a chiudere la griglia.
+ * Le prime card ricevono le tessere doppie: "più usata" = "più disponibile".
+ * Il riordino lo decide il chiamante (`useComposedHome`), mai mentre tocchi.
  */
 
 const DOMAIN_ORDER = [
@@ -27,12 +27,64 @@ function domainRank(entityId: string): number {
   return index === -1 ? DOMAIN_ORDER.length : index
 }
 
-/** Ordine stabile: categoria, poi nome visibile, poi entity_id. */
-export function orderBentoEntities(ids: string[], nameOf: (id: string) => string): string[] {
+export interface RankSignals {
+  nameOf: (id: string) => string
+  /** Punteggio d'uso già decaduto (0 = mai toccata). */
+  usageOf?: (id: string) => number
+  /** true se il dispositivo sta facendo qualcosa adesso. */
+  activeOf?: (id: string) => boolean
+}
+
+const ACTIVITY_WEIGHT = 2
+
+/** Peso a priori della categoria: sempre < 1, così non supera mai un tocco reale. */
+function categoryPrior(entityId: string): number {
+  return (DOMAIN_ORDER.length - domainRank(entityId)) / (DOMAIN_ORDER.length + 1)
+}
+
+export function bentoWeight(id: string, signals: RankSignals): number {
+  return (signals.usageOf?.(id) ?? 0)
+    + (signals.activeOf?.(id) ? ACTIVITY_WEIGHT : 0)
+    + categoryPrior(id)
+}
+
+/** Ordine per peso (uso + attività + categoria), poi nome: deterministico. */
+export function rankBentoEntities(ids: string[], signals: RankSignals): string[] {
+  const weight = new Map(ids.map((id) => [id, bentoWeight(id, signals)]))
   return [...ids].sort((a, b) =>
-    domainRank(a) - domainRank(b)
-    || nameOf(a).localeCompare(nameOf(b), 'it')
+    weight.get(b)! - weight.get(a)!
+    || signals.nameOf(a).localeCompare(signals.nameOf(b), 'it')
     || a.localeCompare(b))
+}
+
+const ACTIVE_STATES = new Set(['on', 'playing', 'heat', 'cool', 'heat_cool', 'dry', 'fan_only', 'auto', 'open', 'opening', 'closing', 'cleaning', 'mowing', 'returning', 'unlocked', 'triggered', 'arming', 'pending'])
+const IDLE_HVAC = new Set(['idle', 'off'])
+
+/** "Sta facendo qualcosa": vale per la card, non per i sensori passivi. */
+export function isEntityActive(entity: { entity_id: string; state: string; attributes?: Record<string, unknown> } | undefined): boolean {
+  if (!entity) return false
+  const domain = entity.entity_id.split('.')[0]
+  if (domain === 'sensor' || domain === 'binary_sensor' || domain === 'weather') return false
+  if (domain === 'climate') {
+    const action = String(entity.attributes?.hvac_action ?? '')
+    return action ? !IDLE_HVAC.has(action) : entity.state !== 'off' && ACTIVE_STATES.has(entity.state)
+  }
+  if (domain === 'cover') return entity.state === 'opening' || entity.state === 'closing'
+  return ACTIVE_STATES.has(entity.state)
+}
+
+/**
+ * Applica il nuovo ordine solo quando è il momento: mentre la stai usando la
+ * home non si rimescola (le card restano dove le hai lasciate, le nuove si
+ * accodano, le rimosse spariscono). Quando torna ferma, riprende l'ordine
+ * calcolato.
+ */
+export function settleBentoOrder(previous: string[], ranked: string[], canReorder: boolean): string[] {
+  if (canReorder || previous.length === 0) return ranked
+  const present = new Set(ranked)
+  const kept = previous.filter((id) => present.has(id))
+  const keptSet = new Set(kept)
+  return [...kept, ...ranked.filter((id) => !keptSet.has(id))]
 }
 
 export interface BentoLayout {
@@ -57,11 +109,14 @@ function gridFor(n: number): { cols: number; rows: number } {
 /**
  * Geometria per `n` card: colonne × righe con area esattamente uguale a
  * `cols * rows` — le celle in eccesso diventano tessere doppie per le prime
- * card, così la griglia (con `grid-auto-flow: dense`) non lascia buchi.
+ * card (le più pesanti), così la griglia (`grid-auto-flow: dense`) non lascia
+ * buchi.
  */
 export function bentoLayout(n: number): BentoLayout {
   if (n <= 0) return { cols: 1, rows: 0, spans: [] }
-  const { cols, rows } = gridFor(n)
+  // Da 3 card in su c'è sempre almeno una tessera doppia: la card più usata
+  // deve risultare più grande delle altre, anche quando il numero "torna pari".
+  const { cols, rows } = gridFor(n >= 3 ? n + 1 : n)
   let extra = cols * rows - n
   const spans = Array.from({ length: n }, () => {
     if (extra > 0 && cols > 1) {

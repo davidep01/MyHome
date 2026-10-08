@@ -80,3 +80,19 @@ it('retains advertised artwork when a media player is switched off', () => {
   const entity = {...light('off'), entity_id: 'media_player.tv', attributes: {entity_picture: '/api/media_player_proxy/media_player.tv'}}
   expect(mapEntityToWidgetCard(entity, {...roomEntity, entityId: entity.entity_id}).artwork).toBe(entity.attributes.entity_picture)
 })
+
+describe('valori esatti', () => {
+  it('non arrotonda i decimali riportati da Home Assistant', async () => {
+    const { formatExact } = await import('./formatWidgetValue')
+    expect(formatExact(0.99)).toBe('0,99')
+    expect(formatExact(Number('21.50'), '21.50')).toBe('21,50')
+    expect(formatExact(20)).toBe('20')
+    expect(formatExact(0.1 + 0.2)).toBe('0,3')
+  })
+
+  it('la card sensore mostra 0,99 e non 1', () => {
+    const sensor = { entity_id: 'sensor.consumo', state: '0.99', attributes: { unit_of_measurement: 'kWh', device_class: 'energy' }, last_changed: '', last_updated: '', context: { id: '', parent_id: null, user_id: null } } as HassEntity
+    const mapped = mapEntityToWidgetCard(sensor, { ...roomEntity, id: 'sensor.consumo', entityId: 'sensor.consumo', label: 'Consumo', type: 'sensor' })
+    expect(mapped.value).toBe('0,99')
+  })
+})

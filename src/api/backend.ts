@@ -654,4 +654,6 @@ export const systemApi = {
   update: (force = false) => request<UpdateInfo>(`/system/update${force ? '?force=1' : ''}`),
   homeRevisions: () => request<{ entries: HomeRevisionMeta[] }>('/system/home-revisions'),
   restoreHomeRevision: (version: number) => request<unknown>(`/system/home-revisions/${version}/restore`, { method: 'POST' }),
+  /** Fa rileggere al Supervisor il repository dell'add-on (solo add-on HA). */
+  reloadAddonStore: () => request<{ ok: boolean; reason?: 'no-supervisor' | 'forbidden' | 'failed' }>('/system/addon/reload-store', { method: 'POST' }),
 }

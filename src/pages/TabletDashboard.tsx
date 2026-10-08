@@ -21,12 +21,16 @@ function deviceOverride(): 'composer' | 'grid' | null {
 }
 
 /**
- * Tablet/kiosk home: auto-composta (default) o griglia drag&drop, scelta da
- * Funzioni → Kiosk (config.kiosk.homeMode, propagata live via /api/layout).
+ * Tablet/kiosk home: sempre la home dinamica (tutte le card attive, ordinate
+ * per uso e attività). `config.kiosk.homeMode: 'grid'` salvato in passato non
+ * la sostituisce più: con la griglia manuale i dispositivi attivati nel wizard
+ * non comparivano finché non venivano aggiunti a mano, cioè "non vedo le
+ * card". La griglia legacy resta raggiungibile solo dall'override di
+ * diagnostica per-dispositivo `localStorage['myhome.home'] = 'grid'`.
  */
 export function TabletDashboard() {
   const { data: layout } = useTabletLayout('home')
-  const mode = deviceOverride() ?? layout?.kiosk?.homeMode ?? 'composer'
+  const mode = deviceOverride() ?? 'composer'
   return (
     <div className="flex h-full flex-col overflow-hidden">
       {layout?.source === 'cache' && <div role="status" className="shrink-0 bg-[var(--fill-muted)] px-5 py-2 text-center text-xs font-semibold text-[var(--ink-secondary)]">Configurazione locale · server temporaneamente non raggiungibile</div>}
