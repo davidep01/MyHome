@@ -1,10 +1,10 @@
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, afterEach, describe, expect, it, vi } from 'vitest'
 import { createHomeAiRouter, type RouterDeps } from '../api/routes.js'
 import type { HomeAiCore } from '../core.js'
-import type { PolicyDecision } from '../domain/contracts.js'
+import type { HealthStatus, PolicyDecision } from '../domain/contracts.js'
 import { makeEvent, quality } from '../ingestion/normalize.js'
 import type { Candidate } from '../agents/types.js'
 import type { StoredProposal } from '../suggestions/service.js'
@@ -20,7 +20,26 @@ import { DEMO_UNTIL, newCore, seededDemo } from './helpers.js'
 const JWT = 'eyJhbGciOiJIUzI1NiJ9.YXBpLXRlc3Qtc2VncmV0by1kaS1wcm92YQ.ZmlybWEtYXBpLXRlc3QtOTk5'
 const SUBJECT = 'subj-abc123def456'
 
-type Json = Record<string, any>
+/** Vista tipizzata (campi opzionali) delle risposte JSON lette nei test. */
+interface Json {
+  code?: string
+  error?: string
+  request_id?: string
+  status?: string
+  notice?: string
+  reasoner?: unknown
+  physical_execution?: string
+  proposal?: StoredProposal
+  suggestions?: StoredProposal[]
+  episodes?: { episode_id: string }[]
+  states?: { value: Record<string, unknown> }[]
+  health?: HealthStatus
+}
+
+// `db/client.ts` legge MYHOME_DB_PATH una sola volta, al primo import dell'app:
+// una cartella condivisa per tutto il file evita di puntare a una cartella già rimossa.
+const DASHBOARD_DIR = mkdtempSync(join(tmpdir(), 'home-ai-api-dashboard-'))
+afterAll(() => rmSync(DASHBOARD_DIR, { recursive: true, force: true }))
 
 afterEach(() => {
   vi.unstubAllGlobals()
@@ -93,7 +112,7 @@ describe('T40 — barriera esplicita nell’API', () => {
     const router = routerFor(core)
     const auditBefore = core.audit.list(500).length
     const stateBefore = core.projection.all()
-    const hostile = { domain: 'lock', service: 'unlock', entity_id: 'lock.porta', service_data: { code: JWT }, topic: 'casa/cmd', payload: 'ON' }
+    const hostile = { domain: 'lock', service: 'unlock', entity_id: 'lock.porta', service_data: { code: JWT }, topic: 'topic/segreto-del-corpo', payload: 'APRI_TUTTO' }
     let attempts = 0
     for (const path of FORCED) {
       for (const method of ['POST', 'GET', 'PUT']) {
@@ -113,7 +132,8 @@ describe('T40 — barriera esplicita nell’API', () => {
     expect(blocked).toHaveLength(attempts)
     for (const entry of blocked) {
       expect(entry.reason_codes).toEqual(['PHYSICAL_EXECUTION_DISABLED'])
-      expect(entry.detail).not.toMatch(/lock\.porta|casa\/cmd|ON|service_data/)
+      // Solo metodo/percorso minimizzati: nulla del corpo della richiesta.
+      expect(entry.detail).not.toMatch(/lock\.porta|segreto-del-corpo|APRI_TUTTO|service_data|unlock"/)
       expect(entry.detail).not.toContain(JWT)
     }
     expect(core.projection.all()).toEqual(stateBefore)
@@ -159,7 +179,7 @@ describe('T40 — barriera esplicita nell’API', () => {
     expect(core.configRevision()).toBe(configRevision)
     expect(core.config().runtime.physical_execution).toBe('disabled')
     expect(core.userRules()).toEqual([])
-    expect(({} as Json).physical_execution).toBeUndefined()
+    expect(({} as Record<string, unknown>).physical_execution).toBeUndefined()
 
     // Telemetria verso un servizio non mappato: mai un comando, al massimo dato scartato.
     const telemetry = await call(router, 'POST', '/telemetry/manual-intents', {
@@ -176,7 +196,7 @@ describe('T40 — barriera esplicita nell’API', () => {
     const saved = { ...process.env }
     try {
       process.env.NODE_ENV = 'test'
-      process.env.MYHOME_DB_PATH = join(dir, 'db.json')
+      process.env.MYHOME_DB_PATH = join(DASHBOARD_DIR, 'db.json')
       process.env.HOME_AI_DB_PATH = join(dir, 'home-ai.sqlite')
       delete process.env.MYHOME_AUTH_MODE
       const { app } = await import('../../app.js')
@@ -217,7 +237,7 @@ describe('T37/T38 — approvazioni dall’API', () => {
     const firstBody = await json(first)
     expect(first.status).toBe(200)
     expect(firstBody.notice).toBe('Preferenza salvata: nessun dispositivo è stato comandato.')
-    expect(firstBody.proposal.state).toBe('preference_saved')
+    expect(firstBody.proposal?.state).toBe('preference_saved')
     // Stessa chiave → stessa risposta; chiave diversa sulla stessa revisione → nessuna seconda preferenza.
     const replay = await call(router, 'POST', `/suggestions/${proposal.proposal_id}/approve`, { role: 'admin', body: save, key: 'approva-preferenza-01' })
     expect(await json(replay)).toEqual(firstBody)
@@ -270,10 +290,10 @@ describe('T42 — stato trasparente del reasoner', () => {
     expect(await json(reasoner)).toEqual({ capabilities: { available: false, structured_output: false, local_only: true }, code: 'REASONER_NOT_CONFIGURED' })
     const status = await json(await call(router, 'GET', '/status', { role: 'admin' }))
     expect(status.reasoner).toEqual({ available: false, structured_output: false, local_only: true })
-    expect(status.health.reasoner).toBe('not_configured')
-    expect(status.health.service).toBe('running')
+    expect(status.health?.reasoner).toBe('not_configured')
+    expect(status.health?.service).toBe('running')
     const inbox = await json(await call(router, 'GET', '/suggestions?all=1', { role: 'admin' }))
-    expect(new Set((inbox.suggestions as StoredProposal[]).map((p) => p.agent_key))).toEqual(new Set(['arrival', 'waste', 'weather']))
+    expect(new Set((inbox.suggestions ?? []).map((p) => p.agent_key))).toEqual(new Set(['arrival', 'waste', 'weather']))
     expect(inbox.notice).toBe('Questa versione non controlla i dispositivi.')
   })
 })
@@ -311,6 +331,18 @@ async function personalHome() {
   await core.tick()
   const episode = core.arrivals.list({ demo: false, limit: 10 }).find((e) => e.subject_id === SUBJECT)
   if (!episode) throw new Error('episodio personale atteso')
+  // Stato di una luce con un attributo: il tablet deve vederne solo stato e disponibilità.
+  const light = makeEvent({
+    kind: 'state.changed', source: { id: 'ha', kind: 'ha', native_id: 'ctx-t44:light.demo_ingresso' },
+    occurred_at: clock.now().toISOString(), received_at: clock.now().toISOString(), delivery: 'live',
+    quality: quality('unknown', 0, ['NO_ORIGIN_EVIDENCE']),
+    payload: {
+      entity_id: 'light.demo_ingresso', before: null, effect_of_operation_id: null,
+      after: { state: 'on', attributes: { brightness: 180 }, source_updated_at: clock.now().toISOString(), availability: 'available' },
+    },
+  })
+  expect(core.ingest(light, { demo: false }).status).toBe('stored')
+  core.process()
 
   // Abitudine del nucleo la cui evidenza include il rientro personale (il miner usa gli episodi del nucleo).
   const now = clock.now().toISOString()
@@ -340,7 +372,7 @@ describe('T44 — il tablet condiviso non vede dati personali', () => {
 
     // Controllo positivo: il configuratore con il consenso ai profili li vede.
     const adminEpisodes = await json(await call(router, 'GET', '/episodes', { role: 'admin' }))
-    expect((adminEpisodes.episodes as Json[]).some((e) => e.episode_id === episode.episode_id)).toBe(true)
+    expect((adminEpisodes.episodes ?? []).some((e) => e.episode_id === episode.episode_id)).toBe(true)
 
     const kioskEpisodes = await call(router, 'GET', '/episodes', { role: 'kiosk' })
     expect(kioskEpisodes.status).toBe(200)
@@ -373,8 +405,11 @@ describe('T44 — il tablet condiviso non vede dati personali', () => {
       expect((await json(response)).code).toBe('FORBIDDEN_SCOPE')
     }
     // Il contesto per il tablet è ridotto: niente attributi.
+    const adminContext = await json(await call(router, 'GET', '/context', { role: 'admin' }))
+    expect(adminContext.states?.[0]?.value.attributes).toEqual({ brightness: 180 })
     const context = await json(await call(router, 'GET', '/context', { role: 'kiosk' }))
-    for (const state of context.states as Json[]) expect(Object.keys(state.value).sort()).toEqual(['availability', 'state'])
+    expect(context.states?.length).toBeGreaterThan(0)
+    for (const state of context.states ?? []) expect(Object.keys(state.value).sort()).toEqual(['availability', 'state'])
     // Senza alcun ruolo: niente.
     expect((await call(router, 'GET', '/episodes/' + episode.episode_id)).status).toBe(403)
   })
@@ -463,7 +498,7 @@ describe('T48 — archivio non scrivibile visto dall’API e dalla dashboard', (
     vi.useFakeTimers({ toFake: ['Date'], now: DEMO_UNTIL })
     blockNetwork()
     process.env.NODE_ENV = 'test'
-    process.env.MYHOME_DB_PATH = join(dir, 'db.json')
+    process.env.MYHOME_DB_PATH = join(DASHBOARD_DIR, 'db.json')
     process.env.HOME_AI_DB_PATH = join(dir, 'home-ai.sqlite')
     delete process.env.MYHOME_AUTH_MODE
     delete process.env.HOME_AI_CORE
@@ -489,9 +524,9 @@ describe('T48 — archivio non scrivibile visto dall’API e dalla dashboard', (
       const status = await app.request('/api/home-ai/v1/status', { headers: desktop })
       expect(status.status).toBe(200)
       const statusBody = await json(status)
-      expect(statusBody.health.service).toBe('degraded')
-      expect(statusBody.health.storage).toBe('read_only')
-      expect((statusBody.health.issues as Json[]).map((i) => i.code)).toContain('STORAGE_DEGRADED')
+      expect(statusBody.health?.service).toBe('degraded')
+      expect(statusBody.health?.storage).toBe('read_only')
+      expect((statusBody.health?.issues ?? []).map((i) => i.code)).toContain('STORAGE_DEGRADED')
       const telemetry = await app.request('/api/home-ai/v1/telemetry/manual-intents', {
         method: 'POST', headers: { ...desktop, 'X-MyHome-Client': 'tablet' },
         body: JSON.stringify({ operation_id: 'op-t48', interaction_id: 'click-t48', control: 'button', domain: 'light', service: 'turn_on', target_entity_ids: ['light.demo_ingresso'], requested: {} }),

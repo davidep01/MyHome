@@ -45,7 +45,8 @@ Le regole utente vengono valutate **dopo** le precedenze inderogabili (1–4): n
 
 Prima della policy, `policy/arbiter.ts`:
 
-- stessa proposta da più agenti → **una** proposta con evidenze e motivazioni aggregate (`MERGED_DUPLICATE`, T33);
+- stessa proposta (stesso piano prospettico) da più agenti → **una** proposta con evidenze e motivazioni aggregate (`MERGED_DUPLICATE`, T33); routine diverse dello stesso agente restano distinte;
+- una routine salvata come preferenza esplicita scarta il candidato appreso che la contraddice sulla stessa risorsa (T35);
 - proposte opposte sulla stessa risorsa (`on/off`, `open/close`, `play/pause`) → si tiene la più supportata e il conflitto è **esplicitato** nella spiegazione (`CONFLICT_LOWER_SUPPORT`, T34).
 
 ## Lifecycle delle proposte

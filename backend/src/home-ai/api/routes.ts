@@ -7,6 +7,7 @@ import { arr, bool, enm, nullable, num, obj, opt, parse, record, str, type Schem
 import { EntityId, Id, LocalDate, Timezone, WasteRuleSchema } from '../domain/contracts.js'
 import type { HomeAiCore } from '../core.js'
 import { parseWasteIcs } from '../waste/ics.js'
+import { StorageFailure } from '../storage/db.js'
 
 /**
  * API locale di HOME AI CORE (specifica §21), montata su `/api/home-ai/v1`.
@@ -47,6 +48,10 @@ function fail(c: Context, error: unknown) {
   const id = requestId()
   if (error instanceof CoreError) {
     return c.json({ error: error.message, code: error.code, request_id: id, details: error.details.map((d) => redactAll(d)) }, error.status as 400)
+  }
+  // Archivio non scrivibile (disco pieno, sola lettura): errore tipizzato, non un 500 generico (T48).
+  if (error instanceof StorageFailure) {
+    return c.json({ error: 'Archivio del core non scrivibile: la dashboard continua a funzionare.', code: 'STORAGE_UNAVAILABLE', request_id: id, details: [] }, 503)
   }
   console.error('[home-ai] errore', error instanceof Error ? error.name : 'Unknown', id)
   return c.json({ error: 'Errore interno del core.', code: 'INTERNAL', request_id: id, details: [] }, 500)
@@ -123,6 +128,8 @@ export function createHomeAiRouter(deps: RouterDeps): Hono {
     if (deps.role(c) !== 'admin') throw new CoreError('FORBIDDEN_SCOPE', 'Serve il ruolo di configurazione della regia.')
   }
   const includePersonal = (c: Context) => deps.role(c) === 'admin' && Boolean(deps.core()?.config().privacy.personal_profiles_enabled)
+  /** Un rientro è del nucleo, ma con `subject_id` identifica una persona: è un dato personale (T44). */
+  const personalEpisode = (episode: { scope: { kind: string }; subject_id?: string | null }) => episode.scope.kind === 'person' || Boolean(episode.subject_id)
   const changed = () => deps.onConfigChanged()
 
   /** Idempotency-Key obbligatoria per le mutazioni: la stessa chiave restituisce la stessa risposta. */
@@ -148,7 +155,12 @@ export function createHomeAiRouter(deps: RouterDeps): Hono {
   }
 
   // ── Barriera esplicita: nessuna esecuzione, mai (T40) ──────────────────────
-  for (const path of ['/execute', '/execute/*', '/call-service', '/call-service/*', '/publish-mqtt', '/publish-mqtt/*', '/ha/*', '/services/*', '/proxy/*']) {
+  for (const path of [
+    '/execute', '/execute/*', '/call-service', '/call-service/*', '/call_service', '/call_service/*',
+    '/fire-event', '/fire-event/*', '/fire_event', '/fire_event/*',
+    '/publish-mqtt', '/publish-mqtt/*', '/publish_mqtt', '/publish_mqtt/*', '/mqtt', '/mqtt/*',
+    '/ha/*', '/services/*', '/proxy/*',
+  ]) {
     router.all(path, (c) => {
       deps.core()?.audit.record({ actor: actorOf(c), action: `blocked:${c.req.method}`, outcome: 'blocked', reason_codes: ['PHYSICAL_EXECUTION_DISABLED'], detail: c.req.path.slice(0, 80) })
       return fail(c, physicalExecutionDisabled(c.req.path))
@@ -207,7 +219,8 @@ export function createHomeAiRouter(deps: RouterDeps): Hono {
     const instance = deps.core()
     if (!instance) return c.json({ status: 'disabled' }, 202)
     const result = instance.telemetry.recordIntent(raw, { role, authMode: deps.authMode() })
-    instance.process()
+    // La ricevuta non dipende dall'elaborazione: un archivio degradato è già esposto in /status.
+    try { instance.process() } catch { /* stato degradato già dichiarato */ }
     return c.json({ status: result.status }, 202)
   }))
 
@@ -225,7 +238,7 @@ export function createHomeAiRouter(deps: RouterDeps): Hono {
     const instance = core()
     const demo = instance.config().runtime.demo
     const episodes = instance.arrivals.list({ demo, limit: 60 })
-      .filter((episode) => includePersonal(c) || episode.scope.kind !== 'person')
+      .filter((episode) => includePersonal(c) || !personalEpisode(episode))
       .map((episode) => deps.role(c) === 'admin' ? episode : { ...episode, actions: episode.actions.map((a) => ({ ...a, operation_id: '—' })) })
     return c.json({ episodes })
   }))
@@ -233,7 +246,7 @@ export function createHomeAiRouter(deps: RouterDeps): Hono {
   router.get('/episodes/:id', wrap((c) => {
     const episode = core().arrivals.get(param(c, 'id'))
     if (!episode) throw new CoreError('NOT_FOUND', 'Episodio non trovato.')
-    if (episode.scope.kind === 'person' && !includePersonal(c)) throw new CoreError('FORBIDDEN_SCOPE', 'Episodio personale non visibile da questo dispositivo.')
+    if (personalEpisode(episode) && !includePersonal(c)) throw new CoreError('FORBIDDEN_SCOPE', 'Episodio personale non visibile da questo dispositivo.')
     return c.json(episode)
   }))
 
@@ -248,7 +261,8 @@ export function createHomeAiRouter(deps: RouterDeps): Hono {
     const explained = core().patterns.explain(param(c, 'id'))
     if (!explained) throw new CoreError('NOT_FOUND', 'Abitudine non trovata.')
     if (explained.pattern.scope.kind === 'person' && !includePersonal(c)) throw new CoreError('FORBIDDEN_SCOPE', 'Abitudine personale non visibile da questo dispositivo.')
-    return c.json(explained)
+    // Le evidenze di un'abitudine del nucleo possono includere rientri personali: fuori scope, non si mostrano.
+    return c.json(includePersonal(c) ? explained : { ...explained, episodes: explained.episodes.filter((episode) => !personalEpisode(episode)) })
   }))
 
   router.post('/patterns/:id/feedback', wrap(async (c) => idempotent(c, async () => {

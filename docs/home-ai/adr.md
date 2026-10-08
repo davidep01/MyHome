@@ -35,7 +35,7 @@ Formato: contesto → decisione → alternative scartate → conseguenze.
 
 ## ADR-006 · Unica `ExecutionPort` = simulatore
 
-- **Decisione.** Non esiste un adapter di esecuzione reale. Le approvazioni hanno due soli scopi: `save_preference` e `simulate_once`. Il gateway HA è un'allowlist di sola lettura; il router blocca esplicitamente `/execute`, `/call-service`, `/publish-mqtt`, `/ha/*`, `/services/*`, `/proxy/*` con `PHYSICAL_EXECUTION_DISABLED` e audit.
+- **Decisione.** Non esiste un adapter di esecuzione reale. Le approvazioni hanno due soli scopi: `save_preference` e `simulate_once`. Il gateway HA è un'allowlist di sola lettura; il router blocca esplicitamente `/execute`, `/call-service`, `/fire-event`, `/publish-mqtt`, `/mqtt` (anche nelle varianti con `_`), `/ha/*`, `/services/*`, `/proxy/*` con `PHYSICAL_EXECUTION_DISABLED` e audit.
 
 ## ADR-007 · Calendari ICS con `node-ical` + sottoinsieme RRULE proprio
 

@@ -64,7 +64,7 @@ dashboard: click ──▶ /api/ha/services (comando ESISTENTE, invariato)   ing
 1. **Allowlist** nel gateway: richieste fuori forma rifiutate prima dell'I/O.
 2. **Letterali di configurazione**: `physical_execution: 'disabled'`, `external_notifications: 'disabled'`, `reasoner.adapter: 'disabled'` non hanno altri valori validi.
 3. **Ambiente**: variabili `HOME_AI_PHYSICAL*`, `HOME_AI_EXECUT*`, `HOME_AI_NOTIFY*`, `HOME_AI_LLM*`, `HOME_AI_MODEL*`… rifiutano l'avvio.
-4. **Router**: `/execute`, `/call-service`, `/publish-mqtt`, `/ha/*`, `/services/*`, `/proxy/*` → `PHYSICAL_EXECUTION_DISABLED` + audit.
+4. **Router**: `/execute`, `/call-service`, `/call_service`, `/fire-event`, `/fire_event`, `/publish-mqtt`, `/publish_mqtt`, `/mqtt`, `/ha/*`, `/services/*`, `/proxy/*` (con sottopercorsi, qualunque metodo) → `PHYSICAL_EXECUTION_DISABLED` + audit.
 5. **Import**: agenti, miner, simulatore, policy, proposte e reasoner non importano client di comando né credenziali (test `boundaries.test.ts`).
 6. **Approvazioni**: scopi `save_preference` | `simulate_once`, legati a revisione e `plan_hash`.
 

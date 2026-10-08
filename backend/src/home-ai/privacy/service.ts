@@ -56,8 +56,9 @@ export class PrivacyService {
   /** Export locale dello scope autorizzato, senza segreti. */
   export(opts: { includePersonal: boolean }): Record<string, unknown> {
     // Lo scope personale esce solo con il consenso ai profili: vale per eventi E derivati.
-    type Scoped = { scope?: { kind?: string } }
-    const inScope = (item: Scoped) => opts.includePersonal || item.scope?.kind !== 'person'
+    type Scoped = { scope?: { kind?: string }; subject_id?: string | null }
+    // Un rientro del nucleo con `subject_id` identifica comunque una persona (T44).
+    const inScope = (item: Scoped) => opts.includePersonal || (item.scope?.kind !== 'person' && !item.subject_id)
     const events = this.store.all('SELECT body FROM observed_events ORDER BY occurred_at DESC LIMIT 5000')
       .map((row) => json<ObservedEvent>(row.body))
       .filter(inScope)

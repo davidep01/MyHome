@@ -23,7 +23,9 @@ export interface ReasonerPort {
 
 export class DisabledReasoner implements ReasonerPort {
   capabilities() { return { available: false, structured_output: false, local_only: true } }
-  async propose(): Promise<Proposal[]> {
+  // Stessa firma del contratto: chi chiama con un input valido riceve un rifiuto esplicito, mai un modello.
+  async propose(input: Parameters<ReasonerPort['propose']>[0]): Promise<Proposal[]> {
+    void input
     throw new CoreError('REASONER_NOT_CONFIGURED', 'Nessun motore di ragionamento configurato: gli agenti deterministici restano attivi.')
   }
 }

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Candidate } from '../agents/types.js'
 import { makeEvent, quality } from '../ingestion/normalize.js'
+import { createHomeAiRouter } from '../api/routes.js'
 import { newCore, seededDemo } from './helpers.js'
 
 describe('regressioni', () => {
@@ -67,4 +68,23 @@ describe('regressioni', () => {
     core.process()
     expect(core.health(extra).forecast).toBe('current_only')
   })
+
+  it('archivio non scrivibile: una lettura che deve scrivere risponde 503 tipizzato, le altre restano disponibili', async () => {
+    const { core } = await seededDemo()
+    const router = createHomeAiRouter({
+      core: () => core, disabledReason: () => null, role: () => 'admin', authMode: () => 'disabled', haReachable: () => null,
+      backups: { list: () => [], create: async () => ({ id: 'x', created_at: '' }), restore: async () => ({ restored_from: 'x', tombstones_reapplied: 0 }), lastRestoreVerifiedAt: () => null },
+      candidateEntities: () => [], dashboardEntities: () => [], onConfigChanged: () => undefined,
+    })
+    core.store.db.exec('PRAGMA query_only = ON')
+    try {
+      // /waste-calendar riconcilia le occorrenze (scrive): prima rispondeva 500 "INTERNAL".
+      const res = await router.request('/waste-calendar')
+      expect(res.status).toBe(503)
+      expect(await res.json()).toMatchObject({ code: 'STORAGE_UNAVAILABLE' })
+      for (const path of ['/status', '/context', '/suggestions', '/patterns']) expect((await router.request(path)).status, path).toBe(200)
+    } finally {
+      core.store.db.exec('PRAGMA query_only = OFF')
+    }
+  }, 60_000)
 })
