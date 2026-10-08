@@ -1,10 +1,10 @@
-import { ExternalLink, Home, LogOut } from 'lucide-react'
+import { ExternalLink, LogOut } from 'lucide-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useUIStore, VIEW_PATHS } from '../../store/ui'
 import { useEntityStore } from '../../store/entities'
 import { NotificationBell } from '../notifications/NotificationCenter'
 import { authApi } from '../../api/backend'
-import { BRAND_NAME } from '../../lib/brand'
+import { BrandMark } from '../ui/BrandMark'
 import { ADMIN_NAVIGATION } from './adminNavigation'
 import { cn } from '../../lib/utils'
 
@@ -23,8 +23,8 @@ export function Sidebar() {
   return (
     <nav aria-label="Navigazione principale" className="admin-sidebar flex h-full w-[204px] flex-col gap-6 rounded-[24px] border border-[var(--hairline)] bg-[var(--surface-solid)] p-4 lg:w-[232px]">
       <div className="flex items-center gap-3 px-2 pt-2">
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-[var(--action-blue)] text-[var(--on-accent)]"><Home size={22} /></span>
-        <div><p className="text-base font-semibold tracking-tight text-[var(--ink)]">{BRAND_NAME}</p><p className="text-xs text-[var(--ink-secondary)]">Regia della casa</p></div>
+        <BrandMark size={52} />
+        <p className="text-sm font-semibold text-[var(--ink-secondary)]">Regia della casa</p>
       </div>
       <div className="flex flex-col gap-2">
         {ADMIN_NAVIGATION.map(({ id, label, description, Icon }) => (

@@ -370,6 +370,8 @@ Fasi 2–6 applicate. La Definition of Done richiede a ogni rilascio lint, suite
 - **Offline solo per il configurato** — notifiche (`useNotifications`), chip "N dispositivi offline" del composer e report offline della regia ignorano i dispositivi non scelti nel wizard (nella regia restano contati come sfondo, mai elencati).
 - Verifica: lint ✅ · test 680/680 ✅ · build:all ✅ · typecheck backend ✅. **Da confermare sul tablet:** lo stato grezzo reale della ChargeSplit con auto staccata/attaccata.
 
+**Risolti (2026-10-08, notte) — S.I.M.I. ha un volto:** logo scimmietta con cuffie + nome sotto via `BrandMark` in header kiosk, sidebar regia, ambient e schermata di aggiornamento; favicon (prima era quello di default di Vite), icone app e icone add-on rigenerate dal master. Regola permanente in §7 "Brand". Verifica: lint ✅ · test 680/680 ✅ · build:all ✅ · typecheck ✅ · screenshot kiosk light/dark + regia dark.
+
 **Residui noti (non bloccanti):** WebRTC/talk-back via signaling proxy backend; rimozione definitiva della grid legacy dopo validazione del composer sul tablet reale; AI write-back automazioni (roadmap); modalità ospiti/pulizie (§6.4) non ancora implementata.
 
 ---
@@ -417,6 +419,9 @@ ha-addon/         # config.yaml add-on
 
 ### Filosofia
 Il design deve **sparire**: l'interfaccia serve i dispositivi. Vetro chiaro su parchment piatto, tipografia pulita, interazioni fisiche. Ispirazione: Apple Liquid Glass.
+
+### Brand — il volto di S.I.M.I. (regola permanente)
+Il logo è la **scimmietta con le cuffie** (master: [docs/brand/simi-logo-master.webp](docs/brand/simi-logo-master.webp); asset UI `public/brand/simi-logo.webp`, favicon `public/favicon.png`, icone app `public/icons/*`, icone add-on `ha-addon/icon.png`/`logo.png`). Va **sempre** in coppia con il nome **S.I.M.I. scritto sotto**, e si rende **solo** tramite [BrandMark](src/components/ui/BrandMark.tsx) (`BRAND_LOGO_SRC` in `src/lib/brand.ts`): mai il nome da solo dove prima c'era il marchio, mai il logo senza nome. Il logo è un'illustrazione a colori fissi — non si ricolora col tema, non si filtra, non si deforma. Su superfici sempre scure (ambient, aggiornamento) `tone="light"`.
 
 ### Token (fonte: `src/design/tokens.ts` + `src/index.css`)
 - **Canvas:** pagina `#f5f5f7`; card `rgba(255,255,255,0.72)` + `blur(20px) saturate(180%)`; hairline `rgba(0,0,0,0.08)`.
