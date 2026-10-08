@@ -359,6 +359,12 @@ Fasi 2–6 applicate. La Definition of Done richiede a ogni rilascio lint, suite
 - **La tendina video riempiva sempre 3 slot, anche con una sola camera configurata** — `CameraMonitoringRow` aveva un `fillEmpty` che nessuna chiamata reale usava più a `false` tranne `RoomDashboard`; la fila globale (Home) e la griglia legacy lo lasciavano al default `true`, mostrando "Camera non configurata" per ogni slot oltre alle camere scelte — leggibile come un errore, non come "spazio libero". Rimosso il flag: ora è l'unico comportamento, in tutti e tre i punti di utilizzo.
 - Verifica: lint ✅ · test 468/468 ✅ · build:all ✅ · typecheck backend ✅.
 
+**Risolti (2026-10-08) — home bento sempre piena:**
+- **Diagnosi: "c'è solo una card".** Il composer mostrava solo ciò che *stava succedendo* (luce accesa, media in riproduzione…, max 4): una casa tranquilla con dispositivi configurati diventava una home con una card e tanto nero.
+- **Ora la home mostra TUTTI i dispositivi scelti nel wizard**, a schermo pieno, con taglie dipendenti dal numero ([bentoHome.ts](src/lib/bentoHome.ts), puro + test): 1 → card L a tutto schermo · 2 → due XL · 3–4 → 2×2 · 5–6 → 3×2 · 7–9 → 3×3 · 10–12 → 4×3 · oltre → 4 colonne con scroll. Le celle in eccesso diventano tessere doppie per le prime card, così la griglia (`.kiosk-bento`, `grid-auto-flow: dense`, righe `1fr`) non lascia mai buchi.
+- **Ordine stabile** (categoria → nome): una card non salta di posto quando la tocchi, quindi l'isteresi non serve più nella home. Le **P0 di sicurezza** del composer restano in testa anche su dispositivi non configurati; `hero: 'never'` continua a escludere.
+- Verifica: lint ✅ · test 677/677 ✅ · build:all ✅ · typecheck backend ✅ · screenshot con 1/3/4/9 dispositivi in light e dark su backend reale + HA simulato.
+
 **Residui noti (non bloccanti):** WebRTC/talk-back via signaling proxy backend; rimozione definitiva della grid legacy dopo validazione del composer sul tablet reale; AI write-back automazioni (roadmap); modalità ospiti/pulizie (§6.4) non ancora implementata.
 
 ---

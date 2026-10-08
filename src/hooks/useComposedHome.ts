@@ -1,12 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import {
-  applyHysteresis,
-  composeHome,
-  EMPTY_HYSTERESIS,
-  type AlertChip,
-  type HeroSlot,
-  type HysteresisState,
-} from '../lib/composer'
+import { composeHome, type AlertChip, type HeroSlot } from '../lib/composer'
+import { orderBentoEntities } from '../lib/bentoHome'
+import { entityName } from '../components/widgets/utils/mapEntityToWidgetCard'
+import { isRenderableDomain } from '../components/home/layers/makeRoomEntity'
 import { computeInsights, type InsightAction } from '../lib/insights'
 import { useEntityStore } from '../store/entities'
 import { useAreaIndex } from './useAreaIndex'
@@ -29,26 +25,22 @@ export interface KioskCurationConfig {
 }
 
 const TICK_MS = 1000
-// Su un tablet 11" quattro slot sono il massimo che mantiene "Adesso" entro
-// due righe, lasciando sempre visibili header e Stanze senza scroll verticale.
-const KIOSK_HERO_LIMIT = 4
 const IDLE: ComposedHomeView = { hero: [], alerts: [], quiet: true }
 
 /**
- * Composizione live della home: ogni delta push dello store avvia subito il
- * ricalcolo; il tick a 1Hz resta soltanto per scadenze temporali e isteresi
- * (dwell 45s, max 1 swap/30s, P0 immediato). Il setState avviene solo quando
- * la composizione cambia davvero: a casa quieta la home non ri-renderizza.
+ * Composizione live della home bento: TUTTI i dispositivi scelti nel wizard,
+ * in ordine stabile (`orderBentoEntities`), preceduti dalle P0 di sicurezza
+ * del composer — che restano visibili anche su dispositivi non configurati.
+ * L'insieme non dipende da cosa è acceso, quindi niente isteresi: una card
+ * non sparisce né salta di posto quando la tocchi. Ogni delta push avvia il
+ * ricalcolo; il tick a 1Hz resta per le scadenze temporali (es. notte). Il
+ * setState avviene solo quando la composizione cambia davvero.
  */
 export function useComposedHome(cfg?: KioskCurationConfig): ComposedHomeView {
   const { areaNameOf, areaIdOf } = useAreaIndex(cfg?.deviceOverrides)
   const [view, setView] = useState<ComposedHomeView>(IDLE)
 
-  const memory = useRef<{ hero: HeroSlot[]; state: HysteresisState; signature: string }>({
-    hero: [],
-    state: EMPTY_HYSTERESIS,
-    signature: '',
-  })
+  const signatureRef = useRef('')
 
   const deviceOverrides = cfg?.deviceOverrides
 
@@ -65,15 +57,21 @@ export function useComposedHome(cfg?: KioskCurationConfig): ComposedHomeView {
         showWhenActive: (id) => deviceOverrides?.[id]?.showWhenActive === true,
         isConfigured: (id) => isDashboardCardEntity(id, deviceOverrides),
         now: new Date(),
-        maxHero: KIOSK_HERO_LIMIT,
       })
-      const { hero, state } = applyHysteresis(
-        memory.current.hero,
-        raw.hero,
-        memory.current.state,
-        Date.now(),
-        KIOSK_HERO_LIMIT,
+      const safety = raw.hero.filter((slot) => slot.priority === 0)
+      const safetyIds = new Set(safety.map((slot) => slot.entityId))
+      const configured = orderBentoEntities(
+        Object.keys(entities).filter((id) =>
+          isDashboardCardEntity(id, deviceOverrides)
+          && isRenderableDomain(id)
+          && deviceOverrides?.[id]?.hero !== 'never'
+          && !safetyIds.has(id)),
+        (id) => entityName(entities[id], deviceOverrides?.[id]?.label),
       )
+      const hero: HeroSlot[] = [
+        ...safety,
+        ...configured.map((id): HeroSlot => ({ key: id, entityId: id, priority: 4, reason: 'Configurato' })),
+      ]
       const insights = connected && hydrated !== false ? computeInsights(
         Object.values(entities).filter((e) => isDashboardCardEntity(e.entity_id, deviceOverrides)),
         { areaIdOf, nowMs: Date.now() },
@@ -81,9 +79,9 @@ export function useComposedHome(cfg?: KioskCurationConfig): ComposedHomeView {
 
       const next: ComposedHomeView = { hero, alerts: [...raw.alerts, ...insights], quiet: hero.length === 0 }
       const signature = JSON.stringify(next)
-      const changed = signature !== memory.current.signature
-      memory.current = { hero, state, signature }
-      if (changed) setView(next)
+      if (signature === signatureRef.current) return
+      signatureRef.current = signature
+      setView(next)
     }
 
     compute()

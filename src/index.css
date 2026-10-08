@@ -1238,6 +1238,17 @@ a, button, [role="button"] { -webkit-touch-callout: default; }
   gap: 14px;
   align-content: start;
 }
+/* Home bento: colonne/righe da bentoLayout (src/lib/bentoHome.ts). Le righe si
+   dividono l'altezza (1fr) → griglia sempre satura; con troppe card le righe
+   hanno un minimo touch-friendly e la sezione scorre. Dense chiude i buchi
+   lasciati dalle tessere doppie. */
+.kiosk-bento {
+  display: grid;
+  grid-template-columns: repeat(var(--bento-cols, 3), minmax(0,1fr));
+  grid-template-rows: repeat(var(--bento-rows, 1), minmax(120px,1fr));
+  grid-auto-flow: row dense;
+  gap: 14px;
+}
 .kiosk-device-grid-pairs { grid-template-columns: repeat(2,minmax(0,1fr)); grid-auto-rows: auto; }
 .kiosk-device-grid-pairs > * { grid-column: auto; grid-row: auto !important; min-height: 142px; }
 @container (max-width: 360px) {
@@ -1257,6 +1268,8 @@ a, button, [role="button"] { -webkit-touch-callout: default; }
 @media (max-width: 599px) {
   .kiosk-device-grid, .kiosk-device-grid-pairs { grid-template-columns: minmax(0,1fr); grid-auto-rows: auto; }
   .kiosk-device-grid > * { grid-column: auto !important; grid-row: auto !important; }
+  .kiosk-bento { grid-template-columns: minmax(0,1fr); grid-template-rows: none; grid-auto-rows: minmax(120px,auto); overflow-y: auto; }
+  .kiosk-bento > * { grid-column: auto !important; }
 }
 .perf-lite { --glass-backdrop-blur: 0px; --glass-blur: 0px; }
 .perf-lite .widget-card-shell, .perf-lite .glass { background: var(--surface-elevated); backdrop-filter: none; -webkit-backdrop-filter: none; }
