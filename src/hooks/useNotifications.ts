@@ -5,6 +5,8 @@ import { useEntityStore } from '../store/entities'
 import { entityName } from '../components/widgets/utils/mapEntityToWidgetCard'
 import { isRelevantUnavailableEntity } from '../lib/entityCuration'
 import { useDashboardEntityCuration } from './useDashboardEntityCuration'
+import { useTabletLayout } from './useTabletLayout'
+import { isConfiguredEntity } from '../lib/entityVisibility'
 
 export interface HANotification {
   id: string
@@ -19,7 +21,15 @@ const OPENING_CLASSES = new Set(['door', 'window', 'garage_door', 'opening'])
 
 export function notificationsFromEntities(
   entities: HassEntities,
-  options: { excludedEntityIds?: ReadonlySet<string> } = {},
+  options: {
+    excludedEntityIds?: ReadonlySet<string>
+    /**
+     * Opt-in: "offline" è una notifica solo per un dispositivo scelto nel
+     * wizard. Un'entità nascosta non deve nemmeno farsi sentire quando cade.
+     * Assente = nessun filtro (compatibilità per i chiamanti puri).
+     */
+    isConfigured?: (entityId: string) => boolean
+  } = {},
 ): HANotification[] {
   const notifications: HANotification[] = []
 
@@ -72,6 +82,7 @@ export function notificationsFromEntities(
       // ── Unavailable entities (skip helpers and hidden) ───────────
       if (
         !options.excludedEntityIds?.has(entityId) &&
+        (options.isConfigured?.(entityId) ?? true) &&
         isRelevantUnavailableEntity(entity) &&
         !entityId.startsWith('persistent_notification.') &&
         !entityId.startsWith('input_') &&
@@ -120,8 +131,12 @@ export function useNotifications(): HANotification[] {
   const entities = useEntityStore((s) => s.entities)
   const episodes = useEntityStore((state) => state.criticalEpisodes)
   const excludedEntityIds = useDashboardEntityCuration()
+  const overrides = useTabletLayout('home').data?.deviceOverrides
   return useMemo(
-    () => notificationsFromEntities(withRetainedCriticalEntities(entities, episodes), { excludedEntityIds }),
-    [entities, episodes, excludedEntityIds],
+    () => notificationsFromEntities(withRetainedCriticalEntities(entities, episodes), {
+      excludedEntityIds,
+      isConfigured: (entityId) => isConfiguredEntity(entityId, overrides),
+    }),
+    [entities, episodes, excludedEntityIds, overrides],
   )
 }

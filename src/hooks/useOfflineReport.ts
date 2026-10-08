@@ -6,6 +6,8 @@ import { buildOfflineReport, type OfflineReport } from '../lib/offlineDevices'
 import { useEntityStore } from '../store/entities'
 import { useAreaIndex } from './useAreaIndex'
 import { useDashboardEntityCuration } from './useDashboardEntityCuration'
+import { useTabletLayout } from './useTabletLayout'
+import { isConfiguredEntity } from '../lib/entityVisibility'
 
 const EMPTY: OfflineReport = { integrations: [], deviceCount: 0, backgroundCount: 0 }
 
@@ -15,6 +17,7 @@ export function useOfflineReport(): OfflineReport {
   const connected = useEntityStore((state) => state.connectionStatus === 'connected')
   const excludedEntityIds = useDashboardEntityCuration()
   const { areaNameOf } = useAreaIndex()
+  const overrides = useTabletLayout('home').data?.deviceOverrides
 
   const { data: platformById } = useQuery({
     queryKey: ['ha-registry-platforms'],
@@ -34,6 +37,7 @@ export function useOfflineReport(): OfflineReport {
       platformOf: (entityId) => platformById?.get(entityId),
       areaNameOf,
       excludedEntityIds,
+      isConfigured: (entityId) => isConfiguredEntity(entityId, overrides),
     })
-  }, [entities, platformById, areaNameOf, excludedEntityIds])
+  }, [entities, platformById, areaNameOf, excludedEntityIds, overrides])
 }

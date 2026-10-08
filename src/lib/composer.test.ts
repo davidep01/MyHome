@@ -114,6 +114,16 @@ describe('composeHome', () => {
     })
   })
 
+  it('non conta come offline i dispositivi nascosti (non configurati)', () => {
+    const out = composeHome([
+      e('climate.sala', 'unavailable'),
+      e('siren.giardino', 'unavailable'),
+      e('light.garage', 'unavailable'),
+      e('switch.cantina', 'unavailable'),
+    ], { now: DAY, isConfigured: (id) => id === 'climate.sala' })
+    expect(out.alerts.find((a) => a.id === 'unavailable')).toBeUndefined()
+  })
+
   it('porta nella home i dispositivi attivi che richiedono attenzione o controllo', () => {
     const out = composeHome([
       e('fan.studio', 'on'),

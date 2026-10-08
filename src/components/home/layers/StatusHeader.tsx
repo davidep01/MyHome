@@ -10,7 +10,7 @@ import { cn } from '../../../lib/utils'
 import type { HomeChip } from '../../../hooks/useComposedHome'
 import { WeatherIcon } from '../../weather/WeatherIcon'
 import { NotificationBell } from '../../notifications/NotificationCenter'
-import { BRAND_EXPANDED, BRAND_NAME } from '../../../lib/brand'
+import { BrandMark } from '../../ui/BrandMark'
 import { externalTemperatureFromEntities, indoorClimateTemperatureSources } from '../../../lib/dashboardSelection'
 import { HOUSE_CONSUMPTION_ID, energyWindowAt, formatPowerKw, isEnergyRisk, powerInKw, totalPowerInKw, wallboxMode } from '../../../lib/statusBarEnergy'
 import { ALARM_STATE_LABELS, isArmed } from '../../../lib/alarm'
@@ -124,6 +124,8 @@ export function StatusHeader({
   return (
     <header className="min-w-0 shrink-0 space-y-3.5">
       <div className="flex min-w-0 flex-col gap-3 lg:flex-row lg:items-start lg:justify-between sm:gap-5">
+        <div className="flex min-w-0 items-center gap-4">
+        <BrandMark size={60} />
         <button
           type="button"
           onClick={onClockTap}
@@ -136,12 +138,12 @@ export function StatusHeader({
             <span className="min-w-0 text-sm capitalize leading-snug text-black/45 dark:text-white/48 sm:text-base">{date}</span>
           </div>
           <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1">
-            <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#0066cc]" title={BRAND_EXPANDED}>{BRAND_NAME}</span>
             <p className="break-words text-xl font-semibold leading-tight text-[#1d1d1f] dark:text-white">
               {contextTitle ?? `${greeting}${userName ? `, ${userName}` : ''}`}
             </p>
           </div>
         </button>
+        </div>
 
         <div
           className="flex min-h-14 max-w-full flex-wrap items-center gap-y-2 rounded-[18px] border border-black/[0.07] bg-white/65 shadow-sm backdrop-blur-xl dark:border-white/[0.10] dark:bg-white/[0.07]"

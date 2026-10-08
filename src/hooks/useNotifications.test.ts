@@ -81,3 +81,13 @@ it('presents generic HA problems as warnings without safety escalation', () => {
   const problem = entity('binary_sensor.printer', 'on', { device_class: 'problem' })
   expect(notificationsFromEntities({ [problem.entity_id]: problem })).toContainEqual(expect.objectContaining({ severity: 'warning', message: 'Il dispositivo segnala un problema' }))
 })
+
+it('stays silent when a hidden (not configured) device goes offline', () => {
+  const shown = entity('light.sala', 'unavailable', { friendly_name: 'Sala' })
+  const hidden = entity('light.garage', 'unavailable', { friendly_name: 'Garage' })
+  const notifications = notificationsFromEntities(
+    { [shown.entity_id]: shown, [hidden.entity_id]: hidden } as HassEntities,
+    { isConfigured: (id) => id === 'light.sala' },
+  )
+  expect(notifications.map((n) => n.entityId)).toEqual(['light.sala'])
+})

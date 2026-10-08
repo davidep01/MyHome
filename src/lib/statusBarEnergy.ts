@@ -7,13 +7,13 @@ export type WallboxMode = 'hidden' | 'connected' | 'charging'
 const CHARGING_WALLBOX_STATES = new Set([
   'charging', 'charging_active', 'delivering', 'boosting', 'running',
 ])
+// Solo stati che implicano un'auto fisicamente collegata. `ready`, `waiting`,
+// `preparing` e `not_charging` sono esclusi di proposito: su molte wallbox
+// significano "pronta, in attesa di un'auto" e accendevano "Auto collegata"
+// con l'auto staccata. Un falso "collegata" è peggio di un'icona mancante.
 const CONNECTED_WALLBOX_STATES = new Set([
-  'connected', 'plugged', 'plugged_in', 'occupied', 'preparing', 'finishing',
-  'ready', 'waiting', 'paused', 'not_charging', 'charge_complete', 'charged',
-  'suspended', 'suspended_ev', 'suspended_evse',
-])
-const DISCONNECTED_WALLBOX_STATES = new Set([
-  'disconnected', 'not_connected', 'unplugged', 'available', 'idle', 'offline', 'off',
+  'connected', 'plugged', 'plugged_in', 'occupied', 'finishing', 'paused',
+  'charge_complete', 'charged', 'suspended', 'suspended_ev', 'suspended_evse',
 ])
 
 function normalizedState(entity?: HassEntity): string {
@@ -22,10 +22,10 @@ function normalizedState(entity?: HassEntity): string {
 
 export function wallboxMode(entity?: HassEntity): WallboxMode {
   const state = normalizedState(entity)
-  if (!state || state === 'unavailable' || state === 'unknown' || DISCONNECTED_WALLBOX_STATES.has(state)) return 'hidden'
-  if (CHARGING_WALLBOX_STATES.has(state)) return 'charging'
+  if (CHARGING_WALLBOX_STATES.has(state) || state.startsWith('charging_')) return 'charging'
   if (CONNECTED_WALLBOX_STATES.has(state)) return 'connected'
-  if (state.includes('charging') && !state.includes('not_charging')) return 'charging'
+  // Qualunque altro stato (disconnected, available, idle, ready, sconosciuti…)
+  // non dimostra un'auto collegata.
   return 'hidden'
 }
 
