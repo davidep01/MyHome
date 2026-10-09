@@ -1,7 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { CheckCircle2, Download, RefreshCw } from 'lucide-react'
 import { useAddonUpdate, type AddonUpdateState } from '../../hooks/useAddonUpdate'
-import { BrandMark } from '../ui/BrandMark'
 
 /**
  * Schermo pieno mostrato sul kiosk mentre l'add-on si aggiorna.
@@ -44,7 +43,6 @@ export function AddonUpdateScreen({
         role="status"
         aria-live="polite"
       >
-        <BrandMark size={72} tone="light" />
         <div className="flex h-20 w-20 items-center justify-center rounded-[28px] bg-white/10 text-white">
           {done
             ? <CheckCircle2 size={38} />

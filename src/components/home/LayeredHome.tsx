@@ -27,6 +27,7 @@ import { useRoomsOverview } from '../../hooks/useRoomsOverview'
 import { CameraMonitoringRow } from './layers/CameraMonitoringRow'
 import { RoomDashboard } from './layers/RoomDashboard'
 import { useCameraRowVisibility } from '../../hooks/useCameraRowVisibility'
+import { useDashboardEntityCuration } from '../../hooks/useDashboardEntityCuration'
 
 /**
  * Home a strati (DOMINICA M1): si compone da sola, zero gestione.
@@ -39,9 +40,11 @@ import { useCameraRowVisibility } from '../../hooks/useCameraRowVisibility'
 export function LayeredHome() {
   const { data: layout } = useTabletLayout('home')
   const { areaIdOf } = useAreaIndex(layout?.deviceOverrides)
+  const curationExcluded = useDashboardEntityCuration()
   const composed = useComposedHome({
     hiddenEntities: layout?.hiddenEntities,
     deviceOverrides: layout?.deviceOverrides,
+    excludedEntities: curationExcluded,
   })
   const setSelectedEntity = useUIStore((s) => s.setSelectedEntity)
   const { medium } = useHaptic()

@@ -39,6 +39,10 @@ describe('status bar energy', () => {
     expect(formatHousePower(entity('1.234', 'kW'))).toBe('1,23 kW')
     expect(formatHousePower(entity('1540', 'W'))).toBe('1,54 kW')
     expect(formatHousePower(entity('unavailable', 'kW'))).toBeNull()
+    // Valori piccoli: mai arrotondati a zero.
+    expect(formatHousePower(entity('0.03', 'kW'))).toBe('0,03 kW')
+    expect(formatHousePower(entity('30.5', 'W'))).toBe('30,5 W')
+    expect(formatHousePower(entity('0.4', 'W'))).toBe('0,4 W')
     expect(powerInKw(entity('1540', 'W'))).toBe(1.54)
   })
 

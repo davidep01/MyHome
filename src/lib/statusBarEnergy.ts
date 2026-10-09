@@ -1,4 +1,5 @@
 import type { HassEntity } from 'home-assistant-js-websocket'
+import { formatExact } from '../components/widgets/utils/formatWidgetValue'
 
 export { HOUSE_CONSUMPTION_ID } from '../../backend/src/lib/energy-entities'
 
@@ -71,7 +72,8 @@ export function formatHousePower(entity?: HassEntity): string | null {
     const digits = Math.abs(kilowatts) < 10 ? 2 : 1
     return `${kilowatts.toLocaleString('it-IT', { minimumFractionDigits: digits, maximumFractionDigits: digits })} kW`
   }
-  return `${Math.round(watts).toLocaleString('it-IT')} W`
+  // Sotto 1 kW il valore resta nei decimali della sorgente: 0,4 W non diventa 0 W.
+  return `${formatExact(entity?.state)} W`
 }
 
 export interface EnergyWindow {

@@ -32,7 +32,7 @@ Dashboard domotica personale per **Home Assistant**, estetica **Apple "Liquid Gl
 
 La home si **auto-configura** dallo stream live di HA (entità raggruppate per dominio/area). Zero setup manuale per l'utente finale.
 
-**Funzioni distintive:** home kiosk **dinamica**: tutte le card attivate nel wizard, a schermo pieno, ordinate e dimensionate per **uso appreso + attività in corso** (riordino solo a home ferma — niente tile da gestire), ambient mode su idle con presence-wake, timeline di casa, suggerimenti azionabili ("luci accese e casa vuota → Spegni tutte"), campanello → alert video fullscreen, night mode da sensore di luce, AI (Gemini) grounded sulle entità reali, resilienza HA-down con overlay e reconnect. La griglia manuale sopravvive solo come fallback legacy (`localStorage['myhome.home']='grid'`); `config.kiosk.homeMode` è ignorato dal tablet.
+**Funzioni distintive:** home kiosk **dinamica**: tutte le card attivate nel wizard, a schermo pieno, ordinate e dimensionate per **uso appreso + attività in corso** (riordino solo a home ferma — niente tile da gestire), più le card che si **palesano** quando un dispositivo si accende o cambia stato, ambient mode su idle con presence-wake, timeline di casa, suggerimenti azionabili ("luci accese e casa vuota → Spegni tutte"), campanello → alert video fullscreen, night mode da sensore di luce, AI (Gemini) grounded sulle entità reali, resilienza HA-down con overlay e reconnect. La griglia manuale sopravvive solo come fallback legacy (`localStorage['myhome.home']='grid'`); `config.kiosk.homeMode` è ignorato dal tablet.
 
 ---
 
@@ -379,7 +379,7 @@ Fasi 2–6 applicate. La Definition of Done richiede a ogni rilascio lint, suite
 - **Offline solo per il configurato** — notifiche (`useNotifications`), chip "N dispositivi offline" del composer e report offline della regia ignorano i dispositivi non scelti nel wizard (nella regia restano contati come sfondo, mai elencati).
 - Verifica: lint ✅ · test 680/680 ✅ · build:all ✅ · typecheck backend ✅. **Da confermare sul tablet:** lo stato grezzo reale della ChargeSplit con auto staccata/attaccata.
 
-**Risolti (2026-10-08, notte) — S.I.M.I. ha un volto:** logo scimmietta con cuffie + nome sotto via `BrandMark` in header kiosk, sidebar regia, ambient e schermata di aggiornamento; favicon (prima era quello di default di Vite), icone app e icone add-on rigenerate dal master. Regola permanente in §7 "Brand". Verifica: lint ✅ · test 680/680 ✅ · build:all ✅ · typecheck ✅ · screenshot kiosk light/dark + regia dark.
+**Risolti (2026-10-08, notte) — S.I.M.I. ha un volto:** logo scimmietta con cuffie + nome sotto via `BrandMark` in header kiosk, sidebar regia, ambient e schermata di aggiornamento *(2026-10-09: tolto da tutte le superfici del kiosk su richiesta, resta nella regia)*; favicon (prima era quello di default di Vite), icone app e icone add-on rigenerate dal master. Regola permanente in §7 "Brand". Verifica: lint ✅ · test 680/680 ✅ · build:all ✅ · typecheck ✅ · screenshot kiosk light/dark + regia dark.
 
 **Risolti (2026-10-08, notte) — home dinamica che impara, valori esatti, aggiornamento che parte davvero:**
 - **"Continuo a non vedere le card": la vera causa era `homeMode: 'grid'`** (già annotato il 2026-08-31): la bento girava solo in modalità composer, e sul tablet dell'utente la config diceva griglia manuale, dove i dispositivi attivati non compaiono finché non li aggiungi a mano. Ora `TabletDashboard` usa **sempre** la home dinamica; la griglia resta solo come override di diagnostica `localStorage['myhome.home']='grid'`. In Funzioni → Kiosk il selettore è sostituito dalla spiegazione del comportamento.
@@ -400,6 +400,12 @@ Fasi 2–6 applicate. La Definition of Done richiede a ogni rilascio lint, suite
 - **Pattern di sicurezza separati**: `domain/secret-patterns.ts` (forma dei segreti, puro) vs `redact.ts` (conosce i segreti del processo): il manuale usa solo il primo; il controllo sul token letterale sta nel router. `knowledge/` è nella scansione dei confini.
 - **UI** Memoria → *Manuale della casa*: fatti filtrabili per tipo con fonte e affidabilità, prova "Cosa riceverebbe il modello", note tue con editor, export JSON.
 - Verifica: lint ✅ · test (core 183, di cui 19 del manuale) ✅ · build:all ✅ · typecheck backend ✅ · migrazione v1→v2 su archivio esistente ✅ · screenshot light/dark 390/1024/1440 ✅.
+
+**Risolti (2026-10-09) — feedback dal kiosk: barre di scorrimento, 0,03 kW, card che si palesano:**
+- **Barre di scorrimento** — su `html.kiosk-mode` `scrollbar-width: none` + `::-webkit-scrollbar { display: none }`: niente barre né sulla pagina né dentro le card lunghe (clima XL, gruppi, info); lo scorrimento col dito resta. La regia desktop mantiene la barra sottile.
+- **"Vedo 0 anche se è 0,03 kW"** — la card *Energia* della home faceva `Math.round(now)`: ora `formatExact` (decimali della sorgente HA). Stesso fix nel ramo in watt della barra di stato (`formatHousePower`, prima `Math.round(watts)`). Test sui valori piccoli.
+- **Le card si palesano** — `surfacedEntityIds` in [bentoHome.ts](src/lib/bentoHome.ts) (puro + 5 test): un dispositivo comandabile (luci, prese, clima, tapparelle, media, robot, serrature, valvole…) o un'apertura (porta/finestra/garage) che si accende o cambia stato compare in home anche se non è nel wizard; resta finché è acceso e per 10 minuti dopo l'ultimo cambio, max 8. Mai sensori, movimento, videocamere, entità escluse dal registry HA, relè duplicati o marcate "Mai". I cambi contano **solo se visti dal vivo dal tablet** (`useComposedHome` confronta i delta dello store): un riavvio di HA, che riscrive tutti i `last_changed`, non fa comparire nulla. Stesso ordinamento per peso delle configurate (acceso = +2).
+- Verifica: test kernel ✅ · provato dal vivo con HA simulato: 2 card configurate → luce accesa da fuori → 3 card; porta aperta → 4; movimento ignorato; luce spenta resta "Cambiato da poco"; `0,03 kW` mostrato; `scrollbar-width: none` sul kiosk.
 
 **Residui noti (non bloccanti):** WebRTC/talk-back via signaling proxy backend; rimozione definitiva della grid legacy dopo validazione del composer sul tablet reale; AI write-back automazioni (roadmap); modalità ospiti/pulizie (§6.4) non ancora implementata.
 
@@ -453,7 +459,7 @@ ha-addon/         # config.yaml add-on
 Il design deve **sparire**: l'interfaccia serve i dispositivi. Vetro chiaro su parchment piatto, tipografia pulita, interazioni fisiche. Ispirazione: Apple Liquid Glass.
 
 ### Brand — il volto di S.I.M.I. (regola permanente)
-Il logo è la **scimmietta con le cuffie** (master: [docs/brand/simi-logo-master.webp](docs/brand/simi-logo-master.webp); asset UI `public/brand/simi-logo.webp`, favicon `public/favicon.png`, icone app `public/icons/*`, icone add-on `ha-addon/icon.png`/`logo.png`). Va **sempre** in coppia con il nome **S.I.M.I. scritto sotto**, e si rende **solo** tramite [BrandMark](src/components/ui/BrandMark.tsx) (`BRAND_LOGO_SRC` in `src/lib/brand.ts`): mai il nome da solo dove prima c'era il marchio, mai il logo senza nome. Il logo è un'illustrazione a colori fissi — non si ricolora col tema, non si filtra, non si deforma. Su superfici sempre scure (ambient, aggiornamento) `tone="light"`.
+Il logo è la **scimmietta con le cuffie** (master: [docs/brand/simi-logo-master.webp](docs/brand/simi-logo-master.webp); asset UI `public/brand/simi-logo.webp`, favicon `public/favicon.png`, icone app `public/icons/*`, icone add-on `ha-addon/icon.png`/`logo.png`). Va **sempre** in coppia con il nome **S.I.M.I. scritto sotto**, e si rende **solo** tramite [BrandMark](src/components/ui/BrandMark.tsx) (`BRAND_LOGO_SRC` in `src/lib/brand.ts`): mai il nome da solo dove prima c'era il marchio, mai il logo senza nome. Il logo è un'illustrazione a colori fissi — non si ricolora col tema, non si filtra, non si deforma. **Dove compare (2026-10-09, su richiesta dell'utente):** solo nella sidebar della regia, nel favicon e nelle icone app/add-on. **Sul kiosk non compare** (né intestazione, né ambient, né schermata di aggiornamento): il tablet a muro resta pulito.
 
 ### Token (fonte: `src/design/tokens.ts` + `src/index.css`)
 - **Canvas:** pagina `#f5f5f7`; card `rgba(255,255,255,0.72)` + `blur(20px) saturate(180%)`; hairline `rgba(0,0,0,0.08)`.
@@ -497,7 +503,7 @@ Luce (tap=toggle ottimistico, tint ambra, slider inline se accesa) · Clima (tin
 Tap = azione primaria · Press = `scale(0.985–0.95)` · Long-press = sblocco serrature · Click card clima/luce = pannello contestuale. **Tutte** le azioni HA sono **ottimistiche** con rollback.
 
 ### Regole "DA NON FARE"
-❌ Gradienti decorativi di sfondo (solo parchment `#f5f5f7`) · ❌ Ombre su card/bottoni (solo glow funzionale clima) · ❌ Secondo colore brand · ❌ Peso 500 · ❌ Toggle per serrature · ❌ Mostrare entità non configurate (la visibilità è **opt-in**: si sceglie nel wizard) · ❌ Card video fuori dalla tendina videocamere · ❌ Chiavi API nel bundle frontend · ❌ Introdurre una quarta geometria di griglia.
+❌ Gradienti decorativi di sfondo (solo parchment `#f5f5f7`) · ❌ Ombre su card/bottoni (solo glow funzionale clima) · ❌ Secondo colore brand · ❌ Peso 500 · ❌ Toggle per serrature · ❌ Mostrare in modo permanente entità non configurate (la visibilità è **opt-in**: si sceglie nel wizard; unica eccezione, le card che si **palesano**: un dispositivo comandabile o un'apertura che si accende/cambia stato compare finché è acceso e per 10 minuti dopo, mai sensori, videocamere, entità escluse in HA o marcate "Mai") · ❌ Card video fuori dalla tendina videocamere · ❌ Chiavi API nel bundle frontend · ❌ Introdurre una quarta geometria di griglia.
 
 ---
 
