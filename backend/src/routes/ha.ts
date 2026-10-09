@@ -1,5 +1,6 @@
 import { monitoredMjpegStream } from '../lib/mjpeg-stream.js'
 import { Hono } from 'hono'
+import { recordManualResultFromProxy } from '../home-ai/index.js'
 import { streamSSE } from 'hono/streaming'
 import { getHABaseUrl, getHAConfig } from '../lib/ha-config.js'
 import { adminOnly, authRole } from '../lib/security.js'
@@ -444,6 +445,9 @@ haRouter.post('/services/:domain/:service', async (c) => {
     method: 'POST',
     body: JSON.stringify(parsed),
   })
+  // HOME AI CORE: solo l'esito del gesto manuale, in parallelo e senza
+  // ritardare, ripetere o reinviare il comando (telemetria best effort).
+  recordManualResultFromProxy(c.req.header('X-MyHome-Operation'), res)
   // Log amministrativo (§3): le azioni che aprono/disarmano restano tracciate.
   if (res.ok && isCriticalAction(domain, service)) {
     const target = (parsed as Record<string, unknown>).entity_id

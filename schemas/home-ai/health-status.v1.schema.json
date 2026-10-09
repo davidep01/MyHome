@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "service",
+    "mode",
+    "demo",
+    "storage",
+    "ha_source",
+    "coverage",
+    "learner",
+    "waste_calendar",
+    "forecast",
+    "reasoner",
+    "physical_execution",
+    "last_backup_at",
+    "last_restore_verified_at",
+    "queue_depth",
+    "issues"
+  ],
+  "properties": {
+    "service": {
+      "enum": [
+        "running",
+        "degraded",
+        "disabled",
+        "misconfigured"
+      ]
+    },
+    "mode": {
+      "enum": [
+        "observe",
+        "shadow",
+        "suggest"
+      ]
+    },
+    "demo": {
+      "type": "boolean"
+    },
+    "storage": {
+      "enum": [
+        "ok",
+        "read_only",
+        "unavailable"
+      ]
+    },
+    "ha_source": {
+      "enum": [
+        "not_configured",
+        "reachable",
+        "unreachable",
+        "disabled"
+      ]
+    },
+    "coverage": {
+      "enum": [
+        "complete",
+        "partial",
+        "unknown"
+      ]
+    },
+    "learner": {
+      "enum": [
+        "active",
+        "stopped_no_consent",
+        "demo_only"
+      ]
+    },
+    "waste_calendar": {
+      "enum": [
+        "not_configured",
+        "draft",
+        "approved",
+        "expired",
+        "conflict"
+      ]
+    },
+    "forecast": {
+      "enum": [
+        "available",
+        "current_only",
+        "unavailable"
+      ]
+    },
+    "reasoner": {
+      "const": "not_configured"
+    },
+    "physical_execution": {
+      "const": "disabled"
+    },
+    "last_backup_at": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 40,
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "last_restore_verified_at": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 40,
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "queue_depth": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "message"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[A-Z][A-Z0-9_]*$"
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 280
+          }
+        }
+      },
+      "maxItems": 30
+    }
+  },
+  "$id": "urn:home-ai-core:health-status.v1",
+  "title": "HealthStatus"
+}

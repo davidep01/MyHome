@@ -1,0 +1,372 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "snapshot_id",
+    "version",
+    "taken_at",
+    "timezone",
+    "local_date",
+    "local_time",
+    "weekday",
+    "daypart",
+    "mode",
+    "demo",
+    "occupancy",
+    "guests",
+    "quiet_hours",
+    "states",
+    "forecast",
+    "open_gaps",
+    "missing_capabilities",
+    "policy_version",
+    "privacy_scope_version"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "snapshot_id": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "taken_at": {
+      "type": "string",
+      "maxLength": 40,
+      "format": "date-time"
+    },
+    "timezone": {
+      "type": "string",
+      "maxLength": 64,
+      "format": "iana-timezone"
+    },
+    "local_date": {
+      "type": "string",
+      "maxLength": 10,
+      "format": "date"
+    },
+    "local_time": {
+      "type": "string",
+      "maxLength": 5,
+      "format": "time"
+    },
+    "weekday": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 7
+    },
+    "daypart": {
+      "enum": [
+        "night",
+        "morning",
+        "afternoon",
+        "evening"
+      ]
+    },
+    "mode": {
+      "enum": [
+        "observe",
+        "shadow",
+        "suggest"
+      ]
+    },
+    "demo": {
+      "type": "boolean"
+    },
+    "occupancy": {
+      "enum": [
+        "home",
+        "away",
+        "unknown"
+      ]
+    },
+    "guests": {
+      "type": "boolean"
+    },
+    "quiet_hours": {
+      "type": "boolean"
+    },
+    "states": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "entity_id",
+          "value",
+          "stale"
+        ],
+        "properties": {
+          "entity_id": {
+            "type": "string",
+            "maxLength": 128,
+            "pattern": "^[a-z_][a-z0-9_]*\\.[a-z0-9_]+$"
+          },
+          "value": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "state",
+              "attributes",
+              "source_updated_at",
+              "availability"
+            ],
+            "properties": {
+              "state": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 255
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "attributes": {
+                "type": "object",
+                "maxProperties": 20,
+                "propertyNames": {
+                  "maxLength": 80
+                },
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "maxLength": 256
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "source_updated_at": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 40,
+                    "format": "date-time"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "availability": {
+                "enum": [
+                  "available",
+                  "unknown",
+                  "unavailable"
+                ]
+              }
+            }
+          },
+          "stale": {
+            "type": "boolean"
+          }
+        }
+      },
+      "maxItems": 1000
+    },
+    "forecast": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "source_id",
+            "fetched_at",
+            "expires_at",
+            "valid",
+            "points"
+          ],
+          "properties": {
+            "source_id": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+            },
+            "fetched_at": {
+              "type": "string",
+              "maxLength": 40,
+              "format": "date-time"
+            },
+            "expires_at": {
+              "type": "string",
+              "maxLength": 40,
+              "format": "date-time"
+            },
+            "valid": {
+              "type": "boolean"
+            },
+            "points": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "from",
+                  "until",
+                  "resolution",
+                  "condition",
+                  "rain_probability",
+                  "precipitation_mm",
+                  "temperature_c",
+                  "wind_kmh"
+                ],
+                "properties": {
+                  "from": {
+                    "type": "string",
+                    "maxLength": 40,
+                    "format": "date-time"
+                  },
+                  "until": {
+                    "type": "string",
+                    "maxLength": 40,
+                    "format": "date-time"
+                  },
+                  "resolution": {
+                    "enum": [
+                      "hourly",
+                      "daily",
+                      "other"
+                    ]
+                  },
+                  "condition": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 64
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "rain_probability": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "precipitation_mm": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1000
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "temperature_c": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": -90,
+                        "maximum": 70
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "wind_kmh": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 500
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                }
+              },
+              "maxItems": 240
+            }
+          }
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "open_gaps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source_id",
+          "from",
+          "reason_code"
+        ],
+        "properties": {
+          "source_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+          },
+          "from": {
+            "type": "string",
+            "maxLength": 40,
+            "format": "date-time"
+          },
+          "reason_code": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[A-Z][A-Z0-9_]*$"
+          }
+        }
+      },
+      "maxItems": 50
+    },
+    "missing_capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 64
+      },
+      "maxItems": 50
+    },
+    "policy_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "privacy_scope_version": {
+      "type": "integer",
+      "minimum": 1
+    }
+  },
+  "$id": "urn:home-ai-core:home-context.v1",
+  "title": "HomeContext"
+}

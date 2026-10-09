@@ -1,0 +1,401 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "proposal_id",
+    "revision",
+    "agent_key",
+    "scope",
+    "kind",
+    "topic",
+    "title",
+    "explanation",
+    "context_snapshot_id",
+    "evidence_ids",
+    "pattern_id",
+    "occurrence_id",
+    "risk",
+    "resources",
+    "steps",
+    "policy_version",
+    "policy_result",
+    "reason_codes",
+    "state",
+    "snoozed_until",
+    "created_at",
+    "expires_at",
+    "plan_hash",
+    "physical_execution"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "proposal_id": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000000
+    },
+    "agent_key": {
+      "enum": [
+        "arrival",
+        "waste",
+        "weather",
+        "comfort",
+        "energy"
+      ]
+    },
+    "scope": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "subject_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "household"
+            },
+            "subject_id": {
+              "type": "null"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "subject_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "person"
+            },
+            "subject_id": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "subject_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "anonymous"
+            },
+            "subject_id": {
+              "type": "null"
+            }
+          }
+        }
+      ]
+    },
+    "kind": {
+      "enum": [
+        "reminder",
+        "preference",
+        "contextual_suggestion"
+      ]
+    },
+    "topic": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+    },
+    "title": {
+      "type": "string",
+      "maxLength": 140,
+      "minLength": 1
+    },
+    "explanation": {
+      "type": "string",
+      "maxLength": 1000,
+      "minLength": 1
+    },
+    "context_snapshot_id": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+    },
+    "evidence_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 128,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+      },
+      "maxItems": 200
+    },
+    "pattern_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "occurrence_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "risk": {
+      "enum": [
+        "information",
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "resources": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 128
+      },
+      "maxItems": 20
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "step_id",
+          "capability_key",
+          "target_entity_ids",
+          "desired",
+          "after_step_id",
+          "earliest_at",
+          "latest_at",
+          "required_state"
+        ],
+        "properties": {
+          "step_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+          },
+          "capability_key": {
+            "enum": [
+              "lighting.set",
+              "switch.set",
+              "climate.set_mode",
+              "climate.set_temperature",
+              "cover.set",
+              "media.set",
+              "fan.set",
+              "scene.activate",
+              "vacuum.set",
+              "humidifier.set",
+              "reminder.show",
+              "preference.save"
+            ]
+          },
+          "target_entity_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 128,
+              "pattern": "^[a-z_][a-z0-9_]*\\.[a-z0-9_]+$"
+            },
+            "maxItems": 20,
+            "uniqueItems": true
+          },
+          "desired": {
+            "type": "object",
+            "maxProperties": 20,
+            "propertyNames": {
+              "maxLength": 80
+            },
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 256
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "after_step_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "earliest_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40,
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "latest_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40,
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "required_state": {
+            "type": "object",
+            "maxProperties": 20,
+            "propertyNames": {
+              "maxLength": 80
+            },
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 256
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "maxItems": 5
+    },
+    "policy_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "policy_result": {
+      "enum": [
+        "allow_local",
+        "defer",
+        "reject",
+        "simulate_only"
+      ]
+    },
+    "reason_codes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 64,
+        "minLength": 1,
+        "pattern": "^[A-Z][A-Z0-9_]*$"
+      },
+      "maxItems": 20
+    },
+    "state": {
+      "enum": [
+        "candidate",
+        "policy_checked",
+        "visible",
+        "dismissed",
+        "snoozed",
+        "preference_saved",
+        "simulation_authorized",
+        "simulated",
+        "simulation_failed",
+        "expired",
+        "superseded",
+        "withdrawn"
+      ]
+    },
+    "snoozed_until": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 40,
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "maxLength": 40,
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "maxLength": 40,
+      "format": "date-time"
+    },
+    "plan_hash": {
+      "type": "string",
+      "maxLength": 64,
+      "minLength": 64,
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "physical_execution": {
+      "const": "disabled"
+    }
+  },
+  "$id": "urn:home-ai-core:proposal.v1",
+  "title": "Proposal"
+}

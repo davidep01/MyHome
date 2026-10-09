@@ -34,6 +34,7 @@ import { FullscreenCameraOverlay } from '../system/FullscreenCameraOverlay'
 const EntitiesPage = lazy(() => import('../../pages/EntitiesPage').then((m) => ({ default: m.EntitiesPage })))
 const FunctionsPage = lazy(() => import('../../pages/FunctionsPage').then((m) => ({ default: m.FunctionsPage })))
 const SystemPage = lazy(() => import('../../pages/SystemPage').then((m) => ({ default: m.SystemPage })))
+const MemoryPage = lazy(() => import('../../pages/MemoryPage').then((m) => ({ default: m.MemoryPage })))
 
 export function AppShell() {
   const path = usePathname()
@@ -53,6 +54,7 @@ const VIEW_TITLES: Record<ReturnType<typeof viewFromPath>, string> = {
   home: 'Stato',
   entities: 'Entità',
   functions: 'Funzioni',
+  memory: 'Memoria',
   system: 'Sistema',
 }
 
@@ -97,7 +99,7 @@ function usePathname() {
 }
 
 function isManagementPath(path: string) {
-  return path === '/entities' || path === '/functions' || path === '/system'
+  return path === '/entities' || path === '/functions' || path === '/system' || path === '/memoria'
     || path === '/backend' || path === '/admin' || path === '/settings'
     || path.startsWith('/backend/') || path.startsWith('/admin/')
 }
@@ -147,6 +149,7 @@ function DesktopShell({ path }: { path: string }) {
       {activeView === 'entities' ? <EntitiesPage /> :
        activeView === 'functions' ? <FunctionsPage /> :
        activeView === 'system' ? <SystemPage /> :
+       activeView === 'memory' ? <MemoryPage /> :
        <StatusPage />}
     </Suspense>
   )

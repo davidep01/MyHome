@@ -459,10 +459,11 @@ export const haApi = {
   cameraWebRtcClose: (sessionId: string) =>
     request<{ ok: true }>(`/ha/camera-webrtc-session/${encodeURIComponent(sessionId)}`, { method: 'DELETE' }),
   cameraWebRtcEventsUrl: (sessionId: string) => `/api/ha/camera-webrtc-events/${encodeURIComponent(sessionId)}`,
-  service: (domain: string, service: string, data?: Record<string, unknown>) =>
+  service: (domain: string, service: string, data?: Record<string, unknown>, operationId?: string | null) =>
     request<unknown[]>(`/ha/services/${encodeURIComponent(domain)}/${encodeURIComponent(service)}`, {
       method: 'POST',
       body: JSON.stringify(data ?? {}),
+      ...(operationId ? { headers: { 'X-MyHome-Operation': operationId } } : {}),
     }),
   cameraProxyUrl: (entityId: string) => `/api/ha/camera-proxy/${encodeURIComponent(entityId)}`,
   cameraStreamUrl: (entityId: string) => `/api/ha/camera-stream/${encodeURIComponent(entityId)}`,

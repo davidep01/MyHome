@@ -6,6 +6,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { networkInterfaces } from 'node:os'
 import { isSpaPath } from './lib/spa-fallback.js'
 import { app } from './app.js'
+import { startHomeAiCore } from './home-ai/index.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const PORT = Number(process.env.PORT ?? 3001)
@@ -53,4 +54,6 @@ serve({ fetch: app.fetch, port: PORT, hostname: '0.0.0.0' }, () => {
   console.log(`🏠 MyHome backend in ascolto:`)
   console.log(`   • locale:  http://localhost:${PORT}`)
   if (lan) console.log(`   • LAN:     http://${lan}:${PORT}   ← apri questo dai tablet/telefoni`)
+  // Il core è isolato: un suo guasto non ferma la dashboard.
+  void startHomeAiCore().catch((error) => console.error('[home-ai] avvio non riuscito', error instanceof Error ? error.name : 'errore'))
 })

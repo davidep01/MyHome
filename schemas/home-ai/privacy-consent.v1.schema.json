@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "consent_id",
+    "source_id",
+    "subject_id",
+    "purpose",
+    "granted",
+    "granted_by",
+    "updated_at",
+    "scope_version"
+  ],
+  "properties": {
+    "consent_id": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+    },
+    "source_id": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+    },
+    "subject_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "purpose": {
+      "enum": [
+        "observation",
+        "learning",
+        "personalization"
+      ]
+    },
+    "granted": {
+      "type": "boolean"
+    },
+    "granted_by": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "updated_at": {
+      "type": "string",
+      "maxLength": 40,
+      "format": "date-time"
+    },
+    "scope_version": {
+      "type": "integer",
+      "minimum": 1
+    }
+  },
+  "$id": "urn:home-ai-core:privacy-consent.v1",
+  "title": "PrivacyConsent"
+}

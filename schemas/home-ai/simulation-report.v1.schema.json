@@ -1,0 +1,163 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "report_id",
+    "proposal_id",
+    "proposal_revision",
+    "context_snapshot_id",
+    "plan_hash",
+    "seed",
+    "status",
+    "steps",
+    "risk",
+    "uncertainty",
+    "physical_effects",
+    "external_notifications",
+    "reason_codes",
+    "created_at"
+  ],
+  "properties": {
+    "report_id": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+    },
+    "proposal_id": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+    },
+    "proposal_revision": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000000
+    },
+    "context_snapshot_id": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+    },
+    "plan_hash": {
+      "type": "string",
+      "maxLength": 64,
+      "minLength": 64
+    },
+    "seed": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 2147483647
+    },
+    "status": {
+      "enum": [
+        "simulated",
+        "failed",
+        "blocked"
+      ]
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "step_id",
+          "outcome",
+          "diff",
+          "note"
+        ],
+        "properties": {
+          "step_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+          },
+          "outcome": {
+            "enum": [
+              "would_apply",
+              "already_satisfied",
+              "redundant_automation",
+              "conflict",
+              "precondition_missing",
+              "not_reached",
+              "simulated_failure"
+            ]
+          },
+          "diff": {
+            "type": "object",
+            "maxProperties": 20,
+            "propertyNames": {
+              "maxLength": 80
+            },
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 256
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 280
+          }
+        }
+      },
+      "maxItems": 5
+    },
+    "risk": {
+      "enum": [
+        "information",
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "uncertainty": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 200
+      },
+      "maxItems": 20
+    },
+    "physical_effects": {
+      "const": false
+    },
+    "external_notifications": {
+      "const": false
+    },
+    "reason_codes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 64,
+        "minLength": 1,
+        "pattern": "^[A-Z][A-Z0-9_]*$"
+      },
+      "maxItems": 20
+    },
+    "created_at": {
+      "type": "string",
+      "maxLength": 40,
+      "format": "date-time"
+    }
+  },
+  "$id": "urn:home-ai-core:simulation-report.v1",
+  "title": "SimulationReport"
+}

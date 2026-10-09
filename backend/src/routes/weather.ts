@@ -28,6 +28,12 @@ interface OpenWeatherForecastItem {
   dt: number
   main: { temp_min: number; temp_max: number }
   weather: { description: string; icon: string }[]
+  /** Probabilità di precipitazione 0..1, se fornita (usata da HOME AI CORE). */
+  pop?: number
+  /** Pioggia prevista nelle 3 ore, mm, se fornita. */
+  rain3h?: number
+  /** Vento, m/s, se fornito. */
+  wind?: number
 }
 
 interface OpenWeatherForecast {
@@ -131,10 +137,15 @@ function parseForecast(value: unknown): OpenWeatherForecast {
       || !finiteNumber(item.main.temp_max, -120, 120)
       || !weather
     ) throw new OutboundRequestError('invalid_response')
+    const rain = isRecord(item.rain) ? item.rain['3h'] : undefined
+    const wind = isRecord(item.wind) ? item.wind.speed : undefined
     return {
       dt: item.dt,
       main: { temp_min: item.main.temp_min, temp_max: item.main.temp_max },
       weather,
+      ...(finiteNumber(item.pop, 0, 1) ? { pop: item.pop as number } : {}),
+      ...(finiteNumber(rain, 0, 1_000) ? { rain3h: rain as number } : {}),
+      ...(finiteNumber(wind, 0, 250) ? { wind: wind as number } : {}),
     }
   })
   if (!isRecord(value.city) || !isRecord(value.city.coord)
@@ -211,6 +222,20 @@ weatherRouter.get('/current', async (c) => {
     return routeError(c, error)
   }
 })
+
+/**
+ * Previsione a 3 ore per HOME AI CORE (sola lettura, stessa cache e stessi
+ * limiti dell'endpoint pubblico). Restituisce null se la chiave o la città
+ * non sono configurate: il core dichiara allora "previsioni non disponibili".
+ */
+export async function readForecastForCore(): Promise<{ fetchedAt: string; items: OpenWeatherForecastItem[] } | null> {
+  try {
+    const forecast = await fetchWeather('/forecast', await configuredWeatherCity())
+    return { fetchedAt: new Date().toISOString(), items: forecast.list }
+  } catch {
+    return null
+  }
+}
 
 weatherRouter.get('/forecast', async (c) => {
   if (c.req.query('city') !== undefined) {

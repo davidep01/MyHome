@@ -16,6 +16,7 @@ import { screensaverRouter } from './routes/screensaver.js'
 import { alarmRouter } from './routes/alarm.js'
 import { kioskRouter } from './routes/kiosk.js'
 import { calendarRouter } from './routes/calendar.js'
+import { homeAiRouter } from './home-ai/index.js'
 import { authenticateRequest, authConfiguration } from './lib/security.js'
 import { db } from './db/client.js'
 import { safeRequestLogger } from './lib/request-logger.js'
@@ -66,6 +67,8 @@ app.route('/api/system', systemRouter)
 app.route('/api/screensaver', screensaverRouter)
 app.route('/api/alarm', alarmRouter)
 app.route('/api/kiosk', kioskRouter)
+// HOME AI CORE: osserva, ricorda, propone e simula. Nessun comando fisico.
+app.route('/api/home-ai/v1', homeAiRouter)
 
 app.get('/api/health', async (c) => {
   const auth = authConfiguration()

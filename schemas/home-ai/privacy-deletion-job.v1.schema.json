@@ -1,0 +1,161 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "job_id",
+    "requested_by",
+    "selector",
+    "state",
+    "removed",
+    "requested_at",
+    "completed_at"
+  ],
+  "properties": {
+    "job_id": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+    },
+    "requested_by": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+    },
+    "selector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entity_ids",
+        "subject_id",
+        "pattern_id",
+        "before",
+        "all"
+      ],
+      "properties": {
+        "entity_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 128,
+            "pattern": "^[a-z_][a-z0-9_]*\\.[a-z0-9_]+$"
+          },
+          "maxItems": 100
+        },
+        "subject_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "pattern_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "before": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 40,
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "all": {
+          "type": "boolean"
+        }
+      }
+    },
+    "state": {
+      "enum": [
+        "pending",
+        "running",
+        "completed",
+        "failed"
+      ]
+    },
+    "removed": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "events",
+        "episodes",
+        "patterns",
+        "snapshots",
+        "proposals",
+        "preferences",
+        "notes"
+      ],
+      "properties": {
+        "events": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "episodes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "patterns": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "snapshots": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "proposals": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "preferences": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "notes": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "requested_at": {
+      "type": "string",
+      "maxLength": 40,
+      "format": "date-time"
+    },
+    "completed_at": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 40,
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "$id": "urn:home-ai-core:privacy-deletion-job.v1",
+  "title": "PrivacyDeletionJob"
+}
