@@ -1,7 +1,7 @@
 import { request } from './backend'
 import type {
   HealthStatus, HomeContext, ObservedEvent, Preference, PrivacyConsent, PrivacyDeletionJob, Proposal,
-  ReminderOccurrence, SimulationReport, WasteCalendar, HabitPattern, ArrivalEpisode,
+  ReminderOccurrence, SimulationReport, WasteCalendar, HabitPattern, ArrivalEpisode, KnowledgeFact, KnowledgeNoteInput,
 } from '../../backend/src/home-ai/domain/contracts'
 import type { CoreConfig } from '../../backend/src/home-ai/config'
 
@@ -10,7 +10,10 @@ import type { CoreConfig } from '../../backend/src/home-ai/config'
  * ripetere la stessa azione (doppio tap, rete instabile) non crea due esiti.
  */
 
-export type { HealthStatus, HomeContext, ObservedEvent, Preference, Proposal, ReminderOccurrence, SimulationReport, WasteCalendar, HabitPattern, ArrivalEpisode, CoreConfig }
+export type { HealthStatus, HomeContext, ObservedEvent, Preference, Proposal, ReminderOccurrence, SimulationReport, WasteCalendar, HabitPattern, ArrivalEpisode, CoreConfig, KnowledgeFact, KnowledgeNoteInput }
+
+export interface StoredNote extends KnowledgeNoteInput { note_id: string; revision: number; demo: boolean; created_at: string; updated_at: string }
+export interface KnowledgeSelection { facts: (KnowledgeFact & { score: number; pinned: boolean })[]; chars: number; budget: number; truncated: boolean; query_tokens: string[] }
 
 export interface StoredProposal extends Proposal { demo: boolean; dedup_key: string }
 export interface EpisodeAction { operation_id: string; action_key: string; targets: string[]; token: string; at: string; offset_s: number; session_updates: number }
@@ -42,7 +45,7 @@ export function idempotencyKey(): string {
 }
 
 const BASE = '/home-ai/v1'
-const mutate = <T>(path: string, method: 'POST' | 'PUT' | 'PATCH', body: unknown, extraHeaders: Record<string, string> = {}) =>
+const mutate = <T>(path: string, method: 'POST' | 'PUT' | 'PATCH' | 'DELETE', body?: unknown, extraHeaders: Record<string, string> = {}) =>
   request<T>(`${BASE}${path}`, {
     method,
     body: JSON.stringify(body ?? {}),
@@ -92,5 +95,16 @@ export const homeAiApi = {
   clearDemo: () => request(`${BASE}/demo/clear`, { method: 'POST', body: '{}' }),
   backups: () => request<{ backups: { id: string; created_at: string; bytes: number }[]; last_restore_verified_at: string | null }>(`${BASE}/backups`),
   createBackup: () => request<{ id: string }>(`${BASE}/backups`, { method: 'POST', body: '{}' }),
+  knowledge: () => request<{ facts: KnowledgeFact[]; demo: boolean; generated_at: string }>(`${BASE}/knowledge`),
+  knowledgeSearch: (text: string, budget?: number) => {
+    const params = new URLSearchParams({ q: text })
+    if (budget) params.set('budget', String(budget))
+    return request<KnowledgeSelection>(`${BASE}/knowledge/search?${params}`)
+  },
+  knowledgeExport: () => request<Record<string, unknown>>(`${BASE}/knowledge/export`),
+  createNote: (note: KnowledgeNoteInput) => mutate<{ note: StoredNote }>('/knowledge/notes', 'POST', note),
+  updateNote: (noteId: string, note: KnowledgeNoteInput, expectedRevision: number) =>
+    mutate<{ note: StoredNote }>(`/knowledge/notes/${encodeURIComponent(noteId)}`, 'PUT', { note, expected_revision: expectedRevision }),
+  deleteNote: (noteId: string) => mutate(`/knowledge/notes/${encodeURIComponent(noteId)}`, 'DELETE'),
   restoreBackup: (id: string) => mutate<{ restored_from: string; tombstones_reapplied: number }>(`/backups/${encodeURIComponent(id)}/restore`, 'POST', {}),
 }

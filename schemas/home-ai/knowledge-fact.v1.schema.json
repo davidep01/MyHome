@@ -1,0 +1,219 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "fact_id",
+    "kind",
+    "origin",
+    "source",
+    "title",
+    "statement",
+    "tags",
+    "entity_ids",
+    "scope",
+    "confidence",
+    "valid_from",
+    "valid_until",
+    "updated_at",
+    "revision",
+    "demo"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "fact_id": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+    },
+    "kind": {
+      "enum": [
+        "home",
+        "room",
+        "device",
+        "habit",
+        "preference",
+        "waste",
+        "rule",
+        "limit",
+        "note"
+      ]
+    },
+    "origin": {
+      "enum": [
+        "generated",
+        "user"
+      ]
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "module",
+        "ref"
+      ],
+      "properties": {
+        "module": {
+          "enum": [
+            "config",
+            "catalog",
+            "patterns",
+            "preferences",
+            "waste",
+            "policy",
+            "coverage",
+            "user"
+          ]
+        },
+        "ref": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "title": {
+      "type": "string",
+      "maxLength": 120,
+      "minLength": 1
+    },
+    "statement": {
+      "type": "string",
+      "maxLength": 600,
+      "minLength": 1
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 40,
+        "minLength": 1,
+        "pattern": "^[a-z0-9][a-z0-9_.:-]*$"
+      },
+      "maxItems": 16,
+      "uniqueItems": true
+    },
+    "entity_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 128,
+        "pattern": "^[a-z_][a-z0-9_]*\\.[a-z0-9_]+$"
+      },
+      "maxItems": 20,
+      "uniqueItems": true
+    },
+    "scope": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "subject_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "household"
+            },
+            "subject_id": {
+              "type": "null"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "subject_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "person"
+            },
+            "subject_id": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "subject_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "anonymous"
+            },
+            "subject_id": {
+              "type": "null"
+            }
+          }
+        }
+      ]
+    },
+    "confidence": {
+      "enum": [
+        "certain",
+        "observed",
+        "declared",
+        "uncertain"
+      ]
+    },
+    "valid_from": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 40,
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "valid_until": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 40,
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "updated_at": {
+      "type": "string",
+      "maxLength": 40,
+      "format": "date-time"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000000
+    },
+    "demo": {
+      "type": "boolean"
+    }
+  },
+  "$id": "urn:home-ai-core:knowledge-fact.v1",
+  "title": "KnowledgeFact"
+}

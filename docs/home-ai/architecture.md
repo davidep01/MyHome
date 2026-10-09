@@ -54,6 +54,7 @@ dashboard: click ──▶ /api/ha/services (comando ESISTENTE, invariato)   ing
 | `policy/` | Arbitraggio + decisione con precedenze fisse e DSL chiuso | Autorizzare esecuzioni |
 | `suggestions/` | Lifecycle proposte, feedback, preferenze, approvazioni legate a `plan_hash` | — |
 | `simulation/` | Dry-run deterministico su copia dello stato | Toccare HA |
+| `knowledge/` | Manuale della casa: fatti generati dallo stato, note utente, selezione deterministica entro un budget, export | Importare credenziali o client di comando; interrogare modelli |
 | `reasoner/` | `DisabledReasoner` | Scaricare o chiamare modelli |
 | `privacy/` | Consensi, export, oblio con tombstone, retention | — |
 | `observability/` | Audit minimizzato e redatto | Registrare payload domestici |
@@ -70,9 +71,9 @@ dashboard: click ──▶ /api/ha/services (comando ESISTENTE, invariato)   ing
 
 ## API (`/api/home-ai/v1`)
 
-Lettura: `health`, `status`, `context` (ridotto per il tablet), `episodes`, `episodes/:id`, `patterns`, `patterns/:id/explain` (episodi e abitudini con scope *persona* solo per la regia con consenso ai profili), `suggestions`, `waste-calendar`, `preferences`, `coverage`, `reasoner`, `stream` (SSE di notifica, senza dati); solo regia: `events`, `simulations`, `privacy`, `privacy/delete/:jobId`, `audit`, `config`, `entities/candidates`, `backups`.
+Lettura: `health`, `status`, `context` (ridotto per il tablet), `episodes`, `episodes/:id`, `patterns`, `patterns/:id/explain` (episodi e abitudini con scope *persona* solo per la regia con consenso ai profili), `suggestions`, `waste-calendar`, `preferences`, `coverage`, `reasoner`, `stream` (SSE di notifica, senza dati); solo regia: `events`, `simulations`, `privacy`, `privacy/delete/:jobId`, `audit`, `config`, `entities/candidates`, `backups`, `knowledge`, `knowledge/search`, `knowledge/export`.
 
-Mutazioni (header `Idempotency-Key` obbligatorio dove indicato in `routes.ts`): `telemetry/manual-intents`, `telemetry/manual-results`, `suggestions/:id/feedback`, `reminders/:id/feedback`; solo regia: `patterns/:id/feedback`, `suggestions/:id/approve`, `suggestions/:id/simulate`, `waste-calendar/import`, `waste-calendar/:id/approve`, `preferences/:id`, `privacy` (PATCH), `privacy/export`, `privacy/delete`, `config` (PUT, revisione attesa), `policy-rules`, `flags`, `demo/seed|clear`, `backups`, `backups/:id/restore`.
+Mutazioni (header `Idempotency-Key` obbligatorio dove indicato in `routes.ts`): `telemetry/manual-intents`, `telemetry/manual-results`, `suggestions/:id/feedback`, `reminders/:id/feedback`; solo regia: `patterns/:id/feedback`, `suggestions/:id/approve`, `suggestions/:id/simulate`, `waste-calendar/import`, `waste-calendar/:id/approve`, `preferences/:id`, `privacy` (PATCH), `privacy/export`, `privacy/delete`, `config` (PUT, revisione attesa), `policy-rules`, `flags`, `demo/seed|clear`, `backups`, `backups/:id/restore`, `knowledge/notes` (POST), `knowledge/notes/:id` (PUT con revisione attesa, DELETE).
 
 Il tablet (`kiosk`) vede proposte di nucleo e contesto ridotto; episodi e abitudini personali restano invisibili anche via API diretta (`FORBIDDEN_SCOPE`).
 

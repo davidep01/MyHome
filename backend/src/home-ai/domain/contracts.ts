@@ -484,11 +484,60 @@ export const PrivacyDeletionJobSchema = obj({
   state: enm(['pending', 'running', 'completed', 'failed'] as const),
   removed: obj({
     events: Count, episodes: Count, patterns: Count, snapshots: Count, proposals: Count, preferences: Count,
+    /** Note del manuale della casa (oblio totale o per persona). */
+    notes: Count,
   }),
   requested_at: Instant,
   completed_at: nullable(Instant),
 })
 export type PrivacyDeletionJob = Infer<typeof PrivacyDeletionJobSchema>
+
+// ── Manuale della casa (base di conoscenza per il futuro modello locale) ────
+
+/** Tag di ricerca: minuscoli, senza spazi, così la selezione resta deterministica. */
+export const KnowledgeTag = str({ min: 1, max: 40, pattern: /^[a-z0-9][a-z0-9_.:-]*$/ })
+
+/**
+ * Un fatto del manuale. È un DATO, mai un'istruzione: un modello futuro lo
+ * riceve come contesto e lo cita, ma i limiti restano nel policy engine.
+ * Ogni fatto dichiara da dove viene, quanto è affidabile e fino a quando vale.
+ */
+export const KnowledgeFactSchema = obj({
+  schema_version: lit(1),
+  fact_id: Id,
+  kind: enm(['home', 'room', 'device', 'habit', 'preference', 'waste', 'rule', 'limit', 'note'] as const),
+  origin: enm(['generated', 'user'] as const),
+  source: obj({
+    module: enm(['config', 'catalog', 'patterns', 'preferences', 'waste', 'policy', 'coverage', 'user'] as const),
+    ref: nullable(str({ max: 128 })),
+  }),
+  title: str({ min: 1, max: 120 }),
+  statement: str({ min: 1, max: 600 }),
+  tags: arr(KnowledgeTag, { max: 16, unique: true }),
+  entity_ids: arr(EntityId, { max: 20, unique: true }),
+  scope: ScopeSchema,
+  /** certain = configurazione/limite del sistema · observed = misurato dai dati · declared = detto da te · uncertain = da verificare. */
+  confidence: enm(['certain', 'observed', 'declared', 'uncertain'] as const),
+  valid_from: nullable(Instant),
+  valid_until: nullable(Instant),
+  updated_at: Instant,
+  revision: Revision,
+  demo: bool(),
+})
+export type KnowledgeFact = Infer<typeof KnowledgeFactSchema>
+
+/** Nota scritta da te: ciò che i sensori non possono sapere. */
+export const KnowledgeNoteInputSchema = obj({
+  title: str({ min: 1, max: 120 }),
+  statement: str({ min: 1, max: 600 }),
+  tags: arr(KnowledgeTag, { max: 16, unique: true }),
+  entity_ids: arr(EntityId, { max: 20, unique: true }),
+  /** Valorizzato solo con il consenso ai profili personali. */
+  subject_id: nullable(Id),
+  valid_from: nullable(Instant),
+  valid_until: nullable(Instant),
+})
+export type KnowledgeNoteInput = Infer<typeof KnowledgeNoteInputSchema>
 
 export const HealthStatusSchema = obj({
   service: enm(['running', 'degraded', 'disabled', 'misconfigured'] as const),
@@ -527,6 +576,8 @@ export const EXPORTED_SCHEMAS: Record<string, { schema: Schema<unknown>; title: 
   'privacy-consent.v1': { schema: PrivacyConsentSchema, title: 'PrivacyConsent' },
   'privacy-deletion-job.v1': { schema: PrivacyDeletionJobSchema, title: 'PrivacyDeletionJob' },
   'health-status.v1': { schema: HealthStatusSchema, title: 'HealthStatus' },
+  'knowledge-fact.v1': { schema: KnowledgeFactSchema, title: 'KnowledgeFact' },
+  'knowledge-note-input.v1': { schema: KnowledgeNoteInputSchema, title: 'KnowledgeNoteInput' },
 }
 
 export function exportedSchemaFiles(): Record<string, JsonSchema> {

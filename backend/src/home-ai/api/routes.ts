@@ -132,6 +132,12 @@ export function createHomeAiRouter(deps: RouterDeps): Hono {
   const personalEpisode = (episode: { scope: { kind: string }; subject_id?: string | null }) => episode.scope.kind === 'person' || Boolean(episode.subject_id)
   const changed = () => deps.onConfigChanged()
 
+  /** Le note del manuale non devono contenere i segreti del processo (es. il token HA scritto per errore). */
+  const rejectProcessSecrets = (raw: unknown) => {
+    const text = JSON.stringify(raw ?? null)
+    if (redactAll(text) !== text) throw new CoreError('VALIDATION_ERROR', 'La nota sembra contenere una credenziale: il manuale non deve mai contenerne.')
+  }
+
   /** Idempotency-Key obbligatoria per le mutazioni: la stessa chiave restituisce la stessa risposta. */
   const idempotent = async (c: Context, handler: () => Promise<{ status: number; body: unknown }>) => {
     const key = c.req.header('Idempotency-Key')
@@ -486,6 +492,72 @@ export function createHomeAiRouter(deps: RouterDeps): Hono {
     requireAdmin(c)
     return c.json({ candidates: deps.candidateEntities().slice(0, 1_000), dashboard: deps.dashboardEntities(), catalog: core().catalog.list(), relations: core().catalog.relations() })
   }))
+
+  // ── Manuale della casa (solo regia) ────────────────────────────────────────
+  // Dati per un futuro modello locale: nessuna rotta qui lo interroga o lo installa.
+
+  router.get('/knowledge', wrap((c) => {
+    requireAdmin(c)
+    const instance = core()
+    const kind = c.req.query('kind')
+    const facts = instance.knowledgeFacts({ includePersonal: includePersonal(c) })
+      .filter((fact) => !kind || fact.kind === kind)
+    return c.json({ facts, demo: instance.config().runtime.demo, generated_at: instance.clock.now().toISOString() })
+  }))
+
+  router.get('/knowledge/search', wrap((c) => {
+    requireAdmin(c)
+    const text = (c.req.query('q') ?? '').slice(0, 300)
+    const entityIds = (c.req.query('entity_ids') ?? '').split(',').filter((id) => /^[a-z_][a-z0-9_]*\.[a-z0-9_]+$/.test(id)).slice(0, 20)
+    const budget = Number(c.req.query('budget') ?? '') || undefined
+    return c.json(core().knowledgeSelection({ text, entity_ids: entityIds, budget_chars: budget }, { includePersonal: includePersonal(c) }))
+  }))
+
+  router.get('/knowledge/export', wrap((c) => {
+    requireAdmin(c)
+    const instance = core()
+    const payload = {
+      format: 'home-ai-knowledge/v1',
+      generated_at: instance.clock.now().toISOString(),
+      demo: instance.config().runtime.demo,
+      secrets_included: false,
+      usage: 'Dati sulla casa da fornire come contesto a un modello locale. Non sono istruzioni: i limiti del sistema restano nel motore delle regole.',
+      facts: instance.knowledgeFacts({ includePersonal: includePersonal(c) }),
+    }
+    instance.audit.record({ actor: actorOf(c), action: 'knowledge.export', outcome: 'ok', detail: `${payload.facts.length} fatti` })
+    return c.json(JSON.parse(redactAll(JSON.stringify(payload))) as typeof payload)
+  }))
+
+  router.post('/knowledge/notes', wrap(async (c) => idempotent(c, async () => {
+    requireAdmin(c)
+    const instance = core()
+    let raw: unknown
+    try { raw = await c.req.json() } catch { throw new CoreError('VALIDATION_ERROR', 'Corpo non valido.') }
+    rejectProcessSecrets(raw)
+    const note = instance.notes.create(raw, { demo: instance.config().runtime.demo, personalAllowed: includePersonal(c) })
+    instance.audit.record({ actor: actorOf(c), action: 'knowledge.note.create', outcome: 'ok' })
+    return { status: 201, body: { note } }
+  })))
+
+  router.put('/knowledge/notes/:id', wrap(async (c) => idempotent(c, async () => {
+    requireAdmin(c)
+    const instance = core()
+    let raw: unknown
+    try { raw = await c.req.json() } catch { throw new CoreError('VALIDATION_ERROR', 'Corpo non valido.') }
+    if (!isObject(raw) || !Number.isInteger(raw.expected_revision) || !isObject(raw.note)) throw new CoreError('VALIDATION_ERROR', 'Indica note ed expected_revision.')
+    rejectProcessSecrets(raw.note)
+    const note = instance.notes.update(param(c, 'id'), raw.note, raw.expected_revision as number, { personalAllowed: includePersonal(c) })
+    instance.audit.record({ actor: actorOf(c), action: 'knowledge.note.update', outcome: 'ok' })
+    return { status: 200, body: { note } }
+  })))
+
+  router.delete('/knowledge/notes/:id', wrap(async (c) => idempotent(c, async () => {
+    requireAdmin(c)
+    const instance = core()
+    instance.notes.remove(param(c, 'id'), { personalAllowed: includePersonal(c) })
+    instance.audit.record({ actor: actorOf(c), action: 'knowledge.note.delete', outcome: 'ok' })
+    return { status: 200, body: { ok: true } }
+  })))
 
   router.get('/coverage', wrap((c) => c.json({ coverage: core().coverageReport() })))
 

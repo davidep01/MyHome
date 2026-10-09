@@ -14,7 +14,7 @@ Stato della release: **impalcatura verificata in demo**. Non è stata verificata
 | [learning.md](learning.md) | Opportunità, supporto, soglie, copertura, limiti statistici |
 | [waste-calendar.md](waste-calendar.md) | Calendario raccolta: configurazione, import ICS, eccezioni, approvazione |
 | [operations.md](operations.md) | Avvio, stop, backup/restore, recupero, risorse misurate |
-| [future-local-llm.md](future-local-llm.md) | Contratto del futuro reasoner locale (disabilitato) |
+| [future-local-llm.md](future-local-llm.md) | Manuale della casa e contratto del futuro reasoner locale (disabilitato) |
 | [verification.md](verification.md) | Matrice T01–T52 con esito, prova e limiti |
 | [acceptance.md](acceptance.md) | Checklist di accettazione con evidenze |
 | [config.example.json](config.example.json) | Configurazione d'esempio (senza segreti) |

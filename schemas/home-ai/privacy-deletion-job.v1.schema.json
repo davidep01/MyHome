@@ -104,7 +104,8 @@
         "patterns",
         "snapshots",
         "proposals",
-        "preferences"
+        "preferences",
+        "notes"
       ],
       "properties": {
         "events": {
@@ -128,6 +129,10 @@
           "minimum": 0
         },
         "preferences": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "notes": {
           "type": "integer",
           "minimum": 0
         }

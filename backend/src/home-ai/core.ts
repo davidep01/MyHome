@@ -1,4 +1,4 @@
-import { ObservedEventSchema, type HealthStatus, type HomeContext, type ObservedEvent, type SimulationReport } from './domain/contracts.js'
+import { ObservedEventSchema, type HealthStatus, type HomeContext, type KnowledgeFact, type ObservedEvent, type SimulationReport } from './domain/contracts.js'
 import { CoreError } from './domain/errors.js'
 import { parse } from './domain/schema.js'
 import { localParts, systemClock, type Clock } from './domain/time.js'
@@ -13,6 +13,9 @@ import { ArrivalTracker } from './episodes/arrival.js'
 import { PatternRepository } from './learning/patterns.js'
 import { WasteService } from './waste/service.js'
 import { calendarIssues } from './waste/calendar.js'
+import { generateKnowledge } from './knowledge/generate.js'
+import { KnowledgeNotes, noteToFact } from './knowledge/notes.js'
+import { selectKnowledge, type KnowledgeQuery, type KnowledgeSelection } from './knowledge/retrieve.js'
 import { ProposalService } from './suggestions/service.js'
 import { PrivacyService } from './privacy/service.js'
 import { AuditLog } from './observability/audit.js'
@@ -75,6 +78,7 @@ export class HomeAiCore {
   readonly telemetry: ManualTelemetry
   readonly simulator: DryRunExecutor
   readonly reasoner = new DisabledReasoner()
+  readonly notes: KnowledgeNotes
   private forecastPort: ForecastReadPort
   private readonly entityInfo: CoreDeps['entityInfo']
   private processing = false
@@ -95,6 +99,7 @@ export class HomeAiCore {
     this.proposals = new ProposalService(this.store, this.clock)
     this.privacy = new PrivacyService(this.store, this.clock)
     this.audit = new AuditLog(this.store, this.clock)
+    this.notes = new KnowledgeNotes(this.store, this.clock)
     this.forecastPort = deps.forecast ?? noForecast
     this.entityInfo = deps.entityInfo
     this.telemetry = new ManualTelemetry({
@@ -450,6 +455,41 @@ export class HomeAiCore {
       return Boolean(state && !state.stale && state.value.availability === 'available')
     }
     return false
+  }
+
+  // ── Manuale della casa ─────────────────────────────────────────────────────
+
+  /**
+   * Fatti del manuale: generati dallo stato corrente + note dell'utente.
+   * Sono dati per un futuro modello locale, mai istruzioni (§25).
+   */
+  knowledgeFacts(opts: { includePersonal: boolean }): KnowledgeFact[] {
+    const config = this.config()
+    const demo = config.runtime.demo
+    const now = this.clock.now()
+    const calendar = this.waste.active()
+    const today = localParts(now, config.runtime.timezone).date
+    const generated = generateKnowledge({
+      now,
+      config,
+      demo,
+      catalog: this.catalog.list(),
+      patterns: this.patterns.list({ demo }),
+      preferences: this.proposals.preferences(),
+      calendar,
+      calendarIssues: calendar ? calendarIssues(calendar, today, !demo) : [],
+      upcoming: calendar ? this.waste.upcoming(40) : [],
+      userRules: this.userRules(),
+      coverage: this.coverageReport(),
+      guests: this.contexts.flags().guests,
+      includePersonal: opts.includePersonal,
+    })
+    const notes = this.notes.list({ demo, includePersonal: opts.includePersonal }).map(noteToFact)
+    return [...generated, ...notes]
+  }
+
+  knowledgeSelection(query: Omit<KnowledgeQuery, 'now'>, opts: { includePersonal: boolean }): KnowledgeSelection {
+    return selectKnowledge(this.knowledgeFacts(opts), { ...query, now: this.clock.now() })
   }
 
   // ── Simulazione ────────────────────────────────────────────────────────────

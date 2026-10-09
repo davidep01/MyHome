@@ -4,13 +4,13 @@ Stato: **impalcatura verificata in demo**. Tutte le prove sono automatiche (Vite
 
 Tipi di prova: **U** unitaria (funzione pura) · **I** integrazione finta (core completo + adapter alimentati a mano / router Hono / `fetch` intercettato) · **R** replay della fixture `demo-home-v1` · **B** browser headless (screenshot) · **HA** casa reale (mai in questa consegna).
 
-## Esecuzione (2026-10-08, container di sviluppo, Node v22.22.0)
+## Esecuzione (2026-10-09, container di sviluppo, Node v22.22.0)
 
 | Controllo | Esito |
 |---|---|
 | `npm run lint` | ✅ nessun errore |
-| `npm test` (repo intera) | ✅ 144 file, 863 test |
-| `npx vitest run backend/src/home-ai` | ✅ 14 file, 164 test (due esecuzioni consecutive identiche) |
+| `npm test` (repo intera) | ✅ 145 file, 882 test |
+| `npx vitest run backend/src/home-ai` | ✅ 15 file, 183 test (incluso il Manuale della casa) |
 | `npm run --prefix backend typecheck` | ✅ |
 | `npm run build:all` | ✅; il bundle `backend/dist` avvia il core in demo con HA irraggiungibile e `/execute` risponde `PHYSICAL_EXECUTION_DISABLED` |
 | Browser (B) | ✅ vista Memoria, 7 sezioni, light/dark a 390/768/1024/1440 px: nessun errore console, nessuno scroll orizzontale (Chromium headless, non Fully Kiosk) |
@@ -76,6 +76,7 @@ Durante la stesura dei test sono emersi e sono stati corretti **28 difetti reali
 ## Altri test del core
 
 - `boundaries.test.ts`: CONFINI ogni richiesta HTTP che esce dal gateway è una lettura in allowlist; le altre si fermano prima dell’I/O; CONFINI i messaggi WebSocket ammessi sono solo letture e sottoscrizioni proprie a state_changed; CONFINI approvazioni ripetute e payload ostili attraverso il core: zero fetch, zero WebSocket, zero comandi; CONFINI i moduli decisionali non importano client di comando, gateway, credenziali o route; CONFINI nel codice decisionale non compaiono fetch, WebSocket, servizi HA, MQTT, token o codice dinamico; CONFINI lo scanner non è vacuo: rileva import di comando, rete e credenziali in un file di prova; CONFINI agenti e simulatore non ricevono porte di rete: le loro dipendenze sono solo letture di dominio
+- `knowledge.test.ts`: nasce dai dati del core: casa, stanze, dispositivi, abitudine confermata, raccolta, regole e limiti; ID stabili: due generazioni producono gli stessi fatti; le ipotesi non confermate non entrano; l’abitudine dimenticata sparisce anche dal manuale; una preferenza esplicita diventa un fatto "dichiarato" e sparisce quando la revochi; casa reale senza dati: solo ciò che è certo, niente abitudini o stanze inventate; nomi delle stanze e token di ricerca senza accenti; crea, modifica con revisione attesa, elimina; demo e casa reale restano separate; rifiuta credenziali, testi troppo lunghi, validità invertita e note personali senza consenso; il testo ostile resta un dato: niente caratteri di controllo, markup non interpretato; "Dimentica tutto" cancella le note; l’oblio per persona solo quelle di quella persona; l’export privacy include le note, quelle personali solo con il consenso; i limiti vengono sempre per primi; poi i fatti pertinenti, in ordine stabile; budget rispettato, fatti scaduti o non ancora validi esclusi; sulla demo: "organico" porta il prossimo ritiro, "soggiorno" luci e clima del soggiorno; solo la regia: il tablet non legge, non cerca, non esporta e non scrive; note via API: creazione idempotente, conflitto di revisione, export senza segreti; via API una nota con il token HA scritto per errore viene rifiutata; la ricerca rispetta il budget richiesto e resta entro il massimo; il manuale non apre nessun percorso verso il modello o verso Home Assistant
 - `regressions.test.ts`: una proposta già visibile non va in cooldown o fuori budget a causa di sé stessa; un’abitudine dimenticata non viene ricostruita dal miner con lo stesso ID; una nuova revisione della stessa abitudine sostituisce la proposta aperta; salute: con solo il meteo corrente e nessuna previsione dichiara "current_only"; archivio non scrivibile: una lettura che deve scrivere risponde 503 tipizzato, le altre restano disponibili
 - `schemas.test.ts`: coincidono con i contratti runtime; dichiarano Draft 2020-12 e un $id stabile; config.example.json è una configurazione valida e senza effetti reali
 - `storage.test.ts`: applica le migrazioni e fa rollback sugli errori

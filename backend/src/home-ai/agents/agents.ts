@@ -39,7 +39,7 @@ const ACTION_LABEL: Record<string, string> = {
   position: 'regolato', speed: 'regolato', volume: 'regolato il volume di', preset: 'scelto il preset di',
 }
 
-function describeSteps(steps: ProspectiveStep[], label: (id: string) => string): string {
+export function describeSteps(steps: ProspectiveStep[], label: (id: string) => string): string {
   const parts = steps.map((step) => {
     const verb = ACTION_LABEL[String(step.desired.action)] ?? 'usato'
     return `${verb} ${step.target_entity_ids.map(label).join(', ')}`
@@ -48,7 +48,7 @@ function describeSteps(steps: ProspectiveStep[], label: (id: string) => string):
   return `${parts.slice(0, -1).join(', poi ')} e poi ${parts[parts.length - 1]}`
 }
 
-function weeksLabel(fromIso: string, untilIso: string): string {
+export function weeksLabel(fromIso: string, untilIso: string): string {
   const days = Math.max(1, Math.round((Date.parse(untilIso) - Date.parse(fromIso)) / 86_400_000))
   return days >= 14 ? `Nelle ultime ${Math.round(days / 7)} settimane` : `Negli ultimi ${days} giorni`
 }

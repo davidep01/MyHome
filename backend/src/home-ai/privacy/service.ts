@@ -74,6 +74,8 @@ export class PrivacyService {
       feedback: this.store.all('SELECT body FROM feedback').map((row) => json(row.body)),
       waste_calendars: this.store.all('SELECT body FROM waste_calendars').map((row) => json(row.body)),
       reminder_occurrences: this.store.all('SELECT body FROM waste_occurrences').map((row) => json(row.body)),
+      knowledge_notes: this.store.all('SELECT body FROM knowledge_notes ORDER BY created_at').map((row) => json<Scoped & { subject_id?: string | null }>(row.body))
+        .filter((note) => opts.includePersonal || !note.subject_id),
       consents: this.consents(),
     }
     // Ultima barriera: qualunque segreto finito per errore in un testo viene redatto.
@@ -92,7 +94,7 @@ export class PrivacyService {
         all: selector.all,
       },
       state: 'pending',
-      removed: { events: 0, episodes: 0, patterns: 0, snapshots: 0, proposals: 0, preferences: 0 },
+      removed: { events: 0, episodes: 0, patterns: 0, snapshots: 0, proposals: 0, preferences: 0, notes: 0 },
       requested_at: this.clock.now().toISOString(),
       completed_at: null,
     }
@@ -117,7 +119,7 @@ export class PrivacyService {
 
   /** Cancellazione coerente di eventi e derivati. */
   purge(selector: DeletionSelector): PrivacyDeletionJob['removed'] {
-    const removed = { events: 0, episodes: 0, patterns: 0, snapshots: 0, proposals: 0, preferences: 0 }
+    const removed = { events: 0, episodes: 0, patterns: 0, snapshots: 0, proposals: 0, preferences: 0, notes: 0 }
     this.store.tx(() => {
       const demo = selector.demo_only ? ' AND demo = 1' : ''
       const eventIds = new Set<string>()
@@ -189,6 +191,13 @@ export class PrivacyService {
         }
         this.store.run(`DELETE FROM entity_state WHERE 1=1${demo}`)
         if (!selector.demo_only) this.store.run('DELETE FROM coverage_intervals')
+      }
+      // Manuale della casa: le note scritte dall'utente seguono l'oblio totale e quello per persona.
+      // L'oblio di un'entità non tocca le note: sono dichiarazioni tue, non dati osservati.
+      const noteFilter = selector.all ? { where: `1=1${demo}`, params: [] as string[] } : selector.subject_id ? { where: 'subject_id = ?', params: [selector.subject_id] } : null
+      if (noteFilter) {
+        removed.notes += Number(this.store.get(`SELECT COUNT(*) AS n FROM knowledge_notes WHERE ${noteFilter.where}`, ...noteFilter.params)?.n ?? 0)
+        this.store.run(`DELETE FROM knowledge_notes WHERE ${noteFilter.where}`, ...noteFilter.params)
       }
     })
     return removed

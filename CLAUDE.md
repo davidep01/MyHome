@@ -1,7 +1,7 @@
 # CLAUDE.md — MyHome / S.I.M.I.
 
 > Documento sorgente unico (grafico + tecnico) per lo sviluppo di MyHome. Il nome prodotto mostrato all'utente è **S.I.M.I. — Sistema Integrato di Monitoraggio Intelligente**; “MyHome” resta il nome tecnico di repository, package e chiavi di compatibilità.
-> Versione doc: 2.2 · Allineato a app `2.2.x` · Aggiornato: 2026-10-08 · Lingua: italiano (identificatori in inglese).
+> Versione doc: 2.2 · Allineato a app `2.2.x` · Aggiornato: 2026-10-09 · Lingua: italiano (identificatori in inglese).
 >
 > Questo file ha **precedenza** sulle assunzioni generiche. `docs/DESIGN_SYSTEM.md` resta il riferimento grafico esteso; questo file lo riassume e ne risolve le incongruenze. Quando i due divergono, **vince questo file** e va aggiornato `docs/DESIGN_SYSTEM.md` di conseguenza.
 
@@ -114,6 +114,7 @@ Modulo **osserva → impara → propone**, mai esegue. Docs complete in [docs/ho
 - **Telemetria dei click**: `callService` registra l'intenzione su un canale separato (`src/lib/manualTelemetry.ts`) e il proxy servizi correla l'esito (`X-MyHome-Operation`); il comando parte identico anche se la telemetria fallisce.
 - **Opt-in e consensi**: entità osservate scelte in Memoria → Impostazioni; tre consensi distinti (osservazione, apprendimento, profili personali). Oblio con tombstone (anche dopo restore), backup AES-256-GCM con chiave separata.
 - **Default**: `runtime.demo: true` + modalità `shadow` — la demo (dataset sintetico `demo-home-v1`) gira senza token/HA/Internet.
+- **Manuale della casa** (`knowledge/`, Memoria → Manuale): base di conoscenza per il futuro LLM locale. Fatti *generati* a ogni lettura dallo stato del core (mai salvati, quindi l'oblio vale anche qui) + *note utente* (`knowledge_notes`, migrazione v2). Contratto `knowledge-fact.v1` con fonte, affidabilità e validità; selezione deterministica entro un budget di caratteri con il limite "non comanda nulla" sempre primo; export `home-ai-knowledge/v1`. **Sono dati, non istruzioni**: niente credenziali (note con token/password rifiutate), nessun accesso a `redact.ts`/env (test dei confini), solo regia.
 
 ---
 
@@ -388,10 +389,17 @@ Fasi 2–6 applicate. La Definition of Done richiede a ogni rilascio lint, suite
 - Verifica: lint ✅ · test 694/694 ✅ · build:all ✅ · typecheck backend ✅ · provato con config `homeMode:'grid'` + 6 dispositivi + uso simulato: bento con tutte le card, la più usata in cima a tessera doppia. **Da provare con l'add-on vero:** la rilettura del repository col ruolo manager.
 
 **Risolti (2026-10-08, notte) — HOME AI CORE (Memoria), impalcatura verificata in demo:**
-- **Nuovo modulo** `backend/src/home-ai/` (§4.5) + vista regia **Memoria** (`src/pages/MemoryPage.tsx`, `src/components/memory/*`, 7 sottosezioni): eventi con outbox e checkpoint, proiezione di stato con gap, rientri, pattern mining statistico (Wilson, baseline, validazione temporale, decadimento), calendario raccolta (RRULE/ICS, eccezioni, revisioni, DST), forecast con validità, 5 agenti deterministici, arbitraggio + policy engine a precedenze fisse con DSL chiuso, proposte con feedback e approvazioni legate a `plan_hash`, simulatore a secco, privacy (consensi, export, oblio con tombstone), backup cifrati, audit redatto.
+- **Nuovo modulo** `backend/src/home-ai/` (§4.5) + vista regia **Memoria** (`src/pages/MemoryPage.tsx`, `src/components/memory/*`, 7 sottosezioni, 8 con il Manuale): eventi con outbox e checkpoint, proiezione di stato con gap, rientri, pattern mining statistico (Wilson, baseline, validazione temporale, decadimento), calendario raccolta (RRULE/ICS, eccezioni, revisioni, DST), forecast con validità, 5 agenti deterministici, arbitraggio + policy engine a precedenze fisse con DSL chiuso, proposte con feedback e approvazioni legate a `plan_hash`, simulatore a secco, privacy (consensi, export, oblio con tombstone), backup cifrati, audit redatto.
 - **28 difetti reali trovati scrivendo i test e corretti** (ognuno coperto dal test che l'ha rivelato): *telemetria/episodi* — due click distinti fusi in una "sessione" (ora solo slider); presenza riordinata che annullava un rientro; quarantena senza tetto (1.000 righe) e dettagli non redatti. *Apprendimento* — ospiti nel profilo ordinario; abitudine ritirata che tornava "candidata"; proposte non ritirate su feedback/ritiro; abitudine *dimenticata* ricostruita con lo stesso ID; due proposte aperte per la stessa routine. *Calendario/meteo* — revisione che ripeteva promemoria invariati; promemoria di occorrenze cancellate lasciati visibili; salute "approvato" con zona mancante; ICS senza fuso letti nel fuso del server (ora rifiutati); "solo meteo corrente" mai riportato. *Policy/confini/privacy* — fusione fra agenti impossibile; "preferenza esplicita vince" codice morto; oggetti "chiusi" che accettavano `__proto__`/`constructor`; archivio non scrivibile senza stato degradato; ripristino che rispondeva 500; `/fire-event` & co. senza barriera né audit; rientri personali visibili dal tablet; telemetria 500 in degrado; export con derivati personali; tombstone riapplicate dopo l'avvio dei job; letture in degrado con 500 generico; proposta visibile che oscillava per cooldown/budget di sé stessa; timeline demo e reale mescolate. *Regia* — `/memoria` non riconosciuta dal fallback SPA (refresh → 404).
 - **Misure** (container di sviluppo, non l'hardware di casa): 1.000 entità, 3.000 eventi a 50 ev/s simulati → ~730 ev/s, p95 2,7 ms, contesto 46 ms.
 - Verifica: lint ✅ · test 863/863 ✅ (core 164, T01–T52 tutti coperti) · build:all ✅ · typecheck backend ✅ · screenshot Memoria light/dark 390–1440px ✅. **Non verificato**: casa reale, tablet fisico, calendario del comune reale. Matrice in `docs/home-ai/verification.md`.
+
+**Risolti (2026-10-09) — Manuale della casa per il futuro LLM locale:**
+- **Perché**: un modello locale piccolo ha poco contesto e della casa non sa nulla; senza una base di fatti inventa. Il manuale è pronto prima del modello e rispetta il vincolo "nessun LLM in questa release" (è solo dato).
+- **Backend** `backend/src/home-ai/knowledge/`: `generate.ts` (puro: casa, stanze, dispositivi, abitudini *supportate* con i numeri, preferenze esplicite, calendario e prossimi ritiri, regole di attenzione e personali, limiti e copertura; ID stabili), `notes.ts` (note utente con revisione attesa, max 200, credenziali rifiutate, scope personale solo con consenso, demo separata), `retrieve.ts` (punteggio additivo tag 3 / titolo 2 / testo 1 / entità 5, fatti scaduti esclusi, budget 2.000–12.000 caratteri). Rotte `/knowledge`, `/knowledge/search`, `/knowledge/export`, `/knowledge/notes` (solo regia, mutazioni idempotenti). Oblio totale e per persona cancellano le note; export privacy le include.
+- **Pattern di sicurezza separati**: `domain/secret-patterns.ts` (forma dei segreti, puro) vs `redact.ts` (conosce i segreti del processo): il manuale usa solo il primo; il controllo sul token letterale sta nel router. `knowledge/` è nella scansione dei confini.
+- **UI** Memoria → *Manuale della casa*: fatti filtrabili per tipo con fonte e affidabilità, prova "Cosa riceverebbe il modello", note tue con editor, export JSON.
+- Verifica: lint ✅ · test (core 183, di cui 19 del manuale) ✅ · build:all ✅ · typecheck backend ✅ · migrazione v1→v2 su archivio esistente ✅ · screenshot light/dark 390/1024/1440 ✅.
 
 **Residui noti (non bloccanti):** WebRTC/talk-back via signaling proxy backend; rimozione definitiva della grid legacy dopo validazione del composer sul tablet reale; AI write-back automazioni (roadmap); modalità ospiti/pulizie (§6.4) non ancora implementata.
 
@@ -429,7 +437,7 @@ backend/src/
   lib/            # home-layout.ts (griglia canonica), ha-config.ts, configEvents.ts (SSE), security.ts
   db/             # client.ts (file locale/read-only), types.ts (TIPI CONDIVISI)
   home-ai/        # HOME AI CORE (§4.5): domain/ storage/ ingestion/ adapters/ context/ episodes/ learning/
-                  # waste/ weather/ agents/ policy/ suggestions/ simulation/ reasoner/ privacy/ api/
+                  # waste/ weather/ agents/ policy/ suggestions/ simulation/ reasoner/ privacy/ knowledge/ api/
 docs/             # DESIGN_SYSTEM.md (canon grafico esteso), SMART_FUNCTIONS_ROADMAP.md, home-ai/ (core Memoria)
 schemas/home-ai/  # JSON Schema 2020-12 generati dai contratti del core (test di coerenza)
 ha-addon/         # config.yaml add-on

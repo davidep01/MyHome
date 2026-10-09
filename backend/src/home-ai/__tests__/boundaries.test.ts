@@ -283,7 +283,7 @@ describe('CONFINI — allowlist dell’I/O verso Home Assistant', () => {
 // ── CONFINI (b): confini di dipendenza ──────────────────────────────────────
 
 describe('CONFINI — dipendenze di agenti, miner, simulatore, reasoner, policy e suggerimenti', () => {
-  const SCANNED = ['agents', 'learning', 'simulation', 'reasoner', 'policy', 'suggestions']
+  const SCANNED = ['agents', 'learning', 'simulation', 'reasoner', 'policy', 'suggestions', 'knowledge']
   const scannedFiles = SCANNED.flatMap((dir) => listSources(join(HOME_AI_DIR, dir)))
 
   it('CONFINI i moduli decisionali non importano client di comando, gateway, credenziali o route', () => {

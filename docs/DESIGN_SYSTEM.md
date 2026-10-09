@@ -160,11 +160,12 @@ Le sottosezioni sono linkabili con `?section=…` e seguono back/forward e refre
 
 ### Vista Memoria (HOME AI CORE, 2026-10-08)
 
-Sette sottosezioni (`?section=`): Adesso · Cosa ho osservato · Abitudini · Raccolta differenziata · Simulazioni · Impostazioni e privacy · Stato del sistema. Regole specifiche:
+Otto sottosezioni (`?section=`): Adesso · Cosa ho osservato · Abitudini · Manuale della casa · Raccolta differenziata · Simulazioni · Impostazioni e privacy · Stato del sistema. Regole specifiche:
 
 - **Onestà dello stato**: sotto il titolo, badge sempre visibili per modalità (`Suggerimenti`/`In ombra`/`Sola osservazione`), `Demo · dati sintetici` quando attiva, `Esecuzione fisica disattivata`. Ogni proposta o abitudine demo porta il badge *Demo*; ogni simulazione il badge *Simulazione · nessun effetto fisico*.
 - **Numeri, non percentuali di "intelligenza"**: un'abitudine mostra campione (k su n rientri osservabili), controesempi, giorni, periodo, Wilson, copertura e baseline — mai un "92% sicuro" senza denominatore.
 - **Azioni di una proposta** (pill da 44px): *Perché me lo proponi?*, *Salva come preferenza*, *Simula*, *Non utile*, *Contesto sbagliato*, *Più tardi*, *Non suggerire più*, *Dimentica questi dati*. Nessun bottone "Esegui"/"Applica".
+- **Manuale della casa**: ogni fatto mostra titolo, testo, affidabilità (*Certo* neutro · *Osservato* blu · *Dichiarato da te* verde · *Da verificare* arancio) e fonte; "Cosa riceverebbe il modello" mostra la selezione con i caratteri usati sul budget e il badge *Sempre incluso* sul limite di sistema.
 - **Colori**: stessi token della regia; badge demo in `alert` (arancio), simulazione in Action Blue, nessun nuovo colore.
 - Light e Dark verificati a 390/768/1024/1440px senza scroll orizzontale.
 

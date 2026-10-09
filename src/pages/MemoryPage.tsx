@@ -6,6 +6,7 @@ import { Badge } from '../components/memory/MemoryUi'
 import { NowPanel } from '../components/memory/NowPanel'
 import { ObservedPanel } from '../components/memory/ObservedPanel'
 import { HabitsPanel } from '../components/memory/HabitsPanel'
+import { ManualPanel } from '../components/memory/ManualPanel'
 import { WastePanel } from '../components/memory/WastePanel'
 import { SimulationsPanel } from '../components/memory/SimulationsPanel'
 import { SettingsPanel } from '../components/memory/SettingsPanel'
@@ -20,6 +21,7 @@ const MEMORY_SECTIONS = [
   { id: 'now', label: 'Adesso', description: 'Proposte attive, promemoria e contesto corrente' },
   { id: 'observed', label: 'Cosa ho osservato', description: 'Eventi registrati, rientri riconosciuti e lacune di copertura' },
   { id: 'habits', label: 'Abitudini', description: 'Ipotesi statistiche con campione, controesempi e preferenze esplicite' },
+  { id: 'manual', label: 'Manuale della casa', description: 'Ciò che il futuro modello locale saprà della casa: fatti con la loro fonte e le tue note' },
   { id: 'waste', label: 'Raccolta differenziata', description: 'Calendario, regole ed eccezioni con prossimi ritiri' },
   { id: 'simulations', label: 'Simulazioni', description: 'Esecuzioni a secco su una copia dello stato, senza effetti fisici' },
   { id: 'settings', label: 'Impostazioni e privacy', description: 'Modalità, entità osservate, consensi, conservazione, esportazione e oblio' },
@@ -30,6 +32,7 @@ const PANELS: Record<(typeof MEMORY_SECTIONS)[number]['id'], () => React.JSX.Ele
   now: NowPanel,
   observed: ObservedPanel,
   habits: HabitsPanel,
+  manual: ManualPanel,
   waste: WastePanel,
   simulations: SimulationsPanel,
   settings: SettingsPanel,

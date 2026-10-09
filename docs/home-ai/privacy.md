@@ -47,6 +47,13 @@ La retention gira una volta al giorno (data civile locale).
 
 Ogni cancellazione lascia una **tombstone** (selettore + istante). Un evento che corrisponde a una tombstone viene rifiutato all'ingestione (`tombstoned`), quindi né un replay né un ripristino da backup reintroducono ciò che è stato dimenticato.
 
+## Manuale della casa
+
+- I fatti generati non vengono salvati: si ricalcolano dai dati esistenti, quindi oblio, ritiro di un'abitudine o revoca di una preferenza valgono anche per il manuale.
+- Le **note** scritte da te sono salvate (`knowledge_notes`, max 200), entrano nell'export privacy e vengono cancellate da *Dimentica tutto* e dall'oblio per persona. L'oblio di una singola entità non le tocca: sono dichiarazioni tue, non dati osservati.
+- Una nota che sembra contenere una credenziale (forma di token, `password:`…, o il token HA del processo) viene rifiutata. Le note su una persona richiedono il consenso ai profili personali.
+- Solo la regia legge, cerca, esporta e scrive il manuale; il tablet no.
+
 ## Backup
 
 - Copia coerente (`VACUUM INTO`) + `PRAGMA integrity_check`, cifrata AES-256-GCM.

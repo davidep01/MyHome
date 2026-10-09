@@ -141,6 +141,17 @@ const MIGRATIONS: { version: number; sql: string }[] = [
       CREATE TABLE backups (id TEXT PRIMARY KEY, file TEXT NOT NULL, created_at TEXT NOT NULL, verified_at TEXT, restored_at TEXT);
     `,
   },
+  {
+    // Manuale della casa: solo le note scritte dall'utente; i fatti generati si ricalcolano dallo stato.
+    version: 2,
+    sql: `
+      CREATE TABLE knowledge_notes (
+        note_id TEXT PRIMARY KEY, revision INTEGER NOT NULL, subject_id TEXT, demo INTEGER NOT NULL DEFAULT 0,
+        body TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL
+      );
+      CREATE INDEX idx_knowledge_notes_subject ON knowledge_notes (subject_id);
+    `,
+  },
 ]
 
 export const CURRENT_SCHEMA_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version

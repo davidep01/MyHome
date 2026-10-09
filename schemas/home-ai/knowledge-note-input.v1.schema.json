@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "title",
+    "statement",
+    "tags",
+    "entity_ids",
+    "subject_id",
+    "valid_from",
+    "valid_until"
+  ],
+  "properties": {
+    "title": {
+      "type": "string",
+      "maxLength": 120,
+      "minLength": 1
+    },
+    "statement": {
+      "type": "string",
+      "maxLength": 600,
+      "minLength": 1
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 40,
+        "minLength": 1,
+        "pattern": "^[a-z0-9][a-z0-9_.:-]*$"
+      },
+      "maxItems": 16,
+      "uniqueItems": true
+    },
+    "entity_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 128,
+        "pattern": "^[a-z_][a-z0-9_]*\\.[a-z0-9_]+$"
+      },
+      "maxItems": 20,
+      "uniqueItems": true
+    },
+    "subject_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "valid_from": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 40,
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "valid_until": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 40,
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "$id": "urn:home-ai-core:knowledge-note-input.v1",
+  "title": "KnowledgeNoteInput"
+}
