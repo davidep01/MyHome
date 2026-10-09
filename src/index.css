@@ -1165,6 +1165,13 @@ html.dark [class~="bg-black/35"] [class~="bg-white/70"] { background-color: rgba
   background-clip: padding-box;
 }
 
+/* Kiosk (tablet a muro, touch): nessuna barra di scorrimento visibile, né sulla
+   pagina né dentro le card lunghe. Lo scorrimento col dito resta invariato;
+   la regia desktop mantiene la barra sottile qui sopra. */
+html.kiosk-mode,
+html.kiosk-mode * { scrollbar-width: none; }
+html.kiosk-mode ::-webkit-scrollbar { display: none; width: 0; height: 0; }
+
 /* Touch callout */
 * { -webkit-touch-callout: none; }
 a, button, [role="button"] { -webkit-touch-callout: default; }

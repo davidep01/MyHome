@@ -32,7 +32,7 @@ Dashboard domotica personale per **Home Assistant**, estetica **Apple "Liquid Gl
 
 La home si **auto-configura** dallo stream live di HA (entità raggruppate per dominio/area). Zero setup manuale per l'utente finale.
 
-**Funzioni distintive:** home kiosk **dinamica**: tutte le card attivate nel wizard, a schermo pieno, ordinate e dimensionate per **uso appreso + attività in corso** (riordino solo a home ferma — niente tile da gestire), ambient mode su idle con presence-wake, timeline di casa, suggerimenti azionabili ("luci accese e casa vuota → Spegni tutte"), campanello → alert video fullscreen, night mode da sensore di luce, AI (Gemini) grounded sulle entità reali, resilienza HA-down con overlay e reconnect. La griglia manuale sopravvive solo come fallback legacy (`localStorage['myhome.home']='grid'`); `config.kiosk.homeMode` è ignorato dal tablet.
+**Funzioni distintive:** home kiosk **dinamica**: tutte le card attivate nel wizard, a schermo pieno, ordinate e dimensionate per **uso appreso + attività in corso** (riordino solo a home ferma — niente tile da gestire), più le card che si **palesano** quando un dispositivo si accende o cambia stato, ambient mode su idle con presence-wake, timeline di casa, suggerimenti azionabili ("luci accese e casa vuota → Spegni tutte"), campanello → alert video fullscreen, night mode da sensore di luce, AI (Gemini) grounded sulle entità reali, resilienza HA-down con overlay e reconnect. La griglia manuale sopravvive solo come fallback legacy (`localStorage['myhome.home']='grid'`); `config.kiosk.homeMode` è ignorato dal tablet.
 
 ---
 
@@ -401,6 +401,12 @@ Fasi 2–6 applicate. La Definition of Done richiede a ogni rilascio lint, suite
 - **UI** Memoria → *Manuale della casa*: fatti filtrabili per tipo con fonte e affidabilità, prova "Cosa riceverebbe il modello", note tue con editor, export JSON.
 - Verifica: lint ✅ · test (core 183, di cui 19 del manuale) ✅ · build:all ✅ · typecheck backend ✅ · migrazione v1→v2 su archivio esistente ✅ · screenshot light/dark 390/1024/1440 ✅.
 
+**Risolti (2026-10-09) — feedback dal kiosk: barre di scorrimento, 0,03 kW, card che si palesano:**
+- **Barre di scorrimento** — su `html.kiosk-mode` `scrollbar-width: none` + `::-webkit-scrollbar { display: none }`: niente barre né sulla pagina né dentro le card lunghe (clima XL, gruppi, info); lo scorrimento col dito resta. La regia desktop mantiene la barra sottile.
+- **"Vedo 0 anche se è 0,03 kW"** — la card *Energia* della home faceva `Math.round(now)`: ora `formatExact` (decimali della sorgente HA). Stesso fix nel ramo in watt della barra di stato (`formatHousePower`, prima `Math.round(watts)`). Test sui valori piccoli.
+- **Le card si palesano** — `surfacedEntityIds` in [bentoHome.ts](src/lib/bentoHome.ts) (puro + 5 test): un dispositivo comandabile (luci, prese, clima, tapparelle, media, robot, serrature, valvole…) o un'apertura (porta/finestra/garage) che si accende o cambia stato compare in home anche se non è nel wizard; resta finché è acceso e per 10 minuti dopo l'ultimo cambio, max 8. Mai sensori, movimento, videocamere, entità escluse dal registry HA, relè duplicati o marcate "Mai". I cambi contano **solo se visti dal vivo dal tablet** (`useComposedHome` confronta i delta dello store): un riavvio di HA, che riscrive tutti i `last_changed`, non fa comparire nulla. Stesso ordinamento per peso delle configurate (acceso = +2).
+- Verifica: test kernel ✅ · provato dal vivo con HA simulato: 2 card configurate → luce accesa da fuori → 3 card; porta aperta → 4; movimento ignorato; luce spenta resta "Cambiato da poco"; `0,03 kW` mostrato; `scrollbar-width: none` sul kiosk.
+
 **Residui noti (non bloccanti):** WebRTC/talk-back via signaling proxy backend; rimozione definitiva della grid legacy dopo validazione del composer sul tablet reale; AI write-back automazioni (roadmap); modalità ospiti/pulizie (§6.4) non ancora implementata.
 
 ---
@@ -497,7 +503,7 @@ Luce (tap=toggle ottimistico, tint ambra, slider inline se accesa) · Clima (tin
 Tap = azione primaria · Press = `scale(0.985–0.95)` · Long-press = sblocco serrature · Click card clima/luce = pannello contestuale. **Tutte** le azioni HA sono **ottimistiche** con rollback.
 
 ### Regole "DA NON FARE"
-❌ Gradienti decorativi di sfondo (solo parchment `#f5f5f7`) · ❌ Ombre su card/bottoni (solo glow funzionale clima) · ❌ Secondo colore brand · ❌ Peso 500 · ❌ Toggle per serrature · ❌ Mostrare entità non configurate (la visibilità è **opt-in**: si sceglie nel wizard) · ❌ Card video fuori dalla tendina videocamere · ❌ Chiavi API nel bundle frontend · ❌ Introdurre una quarta geometria di griglia.
+❌ Gradienti decorativi di sfondo (solo parchment `#f5f5f7`) · ❌ Ombre su card/bottoni (solo glow funzionale clima) · ❌ Secondo colore brand · ❌ Peso 500 · ❌ Toggle per serrature · ❌ Mostrare in modo permanente entità non configurate (la visibilità è **opt-in**: si sceglie nel wizard; unica eccezione, le card che si **palesano**: un dispositivo comandabile o un'apertura che si accende/cambia stato compare finché è acceso e per 10 minuti dopo, mai sensori, videocamere, entità escluse in HA o marcate "Mai") · ❌ Card video fuori dalla tendina videocamere · ❌ Chiavi API nel bundle frontend · ❌ Introdurre una quarta geometria di griglia.
 
 ---
 

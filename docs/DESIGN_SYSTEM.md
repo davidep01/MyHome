@@ -184,6 +184,8 @@ Otto sottosezioni (`?section=`): Adesso · Cosa ho osservato · Abitudini · Man
 La home si **auto-configura** dal flusso WebSocket di HA. Zero setup manuale.  
 Se ci sono **Aree** definite in HA → la vista "Aree" genera una plancia per stanza (Piscina, Locale Termico, …).
 
+**Card che si palesano (kiosk, 2026-10-09).** Oltre ai dispositivi scelti nel wizard, la bento mostra per il tempo necessario quelli che *stanno facendo qualcosa*: un dispositivo comandabile o un'apertura che si accende o cambia stato compare subito (stesso aspetto delle altre card, nessun badge), resta finché è acceso e per 10 minuti dopo l'ultimo cambio, poi esce. Mai sensori, movimento o videocamere. Il kiosk non mostra barre di scorrimento: lo scorrimento è solo col dito.
+
 ---
 
 ## Bento Grid

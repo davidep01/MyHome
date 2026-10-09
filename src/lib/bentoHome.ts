@@ -135,3 +135,65 @@ export function bentoCardSize(span: number, layout: BentoLayout): HeroVisualSize
   if (span * 2 >= layout.cols) return 'M'
   return 'S'
 }
+
+// ── Card che si palesano ─────────────────────────────────────────────────────
+
+/** Quanto resta in home un dispositivo non configurato dopo l'ultimo cambio di stato. */
+export const SURFACE_RECENT_MS = 10 * 60_000
+/** Tetto delle card "di passaggio": una scena che accende 20 luci non deve sommergere la home. */
+export const MAX_SURFACED = 8
+
+/** Dispositivi che "fanno qualcosa": accenderli o cambiarne lo stato è un evento da mostrare. */
+const SURFACE_DOMAINS = new Set([
+  'light', 'switch', 'input_boolean', 'fan', 'cover', 'media_player', 'climate', 'water_heater',
+  'vacuum', 'lawn_mower', 'humidifier', 'lock', 'valve', 'siren',
+])
+/** Fra i sensori binari solo le aperture: movimento e presenza cambiano di continuo e sarebbero rumore. */
+const OPENING_CLASSES = new Set(['door', 'window', 'garage_door', 'opening', 'gate'])
+
+export interface SurfaceEntity {
+  entity_id: string
+  state: string
+  attributes?: Record<string, unknown>
+}
+
+export interface SurfaceOptions {
+  nowMs: number
+  /** Già in home perché scelto nel wizard: non serve farlo comparire. */
+  isConfigured: (id: string) => boolean
+  /** Escluso a monte: nascosto/diagnostico in HA, relè duplicato, "Mai" nel workbench. */
+  isExcluded: (id: string) => boolean
+  /** Istante in cui il tablet ha VISTO cambiare lo stato (non `last_changed`, che un riavvio di HA azzera). */
+  changedAt: (id: string) => number | undefined
+}
+
+function isOpen(entity: SurfaceEntity): boolean {
+  return entity.entity_id.startsWith('binary_sensor.') && entity.state === 'on'
+}
+
+/**
+ * Dispositivi NON scelti nel wizard che devono comunque comparire in home:
+ * quelli accesi/in funzione adesso e quelli il cui stato è appena cambiato
+ * (per {@link SURFACE_RECENT_MS}). Mai sensori, videocamere o entità escluse.
+ * Ordine: prima i più recenti, poi gli attivi da più tempo; al massimo
+ * {@link MAX_SURFACED}. Puro e deterministico.
+ */
+export function surfacedEntityIds(entities: SurfaceEntity[], opts: SurfaceOptions): string[] {
+  const picked: { id: string; changed: number; active: boolean }[] = []
+  for (const entity of entities) {
+    const id = entity.entity_id
+    const domain = id.split('.')[0]
+    if (opts.isConfigured(id) || opts.isExcluded(id) || domain === 'camera') continue
+    if (entity.state === 'unavailable' || entity.state === 'unknown') continue
+    const opening = domain === 'binary_sensor' && OPENING_CLASSES.has(String(entity.attributes?.device_class ?? ''))
+    if (!SURFACE_DOMAINS.has(domain) && !opening) continue
+    const changed = opts.changedAt(id) ?? 0
+    const recent = changed > 0 && opts.nowMs - changed <= SURFACE_RECENT_MS
+    const active = opening ? isOpen(entity) : isEntityActive(entity)
+    if (recent || active) picked.push({ id, changed, active })
+  }
+  return picked
+    .sort((a, b) => b.changed - a.changed || Number(b.active) - Number(a.active) || a.id.localeCompare(b.id))
+    .slice(0, MAX_SURFACED)
+    .map((entry) => entry.id)
+}

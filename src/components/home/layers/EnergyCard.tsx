@@ -1,4 +1,5 @@
 import { useTabletLayout } from '../../../hooks/useTabletLayout'
+import { formatExact } from '../../widgets/utils/formatWidgetValue'
 import { useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Zap } from 'lucide-react'
@@ -60,7 +61,6 @@ export function EnergyCard() {
 
   if (!sensor) return null
 
-  const now = parseFloat(sensor.state)
   const unit = (sensor.attributes?.unit_of_measurement as string | undefined) ?? 'W'
   const nowKw = powerValueInKw(sensor.state, unit)
   const avg = connected && history ? timeWeightedPowerKw(history, unit, nowMs - 24 * 60 * 60_000, nowMs) : null
@@ -98,7 +98,8 @@ export function EnergyCard() {
       </div>
       <div>
         <p className="text-[40px] font-light leading-none text-[var(--ink)] tabular-nums">
-          {Math.round(now)}<span className="ml-1 text-lg text-[var(--ink-tertiary)]">{unit}</span>
+          {/* Valore come lo riporta HA: 0,03 kW resta 0,03, mai arrotondato a 0. */}
+          {formatExact(sensor.state)}<span className="ml-1 text-lg text-[var(--ink-tertiary)]">{unit}</span>
         </p>
         <p className="mt-2 truncate text-xs text-[var(--ink-tertiary)]">
           {entityName(sensor)}
