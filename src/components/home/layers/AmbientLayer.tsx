@@ -12,7 +12,6 @@ import { screensaverApi, type KioskSettings } from '../../../api/backend'
 import { KIOSK_ACTIVITY_EVENT, reportKioskScreensaver } from '../../../lib/kioskActivity'
 import { wakeKiosk, wakeAllowed } from '../../../lib/kioskWakePolicy'
 import { useFullyKioskStore } from '../../../store/fullyKiosk'
-import { BrandMark } from '../../ui/BrandMark'
 import {
   centeredKenBurnsMove,
   photoOrientation,
@@ -260,7 +259,6 @@ function AmbientContent({
         role="status"
         aria-label={`Sono le ${time}, ${date}`}
       >
-        <BrandMark size={72} tone="light" className="mb-1 opacity-90" />
         <span className={cn('text-[clamp(68px,14vw,132px)] font-light leading-[0.88] tracking-[-0.035em] tabular-nums transition-colors duration-1000', dim ? 'text-white/65' : 'text-white/95')}>{time}</span>
         <span className="text-[clamp(16px,2.2vw,24px)] capitalize text-white/70">{date}</span>
         {weather && (

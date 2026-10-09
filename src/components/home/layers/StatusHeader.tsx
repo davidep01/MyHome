@@ -10,7 +10,6 @@ import { cn } from '../../../lib/utils'
 import type { HomeChip } from '../../../hooks/useComposedHome'
 import { WeatherIcon } from '../../weather/WeatherIcon'
 import { NotificationBell } from '../../notifications/NotificationCenter'
-import { BrandMark } from '../../ui/BrandMark'
 import { externalTemperatureFromEntities, indoorClimateTemperatureSources } from '../../../lib/dashboardSelection'
 import { HOUSE_CONSUMPTION_ID, energyWindowAt, formatPowerKw, isEnergyRisk, powerInKw, totalPowerInKw, wallboxMode } from '../../../lib/statusBarEnergy'
 import { ALARM_STATE_LABELS, isArmed } from '../../../lib/alarm'
@@ -125,7 +124,6 @@ export function StatusHeader({
     <header className="min-w-0 shrink-0 space-y-3.5">
       <div className="flex min-w-0 flex-col gap-3 lg:flex-row lg:items-start lg:justify-between sm:gap-5">
         <div className="flex min-w-0 items-center gap-4">
-        <BrandMark size={60} />
         <button
           type="button"
           onClick={onClockTap}

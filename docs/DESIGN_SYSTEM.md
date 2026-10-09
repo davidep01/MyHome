@@ -14,7 +14,7 @@ Ispirazione primaria: **Apple Liquid Glass** — superfici semantiche, tipografi
 
 ## Brand
 
-Il logo è la **scimmietta con le cuffie** (master: [docs/brand/simi-logo-master.webp](brand/simi-logo-master.webp); asset UI `public/brand/simi-logo.webp`, favicon `public/favicon.png`, icone app `public/icons/*`, icone add-on `ha-addon/icon.png`/`logo.png`). Va **sempre** in coppia con il nome **S.I.M.I. scritto sotto**, e si rende **solo** tramite [BrandMark](../src/components/ui/BrandMark.tsx) (`BRAND_LOGO_SRC` in `src/lib/brand.ts`): mai il nome da solo dove prima c'era il marchio, mai il logo senza nome. Il logo è un'illustrazione a colori fissi — non si ricolora col tema, non si filtra, non si deforma. Su superfici sempre scure (ambient, aggiornamento) `tone="light"`.
+Il logo è la **scimmietta con le cuffie** (master: [docs/brand/simi-logo-master.webp](brand/simi-logo-master.webp); asset UI `public/brand/simi-logo.webp`, favicon `public/favicon.png`, icone app `public/icons/*`, icone add-on `ha-addon/icon.png`/`logo.png`). Va **sempre** in coppia con il nome **S.I.M.I. scritto sotto**, e si rende **solo** tramite [BrandMark](../src/components/ui/BrandMark.tsx) (`BRAND_LOGO_SRC` in `src/lib/brand.ts`): mai il nome da solo dove prima c'era il marchio, mai il logo senza nome. Il logo è un'illustrazione a colori fissi — non si ricolora col tema, non si filtra, non si deforma. Compare solo nella sidebar della regia, nel favicon e nelle icone app/add-on: **sul kiosk non c'è** (intestazione, ambient e schermata di aggiornamento ne sono prive, 2026-10-09). `tone="light"` resta disponibile per superfici sempre scure.
 
 ## Palette
 
