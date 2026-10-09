@@ -302,6 +302,9 @@ html.kiosk-mode,
 html.kiosk-mode body {
   overscroll-behavior: none;
   touch-action: manipulation;
+  /* La pagina del tablet non scorre mai: scorrono solo i contenitori interni.
+     Così il WebView di Android non ha una barra "di pagina" da disegnare. */
+  overflow: hidden;
 }
 
 .kiosk-root {
@@ -1170,7 +1173,13 @@ html.dark [class~="bg-black/35"] [class~="bg-white/70"] { background-color: rgba
    la regia desktop mantiene la barra sottile qui sopra. */
 html.kiosk-mode,
 html.kiosk-mode * { scrollbar-width: none; }
-html.kiosk-mode ::-webkit-scrollbar { display: none; width: 0; height: 0; }
+/* Sia la barra della pagina (html/body) sia quelle di ogni contenitore interno,
+   verticali e orizzontali (righe stanze, videocamere, chip, card lunghe). */
+html.kiosk-mode::-webkit-scrollbar,
+html.kiosk-mode body::-webkit-scrollbar,
+html.kiosk-mode ::-webkit-scrollbar,
+html.kiosk-mode ::-webkit-scrollbar:horizontal,
+html.kiosk-mode ::-webkit-scrollbar:vertical { display: none; width: 0; height: 0; background: transparent; }
 
 /* Touch callout */
 * { -webkit-touch-callout: none; }
