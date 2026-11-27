@@ -2,8 +2,11 @@ import { randomUUID } from 'node:crypto'
 /**
  * Registro della flotta kiosk (§4.5): ogni tablet manda un heartbeat periodico
  * con il proprio stato (batteria, schermo, luminosità, pagina); la regia lo
- * legge da /api/kiosk/devices. Solo memoria: a ogni riavvio del servizio i
- * tablet ricompaiono al primo heartbeat (≤60s), niente da persistere.
+ * legge da /api/kiosk/devices. Lo stato vivo resta in memoria; l'IDENTITÀ dei
+ * tablet conosciuti (id, nome, ultimo contatto) viene invece ricordata da
+ * `kiosk-fleet-store.ts`. Prima si dava per scontato che un tablet tornasse
+ * entro 60s dal riavvio: il 2026-11-27 non è tornato per 30 ore e la regia
+ * mostrava un elenco vuoto, indistinguibile da "nessun tablet".
  */
 
 export interface KioskHeartbeat {
@@ -116,6 +119,40 @@ export function listKioskDevices(now = Date.now()): KioskDeviceStatus[] {
       lastSeenAt: new Date(lastSeen).toISOString(),
       online: now - lastSeen < KIOSK_ONLINE_WINDOW_MS,
     }))
+}
+
+/** Ciò che sopravvive a un riavvio: chi è il tablet e quando l'abbiamo sentito. */
+export interface PersistedKioskDevice {
+  deviceId: string
+  name?: string
+  lastSeen: number
+}
+
+/** Un tablet sparito da più di 30 giorni non è "offline": è stato dismesso. */
+export const KIOSK_FORGET_AFTER_MS = 30 * 24 * 60 * 60_000
+
+export function persistableKioskFleet(): PersistedKioskDevice[] {
+  return [...devices.values()].map(({ deviceId, name, lastSeen }) => ({ deviceId, ...(name ? { name } : {}), lastSeen }))
+}
+
+/**
+ * Ricarica i tablet conosciuti dopo un riavvio. Non sovrascrive un tablet che
+ * ha già mandato un heartbeat in questa vita del servizio; scarta voci
+ * malformate, future o più vecchie di {@link KIOSK_FORGET_AFTER_MS}.
+ */
+export function restoreKioskFleet(entries: unknown, now = Date.now()): number {
+  if (!Array.isArray(entries)) return 0
+  let restored = 0
+  for (const entry of entries) {
+    if (!entry || typeof entry !== 'object') continue
+    const { deviceId, name, lastSeen } = entry as Record<string, unknown>
+    if (typeof deviceId !== 'string' || !DEVICE_ID_PATTERN.test(deviceId) || devices.has(deviceId)) continue
+    if (typeof lastSeen !== 'number' || !Number.isFinite(lastSeen) || lastSeen > now || now - lastSeen > KIOSK_FORGET_AFTER_MS) continue
+    if (devices.size >= MAX_DEVICES) break
+    devices.set(deviceId, { deviceId, ...(typeof name === 'string' && name.trim() ? { name: name.trim().slice(0, 60) } : {}), lastSeen })
+    restored += 1
+  }
+  return restored
 }
 
 export function resetKioskFleet(): void {

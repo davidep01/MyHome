@@ -85,3 +85,30 @@ export function applyVisibilitySelection(
   }
   return next
 }
+
+/** Campi che dicono "questo dispositivo è stato configurato a mano". */
+const SETUP_KEYS: (keyof DeviceOverride)[] = ['type', 'areaId', 'label', 'icon', 'cardSize', 'cardSizes', 'showWhenActive']
+
+/**
+ * Dispositivi configurati prima dell'opt-in (2026-08-31): il wizard di allora
+ * scriveva categoria/stanza/nome ma non `enabled`, quindi oggi sono invisibili.
+ * Si propongono all'utente per un'attivazione con un tocco — mai automatica.
+ * Esclusi: già attivi, videocamere (vivono nella tendina), entità assenti in
+ * HA, nascoste dall'utente o senza card.
+ */
+export function legacyConfiguredEntityIds(
+  overrides: Record<string, DeviceOverride>,
+  opts: { exists: (id: string) => boolean; hidden?: ReadonlySet<string>; renderable: (id: string) => boolean },
+): string[] {
+  return Object.entries(overrides)
+    .filter(([id, override]) => override.enabled !== true
+      && !id.startsWith('camera.')
+      && override.hero !== 'never'
+      && (override.hero === 'always' || SETUP_KEYS.some((key) => override[key] !== undefined && override[key] !== ''))
+      && opts.exists(id)
+      && opts.renderable(id)
+      && !opts.hidden?.has(id))
+    .map(([id]) => id)
+    .sort()
+}
+

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { composeHome, type AlertChip, type HeroSlot } from '../lib/composer'
-import { isEntityActive, rankBentoEntities, settleBentoOrder, SURFACE_RECENT_MS, surfacedEntityIds } from '../lib/bentoHome'
+import { isEntityActive, normalizeEntityName, rankBentoEntities, settleBentoOrder, SURFACE_RECENT_MS, surfacedEntityIds } from '../lib/bentoHome'
 import { lastCardInteractionAt, readUsage, usageScore } from '../lib/cardUsage'
 import { entityName } from '../components/widgets/utils/mapEntityToWidgetCard'
 import { isRenderableDomain } from '../components/home/layers/makeRoomEntity'
@@ -20,7 +20,11 @@ export interface ComposedHomeView {
 }
 
 export interface KioskCurationConfig {
-  /** Conservato per compatibilità del layout pubblico; con l'opt-in non decide più nulla. */
+  /**
+   * Nascoste esplicitamente dall'utente. Con l'opt-in non decidono le card
+   * configurate, ma escludono sempre le card che si palesano: "nascondi" è una
+   * scelta che vale anche quando il dispositivo si accende.
+   */
   hiddenEntities?: string[]
   deviceOverrides?: Record<string, DeviceOverride>
   /** Escluse dal registry di HA (nascoste, disattivate, diagnostiche) e relè duplicati: non si palesano mai. */
@@ -58,8 +62,10 @@ export function useComposedHome(cfg?: KioskCurationConfig): ComposedHomeView {
   useEffect(() => { excludedRef.current = cfg?.excludedEntities }, [cfg?.excludedEntities])
 
   const deviceOverrides = cfg?.deviceOverrides
+  const hiddenKey = (cfg?.hiddenEntities ?? []).join('\n')
 
   useEffect(() => {
+    const hidden = new Set(hiddenKey ? hiddenKey.split('\n') : [])
     const compute = () => {
       const { entities, connected, hydrated } = useEntityStore.getState()
       // Il composer riceve TUTTE le entità: decide lui cosa diventa card
@@ -92,6 +98,8 @@ export function useComposedHome(cfg?: KioskCurationConfig): ComposedHomeView {
         isConfigured: (id) => isDashboardCardEntity(id, deviceOverrides),
         isExcluded: (id) => Boolean(excluded?.has(id)) || safetyIds.has(id) || !isRenderableDomain(id) || deviceOverrides?.[id]?.hero === 'never',
         changedAt: (id) => changedAt.get(id),
+        isHidden: (id) => hidden.has(id),
+        configuredNames: new Set(configured.flatMap((id) => [entities[id]?.attributes?.friendly_name, deviceOverrides?.[id]?.label]).filter(Boolean).map(normalizeEntityName)),
       })
       const surfacedSet = new Set(surfaced)
       // Configurate e di passaggio nello stesso ordine per peso: un dispositivo appena acceso pesa come due tocchi.
@@ -142,7 +150,7 @@ export function useComposedHome(cfg?: KioskCurationConfig): ComposedHomeView {
       unsubscribe()
       clearInterval(id)
     }
-  }, [areaNameOf, areaIdOf, deviceOverrides])
+  }, [areaNameOf, areaIdOf, deviceOverrides, hiddenKey])
 
   return view
 }

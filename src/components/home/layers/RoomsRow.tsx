@@ -135,8 +135,8 @@ function RoomChip({ room, active, onOpen }: { room: RoomOverview; active: boolea
       <span
         className={cn('flex h-9 w-9 items-center justify-center rounded-full transition-colors duration-300', meta && 'ai-active')}
         style={{
-          background: meta ? meta.tone.bg : 'rgba(0,0,0,0.05)',
-          color: meta ? meta.tone.color : 'rgba(29,29,31,0.55)',
+          background: meta ? meta.tone.bg : 'var(--fill-subtle)',
+          color: meta ? meta.tone.color : 'var(--ink-tertiary)',
         }}
         title={meta?.label}
       >

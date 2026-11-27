@@ -6,7 +6,7 @@ import {
 import { GlassCard } from '../components/glass/GlassCard'
 import { GlassSheet } from '../components/glass/GlassSheet'
 import { EntityCard } from '../components/widgets/WidgetGrid'
-import { makeRoomEntity } from '../components/home/layers/makeRoomEntity'
+import { isRenderableDomain, makeRoomEntity } from '../components/home/layers/makeRoomEntity'
 import { stateLabel } from '../components/widgets/utils/stateLabel'
 import { useDashboardConfig, useUpdateConfig } from '../hooks/useDashboardConfig'
 import { useEntityStore } from '../store/entities'
@@ -15,7 +15,9 @@ import { iconExists } from '../lib/lucide'
 import { uid } from '../lib/uid'
 import { DynamicIcon } from '../components/DynamicIcon'
 import { cn } from '../lib/utils'
-import { applyVisibilitySelection, DEVICE_CATEGORY_OPTIONS } from '../lib/deviceSetup'
+import { applyVisibilitySelection, DEVICE_CATEGORY_OPTIONS, legacyConfiguredEntityIds } from '../lib/deviceSetup'
+import { LegacyActivationBanner } from '../components/entities/LegacyActivationBanner'
+import { entityName } from '../components/widgets/utils/mapEntityToWidgetCard'
 import { isCameraEntity } from '../lib/entityVisibility'
 import {
   DeviceSetupWizard, type DeviceSetupRegistryMeta,
@@ -255,6 +257,12 @@ export function EntitiesPage() {
     persistDraft(payload, JSON.stringify(payload))
   }
 
+  const legacyIds = useMemo(() => legacyConfiguredEntityIds(overrides, {
+    exists: (id) => Boolean(entities[id]),
+    hidden: new Set(hidden),
+    renderable: isRenderableDomain,
+  }), [overrides, entities, hidden])
+
   const toggleSelect = (id: string) =>
     setSelected((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n })
 
@@ -303,6 +311,12 @@ export function EntitiesPage() {
           </button>
         </div>
       </div>
+      <LegacyActivationBanner
+        entityIds={legacyIds}
+        nameOf={(id) => entityName(entities[id], overrides[id]?.label)}
+        readOnly={readOnly}
+        onActivate={(ids) => saveVisibilityNow(ids, [])}
+      />
       {configError && config && (
         <p className="shrink-0 rounded-[10px] bg-orange-500/10 px-3 py-2 text-xs text-orange-700" role="alert">
           Sincronizzazione della configurazione interrotta: sono visibili gli ultimi dati disponibili.

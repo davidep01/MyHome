@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { bentoCardSize, bentoLayout, isEntityActive, MAX_SURFACED, rankBentoEntities, settleBentoOrder, SURFACE_RECENT_MS, surfacedEntityIds } from './bentoHome'
+import { bentoCardSize, bentoLayout, isEntityActive, MAX_SURFACED, normalizeEntityName, rankBentoEntities, settleBentoOrder, SURFACE_RECENT_MS, surfacedEntityIds } from './bentoHome'
 
 describe('bentoLayout', () => {
   it('satura sempre la griglia: area delle tessere = colonne × righe', () => {
@@ -117,4 +117,24 @@ describe('surfacedEntityIds — le card si palesano', () => {
     expect(surfacedEntityIds([e('climate.sala', 'heat', { hvac_action: 'heating' })], base)).toEqual(['climate.sala'])
     expect(surfacedEntityIds([e('switch.x', 'off'), e('cover.y', 'closed')], base)).toEqual([])
   })
+
+  it('un dispositivo nascosto dall\'utente non compare nemmeno se si accende', () => {
+    const hidden = new Set(['light.laterale_porta_sonoff', 'light.centrale'])
+    const changedAt = () => NOW - 1_000
+    expect(surfacedEntityIds([e('light.laterale_porta_sonoff', 'on'), e('light.centrale', 'off'), e('light.sala', 'on')],
+      { ...base, changedAt, isHidden: (id) => hidden.has(id) })).toEqual(['light.sala'])
+  })
+
+  it('niente doppioni: una luce con lo stesso nome di un dispositivo già in home non si palesa', () => {
+    const configuredNames = new Set([normalizeEntityName('Laterale Porta Centrale Soggiorno')])
+    expect(surfacedEntityIds([
+      e('light.laterale_porta_centrale_soggiorno', 'on', { friendly_name: 'Laterale  Porta Centrale Soggiorno'.replace('  ', ' ') }),
+      e('light.laterale_porta_scale', 'on', { friendly_name: 'Laterale Porta Scale' }),
+    ], { ...base, configuredNames })).toEqual(['light.laterale_porta_scale'])
+  })
+
+  it('normalizeEntityName ignora maiuscole, accenti e spazi ai bordi', () => {
+    expect(normalizeEntityName('  Luce Città ')).toBe(normalizeEntityName('luce citta'))
+  })
 })
+
