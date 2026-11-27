@@ -1281,6 +1281,15 @@ a, button, [role="button"] { -webkit-touch-callout: default; }
   .widget-card-inline-slider { display: none; }
   .widget-card-compact .widget-card-identity { max-width: calc(100% - 52px); }
 }
+/* Verticale / tablet stretti: oltre due colonne le tessere scendono sotto i
+   ~190px e il testo si spezza. Le spans restano 1–2, quindi stanno in 2. */
+@media (min-width: 600px) and (max-width: 899px) {
+  .kiosk-bento[data-cols="3"], .kiosk-bento[data-cols="4"] {
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    grid-template-rows: none;
+    grid-auto-rows: minmax(120px,auto);
+  }
+}
 @media (max-width: 599px) {
   .kiosk-device-grid, .kiosk-device-grid-pairs { grid-template-columns: minmax(0,1fr); grid-auto-rows: auto; }
   .kiosk-device-grid > * { grid-column: auto !important; grid-row: auto !important; }

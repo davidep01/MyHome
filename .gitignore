@@ -25,6 +25,7 @@ dist-ssr
 
 # Local DB — contains real HA credentials, never commit
 backend/data/db.json
+backend/data/kiosk-devices.json
 .env
 .env.*
 !.env.example

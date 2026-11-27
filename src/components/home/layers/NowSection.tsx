@@ -29,6 +29,7 @@ export function NowSection({
   return (
     <section
       className="kiosk-bento h-full min-h-0 overflow-y-auto overscroll-contain p-2"
+      data-cols={layout.cols}
       style={{
         '--bento-cols': layout.cols,
         '--bento-rows': layout.rows,

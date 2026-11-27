@@ -28,6 +28,7 @@ import { CameraMonitoringRow } from './layers/CameraMonitoringRow'
 import { RoomDashboard } from './layers/RoomDashboard'
 import { useCameraRowVisibility } from '../../hooks/useCameraRowVisibility'
 import { useDashboardEntityCuration } from '../../hooks/useDashboardEntityCuration'
+import { isDashboardCardEntity } from '../../lib/entityVisibility'
 
 /**
  * Home a strati (DOMINICA M1): si compone da sola, zero gestione.
@@ -60,6 +61,9 @@ export function LayeredHome() {
   const [spacesOpen, setSpacesOpen] = useState(false)
   const { cameraRowVisible, toggleCameraRow } = useCameraRowVisibility()
   const activeRoom = rooms.find((room) => room.key === activeRoomKey) ?? null
+  // Opt-in: con zero dispositivi scelti la home non è "rotta", è da configurare. Lo diciamo.
+  const nothingConfigured = Boolean(layout) && !Object.keys(layout?.deviceOverrides ?? {})
+    .some((id) => isDashboardCardEntity(id, layout?.deviceOverrides))
   const preferredCameraIds = useMemo(
     () => (layout?.doorbells ?? [])
       .filter((doorbell) => doorbell.active !== false && doorbell.cameraEntityId)
@@ -109,7 +113,7 @@ export function LayeredHome() {
     <div className="relative isolate h-full overflow-hidden">
       <DuskLayer />
       <div
-        className="relative z-[1] mx-auto grid h-full w-full max-w-[1440px] grid-rows-[auto_minmax(0,1fr)_auto] gap-[clamp(10px,1.8vh,20px)] overflow-hidden"
+        className="relative z-[1] mx-auto grid h-full w-full max-w-[1440px] grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)_auto] gap-[clamp(10px,1.8vh,20px)] overflow-hidden"
         style={{
           paddingTop: 'calc(clamp(10px, 2vh, 20px) + env(safe-area-inset-top))',
           paddingRight: 'calc(clamp(16px, 2vw, 28px) + env(safe-area-inset-right))',
@@ -141,8 +145,11 @@ export function LayeredHome() {
           ) : (
             <div className={cn(
               'grid h-full min-h-0 overflow-hidden',
-              cameraRowVisible ? 'grid-rows-[clamp(111px,17.25vh,162px)_minmax(0,1fr)] gap-3.5' : 'grid-rows-1',
+              cameraRowVisible && nothingConfigured ? 'grid-rows-[auto_clamp(111px,17.25vh,162px)_minmax(0,1fr)] gap-3.5'
+                : cameraRowVisible ? 'grid-rows-[clamp(111px,17.25vh,162px)_minmax(0,1fr)] gap-3.5'
+                  : nothingConfigured ? 'grid-rows-[auto_minmax(0,1fr)] gap-3.5' : 'grid-rows-1',
             )}>
+              {nothingConfigured && <EmptyHomeHint />}
               {cameraRowVisible && <CameraMonitoringRow entityIds={cameraIds} overrides={layout?.deviceOverrides} compact />}
               <div className="min-h-0 overflow-hidden">
                 {composed.quiet ? <QuietSection /> : <NowSection hero={composed.hero} overrides={layout?.deviceOverrides} />}
@@ -175,6 +182,18 @@ export function LayeredHome() {
         {/* Strato 4: lo screensaver ambient è montato dal KioskShell così copre
             sia il composer sia la griglia manuale. */}
       </div>
+    </div>
+  )
+}
+
+/** Home senza dispositivi scelti: il passo successivo, non uno schermo misteriosamente vuoto. */
+function EmptyHomeHint() {
+  return (
+    <div role="status" className="glass glass-border mx-2 rounded-[18px] px-5 py-4">
+      <p className="text-[17px] font-semibold text-[var(--ink)]">Nessun dispositivo scelto per il tablet</p>
+      <p className="mt-1 text-[15px] text-[var(--ink-secondary)]">
+        Dalla regia apri Entità e premi «Configura dispositivo»: le card compariranno qui. Intanto vedi solo ciò che si accende.
+      </p>
     </div>
   )
 }

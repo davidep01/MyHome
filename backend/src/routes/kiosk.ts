@@ -5,6 +5,7 @@ import {
   issueKioskCommand, DEVICE_ID_PATTERN, listKioskDevices, parseKioskCommand, recordKioskCommandResult,
   recordKioskHeartbeat,
 } from '../lib/kiosk-fleet.js'
+import { ensureKioskFleetLoaded, persistKioskFleetIfNeeded } from '../lib/kiosk-fleet-store.js'
 
 /**
  * Flotta kiosk (§4.5/§12): heartbeat dai tablet, elenco per la regia e comandi
@@ -27,6 +28,7 @@ function enumValue<T extends string>(value: unknown, allowed: readonly T[]): T |
 }
 
 kioskRouter.post('/heartbeat', async (c) => {
+  ensureKioskFleetLoaded()
   const body = await c.req.json<Record<string, unknown>>().catch(() => null)
   if (!body || typeof body.deviceId !== 'string' || !DEVICE_ID_PATTERN.test(body.deviceId)) {
     return c.json({ error: 'deviceId non valido' }, 400)
@@ -46,10 +48,14 @@ kioskRouter.post('/heartbeat', async (c) => {
     audioChannel: enumValue(body.audioChannel, ['initializing', 'ready', 'needs-interaction', 'error']),
     audioPlaying: typeof body.audioPlaying === 'boolean' ? body.audioPlaying : undefined,
   })
+  if (accepted) persistKioskFleetIfNeeded()
   return accepted ? c.json({ ok: true as const }) : c.json({ error: 'Heartbeat rifiutato' }, 400)
 })
 
-kioskRouter.get('/devices', adminOnly, (c) => c.json({ devices: listKioskDevices() }))
+kioskRouter.get('/devices', adminOnly, (c) => {
+  ensureKioskFleetLoaded()
+  return c.json({ devices: listKioskDevices() })
+})
 
 /**
  * Riscontro dal tablet dopo un comando. Non è autenticato come admin di

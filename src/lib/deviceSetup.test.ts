@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { DeviceOverride } from '../api/backend'
-import { applyVisibilitySelection, applyDeviceSetup } from './deviceSetup'
+import { applyVisibilitySelection, applyDeviceSetup, legacyConfiguredEntityIds } from './deviceSetup'
 
 describe('device setup wizard override', () => {
   it('sets category and room without losing existing card configuration', () => {
@@ -62,3 +62,24 @@ describe('visibilità opt-in dal wizard', () => {
     expect(next).toEqual({ 'light.sala': { cardSize: 'L' } })
   })
 })
+
+describe('legacyConfiguredEntityIds', () => {
+  const exists = (id: string) => !id.includes('assente')
+  const renderable = (id: string) => !id.startsWith('event.')
+  it('propone solo i dispositivi configurati a mano ma mai attivati', () => {
+    const result = legacyConfiguredEntityIds({
+      'light.sala': { type: 'light', areaId: 'soggiorno' },
+      'vacuum.robot': { areaId: 'soggiorno' },
+      'sensor.rifiuti': { hero: 'always', label: 'Rifiuti' },
+      'light.attiva': { enabled: true, type: 'light' },
+      'camera.ingresso': { hero: 'always' },
+      'light.mai': { hero: 'never', type: 'light' },
+      'light.assente': { type: 'light' },
+      'event.campanello': { label: 'Campanello' },
+      'switch.nascosto': { type: 'lock' },
+      'switch.vuoto': {},
+    }, { exists, renderable, hidden: new Set(['switch.nascosto']) })
+    expect(result).toEqual(['light.sala', 'sensor.rifiuti', 'vacuum.robot'])
+  })
+})
+

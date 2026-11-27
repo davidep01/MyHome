@@ -407,6 +407,14 @@ Fasi 2–6 applicate. La Definition of Done richiede a ogni rilascio lint, suite
 - **Le card si palesano** — `surfacedEntityIds` in [bentoHome.ts](src/lib/bentoHome.ts) (puro + 5 test): un dispositivo comandabile (luci, prese, clima, tapparelle, media, robot, serrature, valvole…) o un'apertura (porta/finestra/garage) che si accende o cambia stato compare in home anche se non è nel wizard; resta finché è acceso e per 10 minuti dopo l'ultimo cambio, max 8. Mai sensori, movimento, videocamere, entità escluse dal registry HA, relè duplicati o marcate "Mai". I cambi contano **solo se visti dal vivo dal tablet** (`useComposedHome` confronta i delta dello store): un riavvio di HA, che riscrive tutti i `last_changed`, non fa comparire nulla. Stesso ordinamento per peso delle configurate (acceso = +2).
 - Verifica: test kernel ✅ · provato dal vivo con HA simulato: 2 card configurate → luce accesa da fuori → 3 card; porta aperta → 4; movimento ignorato; luce spenta resta "Cambiato da poco"; `0,03 kW` mostrato; `scrollbar-width: none` sul kiosk.
 
+**Risolti (2026-11-27) — Fase 0 del piano UX kiosk ([docs/PIANO_UX_KIOSK_2026-11-27.md](docs/PIANO_UX_KIOSK_2026-11-27.md)):**
+- **Tablet ricordati** — [kiosk-fleet-store.ts](backend/src/lib/kiosk-fleet-store.ts): id, nome e ultimo contatto in `kiosk-devices.json` accanto a `db.json` (scrittura rada, atomica, mai in read-only; lo stato vivo non si persiste). Prima un riavvio svuotava l'elenco e un tablet scollegato da 30 ore era indistinguibile da "nessun tablet". Stato → Attenzione: «Tablet … non risponde da …» ([kioskFleet.ts](src/lib/kioskFleet.ts)).
+- **Home vuota spiegata** — banner in Entità per gli override configurati prima dell'opt-in e mai attivati ([LegacyActivationBanner](src/components/entities/LegacyActivationBanner.tsx), `legacyConfiguredEntityIds`), attivazione con un tocco e mai automatica; stato vuoto sul kiosk con il passo successivo.
+- **Palesate che rispettano le scelte** — `surfacedEntityIds` esclude `hiddenEntities` e i doppioni per nome di un dispositivo già in home. Non per `device_id`: un Sonoff a 3 canali è un dispositivo con tre luci.
+- **Verticale** — la griglia di `LayeredHome` aveva una colonna implicita allargata dalla fila stanze (1017 px su 800): ora `grid-cols-[minmax(0,1fr)]` e bento a 2 colonne fra 600 e 899 px.
+- **Dark** — glifi delle stanze (RoomsRow, SpacesCatalog) su token del tema invece di `rgba(29,29,31,…)` inline.
+- Verifica: lint ✅ · test 898/898 ✅ · build:all ✅ · typecheck backend ✅ · prova dal vivo su copia isolata con HA reale (800×1280 dark, 1280×800, 1024×600). **Da fare sul tablet:** ricollegarlo (URL di avvio di Fully) e confermare l'avviso offline dopo un riavvio dell'add-on.
+
 **Residui noti (non bloccanti):** WebRTC/talk-back via signaling proxy backend; rimozione definitiva della grid legacy dopo validazione del composer sul tablet reale; AI write-back automazioni (roadmap); modalità ospiti/pulizie (§6.4) non ancora implementata.
 
 ---
@@ -571,6 +579,8 @@ Backend (config/layout) ──SSE config──▶ useConfigSync ──▶ refetc
 ## 12. Roadmap funzioni smart
 
 Vedi `docs/SMART_FUNCTIONS_ROADMAP.md`: campanello (✅, two-way audio 🔜 via signaling proxy), riconoscimento per nome via Gemini Vision + volti di riferimento (✅ — foto in Funzioni→Campanelli→Volti conosciuti; Frigate/Double-Take scartato deliberatamente), AI write-back automazioni (🔜), dashboard per-area dal registry HA (✅ chip Stanze, DOMINICA M1), presence wake (✅ M7), home auto-composta (✅ M1 — sostituisce i widget riordinabili), timeline di casa (✅ M4), suggerimenti azionabili (✅ M6), energia onesta (✅ M5), Web Push per alert in background (🔜).
+
+**Piano UX kiosk (2026-11-27, Fase 0 implementata):** [docs/PIANO_UX_KIOSK_2026-11-27.md](docs/PIANO_UX_KIOSK_2026-11-27.md) — registro K01–K20 (tablet scollegato, home vuota per opt-in, palesate che ignorano i nascosti, ritaglio in verticale, leggibilità da lontano, ordine stabile vs appreso) e direzione «Home View» ispirata all'app Casa e ad Apple HomeView, in 5 fasi.
 
 ---
 

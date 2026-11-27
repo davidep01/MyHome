@@ -8,7 +8,8 @@ import { GlassCard } from '../components/glass/GlassCard'
 import { AttentionCard } from '../components/system/AttentionCard'
 import { OfflineDevicesCard } from '../components/system/OfflineDevicesCard'
 import type { SystemProblem } from '../lib/attention'
-import { configApi, systemApi } from '../api/backend'
+import { configApi, kioskApi, systemApi } from '../api/backend'
+import { kioskOfflineProblems } from '../lib/kioskFleet'
 import { useDashboardConfig } from '../hooks/useDashboardConfig'
 import { useOfflineReport } from '../hooks/useOfflineReport'
 import { useEntityStore } from '../store/entities'
@@ -37,8 +38,9 @@ export function StatusPage() {
 
   const offline = useOfflineReport()
 
+  const { data: kioskFleet } = useQuery({ queryKey: ['kiosk-devices'], queryFn: kioskApi.devices, refetchInterval: 60_000 })
   const problems = useMemo(() => {
-    const list: SystemProblem[] = []
+    const list: SystemProblem[] = [...kioskOfflineProblems(kioskFleet?.devices ?? [])]
     if (statusError) {
       list.push({
         id: 'backend',
@@ -62,7 +64,7 @@ export function StatusPage() {
       list.push({ id: 'storage', severity: 'warn', text: 'Storage in sola lettura: le modifiche alla configurazione non vengono salvate.' })
     }
     return list
-  }, [status, statusError, statusQueryError])
+  }, [status, statusError, statusQueryError, kioskFleet])
 
   const home = config?.home
   const online = connectionStatus === 'connected'

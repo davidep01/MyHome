@@ -165,6 +165,24 @@ export interface SurfaceOptions {
   isExcluded: (id: string) => boolean
   /** Istante in cui il tablet ha VISTO cambiare lo stato (non `last_changed`, che un riavvio di HA azzera). */
   changedAt: (id: string) => number | undefined
+  /** Nascosto esplicitamente dall'utente: una scelta "non voglio vederlo" vale anche quando si accende. */
+  isHidden?: (id: string) => boolean
+  /**
+   * Nomi (normalizzati con {@link normalizeEntityName}) dei dispositivi già in home.
+   * Una luce e il relè che la comanda hanno lo stesso nome: è lo stesso oggetto
+   * fisico e non deve comparire due volte. Non si deduplica per `device_id`: un
+   * Sonoff a tre canali è UN dispositivo con TRE luci diverse.
+   */
+  configuredNames?: ReadonlySet<string>
+}
+
+/** Nome confrontabile: minuscolo, senza accenti né spazi ai bordi. */
+export function normalizeEntityName(name: unknown): string {
+  return String(name ?? '')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLocaleLowerCase('it')
 }
 
 function isOpen(entity: SurfaceEntity): boolean {
@@ -174,7 +192,8 @@ function isOpen(entity: SurfaceEntity): boolean {
 /**
  * Dispositivi NON scelti nel wizard che devono comunque comparire in home:
  * quelli accesi/in funzione adesso e quelli il cui stato è appena cambiato
- * (per {@link SURFACE_RECENT_MS}). Mai sensori, videocamere o entità escluse.
+ * (per {@link SURFACE_RECENT_MS}). Mai sensori, videocamere, entità escluse o
+ * nascoste dall'utente, né doppioni (stesso nome) di un dispositivo già in home.
  * Ordine: prima i più recenti, poi gli attivi da più tempo; al massimo
  * {@link MAX_SURFACED}. Puro e deterministico.
  */
@@ -183,7 +202,8 @@ export function surfacedEntityIds(entities: SurfaceEntity[], opts: SurfaceOption
   for (const entity of entities) {
     const id = entity.entity_id
     const domain = id.split('.')[0]
-    if (opts.isConfigured(id) || opts.isExcluded(id) || domain === 'camera') continue
+    if (opts.isConfigured(id) || opts.isExcluded(id) || opts.isHidden?.(id) || domain === 'camera') continue
+    if (opts.configuredNames?.has(normalizeEntityName(entity.attributes?.friendly_name))) continue
     if (entity.state === 'unavailable' || entity.state === 'unknown') continue
     const opening = domain === 'binary_sensor' && OPENING_CLASSES.has(String(entity.attributes?.device_class ?? ''))
     if (!SURFACE_DOMAINS.has(domain) && !opening) continue
